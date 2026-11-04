@@ -1,5 +1,5 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>Capybara Squad</title>
+<script>try{["img/d328f1a428.webp","img/b6f38631c6.webp","img/2510465d7d.webp","img/e24cf5d037.webp"].forEach(function(u){var i=new Image();i.src=u;if(i.decode)i.decode().catch(function(){});(window.__PRE0=window.__PRE0||[]).push(i);});}catch(e){}</script><link rel="preload" as="image" href="img/d328f1a428.webp"><link rel="preload" as="image" href="img/b6f38631c6.webp"><link rel="preload" as="image" href="img/2510465d7d.webp"><title>Capybara Squad</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -2654,7 +2654,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V212";
+const GAME_VER = "V213";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -7234,8 +7234,8 @@ setInterval(() => { const g = document.getElementById("genAv"); if (!g) return; 
 (() => { const ov = document.getElementById("ovStart"); if (!ov) return; const t0 = performance.now();
   const chk = () => { const f = ov.querySelector(".menuFrame"), h = ov.querySelector(".heroImg");
     if (f && h) { Promise.all([f, h].map(im => (im.decode ? im.decode() : Promise.resolve()).catch(() => {}))).then(() => ov.classList.add("artReady")); return; }
-    if (performance.now() - t0 > 1500) { ov.classList.add("artReady"); return; } setTimeout(chk, 30); };
-  chk(); setTimeout(() => ov.classList.add("artReady"), 2500); })();
+    if (performance.now() - t0 > 4000) { ov.classList.add("artReady"); return; } setTimeout(chk, 30); };
+  chk(); setTimeout(() => ov.classList.add("artReady"), 5000); })();
 
 // V178w: Wellen-Nummer neben dem General
 (() => { const n = document.createElement("div"); n.id = "waveNum"; n.hidden = true; document.body.appendChild(n);
@@ -7945,5 +7945,15 @@ body.hasSave #btnResume{position:relative;z-index:20}
 #ovOver .hsEntry{padding:8px 10px!important}
 #ovOver .overBtns{display:grid!important;grid-template-columns:1fr;gap:8px!important;margin:0!important}
 #ovOver .overBtns>button{width:100%!important;margin:0!important;height:46px!important;min-height:0!important;font-size:17px!important}
+</style>
+<style id="v213">
+#startMain{position:relative!important}
+#startMain .heroStart{flex:1 1 auto!important;height:100%!important;min-height:0!important}
+#startMain .squad,#startMain #btnResume{position:absolute!important;left:50%!important;transform:translateX(-50%)!important;width:min(340px,calc(100% - 16px))!important;bottom:56px!important;margin:0!important;z-index:7!important}
+#startMain .squad .modes{margin:0!important}
+#startMain .squad .modes,#startMain .squad .modeBtn{margin:0!important;width:100%!important;max-width:none!important;box-sizing:border-box}
+#startMain .squad .modeBtn{height:76px!important}
+#ovStart:not(.artReady) #startMain{visibility:hidden!important}
+#startMain #btnNewTour{position:absolute!important;left:50%!important;transform:translateX(-50%)!important;bottom:12px!important;margin:0!important;z-index:7!important}
 </style>
 </body></html>
