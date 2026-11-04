@@ -2654,7 +2654,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V203";
+const GAME_VER = "V204";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -5142,7 +5142,7 @@ function openHack(force) {
 }
 function hkStakeUI() { const v = +$("hkRange").value || 0; $("hkStakeV").textContent = v; $("hkWinV").textContent = v ? `win → +${v} (${v * 2} back)` : "no stake · just for honour"; }
 function tutAbort() { if (TUT.on) { TUT.on = false; $("coach").hidden = true; coachHi(null); } }
-function closeHack() { window.__hackBack = true; HK.coach = false; HK._bk = null; snd("arcade", false); $("ovHack").hidden = true; document.body.classList.remove("duelOn", "duelPick"); S.hackDone = S.hackOfferWave || S.wave; HK.phase = "off"; S.duel = false; S.hackDone = S.wave; }
+function closeHack() { const wasCoach = !!HK.coach; window.__hackBack = true; HK.coach = false; HK._bk = null; snd("arcade", false); $("ovHack").hidden = true; document.body.classList.remove("duelOn", "duelPick"); S.hackDone = S.hackOfferWave || S.wave; HK.phase = "off"; S.duel = false; S.hackDone = S.wave; if (wasCoach && S.started && !S.over) setTimeout(() => { try { openShop(); } catch (e) {} }, 80); }
 function startDuel(keepStake) {
   if (!keepStake) { HK.stake = Math.min(S.gold, +$("hkRange").value || 0); S.gold -= HK.stake; const pool = hkPool(HK.stake); HK.type = pool[Math.floor(Math.random() * pool.length)]; }
   HK.sides = [hkGenSide(), hkGenSide()]; HK.pw = [[], []];
@@ -5195,8 +5195,8 @@ function hkFinish() {
     $("hkResTag").textContent = "COACH OLLIE"; $("hkResTag").classList.remove("bad"); $("hkResT").textContent = win ? "NICE ROUND!" : "GOOD TRY!"; $("hkDevT").textContent = "";
     $("hkArt").innerHTML = `<img src="${COACH_IMG()}" alt="" style="width:110px;height:110px;object-fit:contain">`; $("hkScMe").textContent = mine; $("hkScBo").textContent = 12 - mine; $("hkConf").innerHTML = ""; document.querySelector(".hkScoreL").innerHTML = `<span>YOU</span><span>COACH</span>`;
     $("hkGoldV").textContent = "COACH'S TIP"; $("hkGoldS").textContent = COACH_TIPS[Math.floor(Math.random() * COACH_TIPS.length)] + ` · ${coachLeft()} practice duels left`;
-    snd(win ? "hkWin" : "hkLose"); $("hkAgain").textContent = "AGAIN ▶"; return; }
-  document.querySelector(".hkScoreL").innerHTML = `<span>YOU</span><span>BOSS</span>`;
+    snd(win ? "hkWin" : "hkLose"); $("hkAgain").textContent = "AGAIN ▶"; $("hkBack").textContent = "Back to the shop"; return; }
+  document.querySelector(".hkScoreL").innerHTML = `<span>YOU</span><span>BOSS</span>`; $("hkBack").textContent = "Back to the game";
   $("hackCv").hidden = true; const res = $("hackRes"); res.hidden = false; res.classList.toggle("win", win); res.classList.toggle("lose", !win);
   $("hkResTag").textContent = win ? "ACCESS GRANTED" : "ACCESS DENIED"; $("hkResTag").classList.toggle("bad", !win);
   $("hkResT").textContent = win ? "BOSS HACKED!" : "THE BOSS WINS"; $("hkDevT").textContent = `dev: BOSS ${HK.type} (${(BOSS_T[HK.type] || {}).txt})`;
