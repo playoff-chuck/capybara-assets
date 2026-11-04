@@ -2654,7 +2654,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V194";
+const GAME_VER = "V195";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -6928,8 +6928,13 @@ function maybeJoin() {
   renderThemeBtn(); $("ovJoin").hidden = false; snd("radio");
 }
 function closeJoin() { $("ovJoin").hidden = true; S.joinOpen = false; S.intro = false; snd("uiTap"); }
+const NICK_WHY = { realname: "Please pick a made-up call sign \u2013 no real names.", rude: "That call sign isn't allowed. Try another one.", contact: "No phone numbers, e-mails or links, please." };
+async function nickCheck(n) { try { const ac = new AbortController(); const tm = setTimeout(() => ac.abort(), 2500); const r = await fetch(API_BASE + "/callsign?name=" + encodeURIComponent(n), { cache: "no-store", signal: ac.signal }); clearTimeout(tm); if (!r.ok) return null; const d = await r.json(); return d && d.ok === false ? (d.why || "rude") : null; } catch (e) { return null; } }
+function nickErr(input, why) { const host = input.closest(".joinNickRow") || input; let el = host.nextElementSibling && host.nextElementSibling.classList.contains("nickErr") ? host.nextElementSibling : null; if (!el) { el = document.createElement("div"); el.className = "nickErr"; host.insertAdjacentElement("afterend", el); }
+  el.textContent = why ? (NICK_WHY[why] || NICK_WHY.rude) : ""; el.hidden = !why; if (why) { input.focus(); try { input.select(); } catch (e) {} snd("nope"); } }
 async function finishJoin(useName) {
   let n = useName ? cleanNick($("joinNick").value) : "";
+  if (n.length >= 2) { const why = await nickCheck(n); nickErr($("joinNick"), why); if (why) return; }
   if (n.length < 2) n = await autoNick();
   LS.set("tarnturm-nick", n); LS.set("tarnturm-join", "1"); closeJoin(); toast(`WELCOME, ${n.toUpperCase()}!`, "SQUAD", 1800);
 }
@@ -6939,7 +6944,7 @@ $("joinX").addEventListener("click", () => finishJoin(false));
 // Einstellungen (Zahnrad im Startmenü)
 $("btnGear").addEventListener("click", () => { SFX.init(); $("setNick").value = LS.get("tarnturm-nick") || ""; renderThemeBtn(); $("ovSettings").hidden = false; });
 $("setNick").addEventListener("keydown", e => e.stopPropagation());
-$("setX").addEventListener("click", () => { const n = cleanNick($("setNick").value); if (n.length >= 2) LS.set("tarnturm-nick", n); $("ovSettings").hidden = true; snd("uiTap"); });
+$("setX").addEventListener("click", async () => { const n = cleanNick($("setNick").value); if (n.length >= 2) { const why = await nickCheck(n); nickErr($("setNick"), why); if (why) return; LS.set("tarnturm-nick", n); } $("ovSettings").hidden = true; snd("uiTap"); });
 
 /* V144 – Startbild: antippen (oder nach 6 s) → Titelmenü */
 (function () { const sp = document.getElementById("splash"); if (!sp) return; let done = false;
@@ -7748,5 +7753,8 @@ body:has(#sheet:not([hidden])) #sheetIn{max-height:calc(100dvh - 74px - env(safe
 .coachAd .ad.ad3 .k{background:none!important;border:0!important;padding:0!important;animation:none!important;color:#ffd75e!important;letter-spacing:.12em!important;font-size:10px!important}
 .coachAd .ad.ad3 .h{font-size:clamp(19px,5.6vw,24px)!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .coachAd .ad.ad3 .s{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+</style>
+<style id="v195">
+.nickErr{margin:6px 0 0;padding:5px 8px;border-radius:8px;background:#ffe1e1;border:2px solid #b8402c;color:#7a1f12;font:700 12.5px/1.25 "Baloo 2",sans-serif;text-align:left}
 </style>
 </body></html>
