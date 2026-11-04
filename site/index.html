@@ -2654,7 +2654,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V211";
+const GAME_VER = "V212";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -4161,7 +4161,7 @@ function nextKey() {
   if (stackHeight() < 8) S.helpOn = false;
   return randKey();
 }
-function spawnPiece() {
+function spawnPiece() { S.dropLockUntil = performance.now() + 300;
   S.piece = S.next; S.next = S.next2; S.next2 = makePiece(nextKey());
   S.piece.x = Math.floor(VW() / 2) - (S.piece.k === "I" ? 2 : 1); S.piece.y = 0;
   if (collide(S.piece.cells, S.piece.x, S.piece.y) && !(S.rotMode && findEntry(S.piece))) gameOver("The stack hit the ceiling.");
@@ -4176,8 +4176,8 @@ function rotate() {
   for (const k of [0, -1, 1, -2, 2]) if (!collide(r, p.x + k, p.y)) { p.cells = r; p.x += k; snd("rotate"); return; }
   if (!collide(r, p.x, p.y - 1)) { p.cells = r; p.y -= 1; snd("rotate"); } else snd("rotBlocked");
 }
-function softDrop() { const p = S.piece; if (!canAct()) return; if (!collide(p.cells, p.x, p.y + 1)) { p.y++; S.gravT = 0; snd("soft"); } else lockPiece(); }
-function hardDrop() { if (S.duel) { if (HK.phase === "pick") hkPick(HK.prev); return; } const p = S.piece; if (!canAct()) return; p.fromY = p.y; while (!collide(p.cells, p.x, p.y + 1)) p.y++; snd("drop"); lockPiece(true); }
+function softDrop() { const p = S.piece; if (!canAct()) return; if (performance.now() < (S.dropLockUntil || 0)) return; if (!collide(p.cells, p.x, p.y + 1)) { p.y++; S.gravT = 0; snd("soft"); } else lockPiece(); }
+function hardDrop() { if (S.duel) { if (HK.phase === "pick") hkPick(HK.prev); return; } const p = S.piece; if (!canAct()) return; if (performance.now() < (S.dropLockUntil || 0)) return; p.fromY = p.y; while (!collide(p.cells, p.x, p.y + 1)) p.y++; snd("drop"); lockPiece(true); }
 function lockPiece(dropped) {
   const p = S.piece;
   for (let i = 0; i < p.cells.length; i++) {
