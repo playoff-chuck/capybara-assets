@@ -2654,7 +2654,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V237";
+const GAME_VER = "V238";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -7736,7 +7736,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
       pinsEl.innerHTML = h;
       const H = Math.round(1000 * MAP_AR); pathEl.innerHTML = MAP_PTS.map((P, c) => `<polyline points="${P.map(p => (p[0] * 1000).toFixed(1) + "," + (p[1] * H).toFixed(1)).join(" ")}" class="${c * 6 + 5 < g ? "done" : ""}"/>`).join("");
     }
-    function setMe(pt, on) { me.style.left = pt[0] * 100 + "%"; me.style.top = pt[1] * 100 + "%"; me.classList.toggle("on", !!on); try { me.querySelector("img").src = HERO_IMG[heroKey()]; } catch (e) {} }
+    function setMe(pt, on) { me.style.setProperty("--px", (pt[0]) * BW + "px"); me.style.setProperty("--py", (pt[1]) * BW * MAP_AR + "px"); me.classList.toggle("on", !!on); try { me.querySelector("img").src = HERO_IMG[heroKey()]; } catch (e) {} }
     function label(cont, place, sub) { ov.querySelector(".mapCont").textContent = cont || ""; ov.querySelector(".mapPlace").textContent = place || ""; ov.querySelector(".mapSub").textContent = sub || ""; }
     function placeSub(w) { const P = wherePos(w), left = 5 - P.d, lm = (5 - P.p) * 5 - P.d; return P.p === 5 ? `Landmark · boss waits here · wave ${w}` : `Wave ${w} · next stop in ${left} wave${left > 1 ? "s" : ""} · landmark in ${lm}`; }
     function clearSeq() { seqT.forEach(clearTimeout); seqT = []; }
@@ -7759,12 +7759,12 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     ov.addEventListener("click", () => { if (mode === "auto") hide(); });
     function flyPlane(a, b, ms) { plane.classList.add("on"); const t0 = performance.now(), ang = Math.atan2((b[1] - a[1]) * MAP_AR, b[0] - a[0]) * 180 / Math.PI;
       const step = now => { if (mode !== "auto") return; const t = Math.min(1, (now - t0) / ms), e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2, x = a[0] + (b[0] - a[0]) * e, y = a[1] + (b[1] - a[1]) * e - Math.sin(Math.PI * e) * .12;
-        plane.style.left = x * 100 + "%"; plane.style.top = y * 100 + "%"; plane.style.setProperty("--a", (ang - Math.cos(Math.PI * e) * 18) + "deg"); if (t < 1) requestAnimationFrame(step); else plane.classList.remove("on"); };
+        plane.style.setProperty("--px", (x) * BW + "px"); plane.style.setProperty("--py", (y) * BW * MAP_AR + "px"); plane.style.setProperty("--a", (ang - Math.cos(Math.PI * e) * 18) + "deg"); if (t < 1) requestAnimationFrame(step); else plane.classList.remove("on"); };
       requestAnimationFrame(step); try { SFX.swoosh && SFX.swoosh(); } catch (e) {} }
     const cen = c => { const P = MAP_PTS[c]; return [P.reduce((a, p) => a + p[0], 0) / 6, P.reduce((a, p) => a + p[1], 0) / 6]; };
     function hopMe(a, b, ms) { const t0 = performance.now(); me.classList.add("on", "hop");
       const step = now => { if (mode !== "auto") return; const t = Math.min(1, (now - t0) / ms), x = a[0] + (b[0] - a[0]) * t, y = a[1] + (b[1] - a[1]) * t - Math.sin(Math.PI * t) * .09;
-        me.style.left = x * 100 + "%"; me.style.top = y * 100 + "%"; if (t < 1) requestAnimationFrame(step); else me.classList.remove("hop"); };
+        me.style.setProperty("--px", (x) * BW + "px"); me.style.setProperty("--py", (y) * BW * MAP_AR + "px"); if (t < 1) requestAnimationFrame(step); else me.classList.remove("hop"); };
       requestAnimationFrame(step); }
     const fx = k => { try { snd(k); } catch (e) {} };
     const whoosh = () => { try { if (typeof swoosh === "function") swoosh(); } catch (e) {} };
@@ -8406,5 +8406,11 @@ button .lk{font-style:normal;white-space:nowrap}
   background:#ffe9a8;border:2px solid #3a2414;border-radius:999px;padding:3px 10px 2px 4px;box-shadow:0 2px 0 #3a2414;white-space:nowrap}
 #sheet .ledgerTop .ledgerBubble em i{width:15px;height:15px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff2a8,#f2b51e 55%,#b8800a);border:1.5px solid #3a2414;box-sizing:border-box}
 #sheet .ledgerTop .ledgerBubble span{grid-area:tx!important;font:600 13.5px/1.25 "Baloo 2",sans-serif!important;color:#3a2414!important;min-height:2.5em;display:-webkit-box!important;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin:0!important;flex:none!important}
+</style>
+<style id="v238">
+#ovMap .mapMe{left:0!important;top:0!important;transform:translate3d(var(--px,0),var(--py,0),0) scale(var(--ik,1))!important;transform-origin:0 0!important;will-change:transform}
+#ovMap .mapPlane{left:0!important;top:0!important;transform:translate3d(var(--px,0),var(--py,0),0) translate(-50%,-50%) scale(var(--ik,1)) rotate(calc(var(--a,0deg) + 90deg))!important;will-change:transform}
+#ovMap .mapMe.fly img,#ovMap .mapMe.hop img{animation:mFloat 1.1s ease-in-out infinite alternate!important}
+@keyframes mFloat{from{transform:translateY(0)}to{transform:translateY(-5px)}}
 </style>
 </body></html>
