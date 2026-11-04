@@ -2654,7 +2654,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V224";
+const GAME_VER = "V225";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -4636,7 +4636,7 @@ function update(dt) {
     else if (f.type === "spark") { f.vy += 9 * dt; f.vx *= (1 - 2.5 * dt); f.x += f.vx * dt; f.y += f.vy * dt; }
     else if (f.type === "smoke") { f.vy *= (1 - 0.35 * dt); f.x += (f.vx + Math.sin(f.t * 1.7 + f.ph) * 0.6) * dt; f.y += f.vy * dt; f.r += f.grow * dt; }
   }
-  SFX.music.setPaused(SFX.music.playing !== 0 && !!frozen() && !S.drop && !S.alert && !S.mix && !S.duel);
+  SFX.music.setPaused(SFX.music.playing !== 0 && !!frozen() && !S.drop && !S.alert && !S.mix && !S.duel && !S.mapShow);
   if (S.mix) stepMix(dt);
   stepTon(dt); stepChomp(dt);
   if (frozen() || S.ton) return;   // während das Gewicht fällt, steht alles
@@ -5715,7 +5715,7 @@ function drawNext() { if (!S) return; drawPieceTo("nextCv", S.next); drawPieceTo
 let hudT = 0, toastT = null, saveT = 5;
 function hud() {
   medalTag();
-  { const po = $("ovPause"), want = !!(S.paused && S.started && !S.over && $("ovStart").hidden && $("ovCamp").hidden && $("ovOver").hidden); if (po.classList.contains("overMode")) { if (!S.over) { po.classList.remove("overMode"); po.hidden = !want; } } else if (po.hidden === want) { po.hidden = !want; if (!want) restartArm = 0; } }
+  { const po = $("ovPause"), want = !!(S.paused && !S.mapShow && S.started && !S.over && $("ovStart").hidden && $("ovCamp").hidden && $("ovOver").hidden); if (po.classList.contains("overMode")) { if (!S.over) { po.classList.remove("overMode"); po.hidden = !want; } } else if (po.hidden === want) { po.hidden = !want; if (!want) restartArm = 0; } }
   const L = limits(Math.max(1, S.wave));
   $("sLives").textContent = S.lives; $("sGold").textContent = S.gold; $("sWave").textContent = S.wave; $("sScore").textContent = S.score.toLocaleString("en-US");
   $("sLines").textContent = S.lines; $("sKills").textContent = S.kills;
@@ -7695,10 +7695,10 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
   try {
     const MAP_AR = 768 / 1376;
     const MAP_PTS = [
-      [[.262, .705], [.236, .615], [.252, .505], [.288, .468], [.282, .640], [.314, .556]],   // South America
-      [[.452, .415], [.514, .522], [.574, .522], [.468, .338], [.583, .348], [.538, .362]],   // Africa
-      [[.585, .168], [.678, .245], [.738, .305], [.700, .150], [.872, .192], [.826, .132]],   // Asia
-      [[.137, .305], [.126, .176], [.186, .296], [.209, .228], [.282, .262], [.248, .165]],   // North America
+      [[.270, .677], [.235, .612], [.243, .501], [.287, .462], [.275, .560], [.314, .551]],   // South America
+      [[.451, .414], [.541, .573], [.509, .492], [.469, .341], [.581, .391], [.538, .354]],   // Africa
+      [[.585, .167], [.677, .245], [.738, .305], [.699, .150], [.871, .191], [.825, .124]],   // Asia
+      [[.137, .305], [.126, .173], [.186, .294], [.209, .228], [.282, .260], [.247, .163]],   // North America
       [[.195, .930], [.322, .925], [.456, .930], [.600, .920], [.720, .930], [.836, .925]]];  // Antarctica
     const contName = c => ["SOUTH AMERICA", "AFRICA", "ASIA", "NORTH AMERICA", "ANTARCTICA"][c];
     const nice = t => t.toLowerCase().replace(/\b\w/g, m => m.toUpperCase());
@@ -7717,11 +7717,13 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
       const W = vp.clientWidth, H = vp.clientHeight, mw = BW * cam.k, mh = BW * MAP_AR * cam.k;
       let tx = W / 2 - cam.x * mw, ty = H / 2 - cam.y * mh;
       if (mw >= W) tx = Math.min(0, Math.max(W - mw, tx)); else tx = (W - mw) / 2;
-      if (mh >= H) ty = Math.min(0, Math.max(H - mh, ty)); else ty = (H - mh) / 2;
+      if (cam.free) ty = H * .80 - mh; else if (mh >= H) ty = Math.min(0, Math.max(H - mh, ty)); else ty = (H - mh) / 2;
       world.style.transition = anim ? `transform ${anim}ms cubic-bezier(.45,0,.25,1)` : "none";
       world.style.transform = `translate(${tx}px,${ty}px) scale(${cam.k})`; world.style.setProperty("--ik", 1 / cam.k);
     }
-    function contCam(c) { const P = MAP_PTS[c], xs = P.map(p => p[0]), ys = P.map(p => p[1]), pad = .07;
+    function contCam(c) { if (c === 4) { const g = posOf(curWave()).g, i = Math.max(0, Math.min(5, g - 24)), P4 = MAP_PTS[4], nx = P4[Math.min(5, i + 1)][0], x = (P4[i][0] + nx) / 2;
+        return { x, y: .90, k: Math.max(2, Math.min(3.2, vp.clientWidth / (.30 * BW))), free: 1 }; }
+      const P = MAP_PTS[c], xs = P.map(p => p[0]), ys = P.map(p => p[1]), pad = .07;
       const x0 = Math.min(...xs) - pad, x1 = Math.max(...xs) + pad, y0 = Math.min(...ys) - pad * 1.6, y1 = Math.max(...ys) + pad * 1.6;
       const W = vp.clientWidth, H = vp.clientHeight * .78, k = Math.max(1, Math.min(5, W / ((x1 - x0) * BW), H / ((y1 - y0) * BW * MAP_AR)));
       return { x: (x0 + x1) / 2, y: (y0 + y1) / 2 + .02, k }; }
@@ -7779,8 +7781,8 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
       try { if (!busy && S && S.started && !S.over && !S.nuts) { const nw = (S.wave || 0) + 1, P = wherePos(nw);
           let play = null; if (nw === 1 && !LS.get("tarnturm-mapintro")) { play = playIntro; LS.set("tarnturm-mapintro", "1"); }
           else if (nw > 1 && nw <= 150 && P.d === 0) play = P.p === 0 ? (d => playCont(nw, d)) : (d => playPlace(nw, d));
-          if (play) { busy = true; const was = S.paused; S.paused = true;
-            play(() => { S.paused = was; busy = false; _sw2.apply(self, a); }); return; } } } catch (e) { busy = false; }
+          if (play) { busy = true; const was = S.paused; S.paused = true; S.mapShow = true;
+            play(() => { S.paused = was; S.mapShow = false; busy = false; _sw2.apply(self, a); }); return; } } } catch (e) { busy = false; }
       if (busy) return; return _sw2.apply(this, a); };
     /* Knöpfe */
     const PIN_SVG = '<svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M3 6.5l5.5-2 7 2.5 5.5-2v13l-5.5 2-7-2.5-5.5 2z" fill="#9fd3c7" stroke="#3a2414" stroke-width="1.8" stroke-linejoin="round"/><path d="M8.5 4.5v13M15.5 7v13" stroke="#3a2414" stroke-width="1.4"/><path d="M12 5.2c-2 0-3.3 1.4-3.3 3.2 0 2.4 3.3 5.6 3.3 5.6s3.3-3.2 3.3-5.6c0-1.8-1.3-3.2-3.3-3.2z" fill="#ff5fa8" stroke="#3a2414" stroke-width="1.4"/><circle cx="12" cy="8.4" r="1.2" fill="#fff"/></svg>';
@@ -8222,5 +8224,15 @@ body:has(#ovStart:not([hidden])):has(.overlay.win:not([hidden])) #btnMap,body:ha
 #btnOMap{display:flex!important;flex-direction:row!important;line-height:1!important;overflow:hidden;align-items:center;justify-content:center;gap:6px;width:100%;height:36px;min-height:0!important;margin:8px 0 0!important;font-size:13.5px!important;padding:0 10px!important}
 #btnOMap svg{width:22px;height:22px;flex:0 0 auto}
 #btnOMap span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+</style>
+<style id="v225">
+/* Stecknadeln und Held in Bildschirm-Pixeln (eine Gegenskalierung am Anker) */
+#ovMap .mPin,#ovMap .mapMe{transform:scale(var(--ik,1));transform-origin:0 0}
+#ovMap .mPin i,#ovMap .mPin em,#ovMap .mapMe img{transform:none!important}
+#ovMap .mPin em{transform:translate(-50%,-100%)!important}
+#ovMap .mapMe img{left:-23px;top:-60px;transform-origin:50% 100%}
+#ovMap .mapMe.hop img{animation:mHop2 .3s ease-in-out infinite alternate}
+@keyframes mHop2{to{transform:rotate(8deg) translateY(-4px)}}
+#ovMap.auto .mPin.cur em{top:-70px}
 </style>
 </body></html>
