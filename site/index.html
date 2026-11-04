@@ -7232,7 +7232,7 @@ setInterval(() => { const g = document.getElementById("genAv"); if (!g) return; 
   setInterval(() => { if (typeof S === "undefined" || !S) return; if (S !== runS) { runS = S; maxSp = 1; t0 = performance.now(); } if (S.started && !S.over) maxSp = Math.max(maxSp, S.speed || 1); }, 500);
   const _g = gameOver; gameOver = function (why) { const was = S && S.over; const r = _g.apply(this, arguments);
     try { if (!was && S && S.over && !S.testRun && !S.nuts) {
-      const run = { t: Date.now(), ver: "V185", wave: S.wave | 0, why: /monster|lap|through/i.test(String(why || "")) ? "monsters" : "blocks", gold: S.gold | 0, lines: S.lines | 0, splats: S.kills | 0, score: (S.score || 0) | 0, medals: S.medals | 0, maxSpeed: maxSp, mins: Math.round((performance.now() - t0) / 600) / 100, hero: heroKey(), dev: LS.get("tarnturm-dev") === "1" };
+      const run = { t: Date.now(), ver: "V186", wave: S.wave | 0, why: /monster|lap|through/i.test(String(why || "")) ? "monsters" : "blocks", gold: S.gold | 0, lines: S.lines | 0, splats: S.kills | 0, score: (S.score || 0) | 0, medals: S.medals | 0, maxSpeed: maxSp, mins: Math.round((performance.now() - t0) / 600) / 100, hero: heroKey(), dev: LS.get("tarnturm-dev") === "1" };
       if (S.won) run.why = "win"; else if (/quit/i.test(String(why || ""))) run.why = "quit";
       if (!(HSDB && HSUID)) { fetch(API_BASE + "/runs", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "pro", ...run, ver: "V180" }) }).catch(() => {}); return r; }
       const ref = HSDB.collection("runs").doc(HSUID);
@@ -7478,7 +7478,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
   let bus = null, nb = null, lastAc = null; const last = {};
   const GAP = { move: 0.03, soft: 0.03, mg: 0.06, hitTick: 0.07, rotate: 0.04, lock: 0.05, drop: 0.05, die: 0.04, dieS: 0.04, spawn: 0.15, kan: 0.1, frost: 0.08, lines: 0.1, uiTap: 0.04 };
   function setup(ac) { if (bus && lastAc === ac) return true; const out = SFX._out && SFX._out(); if (!out) return false; lastAc = ac;
-    bus = ac.createGain(); bus.gain.value = 1.1; const lp = ac.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 2200; lp.Q.value = 0.5;
+    bus = ac.createGain(); bus.gain.value = 1.6; const lp = ac.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 4200; lp.Q.value = 0.5;
     const comp = ac.createDynamicsCompressor(); comp.threshold.value = -14; comp.ratio.value = 4; comp.attack.value = 0.003; comp.release.value = 0.15;
     bus.connect(lp); lp.connect(comp); comp.connect(out);
     nb = ac.createBuffer(1, ac.sampleRate, ac.sampleRate); { const d = nb.getChannelData(0); let l = 0; for (let i = 0; i < d.length; i++) { l = 0.97 * l + 0.03 * (Math.random() * 2 - 1); d[i] = l * 6; } } return true; }
@@ -7493,13 +7493,13 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     fn({ thump, noise, tock, note, M });
   }
   const PICK = {   /* Name im Spiel → Klang (Variante laut Martins Wahl) */
-    move: k => k.thump(170, 140, 0.04, 0.26),                                                    // B
-    mg: k => { k.thump(150, 85, 0.045, 0.32); k.noise(700, 0.03, 0.12); },                         // A
-    hitTick: k => k.tock(260, 0.025, 0.14),                                                       // A
-    rotate: k => { k.tock(190, 0.025, 0.18); k.tock(250, 0.025, 0.16, 0.04); },                    // B
-    soft: k => k.thump(120, 100, 0.03, 0.2),                                                      // B
-    lock: k => k.thump(95, 50, 0.15, 0.6, "triangle"),                                            // B
-    drop: k => { k.noise(380, 0.07, 0.18); k.thump(95, 45, 0.17, 0.7, "sine", 0.05); },           // A
+    move: k => { k.thump(170, 140, 0.05, 0.3); k.thump(520, 420, 0.035, 0.22, "triangle"); k.noise(1800, 0.012, 0.12); },                                                    // B
+    mg: k => { k.thump(150, 85, 0.045, 0.32); k.noise(1400, 0.03, 0.14); },                         // A
+    hitTick: k => { k.tock(260, 0.025, 0.14); k.thump(700, 600, 0.02, 0.1, "triangle"); },                                                       // A
+    rotate: k => { k.tock(190, 0.03, 0.22); k.thump(600, 560, 0.03, 0.2, "triangle"); k.tock(250, 0.03, 0.2, 0.045); k.thump(780, 740, 0.03, 0.18, "triangle", 0.045); },                    // B
+    soft: k => { k.thump(130, 110, 0.035, 0.24); k.thump(440, 380, 0.025, 0.16, "triangle"); },                                                      // B
+    lock: k => { k.thump(95, 50, 0.15, 0.6, "triangle"); k.thump(330, 220, 0.06, 0.32, "triangle"); k.noise(1500, 0.02, 0.18); },                                            // B
+    drop: k => { k.noise(900, 0.07, 0.22); k.thump(95, 45, 0.17, 0.7, "sine", 0.05); k.thump(300, 160, 0.08, 0.35, "triangle", 0.05); },           // A
     die: k => { k.thump(220, 90, 0.1, 0.3); k.noise(350, 0.06, 0.15); },                          // B (Grunt)
     dieS: k => k.thump(380, 180, 0.07, 0.24, "triangle"),                                         // A (Scout)
     spawn: k => k.thump(140, 160, 0.09, 0.22, "triangle"),                                        // B
