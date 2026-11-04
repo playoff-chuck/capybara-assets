@@ -2654,7 +2654,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V229";
+const GAME_VER = "V230";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -7825,6 +7825,12 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
       if (prompt) { try { prompt.prompt(); } catch (e) {} prompt = null; }
       const r = await navigator.serviceWorker.ready; (r.active || navigator.serviceWorker.controller).postMessage({ t: "fill" }); });
   } } catch (e) { console.warn("offline", e); }
+
+  /* V230: Geister-Klick nach Fingertipp aufs Feld verschlucken (Turm-Fenster schloss sich sonst sofort) */
+  try { let gT = 0, gX = 0, gY = 0;
+    window.addEventListener("pointerdown", e => { if (e.pointerType === "mouse") return; const t = e.target; if (t && t.tagName === "CANVAS") { gT = performance.now() + 650; gX = e.clientX; gY = e.clientY; } }, true);
+    const swallow = e => { if (performance.now() > gT) return; const t = e.target; if (t && t.tagName === "CANVAS") return; if (Math.hypot(e.clientX - gX, e.clientY - gY) > 40) return; e.stopImmediatePropagation(); e.preventDefault(); if (e.type === "click") gT = 0; };
+    ["mousedown", "mouseup", "click"].forEach(tp => window.addEventListener(tp, swallow, true)); } catch (e) { console.error("ghost", e); }
 })();
 </script>
 
