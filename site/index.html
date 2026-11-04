@@ -1,5 +1,5 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<script>try{["img/d328f1a428.webp","img/b6f38631c6.webp","img/2510465d7d.webp","img/e24cf5d037.webp"].forEach(function(u){var i=new Image();i.src=u;if(i.decode)i.decode().catch(function(){});(window.__PRE0=window.__PRE0||[]).push(i);});}catch(e){}</script><link rel="preload" as="image" href="img/d328f1a428.webp"><link rel="preload" as="image" href="img/b6f38631c6.webp"><link rel="preload" as="image" href="img/2510465d7d.webp"><link rel="preload" as="image" href="img/logo_main.webp?v=218"><link rel="preload" as="image" href="img/mixer_big.webp"><link rel="preload" as="image" href="img/worldmap.webp"><title>Capybara Squad</title>
+<script>try{["img/d328f1a428.webp","img/b6f38631c6.webp","img/2510465d7d.webp","img/e24cf5d037.webp"].forEach(function(u){var i=new Image();i.src=u;if(i.decode)i.decode().catch(function(){});(window.__PRE0=window.__PRE0||[]).push(i);});}catch(e){}</script><link rel="preload" as="image" href="img/d328f1a428.webp"><link rel="preload" as="image" href="img/b6f38631c6.webp"><link rel="preload" as="image" href="img/2510465d7d.webp"><link rel="preload" as="image" href="img/logo_main.webp?v=218"><link rel="preload" as="image" href="img/mixer_big.webp"><link rel="preload" as="image" href="img/worldmap.webp"><title>Capybara Squad</title><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#2b3a22"><link rel="apple-touch-icon" href="icons/icon-192.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -2654,7 +2654,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V225";
+const GAME_VER = "V226";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -7797,6 +7797,30 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     addEventListener("resize", () => { if (!ov.hidden) { layout(); apply(0); } });
     window.__TT && Object.assign(window.__TT, { openMap, playPlace: w => playPlace(w, null), playCont: w => playCont(w, null), playIntro: () => playIntro(null), mapCam: () => cam });
   } catch (e) { console.warn("map", e); }
+
+  /* ===== V226: offline spielen ===== */
+  try { if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol) && !/claude|usercontent/.test(location.hostname)) {
+    let prompt = null, state = LS.get("capy-offline") === "1" ? "ready" : "idle";
+    const b = document.createElement("button"); b.type = "button"; b.id = "btnOffline"; b.className = "btn-small"; b.setAttribute("aria-label", "Play offline");
+    const draw = (pct) => { b.classList.toggle("ok", state === "ready"); b.innerHTML = state === "ready" ? '<svg viewBox="0 0 24 24" width="24" height="24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#2f7a2a" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg><small>OFFLINE</small>'
+        : state === "busy" ? `<b>${pct || 0}%</b><small>SAVING</small>` : '<svg viewBox="0 0 24 24" width="24" height="24"><path d="M12 3.5v11M7 10l5 5 5-5" fill="none" stroke="#3a2414" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M4.5 16.5v3h15v-3" fill="none" stroke="#3a2414" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><small>OFFLINE</small>'; };
+    draw(); document.body.appendChild(b);
+    const place = () => { const h = document.getElementById("btnMap") || document.getElementById("btnHs"); if (!h) return; const r = h.getBoundingClientRect(); if (!r.width) return; b.style.left = Math.round(r.left - 60) + "px"; b.style.top = Math.round(r.top) + "px"; };
+    setInterval(place, 400); addEventListener("resize", place); place();
+    addEventListener("beforeinstallprompt", e => { e.preventDefault(); prompt = e; });
+    const ios = /iP(hone|ad|od)/.test(navigator.userAgent), standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone;
+    navigator.serviceWorker.register("sw.js").then(reg => { navigator.serviceWorker.ready.then(r => { try { r.active && r.active.postMessage({ t: "sync" }); } catch (e) {} }); }).catch(() => {});
+    navigator.serviceWorker.addEventListener("message", e => { const d = e.data || {}; if (d.t !== "offline" || state !== "busy") return; const pct = d.total ? Math.min(100, Math.floor(d.done / d.total * 100)) : 0; draw(pct);
+      if (d.n >= d.of) { state = "ready"; LS.set("capy-offline", "1"); draw(); try { snd("coin"); } catch (er) {}
+        toast(ios && !standalone ? "Saved! Tip: Share → Add to Home Screen" : "Saved! Works in flight mode now.", "OFFLINE", 3200); } });
+    b.addEventListener("click", async () => { try { SFX.init(); } catch (e) {}
+      if (state === "ready") { toast(navigator.onLine ? "All saved · plays in flight mode" : "Offline mode · leaderboard waits for signal", "OFFLINE", 2400); if (prompt) { prompt.prompt(); prompt = null; } return; }
+      if (state === "busy") return;
+      if (!navigator.onLine) { toast("Needs internet once to save the game", "OFFLINE", 2400); return; }
+      state = "busy"; draw(0); try { snd("uiTap"); } catch (e) {}
+      if (prompt) { try { prompt.prompt(); } catch (e) {} prompt = null; }
+      const r = await navigator.serviceWorker.ready; (r.active || navigator.serviceWorker.controller).postMessage({ t: "fill" }); });
+  } } catch (e) { console.warn("offline", e); }
 })();
 </script>
 
@@ -8234,5 +8258,13 @@ body:has(#ovStart:not([hidden])):has(.overlay.win:not([hidden])) #btnMap,body:ha
 #ovMap .mapMe.hop img{animation:mHop2 .3s ease-in-out infinite alternate}
 @keyframes mHop2{to{transform:rotate(8deg) translateY(-4px)}}
 #ovMap.auto .mPin.cur em{top:-70px}
+</style>
+<style id="v226">
+#btnOffline{display:none;position:fixed!important;width:52px!important;height:52px!important;min-width:0!important;min-height:0!important;padding:0!important;z-index:60;flex-direction:column!important;align-items:center;justify-content:center;gap:0;line-height:1}
+#btnOffline small{font:800 8px/1 "Baloo 2",sans-serif;letter-spacing:.08em;color:#3a2414;margin-top:1px}
+#btnOffline b{font:800 15px/1 "Baloo 2",sans-serif;color:#d94c8c}
+#btnOffline svg{display:block}
+body:has(#ovStart:not([hidden])):has(#startMain:not([hidden])) #btnOffline{display:flex!important}
+body:has(#ovStart:not([hidden])):has(.overlay.win:not([hidden])) #btnOffline,body:has(#ovAlbum:not([hidden])) #btnOffline,body.mapUp #btnOffline{display:none!important}
 </style>
 </body></html>
