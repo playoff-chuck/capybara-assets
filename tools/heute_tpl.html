@@ -1,0 +1,410 @@
+<title>Capybara Squad Tagesplan</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;800&family=Bangers&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: eine Spalte, Plan oben, darunter zwei Diagramme mit antippbaren Vorschlags-Punkten */
+:root{
+  --bg:#eef5fb; --card:rgba(255,255,255,.9); --veil:rgba(238,245,251,.35); --ink:#1d2a3a; --mute:#5c6f84; --line:#cfdeec;
+  --green:#5c8030; --pink:#d94c8c; --orange:#e2681c; --blue:#2f5a9e; --gold:#c9931c;
+  --ok:#3f8a3a; --no:#b8402c;
+  --f-disp:"Bangers","Impact",system-ui,sans-serif;
+  --f-body:"Baloo 2",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1824; --card:rgba(18,28,42,.9); --veil:rgba(10,18,30,.72); --ink:#eaf2fb; --mute:#9fb3c8; --line:#2c3e55;
+  --green:#a3c46a; --pink:#f7a6c9; --orange:#f7ad73; --blue:#8cb6ea; --gold:#f6dc84; --ok:#8fd07f; --no:#ff8f78; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1824; --card:rgba(18,28,42,.9); --veil:rgba(10,18,30,.72); --ink:#eaf2fb; --mute:#9fb3c8; --line:#2c3e55;
+  --green:#a3c46a; --pink:#f7a6c9; --orange:#f7ad73; --blue:#8cb6ea; --gold:#f6dc84; --ok:#8fd07f; --no:#ff8f78; color-scheme:dark}
+*{box-sizing:border-box}
+.bgimg{position:fixed;inset:0;z-index:-2;background:url(icepalace.webp) center 8%/cover no-repeat}
+.bgimg::after{content:"";position:absolute;inset:0;background:linear-gradient(to bottom,transparent 0,var(--veil) 260px,var(--veil))}
+header{min-height:230px;display:flex;flex-direction:column;justify-content:flex-end;position:relative}
+.hbtns{position:absolute;top:0;right:0;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.hbtns button{font:700 13px var(--f-body);padding:7px 12px;border-radius:10px;border:2px solid var(--ink);background:var(--card);color:var(--ink);cursor:pointer;box-shadow:0 3px 0 var(--ink)}
+.hbtns button:active{transform:translateY(2px);box-shadow:0 1px 0 var(--ink)}
+dialog{border:2px solid var(--ink);border-radius:16px;background:var(--bg);color:var(--ink);padding:0;width:min(760px,calc(100vw - 24px));max-height:calc(100vh - 40px)}
+dialog::backdrop{background:rgba(10,20,35,.45)}
+.dlg{padding:16px;display:grid;gap:12px}
+.dlg h3{margin:0;font:800 20px/1.2 var(--f-body)}
+.dlg .x{position:absolute;top:8px;right:10px;border:0;background:none;font-size:24px;color:var(--mute);cursor:pointer}
+.rate{width:100%;border-collapse:collapse;font-size:14px}
+.rate th,.rate td{text-align:left;vertical-align:top;padding:8px 6px;border-bottom:1px solid var(--line)}
+.rate th{font:700 11px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--mute)}
+.rate td.n{font:600 16px var(--f-mono);white-space:nowrap;font-variant-numeric:tabular-nums}
+.rate td.n.up{color:var(--ok)}
+.rate ul{margin:0;padding-left:16px}
+.tblwrap{overflow-x:auto}
+.simf{display:flex;flex-wrap:wrap;gap:10px;align-items:end}
+.simf label{display:grid;gap:4px;font-size:13px;color:var(--mute)}
+.simf input{font:600 18px var(--f-mono);width:120px;padding:6px 8px;border-radius:9px;border:1.5px solid var(--line);background:var(--card);color:var(--ink)}
+.simf button{font:700 15px var(--f-body);padding:9px 16px;border-radius:10px;border:2px solid var(--ink);background:var(--orange);color:#fff;cursor:pointer}
+.arch{display:grid;gap:8px}
+.rep{border:1px solid var(--line);border-radius:10px}
+.rep>summary{list-style:none;display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:8px 10px;cursor:pointer}
+.rep>summary::-webkit-details-marker{display:none}
+.rep .when{font:600 13px var(--f-mono);color:var(--mute);font-variant-numeric:tabular-nums}
+.rep .kp{font:600 13px var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.rep .body{padding:0 12px 12px;display:grid;gap:6px;font-size:14px}
+.rep input{width:18px;height:18px;accent-color:var(--orange)}
+.rep.newest{border-color:var(--orange)}
+.cmpbar{font-size:13px;color:var(--mute);display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+.drawbtn{font:700 14px var(--f-body);padding:7px 12px;border-radius:10px;border:2px solid var(--ink);background:var(--card);color:var(--ink);cursor:pointer;box-shadow:0 3px 0 var(--ink)}
+.dh{font:800 16px/1.2 var(--f-body);margin:10px 0 4px}
+.cmp{width:100%;border-collapse:collapse;font-size:14px}
+.cmp th,.cmp td{padding:6px;border-bottom:1px solid var(--line);text-align:right;font-variant-numeric:tabular-nums}
+.cmp th:first-child,.cmp td:first-child{text-align:left}
+.cmp .d.pos{color:var(--ok)} .cmp .d.neg{color:var(--no)}
+.reqs{display:grid;gap:6px;font-size:14px}
+.reqs div{display:flex;justify-content:space-between;gap:8px;border-bottom:1px solid var(--line);padding:4px 0}
+header h1{color:#173a66;text-shadow:0 0 12px #fff,0 0 3px #fff}
+header p{background:var(--card);display:inline-block;align-self:flex-start;padding:4px 10px;border-radius:9px}
+section{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;backdrop-filter:blur(6px)}
+section .panel{background:transparent;border:0;padding:0}
+body{background:var(--bg);isolation:isolate;color:var(--ink);font:16px/1.45 var(--f-body)}
+.wrap{max-width:860px;margin:0 auto;padding-block:20px 60px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:28px}
+header h1{font:400 clamp(34px,7vw,52px)/1 var(--f-disp);letter-spacing:.02em;margin:0;text-wrap:balance}
+header p{margin:6px 0 0;color:var(--mute)}
+.live{display:inline-flex;gap:8px;align-items:center;font:600 13px var(--f-mono);color:var(--green)}
+.live i{width:9px;height:9px;border-radius:50%;background:var(--green)}
+h2{font:800 20px/1.2 var(--f-body);margin:0 0 10px;text-wrap:balance}
+h2 small{font-weight:400;color:var(--mute);font-size:14px}
+.list{display:grid;gap:8px}
+.item{display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:start;padding:10px 2px;border-bottom:1px solid var(--line)}
+.item:last-child{border-bottom:0}
+.item b{font-weight:600}
+.item .sub{grid-column:1/-1;color:var(--mute);font-size:14px}
+.links{display:flex;flex-wrap:wrap;gap:6px 12px;grid-column:1/-1}
+a{color:var(--blue);text-decoration-thickness:1px;text-underline-offset:3px}
+a:focus-visible,button:focus-visible,textarea:focus-visible{outline:2px solid var(--orange);outline-offset:2px}
+.tag{font:600 11px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:99px;border:1px solid var(--line);color:var(--mute);white-space:nowrap}
+.tag.ok{color:var(--ok);border-color:var(--ok)} .tag.no{color:var(--no);border-color:var(--no)} .tag.cm{color:var(--blue);border-color:var(--blue)} .tag.open{color:var(--orange);border-color:var(--orange)}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px}
+.chartbox{position:relative}
+.chartbox svg{display:block;width:100%;height:auto;overflow:visible}
+.ax{font:11px var(--f-mono);fill:var(--mute)}
+.grid line{stroke:var(--line)}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;font:13px var(--f-body);color:var(--mute);margin:6px 0 0}
+.legend span::before{content:"";display:inline-block;width:14px;height:3px;border-radius:2px;background:currentColor;margin-right:6px;vertical-align:middle}
+.mk{cursor:pointer}
+.mk circle.halo{fill:var(--orange);opacity:.22;transform-box:fill-box;transform-origin:center;animation:pulse 1.8s ease-in-out infinite}
+.mk circle.dot{fill:var(--orange);stroke:var(--card);stroke-width:2}
+.mk.ok circle{fill:var(--ok)} .mk.no circle{fill:var(--no)} .mk.ok .halo,.mk.no .halo{animation:none;opacity:.15}
+.mk text{font:700 11px var(--f-mono);fill:#fff;pointer-events:none}
+@keyframes pulse{50%{transform:scale(1.5);opacity:.05}}
+@media (prefers-reduced-motion:reduce){.mk circle.halo{animation:none}}
+.pop{position:absolute;z-index:5;width:min(340px,calc(100% - 8px));background:var(--card);border:1px solid var(--orange);border-radius:12px;padding:12px;box-shadow:0 10px 30px rgba(0,0,0,.18)}
+.pop h3{margin:0 0 4px;font:800 16px/1.25 var(--f-body)}
+.pop p{margin:4px 0;font-size:14px}
+.pop .eff{font:13px/1.4 var(--f-mono);color:var(--mute)}
+.pop .x{position:absolute;top:6px;right:8px;background:none;border:0;font-size:20px;color:var(--mute);cursor:pointer}
+.dec{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.dec button{font:600 14px var(--f-body);padding:6px 12px;border-radius:9px;border:1.5px solid var(--line);background:transparent;color:var(--ink);cursor:pointer}
+.undo{font:600 13px var(--f-body);padding:4px 10px;border-radius:8px;border:1.5px solid var(--line);background:transparent;color:var(--mute);cursor:pointer}
+.dec button.ok{border-color:var(--ok);color:var(--ok)} .dec button.no{border-color:var(--no);color:var(--no)} .dec button.cm{border-color:var(--blue);color:var(--blue)}
+.dec button[aria-pressed="true"].ok{background:var(--ok);color:var(--card)} .dec button[aria-pressed="true"].no{background:var(--no);color:var(--card)}
+textarea{width:100%;min-height:64px;margin-top:8px;font:14px var(--f-body);padding:8px;border-radius:9px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);resize:vertical}
+.savebar{font:12px var(--f-mono);color:var(--mute);margin-top:6px;min-height:1em}
+.props{display:grid;gap:6px;margin-top:12px}
+.prop{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--ink);text-align:left;font:14px var(--f-body);cursor:pointer}
+.prop .n{font:700 12px var(--f-mono);width:22px;height:22px;border-radius:50%;display:grid;place-items:center;background:var(--orange);color:#fff}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin:0 0 10px}
+.kpi{font:13px var(--f-body);color:var(--mute)} .kpi b{display:block;font:600 22px var(--f-mono);color:var(--ink);font-variant-numeric:tabular-nums}
+.tabs{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 8px}
+.tabs button{font:600 13px var(--f-body);padding:4px 10px;border-radius:99px;border:1.5px solid var(--line);background:transparent;color:var(--mute);cursor:pointer}
+.tabs button[aria-selected="true"]{border-color:var(--ink);color:var(--ink)}
+.acc{border:1px solid var(--line);border-radius:10px;background:transparent}
+.acc>summary{list-style:none;display:grid;grid-template-columns:auto 1fr auto auto;gap:8px;align-items:center;padding:8px 10px;cursor:pointer;font-weight:600}
+.acc>summary::-webkit-details-marker{display:none}
+.acc .chk{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:800;border:2px solid var(--line);color:transparent}
+.acc.done .chk{background:var(--ok);border-color:var(--ok);color:var(--card)}
+.acc .plus{font:700 18px/1 var(--f-mono);color:var(--mute);width:18px;text-align:center}
+.acc[open] .plus{transform:rotate(45deg)}
+.acc .body{padding:0 12px 12px 40px;display:grid;gap:6px;font-size:14px}
+.acc .body .eff{font:13px/1.4 var(--f-mono);color:var(--mute)}
+.acc .doneNote{border-left:3px solid var(--ok);padding:4px 8px;background:color-mix(in srgb,var(--ok) 10%,transparent);border-radius:0 8px 8px 0}
+.tag.done{color:var(--card);background:var(--ok);border-color:var(--ok)}
+.note{font-size:13px;color:var(--mute);margin:8px 0 0}
+</style>
+
+<div class="bgimg" aria-hidden="true"></div>
+<div class="wrap">
+<header>
+  <div class="hbtns"><button type="button" id="bRate">Einschätzung</button><button type="button" id="bSim">Balancing neu starten</button></div>
+  <h1>Capybara Squad · Heute</h1>
+  <p>Mittwoch, 4. November 2026 · <span class="live"><i></i>V181 live</span> · Hintergrund: Ice Palace, Welle 86–90</p>
+</header>
+
+<section>
+  <h2>Von dir <small>– wenn du Zeit hast</small></h2>
+  <div class="list" id="martin"></div>
+</section>
+
+<section>
+  <h2>Mein Plan für heute</h2>
+  <div class="list" id="claude"></div>
+</section>
+
+<section>
+  <h2>Hauptweg: Wie weit kommen Spieler? <small>– 50 000 simulierte Läufe, Stand V181</small></h2>
+  <div class="panel">
+    <div class="kpis" id="kpis"></div>
+    <div class="tabs" id="tabs" role="tablist"></div>
+    <div class="chartbox" id="mainBox"></div>
+    <div class="legend"><span style="color:var(--blue)">erreichen diese Welle (%)</span><span style="color:var(--gold)">Tod durch Blöcke</span><span style="color:var(--pink)">Tod durch Monster</span><span style="color:var(--orange)">● Vorschlag – antippen</span></div>
+    <div class="props" id="mainProps"></div>
+  </div>
+</section>
+
+<section>
+  <h2>Nuts-Abstecher: Wie viele Level schafft man? <small>– je Zone</small></h2>
+  <div class="panel">
+    <div class="tabs" id="ztabs" role="tablist"></div>
+    <div class="chartbox" id="nutsBox"></div>
+    <div class="legend"><span style="color:var(--mute)">jetzt (V181)</span><span style="color:var(--green)">mit Vorschlag</span><span style="color:var(--line)">Ziel 50 % L5 · 10 % L10 · 1–2 % L20</span></div>
+    <div class="props" id="nutsProps"></div>
+    <p class="note">Modell, keine echten Spieler. Wer in eine Zone kommt, ist gemischt nach Spielertyp gewichtet.</p>
+  </div>
+</section>
+<section id="balancing">
+  <h2>Balancing <small>– neu rechnen und Archiv, neuester Bericht oben</small></h2>
+  <div class="panel" style="display:grid;gap:12px">
+    <form class="simf" id="simForm"><label for="simK">Tausend Läufe<input id="simK" type="number" min="1" max="500" step="1" value="50"></label><button type="submit">Balancing neu starten</button></form>
+    <div class="savebar" id="simMsg"></div>
+    <div class="reqs" id="simList"></div>
+    <p class="note" style="margin:0">Ich starte einen Auftrag, sobald ich wieder an Tarnturm arbeite. Das Ergebnis erscheint dann als neuer Bericht im Archiv.</p>
+    <div class="cmpbar"><span id="cmpHint">Zum Vergleichen Berichte ankreuzen (zwei = Tabelle, beliebig viele = Grafik).</span> <button type="button" id="bDraw" class="drawbtn">Grafik zeichnen</button></div>
+    <div class="tblwrap" id="cmpBox" hidden></div>
+    <div id="drawBox" hidden>
+      <h3 class="dh">Hauptweg: Wie weit kommen Spieler?</h3>
+      <div class="tabs" id="archT" role="tablist"></div>
+      <div class="tblwrap" id="archK"></div>
+      <div class="chartbox" id="archMain"></div><div class="legend" id="archLegM"></div>
+      <h3 class="dh">Nuts-Abstecher: Wie viele Level schafft man?</h3>
+      <div class="tabs" id="archZ" role="tablist"></div>
+      <div class="chartbox" id="archNuts"></div><div class="legend" id="archLegN"></div>
+      <p class="note" style="margin:0" id="archNote"></p>
+    </div>
+    <div class="arch" id="arch"></div>
+  </div>
+</section>
+</div>
+
+<dialog id="dRate"><div class="dlg"><button class="x" data-close aria-label="Schließen">×</button>
+  <h3>Einschätzung je Baustein</h3>
+  <p class="note" style="margin:0">Note 1 = Store-reif, 5 = Prototyp. «Früher» aus dem Audit vom 2. November (V128), «jetzt» Stand V183. Meine Einschätzung, nicht mit echten Spielern geprüft.</p>
+  <div class="tblwrap"><table class="rate"><thead><tr><th>Baustein</th><th>früher</th><th>jetzt</th><th>Nächste To-dos</th></tr></thead><tbody id="rateBody"></tbody></table></div>
+</div></dialog>
+
+<script>
+const D = /*DATA*/null;
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let DEC = {}; let db = null; let canWrite = true;
+const STAT = {ok:"angenommen", no:"abgelehnt", cm:"Kommentar", open:"offen"};
+function stat(id){ const d = DEC[id]; return d && d.status ? d.status : "open"; }
+
+/* ---------- Angenommen: eine Zeile, aufklappbar ---------- */
+const OPEN = new Set();
+document.addEventListener("toggle", e => { const d = e.target; if (d.matches && d.matches("details.acc")) { if (d.open) OPEN.add(d.dataset.acc); else OPEN.delete(d.dataset.acc); } }, true);
+const isAcc = id => { const d = DEC[id]; return !!d && (d.status === "ok" || !!d.done || !!d.mdone); };
+function accRow(id, title, inner){ const d = DEC[id] || {}, done = !!(d.done || d.mdone);
+  return `<details class="acc${done ? " done" : ""}" data-acc="${id}"${OPEN.has(id) ? " open" : ""}><summary><span class="chk" aria-hidden="true">✓</span><span>${esc(title)}</span><span class="tag ${done ? "done" : "ok"}">${d.mdone ? "erledigt" : done ? "umgesetzt" : "angenommen"}</span><span class="plus" aria-hidden="true">+</span></summary>
+    <div class="body">${inner}${d.comment ? `<p><b>Dein Kommentar:</b> ${esc(d.comment)}</p>` : ""}${d.mdone ? `<p><button type="button" class="undo" data-md="${id}">Doch nicht erledigt</button></p>` : ""}${d.done ? `<p class="doneNote"><b>Umgesetzt:</b> ${esc(d.doneNote || "")}${d.doneLink ? ` · <a href="${esc(d.doneLink)}" target="_blank" rel="noopener">${esc(d.doneLinkText || "Prüfen")}</a>` : ""}</p>` : ""}</div></details>`; }
+/* ---------- Listen ---------- */
+function linkHtml(l){ return l.map(([t,u]) => `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(t)}</a>`).join(""); }
+function renderLists(){
+  $("martin").innerHTML = D.martin.map(m => (m.ask || (DEC[m.id] && DEC[m.id].mdone)) && isAcc(m.id) ? accRow(m.id, m.t, `<div>${esc(m.s)}</div>${m.l ? `<div class="links">${linkHtml(m.l)}</div>` : ""}`) : `<div class="item"><b>${esc(m.t)}</b>${m.ask ? `<span class="tag ${stat(m.id)}" data-tag="${m.id}">${STAT[stat(m.id)]}</span>` : "<span></span>"}
+    <div class="sub">${esc(m.s)}</div>${m.l ? `<div class="links">${linkHtml(m.l)}</div>` : ""}
+    ${m.ask ? `<div style="grid-column:1/-1">${decHtml(m.id)}</div>` : `<div class="dec" style="grid-column:1/-1"><button type="button" class="ok" data-md="${m.id}">Erledigt ✓</button></div><div class="savebar" id="s_${m.id}" style="grid-column:1/-1"></div>`}</div>`).join("");
+  document.querySelectorAll("[data-md]").forEach(b => b.onclick = () => { const id = b.dataset.md; save(id, { mdone: !(DEC[id] && DEC[id].mdone), status: (DEC[id] && DEC[id].status) || "open" }); renderLists(); });
+  $("claude").innerHTML = D.claude.map((m, ci) => m.done ? `<details class="acc done" data-acc="c${ci}"${OPEN.has("c" + ci) ? " open" : ""}><summary><span class="chk" aria-hidden="true">✓</span><span>${esc(m.t)}</span><span class="tag done">erledigt</span><span class="plus" aria-hidden="true">+</span></summary><div class="body"><div>${esc(m.s)}</div>${m.l ? `<div class="links">${linkHtml(m.l)}</div>` : ""}</div></details>` : `<div class="item"><b>${esc(m.t)}</b><span class="tag">${esc(m.when)}</span>
+    <div class="sub">${esc(m.s)}</div>${m.l ? `<div class="links">${linkHtml(m.l)}</div>` : ""}</div>`).join("");
+  bindDec(document);
+}
+
+/* ---------- Entscheidungen ---------- */
+function decHtml(id){
+  const s = stat(id), c = (DEC[id] && DEC[id].comment) || "";
+  return `<div class="dec" data-id="${id}">
+    <button class="ok" data-v="ok" aria-pressed="${s==="ok"}">Annehmen</button>
+    <button class="no" data-v="no" aria-pressed="${s==="no"}">Ablehnen</button>
+    <button class="cm" data-v="cm">Kommentar</button></div>
+    <textarea id="c_${id}" placeholder="Kommentar …" ${c ? "" : "hidden"}>${esc(c)}</textarea>
+    <div class="savebar" id="s_${id}"></div>`;
+}
+function bindDec(root){
+  root.querySelectorAll(".dec button").forEach(b => b.onclick = () => {
+    const id = b.parentNode.dataset.id, v = b.dataset.v;
+    if (v === "cm"){ const t = $("c_"+id); t.hidden = false; t.focus(); return; }
+    save(id, { status: stat(id) === v ? "open" : v });
+  });
+  root.querySelectorAll("textarea[id^=c_]").forEach(t => {
+    let tm; t.oninput = () => { clearTimeout(tm); tm = setTimeout(() => save(t.id.slice(2), { comment: t.value, status: stat(t.id.slice(2)) === "open" ? "cm" : stat(t.id.slice(2)) }), 900); };
+  });
+}
+async function save(id, patch){
+  DEC[id] = Object.assign({}, DEC[id], patch, { at: new Date().toISOString() });
+  const bar = $("s_"+id);
+  refresh(id);
+  if (!db){ if (bar) bar.textContent = "Nicht gespeichert – Seite in claude.ai öffnen (angemeldet)."; return; }
+  try { if (bar) bar.textContent = "Speichert …"; await db.doc("decisions/"+id).set(DEC[id]); if (bar) bar.textContent = "Gespeichert ✓"; }
+  catch(e){ if (bar) bar.textContent = "Konnte nicht speichern (" + (e && e.code || "Fehler") + ")."; }
+}
+function refresh(id){
+  const s = stat(id);
+  document.querySelectorAll(`.dec[data-id="${id}"] button`).forEach(b => { if (b.dataset.v !== "cm") b.setAttribute("aria-pressed", b.dataset.v === s); });
+  document.querySelectorAll(`[data-tag="${id}"]`).forEach(t => { t.className = "tag " + s; t.textContent = STAT[s]; });
+  document.querySelectorAll(`.mk[data-id="${id}"]`).forEach(m => m.setAttribute("class", "mk " + s));
+}
+
+/* ---------- Diagramm ---------- */
+function chart(box, opt){
+  const W = 820, H = 300, L = 44, R = 14, T = 14, B = 34, pw = W-L-R, ph = H-T-B;
+  const x = v => L + (v - opt.x0) / (opt.x1 - opt.x0) * pw, y = v => T + ph - v / opt.ymax * ph;
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(opt.label)}"><g class="grid">`;
+  for (const t of opt.yt) s += `<line x1="${L}" x2="${W-R}" y1="${y(t)}" y2="${y(t)}"/><text class="ax" x="${L-6}" y="${y(t)+4}" text-anchor="end">${t}%</text>`;
+  s += `</g>`;
+  for (const t of opt.xt) s += `<text class="ax" x="${x(t)}" y="${H-12}" text-anchor="middle">${opt.xl(t)}</text>`;
+  if (opt.bands) opt.bands.forEach((b,i) => s += `<rect x="${x(b[0])}" y="${T}" width="${x(b[1])-x(b[0])}" height="${ph}" fill="var(--line)" opacity="${i%2 ? 0 : .35}"/><text class="ax" x="${(x(b[0])+x(b[1]))/2}" y="${T+12}" text-anchor="middle">${b[2]}</text>`);
+  for (const ser of opt.series){
+    if (ser.bars){ const bw = pw/(opt.x1-opt.x0+1)*.8; ser.d.forEach((v,i) => { if (v>0) s += `<rect x="${x(ser.x0+i)-bw/2}" y="${y(v*ser.k)}" width="${bw}" height="${y(0)-y(v*ser.k)}" fill="${ser.c}" opacity=".75"/>`; }); continue; }
+    const pts = ser.d.map((v,i) => `${x(ser.x0+i).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
+    s += `<polyline points="${pts}" fill="none" stroke="${ser.c}" stroke-width="${ser.w||2.5}" ${ser.dash ? `stroke-dasharray="${ser.dash}"` : ""} stroke-linejoin="round"/>`;
+  }
+  if (opt.targets) for (const t of opt.targets) s += `<g><circle cx="${x(t[0])}" cy="${y(t[1])}" r="5" fill="none" stroke="var(--mute)" stroke-width="1.5" stroke-dasharray="2 2"/></g>`;
+  (opt.marks||[]).forEach((m,i) => {
+    s += `<g class="mk ${stat(m.id)}" data-id="${m.id}" tabindex="0" role="button" aria-label="Vorschlag ${i+1}: ${esc(m.t)}"><circle class="halo" cx="${x(m.x)}" cy="${y(m.y)}" r="13"/><circle class="dot" cx="${x(m.x)}" cy="${y(m.y)}" r="10"/><text x="${x(m.x)}" y="${y(m.y)+4}" text-anchor="middle">${m.n}</text></g>`;
+  });
+  s += `</svg>`;
+  box.innerHTML = s;
+  box.querySelectorAll(".mk").forEach(g => {
+    const m = opt.marks.find(q => q.id === g.dataset.id);
+    const open = () => showPop(box, m, g);
+    g.addEventListener("mouseenter", open); g.addEventListener("click", open);
+    g.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " "){ e.preventDefault(); open(); } });
+  });
+}
+let popFor = null;
+function showPop(box, m, g){
+  if (popFor === m.id && box.querySelector(".pop")) return;
+  document.querySelectorAll(".pop").forEach(p => p.remove()); popFor = m.id;
+  const p = document.createElement("div"); p.className = "pop";
+  p.innerHTML = `<button class="x" aria-label="Schließen">×</button><h3>${m.n}. ${esc(m.t)}</h3><p>${esc(m.why)}</p><p><b>Vorschlag:</b> ${esc(m.prop)}</p><div class="eff">${esc(m.eff)}</div>${decHtml(m.id)}`;
+  box.appendChild(p);
+  const br = box.getBoundingClientRect(), gr = g.getBoundingClientRect();
+  let left = gr.left - br.left + gr.width/2 - p.offsetWidth/2; left = Math.max(4, Math.min(left, br.width - p.offsetWidth - 4));
+  let top = gr.bottom - br.top + 8; if (top + p.offsetHeight > br.height + 160) top = Math.max(0, gr.top - br.top - p.offsetHeight - 8);
+  p.style.left = left + "px"; p.style.top = top + "px";
+  p.querySelector(".x").onclick = () => { p.remove(); popFor = null; };
+  bindDec(p);
+}
+document.addEventListener("keydown", e => { if (e.key === "Escape"){ document.querySelectorAll(".pop").forEach(p => p.remove()); popFor = null; } });
+
+function propList(el, marks, box){
+  el.innerHTML = marks.map(m => isAcc(m.id) ? accRow(m.id, m.n + ". " + m.t, `<p>${esc(m.why)}</p><p><b>Vorschlag:</b> ${esc(m.prop)}</p><div class="eff">${esc(m.eff)}</div>`) : `<button class="prop" data-id="${m.id}"><span class="n">${m.n}</span><span>${esc(m.t)}</span><span class="tag ${stat(m.id)}" data-tag="${m.id}">${STAT[stat(m.id)]}</span></button>`).join("");
+  el.querySelectorAll(".prop").forEach(b => b.onclick = () => { const g = box.querySelector(`.mk[data-id="${b.dataset.id}"]`); if (g){ popFor = null; showPop(box, marks.find(m => m.id === b.dataset.id), g); g.scrollIntoView({block:"nearest", behavior:"smooth"}); } });
+}
+
+/* ---------- Hauptweg ---------- */
+const TYPES = [["ALL","Alle"],["beginner","Einsteiger"],["martin","Wie Martin"],["good","Gut"],["pro","Profi"]];
+let curT = "ALL";
+function drawMain(){
+  const r = D.main[curT];
+  $("kpis").innerHTML = [["Median-Welle", r.median],["erreichen W60", r.reach[59]+" %"],["erreichen W90", r.reach[89]+" %"],["erreichen W120", r.reach[119]+" %"],["schaffen W150", r.reach[149]+" %"]].map(k => `<div class="kpi">${k[0]}<b>${k[1]}</b></div>`).join("");
+  const marks = D.mainMarks.map(m => Object.assign({}, m, { y: r.reach[m.x-1] }));
+  chart($("mainBox"), { label:"Anteil der Läufe, die eine Welle erreichen", x0:1, x1:150, ymax:100, yt:[0,25,50,75,100], xt:[1,30,60,90,120,150], xl:t => "W"+t,
+    bands:[[0.5,30.5,"Südamerika"],[30.5,60.5,"Afrika"],[60.5,90.5,"Asien"],[90.5,120.5,"Nordamerika"],[120.5,150,"Antarktis"]],
+    series:[{bars:1, d:r.deadBlocks, x0:1, k:Math.min(20, 40 / Math.max(0.01, ...r.deadBlocks, ...r.deadMonsters)), c:"var(--gold)"},{bars:1, d:r.deadMonsters, x0:1, k:Math.min(20, 40 / Math.max(0.01, ...r.deadBlocks, ...r.deadMonsters)), c:"var(--pink)"},{d:r.reach, x0:1, c:"var(--blue)", w:3}], marks });
+  propList($("mainProps"), marks, $("mainBox"));
+}
+$("tabs").innerHTML = TYPES.map(([k,t]) => `<button role="tab" data-k="${k}" aria-selected="${k===curT}">${t}</button>`).join("");
+$("tabs").onclick = e => { const b = e.target.closest("button"); if (!b) return; curT = b.dataset.k; [...$("tabs").children].forEach(c => c.setAttribute("aria-selected", c===b)); drawMain(); };
+
+/* ---------- Nuts ---------- */
+const ZN = [["30","Zone 1 · nach Südamerika"],["60","Zone 2 · nach Afrika"],["90","Zone 3 · nach Asien"],["120","Zone 4 · nach Nordamerika"]];
+let curZ = "30";
+function drawNuts(){
+  const z = D.nuts[curZ];
+  const marks = D.nutsMarks.filter(m => !m.z || m.z === curZ).map(m => Object.assign({}, m, { y: z.new[m.x] }));
+  chart($("nutsBox"), { label:"Anteil, der ein Nuts-Level schafft", x0:0, x1:30, ymax:100, yt:[0,25,50,75,100], xt:[0,5,10,15,20,25,30], xl:t => "L"+t,
+    series:[{d:z.now, x0:0, c:"var(--mute)", dash:"5 4"},{d:z.new, x0:0, c:"var(--green)", w:3}], targets:[[5,50],[10,10],[20,1.5]], marks });
+  propList($("nutsProps"), marks, $("nutsBox"));
+}
+$("ztabs").innerHTML = ZN.map(([k,t]) => `<button role="tab" data-k="${k}" aria-selected="${k===curZ}">${t}</button>`).join("");
+$("ztabs").onclick = e => { const b = e.target.closest("button"); if (!b) return; curZ = b.dataset.k; [...$("ztabs").children].forEach(c => c.setAttribute("aria-selected", c===b)); drawNuts(); };
+
+/* ---------- Dialoge ---------- */
+document.querySelectorAll("[data-close]").forEach(b => b.onclick = () => b.closest("dialog").close());
+document.querySelectorAll("dialog").forEach(d => d.addEventListener("click", e => { if (e.target === d) d.close(); }));
+$("bRate").onclick = () => { $("rateBody").innerHTML = D.rate.map(r => `<tr><td><b>${esc(r.a)}</b><div class="note" style="margin:2px 0 0">${esc(r.now)}</div></td><td class="n">${esc(r.was)}</td><td class="n${r.up ? " up" : ""}">${esc(r.cur)}</td><td><ul>${r.todo.map(x => `<li>${esc(x)}</li>`).join("")}</ul></td></tr>`).join(""); $("dRate").showModal(); };
+let SIM = [];
+function renderSim(){ $("simList").innerHTML = SIM.length ? SIM.map(r => `<div><span>${new Date(r.at).toLocaleString("de-DE",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})} · ${(r.runs/1000).toLocaleString("de-DE")} Tsd. Läufe</span><span>${esc(r.status || "wartet")}${r.result ? " · " + esc(r.result) : ""}</span></div>`).join("") : `<div><span>Noch kein Auftrag.</span><span></span></div>`; }
+$("bSim").onclick = () => { $("balancing").scrollIntoView({behavior:"smooth"}); setTimeout(() => $("simK").focus(), 400); };
+$("simForm").addEventListener("submit", async e => { e.preventDefault(); const k = Math.max(1, Math.min(500, Math.round(+$("simK").value || 50))); const doc = { runs: k * 1000, at: new Date().toISOString(), status: "wartet" };
+  if (!db){ $("simMsg").textContent = "Nicht gespeichert – Seite in claude.ai öffnen (angemeldet)."; return; }
+  try { await db.doc("simreq/r" + Date.now()).set(doc); $("simMsg").textContent = `Auftrag gesendet: ${k} Tsd. Läufe.`; } catch(err){ $("simMsg").textContent = "Konnte nicht speichern (" + (err && err.code || "Fehler") + ")."; } });
+
+/* ---------- Balancing-Archiv ---------- */
+let REPS = []; const PICK = new Set();
+const MET = [["median","Median-Welle",""],["w30","erreichen W30"," %"],["w60","erreichen W60"," %"],["w90","erreichen W90"," %"],["w120","erreichen W120"," %"],["w150","schaffen W150"," %"],["blocks","Tod durch Blöcke"," %"]];
+const fmt = v => v === null || v === undefined || v === "" ? "–" : String(v).replace(".", ",");
+function renderArch(){ const list = (REPS.length ? REPS : D.reports).slice().sort((a,b) => String(b.at).localeCompare(String(a.at)));
+  $("arch").innerHTML = list.map((r,i) => `<details class="rep${i === 0 ? " newest" : ""}"><summary><input type="checkbox" data-rep="${esc(r.id)}" ${PICK.has(r.id) ? "checked" : ""} aria-label="Zum Vergleich wählen"><span><span class="when">${esc(r.label)}</span><br><b>${esc(r.ver)}</b> · ${esc(r.runsTxt)}</span><span class="kp">Ø W${fmt(r.median)}${r.w120 !== undefined && r.w120 !== null ? " · W120 " + fmt(r.w120) + " %" : ""}</span></summary>
+    <div class="body"><div>${esc(r.summary || "")}</div>${r.link ? `<a href="${esc(r.link)}" target="_blank" rel="noopener">Bericht öffnen</a>` : ""}</div></details>`).join("");
+  $("arch").querySelectorAll("[data-rep]").forEach(c => { c.onclick = e => e.stopPropagation(); c.onchange = () => { if (c.checked){ PICK.add(c.dataset.rep); if (PICK.size > 6) PICK.delete([...PICK][0]); } else PICK.delete(c.dataset.rep); renderArch(); }; });
+  const pick = list.filter(r => PICK.has(r.id)).sort((a,b) => String(a.at).localeCompare(String(b.at)));
+  drawArch(list);
+  if (pick.length === 2){ const [a,b] = pick; $("cmpBox").hidden = false; $("cmpHint").textContent = "Vergleich: älterer Bericht links, neuerer rechts.";
+    $("cmpBox").innerHTML = `<table class="cmp"><thead><tr><th></th><th>${esc(a.label)}<br>${esc(a.ver)}</th><th>${esc(b.label)}<br>${esc(b.ver)}</th><th>Änderung</th></tr></thead><tbody>${MET.map(([k,n,u]) => { const x = a[k], y = b[k], ok = typeof x === "number" && typeof y === "number", dd = ok ? Math.round((y - x) * 10) / 10 : null, good = k === "blocks" ? dd < 0 : dd > 0;
+      return `<tr><td>${n}</td><td>${fmt(x)}${x !== null && x !== undefined ? u : ""}</td><td>${fmt(y)}${y !== null && y !== undefined ? u : ""}</td><td class="d ${dd ? (good ? "pos" : "neg") : ""}">${ok ? (dd > 0 ? "+" : "") + fmt(dd) + (u ? " Pkt." : "") : "–"}</td></tr>`; }).join("")}</tbody></table>`; }
+  else { $("cmpBox").hidden = true; $("cmpHint").textContent = "Zum Vergleichen Berichte ankreuzen (zwei = Tabelle, beliebig viele = Grafik)."; } }
+
+const SERC = ["var(--blue)","var(--orange)","var(--green)","var(--pink)","var(--gold)","var(--mute)"];
+let DRAW = false, archZ = "30";
+let archT = "ALL";
+function drawArch(list){ if (!DRAW) return; $("drawBox").hidden = false;
+  let sel = list.filter(r => PICK.has(r.id)); if (!sel.length) sel = list.filter(r => r.types).slice(0, 1);
+  const withM = sel.filter(r => r.types || r.reach), withN = sel.filter(r => r.nuts);
+  const col = r => SERC[sel.indexOf(r) % SERC.length];
+  const T = r => (r.types && r.types[archT]) || (archT === "ALL" && r.reach ? { reach: r.reach, median: r.median } : null);
+  $("archT").innerHTML = TYPES.map(([k,tx]) => `<button role="tab" data-k="${k}" aria-selected="${k===archT}">${tx}</button>`).join("");
+  $("archK").innerHTML = `<table class="cmp"><thead><tr><th>Bericht</th><th>Median</th><th>W60</th><th>W90</th><th>W120</th><th>W150</th></tr></thead><tbody>${withM.map(r => { const d = T(r); if (!d) return ""; return `<tr><td><b style="color:${col(r)}">●</b> ${esc(r.ver)} · ${esc(r.label)}</td><td>${fmt(d.median)}</td><td>${fmt(Math.round(d.reach[59]))} %</td><td>${fmt(Math.round(d.reach[89]))} %</td><td>${fmt(Math.round(d.reach[119]))} %</td><td>${fmt(Math.round(d.reach[149] * 10) / 10)} %</td></tr>`; }).join("")}</tbody></table>`;
+  const top = withM.find(r => T(r) && T(r).deadBlocks), td = top && T(top);
+  const series = [];
+  if (td) { const k = Math.min(20, 40 / Math.max(0.01, ...td.deadBlocks, ...td.deadMonsters)); series.push({ bars: 1, d: td.deadBlocks, x0: 1, k, c: "var(--gold)" }); series.push({ bars: 1, d: td.deadMonsters, x0: 1, k, c: "var(--pink)" }); }
+  withM.forEach(r => { const d = T(r); if (d) series.push({ d: d.reach, x0: 1, c: col(r), w: 3 }); });
+  chart($("archMain"), { label:"Hauptweg im Vergleich", x0:1, x1:150, ymax:100, yt:[0,25,50,75,100], xt:[1,30,60,90,120,150], xl:t => "W"+t,
+    bands:[[0.5,30.5,"Südamerika"],[30.5,60.5,"Afrika"],[60.5,90.5,"Asien"],[90.5,120.5,"Nordamerika"],[120.5,150,"Antarktis"]], series, marks: [] });
+  $("archLegM").innerHTML = withM.filter(T).map(r => `<span style="color:${col(r)}">erreichen diese Welle · ${esc(r.ver)}</span>`).join("") + (td ? `<span style="color:var(--gold)">Tod durch Blöcke (${esc(top.ver)})</span><span style="color:var(--pink)">Tod durch Monster (${esc(top.ver)})</span>` : "") || "<span>Für die gewählten Berichte gibt es keine Kurve.</span>";
+  $("archZ").innerHTML = ZN.map(([k,tx]) => `<button role="tab" data-k="${k}" aria-selected="${k===archZ}">${tx}</button>`).join("");
+  chart($("archNuts"), { label:"Nuts im Vergleich", x0:0, x1:30, ymax:100, yt:[0,25,50,75,100], xt:[0,5,10,15,20,25,30], xl:t => "L"+t,
+    series: withN.map(r => ({ d: r.nuts[archZ], x0: 0, c: col(r), w: 3 })), targets:[[5,50],[10,10],[20,1.5]], marks: [] });
+  $("archLegN").innerHTML = withN.map(r => `<span style="color:${col(r)}">${esc(r.ver)} · ${esc(r.nutsNote || "")}</span>`).join("") + `<span style="color:var(--mute)">○ Ziel 50 % L5 · 10 % L10 · 1–2 % L20</span>`;
+  $("archNote").textContent = (sel.some(r => !r.types && !r.reach) ? "Ältere Berichte ohne gespeicherte Kurven sind nicht enthalten. " : "") + (td && withM.length > 1 ? `Balken zeigen nur ${top.ver}.` : "");
+}
+$("bDraw").onclick = () => { DRAW = true; renderArch(); $("drawBox").scrollIntoView({behavior:"smooth", block:"start"}); };
+$("archT").onclick = e => { const b = e.target.closest("button"); if (!b) return; archT = b.dataset.k; renderArch(); };
+$("archZ").onclick = e => { const b = e.target.closest("button"); if (!b) return; archZ = b.dataset.k; renderArch(); };
+
+function all(){ renderLists(); drawMain(); drawNuts(); renderArch(); }
+all();
+
+/* ---------- Speicher ---------- */
+(async () => {
+  try {
+    db = await claude.use("db");
+    if (!db) return;
+    db.collection("reports").onSnapshot(snap => { REPS = snap.docs.map(d => Object.assign({ id: d.id }, d.data())).filter(r => r.at); renderArch(); }, () => {});
+    db.collection("simreq").onSnapshot(snap => { SIM = snap.docs.map(d => d.data()).filter(Boolean).sort((a,b) => String(b.at).localeCompare(String(a.at))).slice(0, 8); renderSim(); }, () => {});
+    db.collection("decisions").onSnapshot(snap => {
+      const docs = snap.docs || snap; const next = {};
+      (Array.isArray(docs) ? docs : []).forEach(d => { const v = typeof d.data === "function" ? d.data() : d.data; next[d.id] = v; });
+      const open = document.activeElement && document.activeElement.tagName === "TEXTAREA";
+      DEC = Object.assign(next, open ? { [document.activeElement.id.slice(2)]: DEC[document.activeElement.id.slice(2)] } : {});
+      if (!open){ const keep = popFor; all(); if (keep){ popFor = null; const g = document.querySelector(`.mk[data-id="${keep}"]`); if (g){ const box = g.closest(".chartbox"); const m = D.mainMarks.concat(D.nutsMarks).find(q => q.id === keep); showPop(box, Object.assign({}, m), g); } } }
+    }, () => {});
+  } catch(e) { db = null; }
+})();
+</script>
