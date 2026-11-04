@@ -2654,7 +2654,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V208";
+const GAME_VER = "V209";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -7637,6 +7637,20 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
           const go = () => (window.requestIdleCallback ? requestIdleCallback(next, { timeout: 400 }) : setTimeout(next, 60)); (im.decode ? im.decode() : Promise.resolve()).then(go, go); };
         next(); } catch (e) {} };
     setInterval(() => { if (typeof S !== "undefined" && S && S.started) preload(); }, 1500); } catch (e) {}
+
+  /* V209: gespeicherter Lauf → CONTINUE vorne, neuer Lauf nur mit Bestätigung */
+  try { const res = document.getElementById("btnResume");
+    let nb = document.getElementById("btnNewTour");
+    if (res && !nb) { nb = document.createElement("button"); nb.id = "btnNewTour"; nb.type = "button"; nb.className = "btn-small newTour"; nb.textContent = "New world tour"; res.insertAdjacentElement("afterend", nb);
+      let arm = 0; nb.addEventListener("click", e => { e.stopPropagation(); const now = performance.now();
+        if (!arm || now - arm > 3000) { arm = now; nb.textContent = "Tap again \u2013 your current run ends"; nb.classList.add("armed"); try { snd("uiTap"); } catch (er) {}
+          setTimeout(() => { if (performance.now() - arm >= 3000) { arm = 0; nb.textContent = "New world tour"; nb.classList.remove("armed"); } }, 3100); return; }
+        arm = 0; nb.textContent = "New world tour"; nb.classList.remove("armed"); try { LS.del("tarnturm-save"); } catch (er) {}
+        const p = document.querySelector("#modeList button"); if (p) p.click(); }); }
+    setInterval(() => { const has = !!(res && !res.hidden); document.body.classList.toggle("hasSave", has); if (nb) nb.hidden = !has; }, 300);
+    const rb = document.getElementById("btnPRestart"), card = () => document.querySelector("#ovPause .pCard");
+    if (rb) new MutationObserver(() => { const c = card(); if (c) c.classList.toggle("rArmed", /again/i.test(rb.textContent)); }).observe(rb, { childList: true, characterData: true, subtree: true });
+  } catch (e) {}
 })();
 </script>
 
@@ -7896,5 +7910,14 @@ body:has(#ovPause:not([hidden])) #alert,body:has(#ovPause:not([hidden])) #toast{
 #ovPause .pVol .pvRow b{text-align:right;font-size:12px!important}
 #ovPause .pCard.sndOpen .pSpeed{display:none!important}
 body:has(#ovPause:not([hidden])) .deck,body:has(#ovPause:not([hidden])) #pauseFab{visibility:hidden!important}
+</style>
+<style id="v209">
+body.hasSave #modeList{display:none!important}
+body.hasSave #btnResume{position:relative;z-index:20}
+#btnNewTour{display:block;position:relative;z-index:20;margin:8px auto 0!important;height:34px!important;padding:0 16px!important;font-size:13px!important;background:rgba(255,248,232,.92)!important}
+#btnNewTour[hidden]{display:none!important}
+#btnNewTour.armed{background:#ffe1e1!important;border-color:#b8402c!important;color:#7a1f12!important}
+#ovPause .pCard.rArmed .pauseHint{display:block!important;margin:0!important;text-align:center;font-size:12px!important;color:#b8402c!important}
+#ovPause .pRow button{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 </style>
 </body></html>
