@@ -2654,7 +2654,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V197";
+const GAME_VER = "V198";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -7560,12 +7560,13 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
    während des Boss-Hacks die Hauptmusik anhalten – nur die Hack-Musik läuft */
 (() => {
   const FULL = ["sheet", "ovHack", "ovOver", "ovPause", "ovStart", "ovCamp", "ovInfo", "ovHs", "ovSettings", "ovAlbum", "ovJoin", "ovOrders", "ovIntro", "ovGive", "ovSpec", "ovFb", "ovNutsRes", "ovSign"];
-  let hackHeld = false, wasHack = false;
+  let hackHeld = false, wasHack = false, hackFadeT = null, hackNow = false;
   setInterval(() => {
     const up = FULL.some(id => { const e = document.getElementById(id); return e && !e.hidden && e.getClientRects().length; });
     document.body.classList.toggle("ovUp", up);
     const hackUp = (() => { const e = document.getElementById("ovHack"), r = document.getElementById("hackRes"); if (r && !r.hidden && r.getClientRects().length) return false; return !!(e && !e.hidden) || !!(typeof S !== "undefined" && S && S.duel); })();
-    try { if (hackUp && TP.el && !TP.el.paused) { TP.el.pause(); hackHeld = true; }
+    hackNow = hackUp; try { if (hackUp && TP.el && !TP.el.paused && !hackFadeT) { tpFade(0.0001, 3); hackFadeT = setTimeout(() => { hackFadeT = null; if (hackNow && TP.el && !TP.el.paused) { TP.el.pause(); hackHeld = true; } }, 3000); }
+      else if (!hackUp && hackFadeT) { clearTimeout(hackFadeT); hackFadeT = null; tpFade(0.5, 0.8); }
       else if (!hackUp && hackHeld) { hackHeld = false; try { snd("arcade", false); } catch (e) {} if (TP.key && !TP.paused && !document.hidden) { const p = TP.el.play(); if (p && p.catch) p.catch(() => {}); tpFade(0.5, 0.8); } } } catch (e) {} if (wasHack && !hackUp) { try { snd("arcade", false); } catch (e) {} } wasHack = hackUp;
   }, 120);
 })();
