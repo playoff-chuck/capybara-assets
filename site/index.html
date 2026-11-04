@@ -7234,7 +7234,7 @@ setInterval(() => { const g = document.getElementById("genAv"); if (!g) return; 
   setInterval(() => { if (typeof S === "undefined" || !S) return; if (S !== runS) { runS = S; maxSp = 1; t0 = performance.now(); } if (S.started && !S.over) maxSp = Math.max(maxSp, S.speed || 1); }, 500);
   const _g = gameOver; gameOver = function (why) { const was = S && S.over; const r = _g.apply(this, arguments);
     try { if (!was && S && S.over && !S.testRun && !S.nuts) {
-      const run = { t: Date.now(), ver: "V187", wave: S.wave | 0, why: /monster|lap|through/i.test(String(why || "")) ? "monsters" : "blocks", gold: S.gold | 0, lines: S.lines | 0, splats: S.kills | 0, score: (S.score || 0) | 0, medals: S.medals | 0, maxSpeed: maxSp, mins: Math.round((performance.now() - t0) / 600) / 100, hero: heroKey(), dev: LS.get("tarnturm-dev") === "1" };
+      const run = { t: Date.now(), ver: "V188", wave: S.wave | 0, why: /monster|lap|through/i.test(String(why || "")) ? "monsters" : "blocks", gold: S.gold | 0, lines: S.lines | 0, splats: S.kills | 0, score: (S.score || 0) | 0, medals: S.medals | 0, maxSpeed: maxSp, mins: Math.round((performance.now() - t0) / 600) / 100, hero: heroKey(), dev: LS.get("tarnturm-dev") === "1" };
       if (S.won) run.why = "win"; else if (/quit/i.test(String(why || ""))) run.why = "quit";
       if (!(HSDB && HSUID)) { fetch(API_BASE + "/runs", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "pro", ...run, ver: "V180" }) }).catch(() => {}); return r; }
       const ref = HSDB.collection("runs").doc(HSUID);
@@ -7538,6 +7538,20 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
   addEventListener("pointerdown", () => { if (otherMute) announce(); }, { capture: true, passive: true });
   announce();
 })();
+
+/* V188: Vollbild-Fenster sauber halten (kein General, keine Wellen-Nummer, keine Pause-Knöpfe, kein DJ) und
+   während des Boss-Hacks die Hauptmusik anhalten – nur die Hack-Musik läuft */
+(() => {
+  const FULL = ["ovHack", "ovOver", "ovPause", "ovStart", "ovCamp", "ovInfo", "ovHs", "ovSettings", "ovAlbum", "ovJoin", "ovOrders", "ovIntro", "ovGive", "ovSpec", "ovFb", "ovNutsRes", "ovSign"];
+  let hackHeld = false;
+  setInterval(() => {
+    const up = FULL.some(id => { const e = document.getElementById(id); return e && !e.hidden && e.getClientRects().length; });
+    document.body.classList.toggle("ovUp", up);
+    const hackUp = (() => { const e = document.getElementById("ovHack"); return !!(e && !e.hidden) || !!(typeof S !== "undefined" && S && S.duel); })();
+    try { if (hackUp && TP.el && !TP.el.paused) { TP.el.pause(); hackHeld = true; }
+      else if (!hackUp && hackHeld) { hackHeld = false; if (TP.key && !TP.paused && !document.hidden) { const p = TP.el.play(); if (p && p.catch) p.catch(() => {}); tpFade(0.5, 0.8); } } } catch (e) {}
+  }, 120);
+})();
 })();
 </script>
 
@@ -7621,5 +7635,8 @@ html body #ovOver:not([hidden]){bottom:auto!important;height:var(--ovH,100%)!imp
 body.pauseBig #bPauseTop{display:none!important}
 body.hudNarrow #waveNum{font-size:34px!important;line-height:1!important}
 body.pauseBig #bWave{min-height:0!important;border-width:4px!important;box-shadow:0 5px 0 #3a2414!important}
+</style>
+<style id="v188">
+body.ovUp #genAv,body.ovUp #waveNum,body.ovUp #bPauseTop,body.ovUp #bWave,body.ovUp #hkMiss,body.ovUp #hackPill,body.ovUp header .djBox,body.ovUp #djSong,body.ovUp #coach{visibility:hidden!important;pointer-events:none!important}
 </style>
 </body></html>
