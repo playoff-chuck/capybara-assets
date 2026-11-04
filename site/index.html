@@ -2654,7 +2654,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V198";
+const GAME_VER = "V199";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -5196,7 +5196,7 @@ function hkFinish() {
   $("hkArt").classList.toggle("proud", win);
   if (win) { const h = heroKey(), b = buddyKey(), hn = h === "rosie" ? "Rosie" : "Blue", bn = b === "rosie" ? "Rosie" : "Blue", pk = a => a[Math.floor(Math.random() * a.length)];
     const bl = pk(["That's my hero!", "So proud of you!", "You cracked it!", "My genius!", "Best hacker ever!"]), hl = pk([`For you, ${bn}!`, "Team work!", `Thanks, ${bn}!`, "We did it!", "Easy peasy!"]);
-    $("hkArt").innerHTML = `<div class="hkProud"><div class="hpCol"><span class="hp"><b class="nm ${h}">${hn}</b>${hl}</span><span class="hpImg"><img class="h" src="${HERO_IMG[h]}" alt="" style="width:100px!important;height:100px!important;max-width:100px!important;object-fit:contain;display:block"></span></div><span class="hrt">♥</span><div class="hpCol r"><span class="hp"><b class="nm ${b}">${bn}</b>${bl}</span><span class="hpImg flip"><img class="b" src="${HERO_IMG[b]}" alt="" style="width:100px!important;height:100px!important;max-width:100px!important;object-fit:contain;display:block"></span></div></div>`;
+    $("hkArt").innerHTML = `<div class="hkProud"><div class="hpCol"><span class="hp"><b class="nm ${h}">${hn}</b>${hl}</span><span class="hpImg"><img class="h" src="${HERO_IMG[h]}" alt="" style="width:100px!important;height:100px!important;max-width:100px!important;object-fit:contain;display:block"></span></div><div class="hpCol r"><span class="hp"><b class="nm ${b}">${bn}</b>${bl}</span><span class="hpImg flip"><img class="b" src="${HERO_IMG[b]}" alt="" style="width:100px!important;height:100px!important;max-width:100px!important;object-fit:contain;display:block"></span></div></div>`;
   } else $("hkArt").innerHTML = HK_ART_LOSE;
   $("hkScMe").textContent = mine; $("hkScBo").textContent = 12 - mine;
   if (win) { try { const JOY = ["nailedit", "boomshaka", "hellyeah", "phenomenal", "outstanding", "spectacular"]; setTimeout(() => SFX.say(JOY[Math.floor(Math.random() * JOY.length)]), 650); setTimeout(() => snd("jingle"), 300); [900, 1050, 1200, 1400].forEach(t => setTimeout(() => snd("coin"), t)); } catch (e) {} }
