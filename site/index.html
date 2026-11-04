@@ -3649,7 +3649,7 @@ const SFX = (() => {
         }, 50);
         P._arc = st; MUSIC.dim(0.05);
       } else if (!on && P._arc) {
-        const st = P._arc; P._arc = null; clearInterval(st.timer); st.bus.gain.setTargetAtTime(0.0001, ac.currentTime, 0.25); setTimeout(() => { try { st.bus.disconnect(); } catch (e) {} }, 1500); MUSIC.dim(1);
+        const st = P._arc; P._arc = null; clearInterval(st.timer); st.bus.gain.cancelScheduledValues(ac.currentTime); st.bus.gain.setTargetAtTime(0.0001, ac.currentTime, 0.04); setTimeout(() => { try { st.bus.disconnect(); } catch (e) {} }, 300); MUSIC.dim(1);
       }
     },
     heart()  { osc("sine", 72, 44, 0.14, 0.55, 0); osc("sine", 66, 40, 0.13, 0.4, 0.23); },
@@ -7234,7 +7234,7 @@ setInterval(() => { const g = document.getElementById("genAv"); if (!g) return; 
   setInterval(() => { if (typeof S === "undefined" || !S) return; if (S !== runS) { runS = S; maxSp = 1; t0 = performance.now(); } if (S.started && !S.over) maxSp = Math.max(maxSp, S.speed || 1); }, 500);
   const _g = gameOver; gameOver = function (why) { const was = S && S.over; const r = _g.apply(this, arguments);
     try { if (!was && S && S.over && !S.testRun && !S.nuts) {
-      const run = { t: Date.now(), ver: "V188", wave: S.wave | 0, why: /monster|lap|through/i.test(String(why || "")) ? "monsters" : "blocks", gold: S.gold | 0, lines: S.lines | 0, splats: S.kills | 0, score: (S.score || 0) | 0, medals: S.medals | 0, maxSpeed: maxSp, mins: Math.round((performance.now() - t0) / 600) / 100, hero: heroKey(), dev: LS.get("tarnturm-dev") === "1" };
+      const run = { t: Date.now(), ver: "V189", wave: S.wave | 0, why: /monster|lap|through/i.test(String(why || "")) ? "monsters" : "blocks", gold: S.gold | 0, lines: S.lines | 0, splats: S.kills | 0, score: (S.score || 0) | 0, medals: S.medals | 0, maxSpeed: maxSp, mins: Math.round((performance.now() - t0) / 600) / 100, hero: heroKey(), dev: LS.get("tarnturm-dev") === "1" };
       if (S.won) run.why = "win"; else if (/quit/i.test(String(why || ""))) run.why = "quit";
       if (!(HSDB && HSUID)) { fetch(API_BASE + "/runs", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "pro", ...run, ver: "V180" }) }).catch(() => {}); return r; }
       const ref = HSDB.collection("runs").doc(HSUID);
@@ -7543,13 +7543,13 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
    während des Boss-Hacks die Hauptmusik anhalten – nur die Hack-Musik läuft */
 (() => {
   const FULL = ["ovHack", "ovOver", "ovPause", "ovStart", "ovCamp", "ovInfo", "ovHs", "ovSettings", "ovAlbum", "ovJoin", "ovOrders", "ovIntro", "ovGive", "ovSpec", "ovFb", "ovNutsRes", "ovSign"];
-  let hackHeld = false;
+  let hackHeld = false, wasHack = false;
   setInterval(() => {
     const up = FULL.some(id => { const e = document.getElementById(id); return e && !e.hidden && e.getClientRects().length; });
     document.body.classList.toggle("ovUp", up);
     const hackUp = (() => { const e = document.getElementById("ovHack"); return !!(e && !e.hidden) || !!(typeof S !== "undefined" && S && S.duel); })();
     try { if (hackUp && TP.el && !TP.el.paused) { TP.el.pause(); hackHeld = true; }
-      else if (!hackUp && hackHeld) { hackHeld = false; if (TP.key && !TP.paused && !document.hidden) { const p = TP.el.play(); if (p && p.catch) p.catch(() => {}); tpFade(0.5, 0.8); } } } catch (e) {}
+      else if (!hackUp && hackHeld) { hackHeld = false; try { snd("arcade", false); } catch (e) {} if (TP.key && !TP.paused && !document.hidden) { const p = TP.el.play(); if (p && p.catch) p.catch(() => {}); tpFade(0.5, 0.8); } } } catch (e) {} if (wasHack && !hackUp) { try { snd("arcade", false); } catch (e) {} } wasHack = hackUp;
   }, 120);
 })();
 })();
