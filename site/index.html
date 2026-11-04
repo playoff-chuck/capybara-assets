@@ -2654,7 +2654,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V206";
+const GAME_VER = "V207";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -7875,5 +7875,16 @@ body:has(#ovPause:not([hidden])) #alert,body:has(#ovPause:not([hidden])) #toast{
 #sheet .slot .wline>button{flex:0 0 118px!important;width:118px!important;min-width:118px!important;max-width:118px!important;height:40px!important;padding:0 6px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #sheet .slot .slotRow{align-self:center}
 #sheet .slot .slotRow button{height:56px!important;min-height:56px!important;max-height:56px!important;overflow:hidden}
+</style>
+<style id="v207">
+#ovPause.pauseOv:not([hidden]){z-index:1000!important;align-items:flex-start!important;justify-content:flex-start!important;flex-direction:column!important;padding-top:calc(env(safe-area-inset-top,0px) + 76px)!important;overflow-y:auto!important}
+#ovPause .pCard{align-self:center!important;box-sizing:border-box!important;width:min(340px,calc(100vw - 28px))!important;max-width:calc(100vw - 28px)!important;margin:0 auto!important}
+#ovPause .pCard *{box-sizing:border-box}
+#ovPause .pCard.sndOpen .pVol{width:100%!important;max-width:100%!important;overflow:hidden}
+#ovPause .pVol .pvRow{display:grid!important;grid-template-columns:62px minmax(0,1fr) 42px!important;gap:8px!important;align-items:center}
+#ovPause .pVol .pvRow input{width:100%!important;min-width:0!important}
+#ovPause .pVol .pvRow b{text-align:right;font-size:12px!important}
+#ovPause .pCard.sndOpen .pSpeed{display:none!important}
+body:has(#ovPause:not([hidden])) .deck,body:has(#ovPause:not([hidden])) #pauseFab{visibility:hidden!important}
 </style>
 </body></html>
