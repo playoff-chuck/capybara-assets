@@ -2654,7 +2654,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V205";
+const GAME_VER = "V206";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -6036,7 +6036,7 @@ function renderSheet() { $("sheetIn").classList.remove("pk");
     if (w) {
       const st = wstat(w), max = w.lvl >= maxLvl(), c = upCost(w);
       h += `<div class="wline"><div><div class="wname" style="color:${WEAP[w.type].col}">${WEAP[w.type].name} · Level ${w.lvl}${w.lvl > MAXLVL ? " ★" : ""}</div>
-        <div class="wstat">Damage ${st.dmg.toFixed(0)} · Range ${(st.range + heightBonus(t)).toFixed(1)}${heightBonus(t) >= 0.05 ? ` <span style="color:#f0b323">(▲+${heightBonus(t).toFixed(1)} height)</span>` : ""} · ${st.rate.toFixed(1)}/s</div></div>
+        <div class="wstat">Damage ${st.dmg.toFixed(0)} · Range ${(st.range + heightBonus(t)).toFixed(1)}${heightBonus(t) >= 0.05 ? ` <span style="color:#f0b323" title="height bonus">▲+${heightBonus(t).toFixed(1)}</span>` : ""} · ${st.rate.toFixed(1)}/s</div></div>
         <button data-up="${i}" ${max || S.gold < c ? "disabled" : ""}>${max ? "Max" : (w.lvl >= MAXLVL ? "Elite · " : "Upgrade · ") + c}</button></div>`;
     } else {
       h += `<div class="slotRow">` + Object.entries(WEAP).map(([k, b]) => unlocked(k)
@@ -7865,5 +7865,15 @@ body:has(#ovPause:not([hidden])) #alert,body:has(#ovPause:not([hidden])) #toast{
 .coachAd.poor .ad.ad3 .p.cta{background:linear-gradient(#d9cbb4,#b8a483)!important;animation:none!important;filter:none!important}
 @keyframes ctaPulse{0%,100%{transform:translateY(-50%) scale(1)}50%{transform:translateY(-50%) scale(1.06)}}
 @media (prefers-reduced-motion:reduce){.coachAd .ad.ad3 .p.cta{animation:none!important}}
+</style>
+<style id="v206">
+#sheet .slot{height:76px!important;min-height:76px!important;max-height:76px!important;box-sizing:border-box!important;overflow:hidden!important;align-content:center}
+#sheet .slot .wline{min-width:0;gap:8px!important;align-items:center!important}
+#sheet .slot .wline>div{min-width:0;flex:1 1 auto}
+#sheet .slot .wname{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.1!important}
+#sheet .slot .wstat{white-space:normal!important;overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;font-size:12.5px!important;line-height:1.25!important}
+#sheet .slot .wline>button{flex:0 0 118px!important;width:118px!important;min-width:118px!important;max-width:118px!important;height:40px!important;padding:0 6px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#sheet .slot .slotRow{align-self:center}
+#sheet .slot .slotRow button{height:56px!important;min-height:56px!important;max-height:56px!important;overflow:hidden}
 </style>
 </body></html>
