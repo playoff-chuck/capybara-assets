@@ -2654,7 +2654,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V210";
+const GAME_VER = "V211";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -7646,13 +7646,17 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
         if (!arm || now - arm > 3000) { arm = now; nb.textContent = "Tap again \u2013 your current run ends"; nb.classList.add("armed"); try { snd("uiTap"); } catch (er) {}
           setTimeout(() => { if (performance.now() - arm >= 3000) { arm = 0; nb.textContent = "New world tour"; nb.classList.remove("armed"); } }, 3100); return; }
         arm = 0; nb.textContent = "New world tour"; nb.classList.remove("armed"); try { LS.del("tarnturm-save"); } catch (er) {}
-        const p = document.querySelector("#modeList button"); if (p) p.click(); }); }
+        res.hidden = true; document.body.classList.remove("hasSave"); nb.hidden = true; try { renderModes(); } catch (er) {} }); }
     setInterval(() => { const has = !!(res && !res.hidden); document.body.classList.toggle("hasSave", has); if (nb) nb.hidden = !has; }, 300);
     const rb = document.getElementById("btnPRestart"), card = () => document.querySelector("#ovPause .pCard");
     if (rb) new MutationObserver(() => { const c = card(); if (c) c.classList.toggle("rArmed", /again/i.test(rb.textContent)); }).observe(rb, { childList: true, characterData: true, subtree: true });
   } catch (e) {}
 
   try { window.__TT && (window.__TT.gameOver = w => gameOver(w)); } catch (e) {}
+
+  /* V211: 7× aufs Logo (auch Bild-Logo / Schriftzug) → Dev-Werkzeuge */
+  try { document.addEventListener("pointerdown", e => { const t = e.target; if (!t || !t.closest) return; const b = t.closest(".brand, .logoFull, #brandLogo"); if (!b || t.closest(".logo")) return;
+      const lg = document.querySelector(".logo"); if (lg) lg.dispatchEvent(new PointerEvent("pointerdown", { bubbles: false })); }, true); } catch (e) {}
 })();
 </script>
 
