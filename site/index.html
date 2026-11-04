@@ -2654,7 +2654,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V204";
+const GAME_VER = "V205";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -7475,11 +7475,11 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
   const HEAD = [["BOSS HACK", "COACHING!", "Coach Ollie shows you the tricks"], ["BOSS HACK", "BEAT THE BOSS!", "10 practice duels · zero risk"], ["BOSS HACK", "WIN MORE GOLD!", "Tips after every round"]];
   const ADS = { vA: () => adHtml(HEAD[0]), vB: () => adHtml(HEAD[1]), vC: () => adHtml(HEAD[2]) };
   function adHtml(h) { return `<span class="flash">${BOLT}${BOLT}</span><img class="ollie" src="${COACH_IMG()}" alt=""><span class="txt"><span class="k">⚡ Limited deal ⚡</span><span class="h">${h[0]}</span><span class="h2">${h[1]}</span><span class="s">${h[2]}</span></span><svg class="duel" viewBox="0 0 120 80" aria-hidden="true"><rect x="1" y="1" width="118" height="78" rx="8" fill="#14102b" stroke="#ffe14d" stroke-width="2"/>${[0,1,2,3,4,5].map(i => `<path d="M6 ${10 + i * 12}h34" stroke="#ff8a1f" stroke-width="3"/><path d="M80 ${10 + i * 12}h34" stroke="#b07cff" stroke-width="3"/><rect x="${44}" y="${5 + i * 12}" width="14" height="10" rx="2" fill="${i % 3 ? "#ff8a1f" : "#b07cff"}"/><rect x="${62}" y="${5 + i * 12}" width="14" height="10" rx="2" fill="${i % 2 ? "#ff8a1f" : "#b07cff"}"/>`).join("")}<circle cx="24" cy="22" r="4" fill="#fff"/><circle cx="96" cy="46" r="4" fill="#fff"/></svg><span class="p"><b>99</b><i>GOLD</i></span><span class="tag">10 DUELS</span>`; }
-    const AD3_TXT = { vA: ["img/ad_a.webp", "BOSS HACK · COACHING", "TRAIN WITH OLLIE", "Coach Ollie shows you the tricks"],
-                    vB: ["img/ad_b.webp", "BOSS HACK · COACHING", "BEAT THE BOSS", "10 practice duels · zero risk"],
-                    vC: ["img/ad_c.webp", "BOSS HACK · COACHING", "WIN MORE GOLD", "Tips after every round"] };
+    const AD3_TXT = { vA: ["img/ad_a.webp", "BOSS HACK · COACHING", "TRAIN WITH OLLIE", "Learn the boss tricks"],
+                    vB: ["img/ad_b.webp", "BOSS HACK · COACHING", "BEAT THE BOSS", "10 duels · no risk"],
+                    vC: ["img/ad_c.webp", "BOSS HACK · COACHING", "WIN MORE GOLD", "Tips every round"] };
   function AD3(v) { const t = AD3_TXT[v] || AD3_TXT.vA;
-    return `<span class="bg" style="background-image:url(${t[0]})"></span><span class="shade"></span><img class="ollie" src="${COACH_IMG()}" alt=""><span class="txt"><span class="k">${t[1]}</span><span class="h">${t[2]}</span><span class="s">${t[3]}</span></span><span class="p"><b>99</b><i>GOLD</i></span>`; }
+    return `<span class="bg" style="background-image:url(${t[0]})"></span><span class="shade"></span><img class="ollie" src="${COACH_IMG()}" alt=""><span class="txt"><span class="k">${t[1]}</span><span class="h">${t[2]}</span><span class="s">${t[3]}</span></span><span class="p cta"><em>BUY NOW</em><b>99</b><i>GOLD</i></span>`; }
   let adSeq = 0; try { adSeq = +(localStorage.getItem("tarnturm-adseq") || 0); } catch (e) {}
   const putAd = () => { const sh = document.getElementById("sheet"); if (!sh || sh.hidden) return; const tile = sh.querySelector('.shopItem.cTra'), first = sh.querySelector(".shopCat"); if (!tile || !first || sh.querySelector(".coachAd")) return;
     const v = ["vA", "vB", "vC"][adSeq % 3]; adSeq++; try { localStorage.setItem("tarnturm-adseq", String(adSeq)); } catch (e) {}
@@ -7855,5 +7855,15 @@ body:has(#ovPause:not([hidden])) #alert,body:has(#ovPause:not([hidden])) #toast{
 <style id="v203">
 .inWin{position:relative}
 #inOk.okCorner{position:absolute!important;right:12px!important;bottom:12px!important;left:auto!important;top:auto!important;width:auto!important;min-width:0!important;height:42px!important;padding:0 18px!important;margin:0!important;font-size:18px!important;z-index:5;box-shadow:0 3px 0 #3a2414!important}
+</style>
+<style id="v205">
+.coachAd .ad.ad3 .txt{right:104px!important}
+.coachAd .ad.ad3 .p.cta{right:8px!important;min-width:84px!important;padding:5px 8px 6px!important;border-radius:14px!important;background:linear-gradient(#ffb04a,#ee6a1c)!important;color:#fff!important;border:2px solid #3a2414!important;box-shadow:0 3px 0 #3a2414!important;animation:ctaPulse 1.6s ease-in-out infinite!important}
+.coachAd .ad.ad3 .p.cta em{display:block;font:800 10px/1 "Baloo 2",sans-serif;letter-spacing:.08em;font-style:normal;color:#fff;margin-bottom:2px}
+.coachAd .ad.ad3 .p.cta b{color:#fff!important;font-size:24px!important;text-shadow:0 2px 0 rgba(58,36,20,.5)}
+.coachAd .ad.ad3 .p.cta i{color:#fff!important;font-size:10px!important}
+.coachAd.poor .ad.ad3 .p.cta{background:linear-gradient(#d9cbb4,#b8a483)!important;animation:none!important;filter:none!important}
+@keyframes ctaPulse{0%,100%{transform:translateY(-50%) scale(1)}50%{transform:translateY(-50%) scale(1.06)}}
+@media (prefers-reduced-motion:reduce){.coachAd .ad.ad3 .p.cta{animation:none!important}}
 </style>
 </body></html>
