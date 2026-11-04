@@ -32,6 +32,13 @@
 .rcard li{display:grid;grid-template-columns:22px 1fr;gap:4px}
 .rcard li i{font-style:normal;font-weight:800;text-align:center}
 .rcard li.done i{color:var(--ok)} .rcard li.part i{color:var(--gold)} .rcard li.open i{color:var(--no)} .rcard li.new i{color:var(--blue)}
+.nowBox{margin-top:10px;display:grid;gap:8px;background:var(--card);border:2px solid var(--ink);border-radius:14px;padding:10px 12px;box-shadow:0 3px 0 var(--ink)}
+.nowBox>div{display:grid;gap:1px}
+.nowBox .nl{font:700 11px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--orange)}
+.nowBox b{font:600 15px/1.3 var(--f-body)}
+.tag.step-jetzt{background:var(--orange);border-color:var(--orange);color:#fff}
+.tag.step-next{color:var(--blue);border-color:var(--blue)}
+.tag.step-hold{color:var(--mute);border-style:dashed}
 .rep .badge{font:600 11px var(--f-mono);color:var(--orange);white-space:nowrap}
 </style>
 <div class="bgimg" aria-hidden="true"></div>
@@ -42,6 +49,7 @@
   <h1>Capybara Squad · Heute</h1>
   <p><span id="hDate"></span> · <span class="live"><i></i><span id="hVer"></span> live</span></p>
   <div class="refMsg" id="refMsg"></div>
+  <div class="nowBox" id="nowBox" hidden><div><span class="nl">Ich mache gerade</span><b id="nowMe"></b></div><div><span class="nl">Von dir gebraucht</span><b id="nowYou"></b></div><span class="when2" id="nowAt"></span></div>
 </header>
 
 <section>
@@ -100,6 +108,7 @@ const fmtAt = a => { try { return new Date(a).toLocaleString("de-DE",{day:"2-dig
 function renderHead(){ const m = META || D.meta || {};
   $("hDate").textContent = new Date().toLocaleDateString("de-DE",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
   $("hVer").textContent = m.ver || "";
+  $("nowBox").hidden = !(m.now || m.you); $("nowMe").textContent = m.now || "–"; $("nowYou").textContent = m.you || "Nichts – ich melde mich."; $("nowAt").textContent = m.at ? "Stand " + fmtAt(m.at) : "";
 }
 
 /* ---------- Entscheidungen (Annehmen / Ablehnen / Kommentar) ---------- */
@@ -133,10 +142,12 @@ function doneInner(x, d){ d = d || {};
 function tasks(){ return (TASKS && TASKS.length ? TASKS : D.tasks) || []; }
 function renderTasks(){
   ["martin","claude"].forEach(who => {
-    const L = tasks().filter(t => t.who === who).sort((a,b) => String(b.at || "").localeCompare(String(a.at || "")));
-    const closed = t => t.st === "done" || stat(t.id) === "ok" || stat(t.id) === "no";
+    const RK = { jetzt: 0, next: 1, later: 2, hold: 3 };
+    const L = tasks().filter(t => t.who === who).sort((a,b) => (who === "claude" ? (RK[a.step] ?? 2) - (RK[b.step] ?? 2) : 0) || String(b.at || "").localeCompare(String(a.at || "")));
+    const closed = t => t.st === "done" || stat(t.id) === "no" || (who === "martin" && stat(t.id) === "ok");
     const open = L.filter(t => !closed(t)), done = L.filter(closed);
-    $(who).innerHTML = (open.length ? open.map(t => `<div class="item"><b>${esc(t.t)}</b><span class="tag ${stat(t.id)}" data-tag="${esc(t.id)}">${STAT[stat(t.id)]}</span>
+    const SL = { jetzt: "jetzt", next: "als Nächstes", later: "später", hold: "pausiert" };
+    $(who).innerHTML = (open.length ? open.map(t => `<div class="item"><b>${esc(t.t)}</b>${who === "claude" && t.step ? `<span class="tag step-${esc(t.step)}">${SL[t.step] || esc(t.step)}</span>` : `<span class="tag ${stat(t.id)}" data-tag="${esc(t.id)}">${STAT[stat(t.id)]}</span>`}
       ${t.s ? `<div class="sub">${esc(t.s)}</div>` : ""}${t.prop ? `<div class="mine" style="grid-column:1/-1"><b>Mein Vorschlag:</b> ${esc(t.prop)}</div>` : ""}${t.l ? `<div class="links">${linkHtml(t.l)}</div>` : ""}
       <div style="grid-column:1/-1">${decHtml(t.id)}</div><span class="when2" style="grid-column:1/-1">${t.at ? "seit " + esc(fmtAt(t.at)) : ""}</span></div>`).join("") : `<p class="note">Nichts offen.</p>`)
       + done.map(t => accRow(t.id, t.t, doneInner(t, DEC[t.id]) + (t.st !== "done" ? `<p><button type="button" class="undo" data-reopen="${esc(t.id)}">Wieder öffnen</button></p>` : ""), t.st === "done" ? "erledigt" : stat(t.id) === "no" ? "abgelehnt" : "angenommen")).join("");
