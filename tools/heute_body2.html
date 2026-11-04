@@ -18,6 +18,20 @@
 .propCard h4 .n{font:700 12px var(--f-mono);width:22px;height:22px;border-radius:50%;display:inline-grid;place-items:center;background:var(--orange);color:#fff;flex:0 0 auto}
 .propCard p{margin:0;font-size:14px}
 .rep>summary{grid-template-columns:auto 1fr auto auto}
+.rhead{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-right:30px}
+.rnew{font:700 13px var(--f-body);padding:6px 12px;border-radius:10px;border:2px solid var(--ink);background:var(--orange);color:#fff;cursor:pointer;box-shadow:0 2px 0 var(--ink);white-space:nowrap}
+.rcards{display:grid;gap:10px}
+.rcard{border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:grid;gap:6px;background:var(--card)}
+.rcard .top{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.rcard .top b{font:800 15px/1.25 var(--f-body)}
+.rcard .gr{font:600 15px var(--f-mono);white-space:nowrap;font-variant-numeric:tabular-nums}
+.rcard .gr .up{color:var(--ok)} .rcard .gr .dn{color:var(--no)}
+.rcard .now{font-size:13px;color:var(--mute)}
+.rcard h5{margin:4px 0 0;font:700 11px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--mute)}
+.rcard ul{margin:0;padding-left:0;list-style:none;display:grid;gap:3px;font-size:14px}
+.rcard li{display:grid;grid-template-columns:22px 1fr;gap:4px}
+.rcard li i{font-style:normal;font-weight:800;text-align:center}
+.rcard li.done i{color:var(--ok)} .rcard li.part i{color:var(--gold)} .rcard li.open i{color:var(--no)} .rcard li.new i{color:var(--blue)}
 .rep .badge{font:600 11px var(--f-mono);color:var(--orange);white-space:nowrap}
 </style>
 <div class="bgimg" aria-hidden="true"></div>
@@ -63,9 +77,11 @@
 </div>
 
 <dialog id="dRate"><div class="dlg"><button class="x" data-close aria-label="Schließen">×</button>
-  <h3>Einschätzung je Baustein</h3>
-  <p class="note" style="margin:0" id="rateNote">Note 1 = Store-reif, 5 = Prototyp. Meine Einschätzung, nicht mit echten Spielern geprüft.</p>
-  <div class="tblwrap"><table class="rate"><thead><tr><th>Baustein</th><th>früher</th><th>jetzt</th><th>Nächste To-dos</th></tr></thead><tbody id="rateBody"></tbody></table></div>
+  <div class="rhead"><h3>Einschätzung je Baustein</h3><button type="button" id="bRateNew" class="rnew">Neue Einschätzung</button></div>
+  <div class="tabs" id="rateHist" role="tablist"></div>
+  <p class="note" style="margin:0" id="rateNote"></p>
+  <div class="savebar" id="rateMsg"></div>
+  <div class="rcards" id="rateBody"></div>
 </div></dialog>
 
 <script>
@@ -118,13 +134,15 @@ function tasks(){ return (TASKS && TASKS.length ? TASKS : D.tasks) || []; }
 function renderTasks(){
   ["martin","claude"].forEach(who => {
     const L = tasks().filter(t => t.who === who).sort((a,b) => String(b.at || "").localeCompare(String(a.at || "")));
-    const open = L.filter(t => t.st !== "done"), done = L.filter(t => t.st === "done");
+    const closed = t => t.st === "done" || stat(t.id) === "ok" || stat(t.id) === "no";
+    const open = L.filter(t => !closed(t)), done = L.filter(closed);
     $(who).innerHTML = (open.length ? open.map(t => `<div class="item"><b>${esc(t.t)}</b><span class="tag ${stat(t.id)}" data-tag="${esc(t.id)}">${STAT[stat(t.id)]}</span>
       ${t.s ? `<div class="sub">${esc(t.s)}</div>` : ""}${t.prop ? `<div class="mine" style="grid-column:1/-1"><b>Mein Vorschlag:</b> ${esc(t.prop)}</div>` : ""}${t.l ? `<div class="links">${linkHtml(t.l)}</div>` : ""}
       <div style="grid-column:1/-1">${decHtml(t.id)}</div><span class="when2" style="grid-column:1/-1">${t.at ? "seit " + esc(fmtAt(t.at)) : ""}</span></div>`).join("") : `<p class="note">Nichts offen.</p>`)
-      + done.map(t => accRow(t.id, t.t, doneInner(t, DEC[t.id]), "erledigt")).join("");
+      + done.map(t => accRow(t.id, t.t, doneInner(t, DEC[t.id]) + (t.st !== "done" ? `<p><button type="button" class="undo" data-reopen="${esc(t.id)}">Wieder öffnen</button></p>` : ""), t.st === "done" ? "erledigt" : stat(t.id) === "no" ? "abgelehnt" : "angenommen")).join("");
   });
   bindDec(document.getElementById("martin")); bindDec(document.getElementById("claude"));
+  document.querySelectorAll("[data-reopen]").forEach(b => b.onclick = () => { save(b.dataset.reopen, { status: "open" }); renderTasks(); });
 }
 
 /* ---------- Diagramm ---------- */
@@ -181,9 +199,10 @@ function renderBal(){
   $("archLegN").innerHTML = withN.map(r => `<span style="color:${col(r)}">${esc(r.ver)}${r.nutsNote ? " · " + esc(r.nutsNote) : ""}</span>`).join("") + `<span style="color:var(--mute)">○ Ziel 50 % L5 · 10 % L10 · 1–2 % L20</span>`;
   $("archNote").textContent = sel.some(r => !r.types && !r.reach) ? "Ältere Berichte ohne gespeicherte Kurven erscheinen nur unten in der Liste." : "";
   $("props").innerHTML = sel.filter(r => (r.props || []).length).map(r => `<div class="prophead">Vorschläge aus ${esc(r.ver)} · ${esc(r.label)}</div><div class="selrep">${r.props.map(p => { const d = DEC[p.id] || {};
-      if (d.done) return accRow(p.id, p.n + ". " + p.t, doneInner(p, d), "umgesetzt");
+      if (d.done || d.status === "ok" || d.status === "no") return accRow(p.id, p.n + ". " + p.t, doneInner(p, d) + (d.done ? "" : `<p><button type="button" class="undo" data-reopen="${esc(p.id)}">Wieder öffnen</button></p>`), d.done ? "umgesetzt" : d.status === "no" ? "abgelehnt" : "angenommen");
       return `<div class="propCard" id="pc_${esc(p.id)}"><h4><span class="n">${p.n}</span>${esc(p.t)} <span class="tag ${stat(p.id)}" data-tag="${esc(p.id)}">${STAT[stat(p.id)]}</span></h4>${p.why ? `<p>${esc(p.why)}</p>` : ""}<p><b>Mein Vorschlag:</b> ${esc(p.prop)}</p>${p.eff ? `<div class="eff">${esc(p.eff)}</div>` : ""}${decHtml(p.id)}</div>`; }).join("")}</div>`).join("");
   bindDec($("props"));
+  $("props").querySelectorAll("[data-reopen]").forEach(b => b.onclick = () => { save(b.dataset.reopen, { status: "open" }); renderBal(); });
 }
 $("archT").onclick = e => { const b = e.target.closest("button"); if (!b) return; archT = b.dataset.k; renderBal(); };
 $("archZ").onclick = e => { const b = e.target.closest("button"); if (!b) return; archZ = b.dataset.k; renderBal(); };
@@ -206,7 +225,24 @@ $("bRef").onclick = async () => { const b = $("bRef"); b.classList.add("spin"); 
 /* ---------- Dialog ---------- */
 document.querySelectorAll("[data-close]").forEach(b => b.onclick = () => b.closest("dialog").close());
 document.querySelectorAll("dialog").forEach(d => d.addEventListener("click", e => { if (e.target === d) d.close(); }));
-$("bRate").onclick = () => { $("rateBody").innerHTML = (D.rate || []).map(r => `<tr><td><b>${esc(r.a)}</b><div class="note" style="margin:2px 0 0">${esc(r.now)}</div></td><td class="n">${esc(r.was)}</td><td class="n${r.up ? " up" : ""}">${esc(r.cur)}</td><td><ul>${(r.todo || []).map(x => `<li>${esc(x)}</li>`).join("")}</ul></td></tr>`).join(""); $("dRate").showModal(); };
+/* ---------- Einschätzung (Verlauf: eingebettet + DB «rates»; neueste oben) ---------- */
+let RATES = [], RREQ = [], rateSel = null;
+function rateList(){ const m = new Map(); (D.rates || []).forEach(r => m.set(r.id, r)); RATES.forEach(r => m.set(r.id, r)); return [...m.values()].sort((a,b) => String(b.at).localeCompare(String(a.at))); }
+const CK = { done: ["✓","erledigt"], part: ["◐","teilweise"], open: ["✗","offen"] };
+function renderRate(){ const L = rateList(); if (!L.length){ $("rateBody").innerHTML = `<p class="note">Noch keine Einschätzung.</p>`; return; }
+  const cur = L.find(r => r.id === rateSel) || L[0];
+  $("rateHist").innerHTML = L.slice(0, 6).map(r => `<button role="tab" data-k="${esc(r.id)}" aria-selected="${r === cur}">${esc(r.ver)} · ${esc(fmtAt(r.at))}</button>`).join("");
+  $("rateNote").textContent = `Note 1 = Store-reif, 5 = Prototyp. Stand ${cur.ver}${cur.prevVer ? ", verglichen mit " + cur.prevVer : ""}. Meine Einschätzung, nicht mit echten Spielern geprüft.` + (cur.summary ? " " + cur.summary : "");
+  const pend = RREQ.find(q => q.status !== "erledigt"); $("rateMsg").textContent = pend ? `Neue Einschätzung angefordert ${fmtAt(pend.at)} – kommt beim nächsten Arbeitsschritt.` : "";
+  $("rateBody").innerHTML = cur.rows.map(r => { const a = parseFloat(String(r.was).replace("–",".5").split(/[^0-9.]/)[0]), b = parseFloat(String(r.cur).replace("–",".5").split(/[^0-9.]/)[0]), cls = b < a ? "up" : b > a ? "dn" : "";
+    return `<div class="rcard"><div class="top"><b>${esc(r.a)}</b><span class="gr">${esc(r.was)} → <span class="${cls}">${esc(r.cur)}</span></span></div>${r.now ? `<div class="now">${esc(r.now)}</div>` : ""}
+      ${(r.check || []).length ? `<h5>To-dos vom letzten Mal</h5><ul>${r.check.map(([t,k]) => `<li class="${k}"><i title="${CK[k] ? CK[k][1] : ""}">${CK[k] ? CK[k][0] : "·"}</i><span>${esc(t)}</span></li>`).join("")}</ul>` : ""}
+      <h5>Neue To-dos</h5><ul>${(r.todo || []).map(t => `<li class="new"><i>→</i><span>${esc(t)}</span></li>`).join("")}</ul></div>`; }).join("");
+}
+$("rateHist").onclick = e => { const b = e.target.closest("button"); if (!b) return; rateSel = b.dataset.k; renderRate(); };
+$("bRate").onclick = () => { renderRate(); $("dRate").showModal(); };
+$("bRateNew").onclick = async () => { if (!db){ $("rateMsg").textContent = "Nur in claude.ai (angemeldet) möglich."; return; }
+  try { await db.doc("raterq/r" + Date.now()).set({ at: new Date().toISOString(), status: "wartet" }); } catch(e){ $("rateMsg").textContent = "Konnte nicht senden (" + (e && e.code || "Fehler") + ")."; } };
 
 function all(){ renderHead(); renderTasks(); renderBal(); renderSim(); renderRef(); }
 all();
@@ -221,6 +257,8 @@ all();
     db.collection("meta").onSnapshot(s => { const m = rows(s).find(r => r.id === "page"); META = m || null; renderHead(); }, () => {});
     db.collection("reports").onSnapshot(s => { REPS = rows(s).filter(r => r.at); if (!busy()) renderBal(); }, () => {});
     db.collection("simreq").onSnapshot(s => { SIM = rows(s).sort((a,b) => String(b.at).localeCompare(String(a.at))).slice(0, 6); renderSim(); }, () => {});
+    db.collection("rates").onSnapshot(s => { RATES = rows(s).filter(r => r.rows); if ($("dRate").open) renderRate(); }, () => {});
+    db.collection("raterq").onSnapshot(s => { RREQ = rows(s).sort((a,b) => String(b.at).localeCompare(String(a.at))); if ($("dRate").open) renderRate(); }, () => {});
     db.collection("refresh").onSnapshot(s => { REF = rows(s).sort((a,b) => String(b.at).localeCompare(String(a.at))); renderRef(); }, () => {});
     db.collection("decisions").onSnapshot(s => { const next = {}; rows(s).forEach(r => { const id = r.id; delete r.id; next[id] = r; });
       const a = busy() ? document.activeElement.id.slice(2) : null; DEC = Object.assign(next, a ? { [a]: DEC[a] } : {}); if (!a){ renderTasks(); renderBal(); } }, () => {});

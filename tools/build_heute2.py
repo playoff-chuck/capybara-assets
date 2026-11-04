@@ -17,7 +17,7 @@ for r in new.get('reports', []):
 v181 = reps.get('r20261104_1142')
 if v181 is not None and not v181.get('props'):
     v181['props'] = [dict(p, chart='main') for p in old['mainMarks']] + [dict(p, chart='nuts', n=len(old['mainMarks']) + p['n']) for p in old['nutsMarks']]
-D = dict(meta=new['meta'], tasks=new['tasks'], reports=sorted(reps.values(), key=lambda r: r['at'], reverse=True), rate=new.get('rate', old.get('rate', [])))
+D = dict(meta=new['meta'], tasks=new['tasks'], reports=sorted(reps.values(), key=lambda r: r['at'], reverse=True), rates=new.get('rates', []))
 html = head + body.replace('/*DATA*/null', json.dumps(D, ensure_ascii=False))
 open(out, 'w', encoding='utf-8').write(html)
 print('ok', out, len(html))
