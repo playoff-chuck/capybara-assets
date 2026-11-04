@@ -2654,7 +2654,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V233";
+const GAME_VER = "V234";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -7705,7 +7705,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     const ov = document.createElement("div"); ov.id = "ovMap"; ov.hidden = true;
     ov.innerHTML = `<div class="mapVp"><div class="mapWorld"><img class="mapImg" src="img/worldmap.webp" alt="World map" draggable="false"><svg class="mapPath" viewBox="0 0 1000 ${Math.round(1000 * MAP_AR)}" preserveAspectRatio="none"></svg><div class="mapPins"></div><div class="mapPlane"><svg viewBox="0 0 24 24" width="46" height="46" aria-hidden="true"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" fill="#ff6fb5" stroke="#3a2414" stroke-width="1.3" stroke-linejoin="round"/><path d="M11.5 4v4.2" stroke="#fff" stroke-width="1.1" stroke-linecap="round" opacity=".9"/></svg></div><div class="mapMe"><img alt=""></div></div></div>
       <div class="mapTop"><small class="mapCont"></small><b class="mapPlace"></b><span class="mapSub"></span></div>
-      <div class="mapBar"><button type="button" class="mapWorldBtn">WORLD</button><button type="button" class="mapClose">CLOSE</button></div>
+      <div class="mapBar"><button type="button" class="mapWorldBtn">WORLD</button><button type="button" class="mapPlay">PLAY ▶</button><button type="button" class="mapClose">CLOSE</button></div>
       <div class="mapSkip">tap to skip</div>`;
     document.body.appendChild(ov);
     const vp = ov.querySelector(".mapVp"), world = ov.querySelector(".mapWorld"), pinsEl = ov.querySelector(".mapPins"), pathEl = ov.querySelector(".mapPath"), plane = ov.querySelector(".mapPlane"), me = ov.querySelector(".mapMe");
@@ -7743,7 +7743,9 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     function show(m) { mode = m; layout(); ov.hidden = false; ov.className = m === "browse" ? "browse" : "auto"; document.body.classList.add("mapUp"); }
     function hide() { clearSeq(); ov.hidden = true; mode = null; document.body.classList.remove("mapUp"); plane.classList.remove("on"); const f = seqDone; seqDone = null; if (f) f(); }
     /* frei ansehen */
-    function openMap(w, why) { clearSeq(); w = w || curWave(); const P = posOf(w); show("browse"); drawPins(P.g); setMe(MAP_PTS[P.c][P.p], false);
+    function openMap(w, why) { clearSeq(); w = w || curWave(); const P = posOf(w); show("browse");
+      { const st = document.getElementById("ovStart"), fs = !!(st && !st.hidden && !why); ov.classList.toggle("fromStart", fs);
+        const rs = document.getElementById("btnResume"), hasSave = !!(rs && rs.getClientRects().length); ov.querySelector(".mapPlay").textContent = hasSave ? "CONTINUE ▶" : "PLAY ▶"; } drawPins(P.g); setMe(MAP_PTS[P.c][P.p], false);
       label(contName(P.c), why === "over" ? `You reached ${nice(CONTS[P.c][2][P.p])}` : nice(CONTS[P.c][2][P.p]), placeSub(w));
       go(worldCam(), 0); requestAnimationFrame(() => requestAnimationFrame(() => go(contCam(P.c), 900))); try { snd("open"); } catch (e) {} }
     ov.querySelector(".mapClose").addEventListener("click", e => { e.stopPropagation(); try { snd("close"); } catch (er) {} hide(); });
@@ -7866,6 +7868,16 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
   try { const home = () => document.querySelector(".app > header") || document.querySelector("header");
     const fix = () => { const wn = document.getElementById("waveNum"), h = home(); if (wn && h && wn.parentElement !== h) h.appendChild(wn); };
     fix(); setInterval(fix, 300); } catch (e) {}
+
+  /* V234: Spiel direkt von der Karte starten */
+  try { const ov = document.getElementById("ovMap");
+    const playFromMap = () => { const rs = document.getElementById("btnResume"), pb = document.querySelector("#ovStart .playBtn");
+      const go = rs && rs.getClientRects().length ? rs : pb; ov.querySelector(".mapClose").click(); if (go) setTimeout(() => go.click(), 60); };
+    ov.querySelector(".mapPlay").addEventListener("click", e => { e.stopPropagation(); try { snd("start"); } catch (er) {} playFromMap(); });
+    ov.querySelector(".mapVp").addEventListener("click", e => { if (!ov.classList.contains("fromStart") || !ov.classList.contains("browse")) return;
+      const cur = ov.querySelector(".mPin.cur i"); if (!cur) return; const r = cur.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+      if (Math.hypot(e.clientX - cx, e.clientY - cy) < 34) { e.stopImmediatePropagation(); try { snd("start"); } catch (er) {} playFromMap(); } }, true);
+  } catch (e) {}
 })();
 </script>
 
@@ -8371,5 +8383,12 @@ body.mapUp #bWave,body.mapUp #waveNum,body.mapUp #bPauseTop{visibility:hidden!im
 #ovMap .mPin.pop i{animation:mPinPop .6s cubic-bezier(.2,1.8,.4,1)}
 @keyframes mPinPop{0%{transform:scale(.2)}100%{transform:scale(1)}}
 @media (prefers-reduced-motion:reduce){#ovMap .celRays{animation:none}}
+</style>
+<style id="v234">
+#ovMap .mapPlay{display:none}
+#ovMap.browse.fromStart .mapPlay{display:block;min-width:150px!important;background:linear-gradient(180deg,#ffb347,#ff8a1f)!important;color:#fff!important;-webkit-text-stroke:1.5px #3a2414;paint-order:stroke fill;font-size:21px!important;white-space:nowrap;padding:0 14px!important}
+#ovMap.browse.fromStart .mapBar .mapClose,#ovMap.browse.fromStart .mapBar .mapWorldBtn{min-width:0!important;padding:0 14px!important;font-size:17px!important}
+#ovMap.browse.fromStart .mPin.cur i{cursor:pointer}
+#ovMap.browse.fromStart .mPin.cur em::after{content:" ▶";color:#ff8a1f}
 </style>
 </body></html>
