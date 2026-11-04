@@ -2654,7 +2654,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V231";
+const GAME_VER = "V232";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -7842,6 +7842,11 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     window.addEventListener("pointerdown", e => { if (e.pointerType === "mouse") return; const t = e.target; if (t && t.tagName === "CANVAS") { gT = performance.now() + 650; gX = e.clientX; gY = e.clientY; } }, true);
     const swallow = e => { if (performance.now() > gT) return; const t = e.target; if (t && t.tagName === "CANVAS") return; if (Math.hypot(e.clientX - gX, e.clientY - gY) > 40) return; e.stopImmediatePropagation(); e.preventDefault(); if (e.type === "click") gT = 0; };
     ["mousedown", "mouseup", "click"].forEach(tp => window.addEventListener(tp, swallow, true)); } catch (e) { console.error("ghost", e); }
+
+  /* V232: Wellennummer in die Kopfzeile der .app-Ebene (niedrigste Priorität) */
+  try { const home = () => document.querySelector(".app > header") || document.querySelector("header");
+    const fix = () => { const wn = document.getElementById("waveNum"), h = home(); if (wn && h && wn.parentElement !== h) h.appendChild(wn); };
+    fix(); setInterval(fix, 300); } catch (e) {}
 })();
 </script>
 
@@ -8316,5 +8321,10 @@ body:has(#ovStart:not([hidden])):has(.overlay.win:not([hidden])) #btnOffline,bod
 #ovMap .maTxt small{font:800 11px/1 "Baloo 2",sans-serif;letter-spacing:.18em;color:#fff;text-shadow:0 2px 3px rgba(0,0,0,.5)}
 #ovMap .maTxt b{font:400 clamp(40px,12vw,58px)/1 var(--f-display,"Bangers",sans-serif);letter-spacing:.03em;color:#ffd84d;-webkit-text-stroke:3px #3a2414;paint-order:stroke fill;text-shadow:0 4px 0 #3a2414}
 #ovMap .maTxt span{justify-self:center;font:800 14px/1 "Baloo 2",sans-serif;color:#3a2414;background:#fff7e8;border:2.5px solid #3a2414;border-radius:999px;padding:6px 14px 5px;box-shadow:0 3px 0 #3a2414}
+</style>
+<style id="v232">
+#waveNum{z-index:44!important}
+.lockPill,#lockPill,.radioBand,#radioBand,#ovFb{z-index:50!important}
+body.ovUp #waveNum,body:has(#ovHack:not([hidden])) #waveNum{visibility:hidden!important}
 </style>
 </body></html>
