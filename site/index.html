@@ -2654,7 +2654,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V213";
+const GAME_VER = "V214";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -4161,7 +4161,7 @@ function nextKey() {
   if (stackHeight() < 8) S.helpOn = false;
   return randKey();
 }
-function spawnPiece() { S.dropLockUntil = performance.now() + 300;
+function spawnPiece() { S.dropLockUntil = performance.now() + 650;
   S.piece = S.next; S.next = S.next2; S.next2 = makePiece(nextKey());
   S.piece.x = Math.floor(VW() / 2) - (S.piece.k === "I" ? 2 : 1); S.piece.y = 0;
   if (collide(S.piece.cells, S.piece.x, S.piece.y) && !(S.rotMode && findEntry(S.piece))) gameOver("The stack hit the ceiling.");
@@ -5757,7 +5757,7 @@ function showToast(title, sub, tag, hold) {
 
 // ---------- Turm-Menü ----------
 function openSheet(t) { S.shop = false; S.sel = t; renderSheet(); $("sheet").hidden = false; }
-function closeSheet() { if (S && S.sel) S.sel.fresh = false; if (S) { S.sel = null; S.shop = false; } $("sheet").hidden = true; }
+function closeSheet() { window.__tapGuard = performance.now() + 450; if (S && S.sel) S.sel.fresh = false; if (S) { S.sel = null; S.shop = false; } $("sheet").hidden = true; }
 const SNIPE_COST = 200, MIX_COST = 350, TESLA_COST = 500;
 const ICON = {
   chomp: `<svg viewBox="0 0 48 48"><rect x="6" y="14" width="30" height="22" rx="5" fill="#5d6b3a" stroke="#17150c" stroke-width="2.5"/><rect x="6" y="32" width="30" height="8" rx="4" fill="#2a2f20" stroke="#17150c" stroke-width="2"/><path d="M34 12l10 6-10 6zM34 36l10-6-10-6z" fill="#b8bdb2" stroke="#17150c" stroke-width="2" stroke-linejoin="round"/><path d="M36 18l2 3 2-3M36 30l2-3 2 3" stroke="#17150c" stroke-width="1.5" fill="none"/><circle cx="16" cy="22" r="3" fill="#ff5a3c"/></svg>`,
@@ -6080,6 +6080,7 @@ $("sheet").addEventListener("click", e => {
 let towerId = 0;
 cv.addEventListener("pointerdown", e => {
   if (!S.started || S.over) return;
+  if (performance.now() < (window.__tapGuard || 0)) return;
   const [x, y] = cvCell(e);
   if (x < 0 || y < 0 || x >= GW || y >= GH) return;
   const c = y * GW + x;
@@ -6179,6 +6180,7 @@ function loadGame(given) {
   for (const k of SAVE_KEYS) if (d[k] !== undefined) S[k] = d[k];
   applyOrderCosts(); if (S.ordersOpen) { S.ordersOpen = false; setTimeout(() => showOrders(), 900); }
   S.dirty = true; S.started = true; S.paused = false; closeSheet(); drawNext();
+  try { const q = new URLSearchParams(location.search); if (q.get("gift") === "ton" && !window.__giftDone) { window.__giftDone = true; S.tons = (S.tons || 0) + 1; history.replaceState(null, "", location.pathname); setTimeout(() => toast("GIFT FROM HQ · +1 Ten-ton drop", "SQUAD", 2600), 2900); saveGame(); } } catch (e) {}
   $("ovStart").hidden = true; $("ovOver").hidden = true; setTimeout(() => announce("BACK IN ACTION", `Resumed at wave ${S.wave} · tap to go`, "HQ", 2500), 300);
   setTimeout(() => { if (S.started && !S.over) SFX.music.start(Math.max(1, S.wave)); }, 500);
   return true;
@@ -7657,6 +7659,11 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
   /* V211: 7× aufs Logo (auch Bild-Logo / Schriftzug) → Dev-Werkzeuge */
   try { document.addEventListener("pointerdown", e => { const t = e.target; if (!t || !t.closest) return; const b = t.closest(".brand, .logoFull, #brandLogo"); if (!b || t.closest(".logo")) return;
       const lg = document.querySelector(".logo"); if (lg) lg.dispatchEvent(new PointerEvent("pointerdown", { bubbles: false })); }, true); } catch (e) {}
+
+  /* V214: Mute-Knopf rechts oben auf dem Startscreen */
+  try { const st = document.getElementById("ovStart"); if (st && !document.getElementById("stMute")) { const b = document.createElement("button"); b.id = "stMute"; b.type = "button"; b.setAttribute("aria-label", "Mute");
+      const paint = () => { const m = !!(SFX && SFX.muted); b.classList.toggle("off", m); b.innerHTML = m ? '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 9l5 6M21 9l-5 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>' : '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>'; };
+      b.addEventListener("click", e => { e.stopPropagation(); try { SFX.init(); SFX.toggle(); muteLabel(); } catch (er) {} paint(); }); st.appendChild(b); paint(); setInterval(paint, 1000); } } catch (e) {}
 })();
 </script>
 
@@ -7955,5 +7962,18 @@ body.hasSave #btnResume{position:relative;z-index:20}
 #startMain .squad .modeBtn{height:76px!important}
 #ovStart:not(.artReady) #startMain{visibility:hidden!important}
 #startMain #btnNewTour{position:absolute!important;left:50%!important;transform:translateX(-50%)!important;bottom:12px!important;margin:0!important;z-index:7!important}
+</style>
+<style id="v214">
+/* Anzeige oben: feste Breiten */
+.barCanopy .grp{justify-content:flex-start!important;padding-left:18px!important}
+.barCanopy .grp .stat{flex:0 0 auto!important}
+#sLives{display:inline-block!important;width:30px!important;min-width:30px!important;text-align:left!important;font-variant-numeric:tabular-nums}
+#sGold{display:inline-block!important;width:62px!important;min-width:62px!important;text-align:left!important;overflow:visible;font-variant-numeric:tabular-nums}
+.barCanopy .score b,#sScore{font-variant-numeric:tabular-nums}
+/* Startscreen: Zahnrad + weißer Sound weg, rosa Mute rechts oben */
+body:has(#ovStart:not([hidden])) #btnGear,body:has(#ovStart:not([hidden])) .gearTR,body:has(#ovStart:not([hidden])) .hdrSound,body:has(#ovStart:not([hidden])) #bSound{display:none!important}
+#stMute{position:fixed!important;top:calc(env(safe-area-inset-top,0px) + 12px)!important;right:calc(env(safe-area-inset-right,0px) + 12px)!important;width:44px!important;height:44px!important;min-width:0!important;min-height:0!important;padding:0!important;border-radius:50%!important;border:2px solid #3a2414!important;background:#ff8fc4!important;color:#3a2414!important;display:grid!important;place-items:center;box-shadow:0 3px 0 #3a2414!important;z-index:80!important}
+#stMute.off{background:#e9dccb!important;color:#7a6650!important}
+#ovStart[hidden] #stMute{display:none!important}
 </style>
 </body></html>
