@@ -2654,7 +2654,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V207";
+const GAME_VER = "V208";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -2749,7 +2749,7 @@ function showIntro(q) {
   else art.innerHTML = q.k === "elite" && ICO_SPR.tower ? `<img class="inMon" src="${ICO_SPR.tower}" alt="">` : (ICON[q.k] || ICON.tower || "");
   { let src = null; if (mon && typeof MON_SPR_SRC !== "undefined") src = MON_SPR_SRC[q.k]; else if (!mon && typeof ICO_SPR !== "undefined") src = ICO_SPR[q.k === "elite" ? "tower" : q.k] || ICO_SPR.tower; const fs = INTRO_SC[heroKey() + "_" + q.k] || (["jaguar", "mummy", "tiger", "bear", "elite"].includes(q.k) ? `intro/in_${heroKey()}_${q.k}.webp` : null); if (src && !fs) setScene(src, true);
     if (!fs) { const ov = $("ovIntro"), bx = ov.querySelector(".introBox"); if (bx && bx.parentElement !== ov) ov.appendChild(bx); document.body.classList.remove("introWin"); const hs = bx && bx.querySelector(".heroSays"); if (hs) hs.remove(); }   /* V178z11: Fenster ohne Szenenbild wieder sichtbar */
-    if (fs) { const ov = $("ovIntro"); let w = ov.querySelector(".inWin"); if (!w) { w = document.createElement("div"); w.className = "inWin"; w.innerHTML = `<img class="inWinImg" alt="">`; ov.prepend(w); } { const im = w.querySelector("img"); if (im.getAttribute("src") !== fs) { im.classList.add("ldg"); im.onload = im.onerror = () => im.classList.remove("ldg"); im.src = fs; if (im.complete && im.naturalWidth) im.classList.remove("ldg"); } } w.appendChild(ov.querySelector(".introBox")); document.body.classList.add("introWin"); { const bx = $("ovIntro").querySelector(".introBox"); let hs = bx.querySelector(".heroSays"); if (!hs) { hs = document.createElement("span"); hs.className = "heroSays"; bx.insertBefore(hs, $("inName")); } hs.textContent = (heroKey() === "rosie" ? "ROSIE" : "BLUE") + (q.t === "mon" ? ": WATCH OUT, A NEW ONE!" : ": LOOK WHAT WE GOT!"); } requestAnimationFrame(placeIntroCard); } }
+    if (fs) { const ov = $("ovIntro"); let w = ov.querySelector(".inWin"); if (!w) { w = document.createElement("div"); w.className = "inWin"; w.innerHTML = `<img class="inWinImg" alt="">`; ov.prepend(w); } { const im = w.querySelector("img"); if (im.getAttribute("src") !== fs) { const ovI = $("ovIntro"); im.classList.add("ldg"); ovI.style.visibility = "hidden"; const done = () => { im.classList.remove("ldg"); ovI.style.visibility = ""; }; im.onload = im.onerror = done; setTimeout(done, 1500); im.src = fs; if (im.complete && im.naturalWidth) done(); } } w.appendChild(ov.querySelector(".introBox")); document.body.classList.add("introWin"); { const bx = $("ovIntro").querySelector(".introBox"); let hs = bx.querySelector(".heroSays"); if (!hs) { hs = document.createElement("span"); hs.className = "heroSays"; bx.insertBefore(hs, $("inName")); } hs.textContent = (heroKey() === "rosie" ? "ROSIE" : "BLUE") + (q.t === "mon" ? ": WATCH OUT, A NEW ONE!" : ": LOOK WHAT WE GOT!"); } requestAnimationFrame(placeIntroCard); } }
   $("ovIntro").hidden = false; swoosh(); setTimeout(() => SFX.say(mon ? "newmonster" : "newgear"), 350);
   clearTimeout(introT);   // V177v: kein Auto-Schließen mehr – Spiel wartet auf GOT IT
 }
@@ -7627,6 +7627,16 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
       if (inWin) { if (ok.parentElement !== w) w.appendChild(ok); ok.classList.add("okCorner"); } else { if (box && ok.parentElement !== box) box.appendChild(ok); ok.classList.remove("okCorner"); } };
     new MutationObserver(() => requestAnimationFrame(place)).observe(ov, { attributes: true, attributeFilter: ["hidden"] });
     new MutationObserver(() => requestAnimationFrame(place)).observe(document.body, { attributes: true, attributeFilter: ["class"] }); } catch (e) {}
+
+  /* V208: Vorstellungs-Bilder vorladen (gewählter Held), damit sie beim Einblenden sofort da sind */
+  try { window.__PRE = window.__PRE || {}; let preHero = null;
+    const preload = () => { try { const h = heroKey(); if (preHero === h) return; preHero = h;
+        const list = Object.entries(INTRO_SC).filter(([k]) => k.startsWith(h + "_")).map(([, v]) => v)
+          .concat(["jaguar", "mummy", "tiger", "bear", "elite"].map(k => `intro/in_${h}_${k}.webp`));
+        let i = 0; const next = () => { if (i >= list.length) return; const u = list[i++]; if (window.__PRE[u]) return next(); const im = new Image(); im.decoding = "async"; im.src = u; window.__PRE[u] = im;
+          const go = () => (window.requestIdleCallback ? requestIdleCallback(next, { timeout: 400 }) : setTimeout(next, 60)); (im.decode ? im.decode() : Promise.resolve()).then(go, go); };
+        next(); } catch (e) {} };
+    setInterval(() => { if (typeof S !== "undefined" && S && S.started) preload(); }, 1500); } catch (e) {}
 })();
 </script>
 
