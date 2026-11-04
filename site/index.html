@@ -2654,7 +2654,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V220";
+const GAME_VER = "V221";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -5205,7 +5205,7 @@ function hkFinish() {
     const bl = pk(["That's my hero!", "So proud of you!", "You cracked it!", "My genius!", "Best hacker ever!"]), hl = pk([`For you, ${bn}!`, "Team work!", `Thanks, ${bn}!`, "We did it!", "Easy peasy!"]);
     $("hkArt").innerHTML = `<div class="hkProud"><div class="hpCol"><span class="hp"><b class="nm ${h}">${hn}</b>${hl}</span><span class="hpImg"><img class="h" src="${HERO_IMG[h]}" alt="" style="width:100px!important;height:100px!important;max-width:100px!important;object-fit:contain;display:block"></span></div><div class="hpCol r"><span class="hp"><b class="nm ${b}">${bn}</b>${bl}</span><span class="hpImg flip"><img class="b" src="${HERO_IMG[b]}" alt="" style="width:100px!important;height:100px!important;max-width:100px!important;object-fit:contain;display:block"></span></div></div>`;
   } else { const w = S.wave || 1, k = w > 120 ? "bear" : w > 90 ? "bear" : w > 60 ? "tiger" : w > 30 ? "mummy" : w > 20 ? "kiefer" : "heavy", src = (typeof MON_SPR_SRC !== "undefined" && MON_SPR_SRC[k]) || "";
-    $("hkArt").innerHTML = src ? `<div class="hkWinMon"><img src="${src}" alt=""><span class="hkCoin">$</span></div>` : HK_ART_LOSE; }
+    $("hkArt").innerHTML = src ? `<div class="hkWinMon"><img src="${src}" alt=""></div>` : HK_ART_LOSE; }
   $("hkScMe").textContent = mine; $("hkScBo").textContent = 12 - mine;
   if (win) { try { const JOY = ["nailedit", "boomshaka", "hellyeah", "phenomenal", "outstanding", "spectacular"]; setTimeout(() => SFX.say(JOY[Math.floor(Math.random() * JOY.length)]), 650); setTimeout(() => snd("jingle"), 300); [900, 1050, 1200, 1400].forEach(t => setTimeout(() => snd("coin"), t)); } catch (e) {} }
   $("hkConf").innerHTML = win ? Array.from({ length: 26 }, (_, i) => `<i style="left:${(i * 37) % 100}%;background:${["#ee7a2c", "#ffd166", "#9cdf5f", "#f6ecc9", "#ff8fd8"][i % 5]};animation-delay:${(i % 9) * 0.12}s;animation-duration:${1.6 + (i % 5) * 0.25}s"></i>`).join("") : "";
