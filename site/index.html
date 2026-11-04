@@ -1,5 +1,5 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<script>try{["img/d328f1a428.webp","img/b6f38631c6.webp","img/2510465d7d.webp","img/e24cf5d037.webp"].forEach(function(u){var i=new Image();i.src=u;if(i.decode)i.decode().catch(function(){});(window.__PRE0=window.__PRE0||[]).push(i);});}catch(e){}</script><link rel="preload" as="image" href="img/d328f1a428.webp"><link rel="preload" as="image" href="img/b6f38631c6.webp"><link rel="preload" as="image" href="img/2510465d7d.webp"><title>Capybara Squad</title>
+<script>try{["img/d328f1a428.webp","img/b6f38631c6.webp","img/2510465d7d.webp","img/e24cf5d037.webp"].forEach(function(u){var i=new Image();i.src=u;if(i.decode)i.decode().catch(function(){});(window.__PRE0=window.__PRE0||[]).push(i);});}catch(e){}</script><link rel="preload" as="image" href="img/d328f1a428.webp"><link rel="preload" as="image" href="img/b6f38631c6.webp"><link rel="preload" as="image" href="img/2510465d7d.webp"><link rel="preload" as="image" href="img/logo_main.webp"><title>Capybara Squad</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -2654,7 +2654,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V216";
+const GAME_VER = "V217";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -7677,6 +7677,10 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
       b.addEventListener("click", e => { e.stopPropagation(); try { SFX.init(); SFX.toggle(); muteLabel(); } catch (er) {} paint(); }); st.appendChild(b); paint(); setInterval(paint, 1000); } } catch (e) {}
 
   try { window.__TT && (window.__TT.startTon = () => startTon(), window.__TT.buddyHelp = k => buddyHelp(k)); } catch (e) {}
+
+  /* V217: Startscreen-Logo */
+  try { const st = document.getElementById("ovStart"); if (st && !document.getElementById("stLogo")) { const im = document.createElement("img"); im.id = "stLogo"; im.alt = "Capybara Squad"; im.src = "img/logo_main.webp"; im.width = 124; im.height = 126;
+      im.addEventListener("pointerdown", e => { e.stopPropagation(); const lg = document.querySelector(".logo"); if (lg) lg.dispatchEvent(new PointerEvent("pointerdown", { bubbles: false })); }); st.appendChild(im); } } catch (e) {}
 })();
 </script>
 
@@ -8014,5 +8018,10 @@ body:has(#ovStart:not([hidden])) #btnGear,body:has(#ovStart:not([hidden])) .gear
 #waveNum{z-index:43!important}
 #hackPill{z-index:940!important}
 #book,.book{z-index:960!important}
+</style>
+<style id="v217">
+#stLogo{position:fixed!important;left:50%!important;margin-left:-62px!important;top:calc(env(safe-area-inset-top,0px) + 0px)!important;width:124px!important;height:126px!important;object-fit:contain;z-index:80!important;filter:drop-shadow(0 3px 4px rgba(0,0,0,.35));cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none}
+#ovStart[hidden] #stLogo,#ovStart:not(.artReady) #stLogo{display:none!important}
+body:has(#ovStart:not([hidden])) header .brand .logoFull,body:has(#ovStart:not([hidden])) header .brand{visibility:hidden!important}
 </style>
 </body></html>
