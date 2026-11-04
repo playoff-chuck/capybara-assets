@@ -2654,6 +2654,8 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
+const GAME_VER = "V192";
+
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
 // Außenring im Uhrzeigersinn, Start oben links
@@ -5196,6 +5198,7 @@ function hkFinish() {
     $("hkArt").innerHTML = `<div class="hkProud"><div class="hpCol"><span class="hp"><b class="nm ${h}">${hn}</b>${hl}</span><span class="hpImg"><img class="h" src="${HERO_IMG[h]}" alt="" style="width:100px!important;height:100px!important;max-width:100px!important;object-fit:contain;display:block"></span></div><span class="hrt">♥</span><div class="hpCol r"><span class="hp"><b class="nm ${b}">${bn}</b>${bl}</span><span class="hpImg flip"><img class="b" src="${HERO_IMG[b]}" alt="" style="width:100px!important;height:100px!important;max-width:100px!important;object-fit:contain;display:block"></span></div></div>`;
   } else $("hkArt").innerHTML = HK_ART_LOSE;
   $("hkScMe").textContent = mine; $("hkScBo").textContent = 12 - mine;
+  if (win) { try { const JOY = ["nailedit", "boomshaka", "hellyeah", "phenomenal", "outstanding", "spectacular"]; setTimeout(() => SFX.say(JOY[Math.floor(Math.random() * JOY.length)]), 650); setTimeout(() => snd("jingle"), 300); [900, 1050, 1200, 1400].forEach(t => setTimeout(() => snd("coin"), t)); } catch (e) {} }
   $("hkConf").innerHTML = win ? Array.from({ length: 26 }, (_, i) => `<i style="left:${(i * 37) % 100}%;background:${["#ee7a2c", "#ffd166", "#9cdf5f", "#f6ecc9", "#ff8fd8"][i % 5]};animation-delay:${(i % 9) * 0.12}s;animation-duration:${1.6 + (i % 5) * 0.25}s"></i>`).join("") : "";
   const gv = $("hkGoldV"), gs = $("hkGoldS");
   if (win) {
@@ -7234,7 +7237,7 @@ setInterval(() => { const g = document.getElementById("genAv"); if (!g) return; 
   setInterval(() => { if (typeof S === "undefined" || !S) return; if (S !== runS) { runS = S; maxSp = 1; t0 = performance.now(); } if (S.started && !S.over) maxSp = Math.max(maxSp, S.speed || 1); }, 500);
   const _g = gameOver; gameOver = function (why) { const was = S && S.over; const r = _g.apply(this, arguments);
     try { if (!was && S && S.over && !S.testRun && !S.nuts) {
-      const run = { t: Date.now(), ver: "V191", wave: S.wave | 0, why: /monster|lap|through/i.test(String(why || "")) ? "monsters" : "blocks", gold: S.gold | 0, lines: S.lines | 0, splats: S.kills | 0, score: (S.score || 0) | 0, medals: S.medals | 0, maxSpeed: maxSp, mins: Math.round((performance.now() - t0) / 600) / 100, hero: heroKey(), dev: LS.get("tarnturm-dev") === "1" };
+      const run = { t: Date.now(), ver: GAME_VER, wave: S.wave | 0, why: /monster|lap|through/i.test(String(why || "")) ? "monsters" : "blocks", gold: S.gold | 0, lines: S.lines | 0, splats: S.kills | 0, score: (S.score || 0) | 0, medals: S.medals | 0, maxSpeed: maxSp, mins: Math.round((performance.now() - t0) / 600) / 100, hero: heroKey(), dev: LS.get("tarnturm-dev") === "1" };
       if (S.won) run.why = "win"; else if (/quit/i.test(String(why || ""))) run.why = "quit";
       if (!(HSDB && HSUID)) { fetch(API_BASE + "/runs", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "pro", ...run, ver: "V180" }) }).catch(() => {}); return r; }
       const ref = HSDB.collection("runs").doc(HSUID);
@@ -7456,12 +7459,17 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
   const HEAD = [["BOSS HACK", "COACHING!", "Coach Ollie shows you the tricks"], ["BOSS HACK", "BEAT THE BOSS!", "10 practice duels · zero risk"], ["BOSS HACK", "WIN MORE GOLD!", "Tips after every round"]];
   const ADS = { vA: () => adHtml(HEAD[0]), vB: () => adHtml(HEAD[1]), vC: () => adHtml(HEAD[2]) };
   function adHtml(h) { return `<span class="flash">${BOLT}${BOLT}</span><img class="ollie" src="${COACH_IMG()}" alt=""><span class="txt"><span class="k">⚡ Limited deal ⚡</span><span class="h">${h[0]}</span><span class="h2">${h[1]}</span><span class="s">${h[2]}</span></span><svg class="duel" viewBox="0 0 120 80" aria-hidden="true"><rect x="1" y="1" width="118" height="78" rx="8" fill="#14102b" stroke="#ffe14d" stroke-width="2"/>${[0,1,2,3,4,5].map(i => `<path d="M6 ${10 + i * 12}h34" stroke="#ff8a1f" stroke-width="3"/><path d="M80 ${10 + i * 12}h34" stroke="#b07cff" stroke-width="3"/><rect x="${44}" y="${5 + i * 12}" width="14" height="10" rx="2" fill="${i % 3 ? "#ff8a1f" : "#b07cff"}"/><rect x="${62}" y="${5 + i * 12}" width="14" height="10" rx="2" fill="${i % 2 ? "#ff8a1f" : "#b07cff"}"/>`).join("")}<circle cx="24" cy="22" r="4" fill="#fff"/><circle cx="96" cy="46" r="4" fill="#fff"/></svg><span class="p"><b>99</b><i>GOLD</i></span><span class="tag">10 DUELS</span>`; }
+    const AD3_TXT = { vA: ["img/ad_a.webp", "BOSS HACK · COACHING", "TRAIN WITH OLLIE", "Coach Ollie shows you the tricks"],
+                    vB: ["img/ad_b.webp", "BOSS HACK · COACHING", "BEAT THE BOSS", "10 practice duels · zero risk"],
+                    vC: ["img/ad_c.webp", "BOSS HACK · COACHING", "WIN MORE GOLD", "Tips after every round"] };
+  function AD3(v) { const t = AD3_TXT[v] || AD3_TXT.vA;
+    return `<span class="bg" style="background-image:url(${t[0]})"></span><span class="shade"></span><img class="ollie" src="${COACH_IMG()}" alt=""><span class="txt"><span class="k">${t[1]}</span><span class="h">${t[2]}</span><span class="s">${t[3]}</span></span><span class="p"><b>99</b><i>GOLD</i></span>`; }
   let adSeq = 0; try { adSeq = +(localStorage.getItem("tarnturm-adseq") || 0); } catch (e) {}
   const putAd = () => { const sh = document.getElementById("sheet"); if (!sh || sh.hidden) return; const tile = sh.querySelector('.shopItem.cTra'), first = sh.querySelector(".shopCat"); if (!tile || !first || sh.querySelector(".coachAd")) return;
     const v = ["vA", "vB", "vC"][adSeq % 3]; adSeq++; try { localStorage.setItem("tarnturm-adseq", String(adSeq)); } catch (e) {}
     const n = typeof coachLeft === "function" ? coachLeft() : 0, poor = typeof S !== "undefined" && S && S.gold < COACH_COST;
     const b = document.createElement("button"); b.type = "button"; b.className = "coachAd " + v + (poor ? " poor" : ""); b.setAttribute("aria-label", "Book Coach Ollie for 99 gold");
-    b.innerHTML = `<span class="ad ad2">${ADS[v](n)}</span>${n ? `<span class="own" data-train="1">TRAIN NOW ▶ ×${n}</span>` : ""}`;
+    b.innerHTML = `<span class="ad ad3 ${v}">${AD3(v)}</span>${n ? `<span class="own" data-train="1">TRAIN NOW ▶ ×${n}</span>` : ""}`;
     first.parentNode.insertBefore(b, first);
     };
   window.addEventListener("click", e => { const b = e.target && e.target.closest && e.target.closest(".coachAd"); if (!b) return; e.stopImmediatePropagation(); e.preventDefault();
@@ -7547,7 +7555,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
   setInterval(() => {
     const up = FULL.some(id => { const e = document.getElementById(id); return e && !e.hidden && e.getClientRects().length; });
     document.body.classList.toggle("ovUp", up);
-    const hackUp = (() => { const e = document.getElementById("ovHack"); return !!(e && !e.hidden) || !!(typeof S !== "undefined" && S && S.duel); })();
+    const hackUp = (() => { const e = document.getElementById("ovHack"), r = document.getElementById("hackRes"); if (r && !r.hidden && r.getClientRects().length) return false; return !!(e && !e.hidden) || !!(typeof S !== "undefined" && S && S.duel); })();
     try { if (hackUp && TP.el && !TP.el.paused) { TP.el.pause(); hackHeld = true; }
       else if (!hackUp && hackHeld) { hackHeld = false; try { snd("arcade", false); } catch (e) {} if (TP.key && !TP.paused && !document.hidden) { const p = TP.el.play(); if (p && p.catch) p.catch(() => {}); tpFade(0.5, 0.8); } } } catch (e) {} if (wasHack && !hackUp) { try { snd("arcade", false); } catch (e) {} } wasHack = hackUp;
   }, 120);
@@ -7561,6 +7569,22 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
   const _rs = renderShop;
   renderShop = function () { const v = grab(); const r = _rs.apply(this, arguments); put(v); requestAnimationFrame(() => put(v)); setTimeout(() => put(v), 60); return r; };
 })();
+
+  /* V192: Versionsnummer auf Start- und Intro-Screen */
+  try { ["ovStart", "splash"].forEach(id => { const o = document.getElementById(id); if (o && !o.querySelector(".verTag")) { const t = document.createElement("div"); t.className = "verTag"; t.textContent = GAME_VER; o.appendChild(t); } }); } catch (e) {}
+  /* V192: Einblendungen während des Spiels (neues Monster, Gadget, Kontinent, Squad, Tipps …) – 2 s gesperrt, dann erscheint der Knopf */
+  try {
+    const LOCK_IDS = ["ovIntro", "ovJoin", "ovCamp", "ovWave", "ovLines", "ovKills", "ovTime", "ovGive", "ovOrders"];
+    const locked = new Set();
+    const lockOv = ov => { if (locked.has(ov)) return; locked.add(ov); ov.classList.add("ovLock");
+      setTimeout(() => { ov.classList.remove("ovLock"); locked.delete(ov); }, 2000); };
+    const mo = new MutationObserver(list => { for (const m of list) { const ov = m.target;
+      if (!ov.hidden && m.oldValue !== null && typeof S !== "undefined" && S && S.started && !S.over) lockOv(ov); } });
+    LOCK_IDS.forEach(id => { const ov = document.getElementById(id); if (ov) mo.observe(ov, { attributes: true, attributeFilter: ["hidden"], attributeOldValue: true }); });
+    const block = e => { const ov = e.target && e.target.closest && e.target.closest(".ovLock"); if (ov) { e.stopImmediatePropagation(); e.preventDefault(); } };
+    ["pointerdown", "pointerup", "click", "touchstart", "touchend"].forEach(t => window.addEventListener(t, block, { capture: true, passive: false }));
+    window.__TT && (window.__TT.lockOv = lockOv);
+  } catch (e) {}
 })();
 </script>
 
@@ -7675,5 +7699,41 @@ body.ovUp #genAv,body.ovUp #waveNum,body.ovUp #bPauseTop,body.ovUp #bWave,body.o
 @keyframes adZap{50%{opacity:.25}}
 @media (max-width:370px){.coachAd .ad.ad2{padding-left:88px;padding-right:100px}.coachAd .ad2 .ollie{width:94px}.coachAd .ad2 .duel{width:86px}}
 @media (prefers-reduced-motion:reduce){.coachAd .ad2,.coachAd .ad2 *{animation:none!important}}
+</style>
+<style id="v192">
+/* V192 Einblendungen: Knöpfe erst nach 2 s */
+.ovLock button,.ovLock [role=button]{opacity:0!important;pointer-events:none!important}
+[id^=ov] button{transition:opacity .35s ease}
+.ovLock::after{content:"";position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 18px);width:120px;height:4px;margin-left:-60px;border-radius:4px;background:rgba(255,255,255,.25);overflow:hidden}
+.ovLock::before{content:"";position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 18px);width:120px;height:4px;margin-left:-60px;border-radius:4px;background:#ffd75e;z-index:1;transform-origin:left;animation:ovLockBar 2s linear forwards}
+@keyframes ovLockBar{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+/* V192 Versionsnummer */
+.verTag{position:absolute;top:calc(env(safe-area-inset-top,0px) + 4px);right:8px;z-index:50;font:600 10px/1 ui-monospace,Menlo,monospace;letter-spacing:.04em;color:#fff;opacity:.75;text-shadow:0 1px 2px rgba(0,0,0,.7);pointer-events:none}
+/* V192 Shop-Höhe: sichtbare Bildschirmhöhe (dvh) statt 100vh – Handy-Leisten schneiden nichts mehr ab */
+body:has(#sheet:not([hidden])) #sheet{max-height:calc(100dvh - 66px - env(safe-area-inset-top,0px))!important;bottom:auto!important}
+body:has(#sheet:not([hidden])) #sheetIn{max-height:calc(100dvh - 74px - env(safe-area-inset-top,0px))!important}
+#sheetIn.shopV{display:flex!important;flex-direction:column!important}
+#sheetIn.shopV .shopGrid{flex:1 1 auto!important;min-height:0!important;padding-bottom:16px!important}
+#sheetIn.shopV .sheetFoot{flex:0 0 auto!important}
+/* V192 Lücken zu */
+#sheet .ledgerTop{margin:10px 0 6px 0!important}
+#sheet .coachAd{margin:0 0 6px!important;padding:0!important;display:block;width:100%;background:none!important;border:0!important;box-shadow:none!important}
+/* V192 Banner: flach, Bild-Hintergrund, ruhig */
+.coachAd .ad.ad3{position:relative;display:block;height:86px;border:3px solid #3a2414;border-radius:16px;overflow:hidden;box-shadow:0 3px 0 #3a2414;text-align:left;animation:none}
+.coachAd .ad3 .bg{position:absolute;inset:0;background-size:cover;background-position:center 45%}
+.coachAd .ad3.vB .bg{background-position:70% 50%}
+.coachAd .ad3 .shade{position:absolute;inset:0;background:linear-gradient(90deg,rgba(20,14,8,.15) 0,rgba(20,14,8,.62) 22%,rgba(20,14,8,.45) 58%,rgba(20,14,8,0) 82%)}
+.coachAd .ad3::after{content:"";position:absolute;top:0;bottom:0;width:40%;left:-45%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.18),transparent);animation:ad3Shine 4.5s ease-in-out infinite;pointer-events:none}
+.coachAd .ad3 .ollie{position:absolute;left:2px;bottom:-6px;height:96px;width:auto;object-fit:contain;filter:drop-shadow(0 2px 3px rgba(0,0,0,.45))}
+.coachAd .ad3 .txt{position:absolute;left:84px;right:76px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:1px}
+.coachAd .ad3 .k{font:800 10px/1 "Baloo 2",sans-serif;letter-spacing:.12em;color:#ffd75e}
+.coachAd .ad3 .h{font-family:"Bangers","Impact",sans-serif;font-size:clamp(20px,6vw,26px);line-height:1;letter-spacing:.03em;color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.55)}
+.coachAd .ad3 .s{font:700 12px/1.15 "Baloo 2",sans-serif;color:rgba(255,255,255,.9)}
+.coachAd .ad3 .p{position:absolute;right:10px;top:50%;transform:translateY(-50%);min-width:56px;padding:6px 8px 5px;border-radius:12px;background:linear-gradient(#ffe57a,#f2b51e);border:2px solid #3a2414;box-shadow:0 2px 0 #3a2414;text-align:center;line-height:.9;color:#3a2414}
+.coachAd .ad3 .p b{display:block;font-family:"Bangers","Impact",sans-serif;font-weight:400;font-size:24px}
+.coachAd .ad3 .p i{display:block;font:800 10px "Baloo 2",sans-serif;font-style:normal;letter-spacing:.08em}
+.coachAd.poor .ad3 .p{filter:saturate(.4) brightness(.92)}
+@keyframes ad3Shine{0%,70%{left:-45%}100%{left:110%}}
+@media (prefers-reduced-motion:reduce){.coachAd .ad3::after{animation:none;display:none}}
 </style>
 </body></html>
