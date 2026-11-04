@@ -2654,7 +2654,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V209";
+const GAME_VER = "V210";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -7651,6 +7651,8 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     const rb = document.getElementById("btnPRestart"), card = () => document.querySelector("#ovPause .pCard");
     if (rb) new MutationObserver(() => { const c = card(); if (c) c.classList.toggle("rArmed", /again/i.test(rb.textContent)); }).observe(rb, { childList: true, characterData: true, subtree: true });
   } catch (e) {}
+
+  try { window.__TT && (window.__TT.gameOver = w => gameOver(w)); } catch (e) {}
 })();
 </script>
 
@@ -7919,5 +7921,25 @@ body.hasSave #btnResume{position:relative;z-index:20}
 #btnNewTour.armed{background:#ffe1e1!important;border-color:#b8402c!important;color:#7a1f12!important}
 #ovPause .pCard.rArmed .pauseHint{display:block!important;margin:0!important;text-align:center;font-size:12px!important;color:#b8402c!important}
 #ovPause .pRow button{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+</style>
+<style id="v210">
+/* Sprechblasen über allem im Spiel (unter Vollbild-Fenstern) */
+#alert,#toast,#ticker,.ticker{z-index:900!important}
+/* Spielende: kompakt, kein Scrollen, kein Tipp */
+#ovOver .tipCard{display:none!important}
+#ovOver:not([hidden]){position:fixed!important;inset:0!important;z-index:1000!important;margin:0!important;width:auto!important;height:auto!important;max-height:none!important;
+  padding:calc(env(safe-area-inset-top,0px) + 10px) 12px calc(env(safe-area-inset-bottom,0px) + 10px)!important;overflow:hidden!important;display:flex!important;flex-direction:column!important;justify-content:center!important;gap:8px!important;
+  background:rgba(20,28,16,.72)!important;backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);border:0!important;border-radius:0!important;transform:none!important}
+#ovOver>*{width:min(400px,100%)!important;margin-left:auto!important;margin-right:auto!important;box-sizing:border-box}
+#ovOver .aar{padding:10px 12px!important}
+#ovOver .aar h2{font-size:30px!important;margin:2px 0!important}
+#ovOver .hsScore span{font-size:44px!important}
+#ovOver .aarStats{margin-top:4px!important}
+#ovOver .aarStats b{font-size:22px!important}
+#ovOver .hs{max-height:22vh!important;overflow-y:auto!important;margin:0!important}
+#ovOver .campLine:empty{display:none!important}
+#ovOver .hsEntry{padding:8px 10px!important}
+#ovOver .overBtns{display:grid!important;grid-template-columns:1fr;gap:8px!important;margin:0!important}
+#ovOver .overBtns>button{width:100%!important;margin:0!important;height:46px!important;min-height:0!important;font-size:17px!important}
 </style>
 </body></html>
