@@ -2654,7 +2654,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V239";
+const GAME_VER = "V240";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -7348,7 +7348,7 @@ function showSign(c) {
   { const u = nzUnl(); if (!u.includes(c)) { u.push(c); LS.set("tarnturm-nuts-unl", JSON.stringify(u)); } }
 }
 function closeSign() { ovSign.hidden = true; if (S) { S.intro = false; S.signOpen = 0; } }
-$("signNext").addEventListener("click", () => { SFX.init(); snd("uiTap"); const c = (S.signOpen || 1) - 1; S.nutsAsk = { ...(S.nutsAsk || {}), [c]: 1 }; closeSign(); toast(`NUTS DETOUR · any time later from the pause menu`, "HQ", 2400); });
+$("signNext").addEventListener("click", () => { SFX.init(); snd("uiTap"); const c = (S.signOpen || 1) - 1; S.nutsAsk = { ...(S.nutsAsk || {}), [c]: 1 }; closeSign(); toast(`NUTS DETOUR · any time later from the pause menu`, "HQ", 2400); if (S && !S.inWave) S.waveCD = Math.min(S.waveCD || 0, 0.3); });
 $("signNuts").addEventListener("click", () => { SFX.init(); const c = (S.signOpen || 1) - 1; S.nutsAsk = { ...(S.nutsAsk || {}), [c]: 1 }; closeSign(); startDetour(c); });
 setInterval(() => {
   if (typeof S === "undefined" || !S || !S.started || S.over || S.nuts || S.won || S.paused || S.intro || S.drop || S.ordersOpen || S.duel || S.inWave || !ovRes.hidden) return;
@@ -7413,7 +7413,7 @@ function nutsResume(c, cleared, first) {
   if (!fr || !loadGame(fr)) { $("btnHQ").click(); return; }
   S.nutsAsk = { ...(S.nutsAsk || {}), [c]: 1 };
   if (first) { S.nutsDone = { ...(S.nutsDone || {}), [c]: cleared }; S.nutsBonus = Math.min(120, (S.nutsBonus || 0) + cleared); }
-  saveGame(); nzBadgeSync(); lvLabel();
+  saveGame(); nzBadgeSync(); lvLabel(); if (S && !S.inWave) S.waveCD = Math.min(S.waveCD || 0, 1.2);
   setTimeout(() => { SFX.say("nutsback"); toast(first ? `NUTS BONUS +${cleared} % · main score ×${(1 + (S.nutsBonus || 0) / 100).toFixed(2)}` : "BACK ON THE MAIN ROAD", "HQ", 2600); }, 900);
 }
 // Pausemenü: Abstecher wiederholen / verlassen, Held & Name
