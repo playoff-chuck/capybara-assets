@@ -2654,7 +2654,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V234";
+const GAME_VER = "V235";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -2888,14 +2888,15 @@ const DAY = [
   { t: "19:00", n: "EVENING",   th: "moon", field: "rgba(42,30,40,.84)",    f: "sepia(.4) saturate(1.3) brightness(.62)",         night: .45,  tint: "linear-gradient(180deg,rgba(90,40,120,.38),rgba(255,110,50,.30))" },
   { t: "22:00", n: "NIGHT",     th: "moon", field: "rgba(24,32,22,.88)",    f: "brightness(.5)",                                  night: 1,    tint: "linear-gradient(180deg,rgba(8,14,40,.40),rgba(8,14,40,.20))" },
 ];
+const NUTS_D = { t: "", n: "NUTS", th: "moon", field: "rgba(52,18,14,.42)", f: "sepia(.2) saturate(1.35) brightness(.92) hue-rotate(-10deg)", night: .12, tint: "linear-gradient(180deg,rgba(210,40,30,.34),rgba(90,12,10,.22))" };
 function wherePos(w) { w = Math.max(1, w | 0); const c = Math.min(CONTS.length - 1, Math.floor((w - 1) / 30)), r = (w - 1) % 30, p = Math.floor(r / 5), d = r % 5; return { c, p, d, cont: CONTS[c], place: CONTS[c][2][p] }; }
 let skyKey = "";
 const PLACE_BG = { africa: [0, 1, 2, 3, 4, 5].map(i => `bg/pl_africa_${i}.webp`), asia: [0, 1, 2, 3, 4, 5].map(i => `bg/pl_asia_${i}.webp`) };   // V178z14: eigene Hintergründe je Ort
 function syncSky() {
   const sky = document.getElementById("sky"); if (!sky) return;
   const live = typeof S !== "undefined" && S && S.started && !S.over;
-  const P = wherePos(live ? S.wave || 1 : 1), D = live ? DAY[P.d] : DAY[1];
-  const key = P.cont[0] + "|" + P.p + "|" + (live ? P.d : "menu");
+  const P = wherePos(live ? S.wave || 1 : 1), D = live ? (S.nuts ? NUTS_D : DAY[P.d]) : DAY[1];
+  const key = P.cont[0] + "|" + P.p + "|" + (live ? (S.nuts ? "nuts" : P.d) : "menu");
   if (key === skyKey) return; skyKey = key;
   const im = SKY_BG[P.cont[0]], pl = (PLACE_BG[P.cont[0]] || [])[P.p];
   sky.querySelector(".day").style.backgroundImage = pl ? `url(${pl}), url(${im[0]})` : `url(${im[0]})`;
@@ -2940,7 +2941,7 @@ function buddyHelp(kind) {
 let THEME = "moon", TH = PAL.moon, CAMO = KEYS.map(k => PAL.moon.camo[k]);
 const themeMQ = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
 function baseTheme() { try { const t = localStorage.getItem("tarnturm-theme"); if (t === "sun" || t === "moon") return t; } catch (e) {} return themeMQ && !themeMQ.matches ? "sun" : "moon"; }   // Grundeinstellung: Dunkelmodus des Handys, sonst Sonne
-function wantTheme() { if (typeof S === "undefined" || !S || !S.started || S.over) return baseTheme(); return DAY[wherePos(S.wave || 1).d].th; }   // V142: Tageszeit je Ort (5 Wellen) bestimmt das Feld
+function wantTheme() { if (typeof S === "undefined" || !S || !S.started || S.over) return baseTheme(); return (S.nuts ? NUTS_D : DAY[wherePos(S.wave || 1).d]).th; }   // V142: Tageszeit je Ort (5 Wellen) bestimmt das Feld
 function syncTheme() { syncSky(); const t = wantTheme(); if (t === THEME) return false; THEME = t; TH = PAL[t]; CAMO = KEYS.map(k => PAL[t].camo[k]); if (typeof patterns !== "undefined" && typeof makePatterns === "function") makePatterns(); if (typeof drawNext === "function") drawNext(); return true; }
 function setBaseTheme(t) { try { localStorage.setItem("tarnturm-theme", t); } catch (e) {} syncTheme(); renderThemeBtn(); }
 function renderThemeBtn() { const h = heroKey(); syncHeroCol(); const bi = document.getElementById("bookImg"); if (bi && !bi.getAttribute("src")) bi.src = PORTRAIT.ledger; const lh = document.getElementById("logoHero"); if (lh) lh.src = HERO_IMG[h]; const dji = document.getElementById("djImg"); if (dji && !dji.getAttribute("src")) dji.src = PORTRAIT.ledger; document.querySelectorAll(".heroPick").forEach(w => { w.querySelectorAll(".hpAv").forEach(b => { const k = b.dataset.hero, im = b.querySelector("img"); if (!im.getAttribute("src")) im.src = HERO_IMG[k]; b.classList.toggle("on", k === h); b.setAttribute("aria-pressed", k === h); }); const sub = w.querySelector(".hpSub"); if (sub) sub.textContent = `${h === "blue" ? "ROSIE" : "BLUE"} backs you up`; }); }
@@ -5518,7 +5519,7 @@ function draw() {
   const HH = cv.height; ctx.setTransform(1, 0, 0, 1, 0, 0);
   if (S.shake > 0) ctx.setTransform(1, 0, 0, 1, (Math.random() - 0.5) * s * 0.5 * S.shake, (Math.random() - 0.5) * s * 0.5 * S.shake);
   syncTheme();
-  ctx.clearRect(-s, -s, W + 2 * s, HH + 2 * s); ctx.fillStyle = (S && S.started && !S.over) ? DAY[wherePos(S.wave || 1).d].field : TH.field; ctx.fillRect(-s, -s, W + 2 * s, HH + 2 * s);
+  ctx.clearRect(-s, -s, W + 2 * s, HH + 2 * s); ctx.fillStyle = (S && S.started && !S.over) ? (S.nuts ? NUTS_D : DAY[wherePos(S.wave || 1).d]).field : TH.field; ctx.fillRect(-s, -s, W + 2 * s, HH + 2 * s);
   // Laufring
   for (let i = 0; i < PL; i++) { const [x, y] = PER[i]; ctx.fillStyle = TH.ring[i % 2]; ctx.fillRect(x * s, y * s, s, s); }
   // Fahrspur-Linien auf dem Ring
@@ -7878,6 +7879,8 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
       const cur = ov.querySelector(".mPin.cur i"); if (!cur) return; const r = cur.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
       if (Math.hypot(e.clientX - cx, e.clientY - cy) < 34) { e.stopImmediatePropagation(); try { snd("start"); } catch (er) {} playFromMap(); } }, true);
   } catch (e) {}
+
+  try { window.__TT && (window.__TT.startDetour = c => startDetour(c)); } catch (e) {}
 })();
 </script>
 
