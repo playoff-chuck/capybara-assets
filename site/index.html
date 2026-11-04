@@ -1,5 +1,5 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<script>try{["img/d328f1a428.webp","img/b6f38631c6.webp","img/2510465d7d.webp","img/e24cf5d037.webp"].forEach(function(u){var i=new Image();i.src=u;if(i.decode)i.decode().catch(function(){});(window.__PRE0=window.__PRE0||[]).push(i);});}catch(e){}</script><link rel="preload" as="image" href="img/d328f1a428.webp"><link rel="preload" as="image" href="img/b6f38631c6.webp"><link rel="preload" as="image" href="img/2510465d7d.webp"><link rel="preload" as="image" href="img/logo_main.webp?v=218"><link rel="preload" as="image" href="img/mixer_big.webp"><link rel="preload" as="image" href="img/worldmap.webp"><title>Capybara Squad</title><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#2b3a22"><link rel="apple-touch-icon" href="icons/icon-192.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
+<script>try{["img/d328f1a428.webp","img/b6f38631c6.webp","img/2510465d7d.webp","img/e24cf5d037.webp"].forEach(function(u){var i=new Image();i.src=u;if(i.decode)i.decode().catch(function(){});(window.__PRE0=window.__PRE0||[]).push(i);});}catch(e){}</script><link rel="preload" as="image" href="img/d328f1a428.webp"><link rel="preload" as="image" href="img/b6f38631c6.webp"><link rel="preload" as="image" href="img/2510465d7d.webp"><link rel="preload" as="image" href="img/logo_main.webp?v=227"><link rel="preload" as="image" href="img/mixer_big.webp"><link rel="preload" as="image" href="img/worldmap.webp"><title>Capybara Squad</title><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#2b3a22"><link rel="apple-touch-icon" href="icons/icon-192.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -2654,7 +2654,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V226";
+const GAME_VER = "V227";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -6699,7 +6699,7 @@ function tpStop(f = 0.5) { if (!TP.el) return; tpFade(0.0001, f); const a = TP.e
 setInterval(() => { const a = TP.el; if (a && !a.paused && TP.key && !TP.paused) { const v = TP_VOL(); if (Math.abs(a.volume - v) > 0.02 && !tpFadeT) tpFade(v > 0 ? 0.5 : 0, 0.6); } }, 500);
 
 /* V172 – gemaltes Logo (Nano Banana Pro), passend zum Helden */
-const MAIN_LOGO = "img/logo_main.webp?v=218"; const LOGO_IMG = {"blue": MAIN_LOGO, "rosie": MAIN_LOGO};
+const MAIN_LOGO = "img/logo_main.webp?v=227"; const LOGO_IMG = {"blue": MAIN_LOGO, "rosie": MAIN_LOGO};
 function syncLogo() { const b = document.querySelector("header .brand"); if (!b) return; let im = b.querySelector(".logoFull"); if (!im) { im = document.createElement("img"); im.className = "logoFull"; im.alt = "Capybara Squad"; b.prepend(im); } im.src = LOGO_IMG[heroKey()] || LOGO_IMG.blue; }
 { const _r = renderThemeBtn; renderThemeBtn = function () { const r = _r.apply(this, arguments); try { syncLogo(); } catch (e) {} return r; }; syncLogo(); }
 
@@ -8266,5 +8266,8 @@ body:has(#ovStart:not([hidden])):has(.overlay.win:not([hidden])) #btnMap,body:ha
 #btnOffline svg{display:block}
 body:has(#ovStart:not([hidden])):has(#startMain:not([hidden])) #btnOffline{display:flex!important}
 body:has(#ovStart:not([hidden])):has(.overlay.win:not([hidden])) #btnOffline,body:has(#ovAlbum:not([hidden])) #btnOffline,body.mapUp #btnOffline{display:none!important}
+</style>
+<style id="v227">
+#stLogo{width:126px!important;height:106px!important}
 </style>
 </body></html>
