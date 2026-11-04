@@ -2750,7 +2750,7 @@ function showIntro(q) {
   $("ovIntro").hidden = false; snd("radio"); setTimeout(() => SFX.say(mon ? "newmonster" : "newgear"), 300);
   clearTimeout(introT);   // V177v: kein Auto-Schließen mehr – Spiel wartet auf GOT IT
 }
-function closeIntro() { clearTimeout(introT); if (!S.intro || S.joinOpen) return; S.intro = false; setTimeout(maybeJoin, 400); $("ovIntro").hidden = true; snd("build"); const sk = document.getElementById("sky"); if (sk) sk.classList.remove("big", "full"); document.body.classList.remove("introFull"); document.body.classList.remove("introWin"); document.body.classList.remove("introBig"); }
+function closeIntro() { clearTimeout(introT); if (!S.intro || S.joinOpen) return; S.intro = false; setTimeout(maybeJoin, 400); $("ovIntro").hidden = true; snd("uiTap"); const sk = document.getElementById("sky"); if (sk) sk.classList.remove("big", "full"); document.body.classList.remove("introFull"); document.body.classList.remove("introWin"); document.body.classList.remove("introBig"); }
 function announceUnlocks(w) {
   const fresh = Object.keys(UNLOCK_NAME).filter(k => unlockedAt(k) === w && w > 1);
   if (!fresh.length) return;
@@ -2765,9 +2765,9 @@ function addMedal(prog, whole) {
   if (S.medals >= MEDAL_MAX) { medalTag(); return; }
   if (whole) { S.medals++; S.medalProg = 0; } else { S.medalProg += prog; if (S.medalProg < MEDAL_NEED) { medalTag(); return; } S.medalProg = 0; S.medals++; }
   medalTag(); setTimeout(() => announce(`MEDAL ${S.medals}`, `All towers +${S.medals * 25} % damage${S.medals >= MEDAL_MAX ? " · maxed" : ""}`, "PROMOTION", 1800), 700);
-  snd("powerup");
+  snd("medal");
 }
-function loseMedal() { if (S.medals > 0) { S.medals--; S.medalProg = 0; toast(`MEDAL LOST · towers +${S.medals * 25} %`, "ALERT", 1500); } else S.medalProg = 0; medalTag(); }
+function loseMedal() { if (S.medals > 0) { S.medals--; S.medalProg = 0; snd("medalLost"); toast(`MEDAL LOST · towers +${S.medals * 25} %`, "ALERT", 1500); } else S.medalProg = 0; medalTag(); }
 // ---- SEND IT: Welle früher rufen bringt Gold für die restliche Pause ----
 function sendItBonus() { if (!S || !S.started || S.over || S.inWave || S.paused || S.waveCD < 1 || S.wave < 1) return 0; return Math.round(S.waveCD * (2 + S.wave * 0.25) * goldTaper()); }
 // ---- Lockdown: Reihen laden die Leiste; voll → 8 s Zeitstopp, Reihen in dieser Zeit explodieren am Ende gemeinsam ----
@@ -2783,7 +2783,7 @@ function startLock() {
   if (!lockReady() || frozen()) return;
   S.locks--; S.lockT = LOCK_TIME; S.lockLines = 0; buddyHelp("lock");
   announce("LOCKDOWN", "Time frozen · lines explode at the end", "HQ", 1800);
-  snd("frost"); SFX.music.setSonar && SFX.music.setSonar(true);
+  snd("lockStart"); SFX.music.setSonar && SFX.music.setSonar(true);
 }
 function stepLock(dt) {
   if (!(S.lockT > 0)) return;
@@ -3050,6 +3050,7 @@ const SFX = (() => {
       const vcomp = ac.createDynamicsCompressor(); vcomp.threshold.value = -10; vcomp.knee.value = 6; vcomp.ratio.value = 12; vcomp.attack.value = 0.003; vcomp.release.value = 0.15;
       voiceOut = ac.createGain(); voiceOut.gain.value = gainOf() * 2.2 * CH.v; voiceOut.connect(vcomp); vcomp.connect(ac.destination);
       sfxBus = ac.createGain(); sfxBus.gain.value = 1; sfxBus.connect(master);
+      try { nwOut = ac.createGain(); nwOut.gain.value = gainOf() * CH.f / 0.6; nwOut.connect(ac.destination); NW = makeNew(ac, nwOut); } catch (e) { NW = null; }
       const len = Math.floor(ac.sampleRate * 1.3), ir = ac.createBuffer(2, len, ac.sampleRate);
       for (let c = 0; c < 2; c++) { const d = ir.getChannelData(c); for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.8); }
       const cv = ac.createConvolver(); cv.buffer = ir; verb = ac.createGain(); verb.gain.value = 0.28; verb.connect(cv); cv.connect(sfxBus);
@@ -3162,6 +3163,262 @@ const SFX = (() => {
     g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(v, t + 0.04); g.gain.setValueAtTime(v, t + dur * 0.7); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
     o.connect(lp); lp.connect(g); out(g, 0.2); o.start(t); lfo.start(t); o.stop(t + dur + 0.05); lfo.stop(t + dur + 0.05);
   }
+
+  // ===== V181: neue Soundeffekte (Vorschläge von der Soundeffekt-Seite, Auswahl Martin 04.11.) =====
+  function makeNew(ac, dest) {
+    const bus = ac.createGain(); bus.gain.value = 1;
+    const comp = ac.createDynamicsCompressor(); comp.threshold.value = -16; comp.knee.value = 10; comp.ratio.value = 3; comp.attack.value = 0.004; comp.release.value = 0.18;
+    bus.connect(comp); comp.connect(dest);
+    // kleiner, warmer Raum statt langer Hallfahne
+    const rl = Math.floor(ac.sampleRate * 0.42), ir = ac.createBuffer(2, rl, ac.sampleRate);
+    for (let c = 0; c < 2; c++) { const d = ir.getChannelData(c); for (let i = 0; i < rl; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / rl, 4); }
+    const conv = ac.createConvolver(); conv.buffer = ir; const send = ac.createGain(); send.gain.value = 0.22;
+    const slp = ac.createBiquadFilter(); slp.type = "lowpass"; slp.frequency.value = 3800; send.connect(slp); slp.connect(conv); conv.connect(comp);
+    // rosa Rauschen: weicher als weißes
+    const nb = ac.createBuffer(1, ac.sampleRate * 2, ac.sampleRate);
+    { const d = nb.getChannelData(0); let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+      for (let i = 0; i < d.length; i++) { const w = Math.random() * 2 - 1;
+        b0 = 0.99886 * b0 + w * 0.0555179; b1 = 0.99332 * b1 + w * 0.0750759; b2 = 0.969 * b2 + w * 0.153852; b3 = 0.8665 * b3 + w * 0.3104856; b4 = 0.55 * b4 + w * 0.5329522; b5 = -0.7616 * b5 - w * 0.016898;
+        d[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + w * 0.5362) * 0.11; b6 = w * 0.115926; } }
+    let OUT = bus;
+    const T0 = t => ac.currentTime + 0.005 + (t || 0);
+    const R = (a, b) => a + Math.random() * (b - a);
+    const M = n => 440 * Math.pow(2, (n - 69) / 12);
+    function amp(t, a, v, d, wet) {
+      const g = ac.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(v, t + a); g.gain.exponentialRampToValueAtTime(0.0001, t + a + d);
+      g.connect(OUT); if (wet) { const w = ac.createGain(); w.gain.value = wet; g.connect(w); w.connect(send); } return g;
+    }
+    function tone(o) {
+      const t = T0(o.t), a = o.a ?? 0.004, d = o.d ?? 0.12, x = ac.createOscillator(), end = t + a + d + 0.05;
+      x.type = o.type || "sine"; x.frequency.setValueAtTime(o.f, t);
+      if (o.f2) x.frequency.exponentialRampToValueAtTime(o.f2, t + (o.bend ?? d * 0.6));
+      if (o.f3) x.frequency.exponentialRampToValueAtTime(o.f3, t + (o.bend2 ?? d));
+      let n = x;
+      if (o.lp) { const f = ac.createBiquadFilter(); f.type = "lowpass"; f.frequency.value = o.lp; f.Q.value = o.q ?? 0.7; x.connect(f); n = f; }
+      if (o.vib) { const l = ac.createOscillator(), lg = ac.createGain(); l.frequency.value = o.vib[0]; lg.gain.setValueAtTime(o.vib[1], t);
+        if (o.vibDecay) lg.gain.exponentialRampToValueAtTime(Math.max(0.01, o.vib[1] * 0.05), t + a + d);
+        l.connect(lg); lg.connect(x.frequency); l.start(t); l.stop(end); }
+      n.connect(amp(t, a, o.v ?? 0.2, d, o.wet)); x.start(t); x.stop(end);
+    }
+    function nz(o) {
+      const t = T0(o.t), a = o.a ?? 0.003, d = o.d ?? 0.1, s = ac.createBufferSource(), f = ac.createBiquadFilter();
+      s.buffer = nb; s.loop = true; f.type = o.type || "bandpass"; f.frequency.setValueAtTime(o.f || 1000, t);
+      if (o.f2) f.frequency.exponentialRampToValueAtTime(o.f2, t + a + d); f.Q.value = o.q ?? 1;
+      s.connect(f); f.connect(amp(t, a, o.v ?? 0.1, d, o.wet)); s.start(t, Math.random() * 1.5); s.stop(t + a + d + 0.05);
+    }
+    // Bausteine
+    const knock = (f, t = 0, v = 0.2) => { tone({ type: "triangle", f: f * 1.5, f2: f, bend: 0.012, d: 0.07, v, t, a: 0.002 }); tone({ f: f * 2.71, d: 0.028, v: v * 0.35, t, a: 0.001 }); nz({ f: f * 3.5, q: 2.5, d: 0.014, v: v * 0.45, t, a: 0.001 }); };
+    const thump = (f, v = 0.4, t = 0, d = 0.18) => tone({ f: f * 2.4, f2: f, bend: 0.045, d, v, t, a: 0.003 });
+    const bloop = (f, t = 0, v = 0.2, d = 0.09, up = 2) => tone({ f, f2: f * up, bend: d * 0.6, d, v, t, a: 0.004 });
+    const mallet = (f, t = 0, v = 0.18, d = 0.35, wet = 0.18) => { tone({ f, d, v, t, a: 0.002, wet }); tone({ f: f * 4, d: d * 0.22, v: v * 0.22, t, a: 0.001 }); tone({ f: f * 9.9, d: 0.012, v: v * 0.12, t, a: 0.001 }); };
+    const toyBell = (f, t = 0, v = 0.12, d = 0.4, wet = 0.3) => { tone({ type: "triangle", f, d, v, t, a: 0.003, wet }); tone({ f: f * 2.01, d: d * 0.5, v: v * 0.35, t, a: 0.002, wet }); };
+    const squish = (t = 0, v = 0.2, d = 0.16, f = 1800) => { nz({ type: "lowpass", f, f2: 220, d, v, t, a: 0.006, q: 1.2 }); tone({ f: 320, f2: 90, bend: d * 0.7, d, v: v * 0.7, t, a: 0.004 }); };
+    const puff = (t = 0, v = 0.12, d = 0.12, f = 900, f2) => nz({ type: "bandpass", f, f2: f2 || f * 0.6, q: 0.9, d, v, t, a: 0.012 });
+    const rubber = (f0, f1, f2, t = 0, v = 0.14, d = 0.2) => tone({ type: "triangle", f: f0, f2: f1, f3: f2, bend: d * 0.35, bend2: d, d, v, t, a: 0.008, lp: 2600, vib: [28, f1 * 0.03] });
+    const boing = (f, t = 0, v = 0.16, d = 0.35) => tone({ f: f * 0.85, f2: f * 1.25, bend: d * 0.5, d, v, t, a: 0.005, vib: [11, f * 0.14], vibDecay: true });
+    function buzz(t = 0, v = 0.1, d = 0.14, f = 110) {
+      const t1 = T0(t), x = ac.createOscillator(), bp = ac.createBiquadFilter(), am = ac.createGain(), l = ac.createOscillator(), lg = ac.createGain();
+      x.type = "sawtooth"; x.frequency.setValueAtTime(f, t1); x.frequency.linearRampToValueAtTime(f * 0.85, t1 + d);
+      bp.type = "bandpass"; bp.frequency.value = 1300; bp.Q.value = 1.2; am.gain.value = 0.5; l.type = "square"; l.frequency.value = 34; lg.gain.value = 0.5;
+      l.connect(lg); lg.connect(am.gain); x.connect(bp); bp.connect(am); am.connect(amp(t1, 0.004, v, d, 0.1));
+      x.start(t1); l.start(t1); x.stop(t1 + d + 0.06); l.stop(t1 + d + 0.06);
+    }
+    // Dauerschleifen (Sonderwellen)
+    function loopNoise(type, f, q, lfoF, lfoAmt, v) {
+      const t = ac.currentTime, s = ac.createBufferSource(), fl = ac.createBiquadFilter(), g = ac.createGain(), l = ac.createOscillator(), lg = ac.createGain(), l2 = ac.createOscillator(), l2g = ac.createGain();
+      s.buffer = nb; s.loop = true; fl.type = type; fl.frequency.value = f; fl.Q.value = q; l.frequency.value = lfoF; lg.gain.value = lfoAmt; l.connect(lg); lg.connect(fl.frequency);
+      l2.frequency.value = lfoF * 0.7; l2g.gain.value = v * 0.6; l2.connect(l2g); l2g.connect(g.gain);
+      g.gain.setValueAtTime(0.0001, t); g.gain.setTargetAtTime(v, t, 0.6); s.connect(fl); fl.connect(g); g.connect(OUT);
+      s.start(t, Math.random()); l.start(t); l2.start(t);
+      return { g, stop: () => { const n = ac.currentTime; g.gain.cancelScheduledValues(n); g.gain.setTargetAtTime(0.0001, n, 0.25); setTimeout(() => { try { s.stop(); l.stop(); l2.stop(); } catch (e) {} }, 1500); } };
+    }
+    function loopDrone(f, type, lp, v) {
+      const t = ac.currentTime, o = ac.createOscillator(), fl = ac.createBiquadFilter(), g = ac.createGain();
+      o.type = type; o.frequency.value = f; fl.type = "lowpass"; fl.frequency.value = lp; g.gain.setValueAtTime(0.0001, t); g.gain.setTargetAtTime(v, t, 0.8);
+      o.connect(fl); fl.connect(g); g.connect(OUT); o.start(t);
+      return { stop: () => { const n = ac.currentTime; g.gain.cancelScheduledValues(n); g.gain.setTargetAtTime(0.0001, n, 0.3); setTimeout(() => { try { o.stop(); } catch (e) {} }, 1600); } };
+    }
+    const L = {};
+    const P = {
+      // Blöcke
+      move()   { knock(R(1050, 1150), 0, 0.07); },
+      rotate() { tone({ type: "triangle", f: 620, f2: 980, bend: 0.035, d: 0.05, v: 0.08 }); knock(1500, 0.018, 0.05); },
+      soft()   { knock(R(760, 820), 0, 0.05); },
+      drop()   { puff(0, 0.07, 0.05, 1400, 500); thump(85, 0.45, 0.04, 0.17); knock(360, 0.04, 0.18); },
+      lock()   { knock(R(480, 540), 0, 0.13); thump(120, 0.14, 0, 0.07); },
+      rotBlocked() { knock(250, 0, 0.08); tone({ f: 180, f2: 150, d: 0.05, v: 0.05 }); },
+      danger() { [0, 0.18].forEach(t => tone({ type: "triangle", f: M(81), d: 0.08, v: 0.05, t, lp: 3000 })); },
+      lines(n = 1) {
+        n = Math.min(4, n); bloop(300, 0, 0.16, 0.08, 2.4);
+        const sc = [72, 74, 76, 79, 81, 84, 86, 88], cnt = 2 + n;
+        for (let i = 0; i < cnt; i++) mallet(M(sc[i]), 0.05 + i * 0.06, 0.15, 0.3);
+        if (n >= 2) toyBell(M(sc[cnt - 1] + 12), 0.05 + cnt * 0.06, 0.07, 0.4);
+        if (n >= 4) { thump(65, 0.4, 0, 0.25); [72, 76, 79].forEach(m => mallet(M(m), 0.09 + cnt * 0.06, 0.1, 0.7)); }
+      },
+      // Türme
+      mg()     { tone({ f: R(820, 940), f2: 380, bend: 0.02, d: 0.035, v: 0.09, a: 0.002 }); nz({ f: 1600, q: 1.2, d: 0.018, v: 0.035 }); },
+      kan()    { thump(60, 0.42, 0, 0.15); tone({ f: 520, f2: 240, bend: 0.04, d: 0.06, v: 0.12 }); puff(0.005, 0.08, 0.08, 700, 300); },
+      boom(n = 1) {
+        if (n >= 3) { thump(48, 0.6, 0, 0.5); squish(0, 0.25, 0.35, 1400); [60, 64, 67].forEach((m, i) => mallet(M(m), 0.08 + i * 0.05, 0.12, 0.6)); toyBell(M(84), 0.25, 0.06, 0.6); }
+        else { thump(68, 0.42, 0, 0.2); squish(0, 0.15, 0.14, 1300); }
+      },
+      frost()  { toyBell(R(1950, 2150), 0, 0.07, 0.25); toyBell(2637, 0.035, 0.045, 0.22); nz({ type: "highpass", f: 5500, d: 0.06, v: 0.018 }); },
+      build()  { knock(300, 0, 0.24); knock(420, 0.085, 0.2); mallet(M(84), 0.17, 0.13, 0.35); },
+      buildMode() { knock(900, 0, 0.08); tone({ type: "triangle", f: 700, f2: 1050, bend: 0.04, d: 0.06, v: 0.05, t: 0.02 }); },
+      towerTap() { knock(700, 0, 0.1); toyBell(M(88), 0.02, 0.04, 0.18); },
+      powerup(){ [67, 71, 74, 79].forEach((m, i) => mallet(M(m), i * 0.05, 0.12, 0.25)); boing(M(79), 0.2, 0.06, 0.25); },
+      sell()   { mallet(M(84), 0, 0.12, 0.18); mallet(M(77), 0.07, 0.12, 0.3); puff(0.03, 0.04, 0.12, 1200); },
+      towerLost() { knock(260, 0, 0.15); squish(0, 0.1, 0.15, 1200); tone({ type: "triangle", f: M(72), f2: M(60), bend: 0.25, d: 0.3, v: 0.06, t: 0.05 }); },
+      // Monster
+      die(kind) {
+        switch (kind) {
+          case "fast":   bloop(R(800, 950), 0, 0.09, 0.05, 1.8); squish(0, 0.05, 0.07, 2200); break;
+          case "heavy":  thump(75, 0.35, 0, 0.22); squish(0, 0.16, 0.2, 1100); rubber(180, 140, 110, 0.03, 0.07, 0.22); break;
+          case "munch":  tone({ f: 380, f2: 150, bend: 0.08, d: 0.1, v: 0.13 }); bloop(200, 0.1, 0.12, 0.08, 1.9); squish(0.02, 0.08, 0.1); break;
+          case "kiefer": knock(180, 0, 0.25); thump(60, 0.4, 0, 0.25); boing(150, 0.06, 0.1, 0.35); squish(0.03, 0.12, 0.2, 1000); break;
+          case "runner": toyBell(1480, 0, 0.07, 0.18); squish(0.02, 0.1, 0.1, 1700); bloop(600, 0.03, 0.08, 0.06, 1.7); break;
+          case "bomber": rubber(500, 900, 1100, 0, 0.08, 0.1); bloop(700, 0.09, 0.12, 0.05, 2); break;
+          case "volt":   buzz(0, 0.08, 0.09, 160); bloop(900, 0.06, 0.08, 0.07, 0.4); break;
+          case "jaguar": rubber(330, 470, 260, 0, 0.11, 0.22); squish(0.05, 0.08, 0.1, 1500); break;
+          case "mummy":  puff(0, 0.09, 0.22, 700, 300); rubber(240, 200, 150, 0.02, 0.09, 0.3); break;
+          case "tiger":  tone({ type: "sawtooth", f: 240, f2: 360, f3: 190, bend: 0.06, bend2: 0.22, d: 0.22, v: 0.07, lp: 1100, vib: [22, 8] }); squish(0.06, 0.09, 0.12, 1400); break;
+          case "bear":   thump(55, 0.42, 0, 0.3); puff(0, 0.1, 0.25, 500, 250); rubber(150, 120, 95, 0.04, 0.08, 0.3); break;
+          default:       squish(0, 0.12, 0.12, 1600); bloop(R(420, 520), 0.01, 0.11, 0.07, 1.9);
+        }
+      },
+      hitTick(){ tone({ f: R(560, 640), f2: 420, bend: 0.02, d: 0.025, v: 0.04 }); },
+      mummyUp(){ puff(0, 0.06, 0.18, 600, 1200); boing(M(55), 0.05, 0.1, 0.4); },
+      pounce() { puff(0, 0.07, 0.12, 500, 1800); rubber(300, 520, 600, 0.02, 0.07, 0.12); },
+      splat(n = 1) {
+        squish(0, 0.22, 0.18, 1800); bloop(260, 0, 0.16, 0.09, 1.6);
+        for (let i = 0; i < Math.min(n, 4); i++) mallet(M(79 + i * 3), 0.1 + i * 0.07, 0.09, 0.2);
+        if (n >= 2) toyBell(M(91), 0.1 + Math.min(n, 4) * 0.07, 0.05, 0.4);
+      },
+      spawn()  { bloop(R(260, 320), 0, 0.045, 0.06, 1.6); },
+      chew()   { for (let i = 0; i < 3; i++) knock(R(600, 900), i * 0.045, 0.05); },
+      nom()    { knock(240, 0, 0.14); knock(210, 0.12, 0.14); tone({ f: 300, f2: 140, bend: 0.07, d: 0.09, v: 0.1, t: 0.2 }); },
+      zap()    { buzz(0, 0.11, 0.13, 120); tone({ f: 900, f2: 300, bend: 0.08, d: 0.1, v: 0.06, t: 0.04 }); },
+      leak()   { tone({ type: "triangle", f: M(72), f2: M(71), d: 0.16, v: 0.13, lp: 2200 }); tone({ type: "triangle", f: M(67), f2: M(64), bend: 0.2, d: 0.3, v: 0.13, t: 0.18, lp: 2200 }); thump(90, 0.2, 0.18, 0.15); },
+      // Pocket-Gadgets
+      snipe()  { tone({ f: 1700, f2: 500, bend: 0.14, d: 0.16, v: 0.06 }); thump(60, 0.5, 0.15, 0.25); tone({ f: 600, f2: 260, bend: 0.04, d: 0.07, v: 0.12, t: 0.15 }); puff(0.15, 0.08, 0.25, 600, 200); },
+      tesla()  { [110, 165, 220].forEach((f, i) => buzz(i * 0.03, 0.06, 0.42, f)); tone({ type: "triangle", f: 1400, f2: 300, bend: 0.3, d: 0.35, v: 0.07, t: 0.05 }); thump(55, 0.45, 0.32, 0.25); toyBell(M(84), 0.4, 0.05, 0.3); },
+      engine() { for (let i = 0; i < 6; i++) thump(R(85, 95), 0.18, i * 0.075, 0.07); puff(0, 0.05, 0.5, 400, 300); },
+      hydraulic() { puff(0, 0.09, 0.25, 800, 450); tone({ type: "triangle", f: 310, f2: 250, d: 0.25, v: 0.05, lp: 1200 }); },
+      pour()   { nz({ type: "lowpass", f: 700, f2: 500, d: 1.0, v: 0.12, a: 0.08, q: 0.9 }); for (let i = 0; i < 7; i++) bloop(R(140, 260), 0.1 + i * 0.12 + R(0, 0.04), 0.07, 0.07, 1.7); },
+      plop(i = 0) { tone({ f: 260 + (i % 5) * 18, f2: 110, bend: 0.07, d: 0.1, v: 0.16 }); squish(0, 0.05, 0.07, 900); },
+      horn()   { [0, 0.2].forEach(t => { tone({ type: "sawtooth", f: 392, f2: 370, d: 0.14, v: 0.06, t, lp: 1300, a: 0.012, vib: [20, 6] }); tone({ type: "sawtooth", f: 494, f2: 466, d: 0.14, v: 0.045, t, lp: 1300, a: 0.012 }); }); },
+      chompRev() { let t = 0; for (let i = 0; i < 8; i++) { knock(900 + i * 60, t, 0.07); t += 0.07 - i * 0.004; } rubber(200, 420, 500, 0.1, 0.06, 0.45); },
+      chompBite(i = 0) { knock(i % 2 ? 240 : 200, 0, 0.16); squish(0, 0.06, 0.06, 1200); tone({ type: "square", f: i % 2 ? 150 : 130, f2: 80, bend: 0.05, d: 0.06, v: 0.04, lp: 700 }); },
+      tonFall(){ tone({ f: 1300, f2: 420, bend: 0.55, d: 0.6, v: 0.06, a: 0.05 }); },
+      tonHit() { thump(45, 0.7, 0, 0.5); knock(140, 0, 0.35); squish(0, 0.2, 0.3, 900); mallet(M(43), 0.02, 0.15, 0.9, 0.25); for (let i = 0; i < 5; i++) knock(R(700, 1400), 0.12 + i * 0.06, 0.05); },
+      tonLift(){ for (let i = 0; i < 5; i++) knock(1000 + i * 80, i * 0.14, 0.06); tone({ type: "triangle", f: 150, f2: 220, d: 0.7, v: 0.04, lp: 600, a: 0.05 }); },
+      lockStart() { tone({ type: "triangle", f: 900, f2: 220, bend: 0.3, d: 0.35, v: 0.08 }); toyBell(M(76), 0.25, 0.06, 0.6); knock(1200, 0.32, 0.06); },
+      // Wirtschaft
+      coin()   { mallet(M(88), 0, 0.11, 0.15); mallet(M(93), 0.055, 0.12, 0.35, 0.25); },
+      shopBuy(){ knock(500, 0, 0.12); mallet(M(84), 0.04, 0.12, 0.2); mallet(M(91), 0.09, 0.12, 0.35); },
+      nope()   { rubber(220, 200, 190, 0, 0.13, 0.11); rubber(185, 170, 160, 0.13, 0.13, 0.16); },
+      crate()  { tone({ f: 1500, f2: 500, bend: 0.45, d: 0.5, v: 0.05, a: 0.03 }); thump(70, 0.45, 0.5, 0.2); knock(320, 0.5, 0.2); knock(700, 0.68, 0.12); [72, 76, 79, 84].forEach((m, i) => mallet(M(m), 0.75 + i * 0.07, 0.12, i === 3 ? 0.5 : 0.2)); },
+      book()   { [84, 88, 91, 96].forEach((m, i) => mallet(M(m), i * 0.06, 0.1, 0.25)); toyBell(M(96), 0.26, 0.06, 0.5); },
+      // UI
+      uiTap()  { tone({ type: "triangle", f: 1100, f2: 900, bend: 0.015, d: 0.03, v: 0.06 }); },
+      open()   { bloop(350, 0, 0.08, 0.08, 1.8); puff(0, 0.03, 0.08, 1500, 2500); },
+      close()  { tone({ f: 620, f2: 330, bend: 0.06, d: 0.07, v: 0.07 }); },
+      confirm(){ mallet(M(81), 0, 0.1, 0.15); mallet(M(88), 0.05, 0.1, 0.25); },
+      radio()  { nz({ f: 2000, q: 1.2, d: 0.03, v: 0.04 }); tone({ type: "triangle", f: 1046, d: 0.06, v: 0.06, t: 0.03 }); tone({ type: "triangle", f: 1568, d: 0.09, v: 0.06, t: 0.1 }); },
+      intro()  { boing(M(60), 0, 0.12, 0.35); mallet(M(72), 0.28, 0.12, 0.4); mallet(M(79), 0.36, 0.1, 0.5); },
+      start()  { let t = 0; for (let i = 0; i < 9; i++) { knock(380 + (i % 2) * 60, t, 0.06 + i * 0.012); t += 0.075 - i * 0.004; }
+                 thump(55, 0.5, t, 0.3); [60, 64, 67, 72].forEach((m, i) => mallet(M(m), t + i * 0.015, 0.1, 0.7)); boing(M(72), t + 0.05, 0.07, 0.35); },
+      // Wellen & Ereignisse
+      wave()   { [0, 0.09, 0.18].forEach(t => knock(330, t, 0.12)); [[67, 0.28, 0.1], [67, 0.4, 0.1], [72, 0.52, 0.28]].forEach(([m, t, d]) => tone({ type: "sawtooth", f: M(m), d, v: 0.06, t, lp: 1500, a: 0.015, vib: [6, 3] })); thump(70, 0.25, 0.52, 0.2); },
+      jingle() { [[72, 0], [76, 0.1], [79, 0.2], [84, 0.3], [79, 0.45], [84, 0.55]].forEach(([m, t], i) => mallet(M(m), t, 0.12, i === 5 ? 0.5 : 0.2)); },
+      stinger(t = 1) {
+        bloop(400, 0, 0.12, 0.07, 2); mallet(M(84), 0.04, 0.1, 0.3);
+        if (t >= 2) toyBell(M(91), 0.1, 0.06, 0.4);
+        if (t >= 3) { thump(70, 0.3, 0.06, 0.2); [76, 79, 84].forEach(m => mallet(M(m), 0.12, 0.08, 0.5)); }
+        if (t >= 4) { [72, 76, 79, 84, 88].forEach((m, i) => mallet(M(m), 0.2 + i * 0.05, 0.1, 0.3)); boing(M(84), 0.45, 0.05, 0.3); }
+      },
+      medal()  { toyBell(M(84), 0, 0.09, 0.6); toyBell(M(91), 0.08, 0.07, 0.6); boing(M(72), 0, 0.07, 0.3); },
+      medalLost() { tone({ type: "triangle", f: M(76), f2: M(74), d: 0.14, v: 0.09, lp: 2200 }); tone({ type: "triangle", f: M(71), f2: M(67), bend: 0.25, d: 0.3, v: 0.09, t: 0.14, lp: 2200 }); },
+      over()   { mallet(M(67), 0, 0.13, 0.3); mallet(M(64), 0.22, 0.13, 0.3); mallet(M(60), 0.44, 0.13, 0.5); tone({ f: 300, f2: 120, bend: 0.6, d: 0.7, v: 0.08, t: 0.7, vib: [9, 20], vibDecay: true }); thump(60, 0.3, 0.75, 0.3); },
+      hkFire(side = 0) { const f = side ? 440 : 560; tone({ type: "triangle", f, f2: f * 2.4, bend: 0.06, d: 0.1, v: 0.08 }); bloop(f * 2, 0.06, 0.05, 0.06, 1.5); },
+      hkFlip() { knock(1300, 0, 0.05); },
+      hkTick(hi = 0) { knock(hi ? 1700 : 1250, 0, hi ? 0.1 : 0.06); },
+      hkWin()  { [72, 76, 79, 84].forEach((m, i) => mallet(M(m), i * 0.07, 0.12, 0.3)); toyBell(M(96), 0.3, 0.06, 0.5); thump(80, 0.25, 0, 0.15); },
+      hkLose() { tone({ type: "triangle", f: 330, f2: 150, bend: 0.5, d: 0.6, v: 0.1, lp: 1500, vib: [7, 12], vibDecay: true }); thump(70, 0.2, 0.05, 0.2); },
+      hkAway() { puff(0, 0.06, 0.4, 600, 3000); tone({ f: 900, f2: 350, bend: 0.35, d: 0.4, v: 0.05 }); },
+      arcade(on) {
+        if (on && !L.arc) {
+          const st = { next: ac.currentTime + 0.05, step: 0 }; const CH = [[0, 3, 7], [-4, 0, 3], [3, 7, 10], [-2, 2, 5]], RT = [0, -4, 3, -2];
+          st.timer = setInterval(() => { while (st.next < ac.currentTime + 0.2) {
+            const sd = 60 / 150 / 4, T = st.next - ac.currentTime, i = st.step % 16, b = Math.floor(st.step / 16) % 4;
+            if (i % 4 === 0) thump(70, 0.22, T, 0.1);
+            if (i % 2 === 1) knock(1800, T, 0.025);
+            if (i === 4 || i === 12) knock(420, T, 0.09);
+            if (i % 4 === 2) tone({ type: "triangle", f: M(45 + RT[b]), d: 0.12, v: 0.09, t: T });
+            if (i % 2 === 0) mallet(M(69 + CH[b][(i / 2) % 3] + ((i / 2) % 6 >= 3 ? 12 : 0)), T, 0.05, 0.14, 0.1);
+            st.next += sd; st.step++; } }, 40);
+          L.arc = st;
+        } else if (!on && L.arc) { clearInterval(L.arc.timer); L.arc = null; }
+      },
+      // Sonderwellen
+      sonar()  { bloop(600, 0, 0.05, 0.05, 2); tone({ f: 1175, f2: 1165, d: 0.9, v: 0.08, a: 0.012, wet: 0.5 }); tone({ f: 1175, d: 0.6, v: 0.025, t: 0.35, a: 0.01, wet: 0.6 }); },
+      hail()   { for (let i = 0; i < 12; i++) knock(R(1600, 2800), i * 0.07 + R(0, 0.03), R(0.03, 0.06)); },
+      siren()  { tone({ type: "triangle", f: 700, d: 1.3, v: 0.07, a: 0.05, lp: 2200, vib: [2.4, 110] }); },
+      heart()  { tone({ f: 62, f2: 45, bend: 0.08, d: 0.12, v: 0.35 }); tone({ f: 58, f2: 42, bend: 0.08, d: 0.11, v: 0.25, t: 0.2 }); },
+      turn()   { for (let i = 0; i < 10; i++) knock(1100 - i * 25, 0.05 + i * 0.08, 0.06); tone({ type: "triangle", f: 110, f2: 180, d: 0.8, v: 0.05, lp: 500, a: 0.08 }); puff(0, 0.05, 0.8, 400, 1200); thump(60, 0.4, 0.85, 0.25); knock(300, 0.85, 0.18); tone({ type: "triangle", f: M(84), d: 0.1, v: 0.05, t: 1.05 }); },
+      ice()    { toyBell(R(2600, 3200), 0, 0.05, 0.3); toyBell(R(3400, 3900), 0.07, 0.035, 0.25); knock(2200, 0, 0.03); },
+      wind(on) {
+        if (on && !L.wind) L.wind = [loopNoise("bandpass", 420, 0.7, 0.12, 150, 0.05), loopNoise("bandpass", 900, 1.4, 0.19, 250, 0.018)];
+        else if (!on && L.wind) { L.wind.forEach(n => n.stop()); L.wind = null; }
+      },
+      fuzz(on) {
+        if (on && !L.fuzz) {
+          const n = loopNoise("bandpass", 1200, 0.6, 3.5, 200, 0.022);
+          const iv = setInterval(() => { for (let i = 0; i < 1 + (Math.random() * 2 | 0); i++) tone({ f: R(700, 1500), d: 0.012, v: 0.02, t: Math.random() * 0.5, a: 0.001 }); }, 600);
+          L.fuzz = { stop: () => { clearInterval(iv); n.stop(); } };
+        } else if (!on && L.fuzz) { L.fuzz.stop(); L.fuzz = null; }
+      },
+      desert(on) {
+        if (on && !L.dz) {
+          const nodes = [loopDrone(73.42, "triangle", 300, 0.05), loopDrone(110, "sine", 400, 0.025), loopNoise("highpass", 4500, 0.7, 0.15, 800, 0.008)];
+          const BEAT = 60 / 66, st = { next: ac.currentTime + 0.1, bar: 0, nodes }; const SC = [62, 63, 66, 67, 69, 70, 74];
+          st.timer = setInterval(() => { while (st.next < ac.currentTime + 1.0) {
+            const T = st.next - ac.currentTime;
+            thump(70, 0.3, T, 0.25); knock(230, T + BEAT * 1.5, 0.1); knock(260, T + BEAT * 2.5, 0.08); knock(230, T + BEAT * 3, 0.1);
+            for (let k = 0; k < 8; k++) nz({ type: "highpass", f: 5000, d: 0.03, v: k % 2 ? 0.01 : 0.018, t: T + k * BEAT / 2 });
+            if (st.bar % 2 === 1) [0, 1, 2].forEach(k => mallet(M(SC[(st.bar + k * 2) % SC.length]), T + k * BEAT * 0.75, 0.05, 0.5, 0.3));
+            st.next += BEAT * 4; st.bar++; } }, 150);
+          L.dz = st;
+        } else if (!on && L.dz) { clearInterval(L.dz.timer); L.dz.nodes.forEach(n => n.stop()); L.dz = null; }
+      },
+    };
+    function run(trim, fn) {
+      const g = ac.createGain(); g.gain.value = trim; g.connect(bus); OUT = g;
+      try { fn(P); } finally { OUT = bus; }
+    }
+    return { P, run };
+  }
+  let NW = null, nwOut = null; const NW_LOOP = {};
+  const NW_SET = new Set(["rotate", "drop", "lock", "lines", "mg", "kan", "boom", "build", "powerup", "sell", "spawn", "nom", "chew", "zap", "engine", "hydraulic", "pour", "plop", "horn", "chompRev", "chompBite", "tonFall", "coin", "crate", "radio", "intro", "start", "wave", "jingle", "stinger", "leak", "hkAway", "hkFire", "hkFlip", "hkWin", "hkLose", "siren", "wind", "fuzz", "rotBlocked", "danger", "buildMode", "towerTap", "shopBuy", "towerLost", "hitTick", "die", "mummyUp", "pounce", "lockStart", "nopeSoft", "uiTap", "open", "close", "confirm", "medal", "medalLost"]);
+  const NW_TRIM = {"move": 3.29, "rotate": 2.24, "soft": 4.47, "drop": 0.35, "lock": 1.43, "lines:1": 0.93, "lines:2": 0.92, "lines:4": 1.38, "rotBlocked": 2.51, "danger": 8.99, "mg": 4.03, "kan": 0.73, "boom": 0.62, "frost": 2.63, "build": 1.25, "buildMode": 2.1, "towerTap": 6.94, "powerup": 1.16, "shopBuy": 1.13, "sell": 2.34, "towerLost": 3.48, "spawn": 4.17, "hitTick": 6.91, "die:norm": 2.14, "die:fast": 4.73, "die:heavy": 1.2, "die:munch": 2.04, "die:kiefer": 1.45, "die:runner": 3.6, "die:bomber": 2.52, "die:volt": 3.73, "die:jaguar": 3.66, "die:mummy": 3.29, "die:tiger": 3.2, "die:bear": 1.3, "mummyUp": 1.64, "pounce": 6.42, "nom": 2.13, "chew": 1.55, "zap": 4.81, "splat:1": 1.86, "splat:3": 2.39, "snipe": 0.86, "tesla": 1.02, "engine": 1.95, "hydraulic": 10.0, "pour": 3.37, "plop:0": 0.96, "horn": 4.21, "chompRev": 3.48, "chompBite:0": 1.24, "tonFall": 3.17, "tonHit": 1.09, "tonLift": 5.42, "lockStart": 3.15, "boom:3": 1.19, "coin": 1.43, "nope": 1.77, "crate": 0.98, "book": 2.21, "uiTap": 5.4, "open": 2.11, "close": 2.57, "confirm": 1.9, "radio": 4.54, "intro": 1.63, "start": 0.82, "wave": 0.77, "jingle": 1.01, "stinger:1": 1.84, "stinger:2": 1.83, "stinger:3": 0.98, "stinger:4": 0.98, "medal": 1.84, "medalLost": 1.75, "leak": 0.99, "over": 1.01, "hkAway": 7.69, "hkFire:0": 6.1, "hkFlip": 4.46, "hkTick:0": 3.79, "hkTick:1": 2.37, "hkWin": 1.56, "hkLose": 1.45, "arcade": 1, "sonar": 2.09, "hail": 7.22, "siren": 2.85, "heart": 0.45, "turn": 0.9, "wind": 1, "ice": 5.37, "desert": 1, "fuzz": 1};
+  const NW_GAP = {"rotate": 0.04, "lock": 0.05, "mg": 0.06, "kan": 0.1, "boom": 0.08, "zap": 0.15, "radio": 0.3, "coin": 0.06, "powerup": 0.1, "engine": 0.5, "hydraulic": 0.2, "pour": 0.3, "plop": 0.05, "horn": 0.5, "nom": 1.3, "spawn": 0.15, "chew": 0.25, "leak": 1.1, "stinger": 0.25, "hitTick": 0.07, "die": 0.04, "towerLost": 0.2, "pounce": 0.5, "open": 0.15, "close": 0.15, "uiTap": 0.04, "confirm": 0.05, "shopBuy": 0.06, "danger": 3, "rotBlocked": 0.12, "buildMode": 0.1, "towerTap": 0.1, "mummyUp": 0.2, "medal": 0.2, "medalLost": 0.3, "lockStart": 0.3, "nopeSoft": 0.2, "chompBite": 0.03, "siren": 0.5};
+  const NW_ALIAS = { nopeSoft: "nope" };   // "Abgelehnt ohne Ton" bekommt den neuen, weichen Nope-Klang
+  function nwSync() { if (nwOut && ac) nwOut.gain.setTargetAtTime(gainOf() * CH.f / 0.6, ac.currentTime, 0.02); }
+  function nwTrim(n, a) { const k = n + ":" + a[0]; if (k in NW_TRIM) return NW_TRIM[k]; if (n in NW_TRIM) return NW_TRIM[n]; for (const x in NW_TRIM) if (x.startsWith(n + ":")) return NW_TRIM[x]; return 1; }
+  function route(n, a) {
+    if (n === "squeak") { if (a[0] === "munch") return P.squeak(...a); n = "die"; }            // Muncher behält alten Klang
+    else if (n === "hkTick" && !a[0]) return P.hkTick(...a);                                      // normale Sekunde: alter Klang
+    if (NW && NW_SET.has(n)) {
+      const loop = n === "wind" || n === "fuzz";
+      if (loop) { const want = !!a[0]; if (NW_LOOP[n] === want) return; NW_LOOP[n] = want; if (!want) { NW.P[n](false); return; } }
+      else if (!ok("nw_" + n, NW_GAP[n] || 0.02)) return;
+      const fn = NW_ALIAS[n] || n;
+      NW.run(nwTrim(fn === "die" ? "die" : fn, fn === "die" ? [a[0] || "norm"] : a), p => p[fn](...a));
+      return;
+    }
+    P[n] && P[n](...a);
+  }
+
   const P = {
     // ---- Fallende Blöcke ----
     move()   { if (ok("move", 0.03)) smp("move", 0.5, rnd(0.95, 1.05)) || noise(0.018, 0.14, "highpass", 3500, 3500); },
@@ -3723,16 +3980,16 @@ const SFX = (() => {
   })();
 
   return {
-    init, say, reserveVoice, hasVoice: k => !!(BUF["v_" + k] && BUF["v_" + k].length), voiceDur: k => (BUF["v_" + k] && BUF["v_" + k][0] ? BUF["v_" + k][0].duration : 1.5), music: MUSIC, arcadeK: k => { P._arcK = k; }, now: () => (ac ? ac.currentTime : 0), _ac: () => ac, _out: () => master, tremorAt: () => (P._dz ? P._dz.tremor || 0 : 0), play: (n, ...a) => { try { P[n] && P[n](...a); } catch (e) {} },
+    init, say, reserveVoice, hasVoice: k => !!(BUF["v_" + k] && BUF["v_" + k].length), voiceDur: k => (BUF["v_" + k] && BUF["v_" + k][0] ? BUF["v_" + k][0].duration : 1.5), music: MUSIC, arcadeK: k => { P._arcK = k; }, now: () => (ac ? ac.currentTime : 0), _ac: () => ac, _out: () => master, tremorAt: () => (P._dz ? P._dz.tremor || 0 : 0), play: (n, ...a) => { try { route(n, a); } catch (e) {} }, fuzz: on => { try { route("fuzz", [on]); } catch (e) {} },
     get muted() { return muted; },
-    toggle() { muted = !muted; try { localStorage.setItem("tarnturm-mute", muted ? "1" : "0"); } catch (e) {} if (master) master.gain.value = gainOf() * CH.f; if (voiceOut) voiceOut.gain.value = gainOf() * 2.2 * CH.v; if (muted) { try { speechSynthesis.cancel(); } catch (e) {} } return muted; },
+    toggle() { muted = !muted; try { localStorage.setItem("tarnturm-mute", muted ? "1" : "0"); } catch (e) {} if (master) master.gain.value = gainOf() * CH.f; nwSync(); if (voiceOut) voiceOut.gain.value = gainOf() * 2.2 * CH.v; if (muted) { try { speechSynthesis.cancel(); } catch (e) {} } return muted; },
     get vol() { return vol; },
     get voiceOn() { return voiceOn; },
     get voiceBusy() { return !!curVoice; },
     toggleVoice() { voiceOn = !voiceOn; try { localStorage.setItem("tarnturm-voice", voiceOn ? "1" : "0"); if (!voiceOn) speechSynthesis.cancel(); } catch (e) {} return voiceOn; },
-    setVol(v) { vol = v; if (v > 0 && muted) muted = false; try { localStorage.setItem("tarnturm-vol", v); localStorage.setItem("tarnturm-mute", muted ? "1" : "0"); } catch (e) {} if (master) master.gain.setTargetAtTime(gainOf() * CH.f, ac.currentTime, 0.02); if (voiceOut) voiceOut.gain.setTargetAtTime(gainOf() * 2.2 * CH.v, ac.currentTime, 0.02); },
+    setVol(v) { vol = v; if (v > 0 && muted) muted = false; try { localStorage.setItem("tarnturm-vol", v); localStorage.setItem("tarnturm-mute", muted ? "1" : "0"); } catch (e) {} if (master) master.gain.setTargetAtTime(gainOf() * CH.f, ac.currentTime, 0.02); nwSync(); if (voiceOut) voiceOut.gain.setTargetAtTime(gainOf() * 2.2 * CH.v, ac.currentTime, 0.02); },
     ch(k) { return CH[k] ?? 1; },
-    setCh(k, v) { CH[k] = v; try { localStorage.setItem("tarnturm-ch", JSON.stringify(CH)); } catch (e) {} if (ac) { if (master) master.gain.setTargetAtTime(gainOf() * CH.f, ac.currentTime, 0.02); if (voiceOut) voiceOut.gain.setTargetAtTime(gainOf() * 2.2 * CH.v, ac.currentTime, 0.02); } },
+    setCh(k, v) { CH[k] = v; try { localStorage.setItem("tarnturm-ch", JSON.stringify(CH)); } catch (e) {} if (ac) { if (master) master.gain.setTargetAtTime(gainOf() * CH.f, ac.currentTime, 0.02); nwSync(); if (voiceOut) voiceOut.gain.setTargetAtTime(gainOf() * 2.2 * CH.v, ac.currentTime, 0.02); } },
   };
 })();
 const snd = (n, ...a) => SFX.play(n, ...a);
@@ -3907,7 +4164,7 @@ function rotate() {
   const p = S.piece; if (!canAct()) return;
   const r = rotCells(p.k, p.cells);
   for (const k of [0, -1, 1, -2, 2]) if (!collide(r, p.x + k, p.y)) { p.cells = r; p.x += k; snd("rotate"); return; }
-  if (!collide(r, p.x, p.y - 1)) { p.cells = r; p.y -= 1; }
+  if (!collide(r, p.x, p.y - 1)) { p.cells = r; p.y -= 1; snd("rotate"); } else snd("rotBlocked");
 }
 function softDrop() { const p = S.piece; if (!canAct()) return; if (!collide(p.cells, p.x, p.y + 1)) { p.y++; S.gravT = 0; snd("soft"); } else lockPiece(); }
 function hardDrop() { if (S.duel) { if (HK.phase === "pick") hkPick(HK.prev); return; } const p = S.piece; if (!canAct()) return; p.fromY = p.y; while (!collide(p.cells, p.x, p.y + 1)) p.y++; snd("drop"); lockPiece(true); }
@@ -3979,7 +4236,7 @@ function detonate(starts) {
   let towersGone = 0;
   for (const c of blast) {
     if (!S.grid[c]) continue; S.grid[c] = 0;
-    const t = S.towers.get(c); if (t) { S.towers.delete(c); towersGone++; const r = Math.round(towerValue(t) / 2); S.gold += r; fxText(t.x, t.y, `Tower blown +${r}`, "#f2cf5b"); if (S.sel === t) closeSheet(); }
+    const t = S.towers.get(c); if (t) { S.towers.delete(c); snd("towerLost"); towersGone++; const r = Math.round(towerValue(t) / 2); S.gold += r; fxText(t.x, t.y, `Tower blown +${r}`, "#f2cf5b"); if (S.sel === t) closeSheet(); }
   }
   let kills = 0, gold = 0; const bombers = [];
   for (const m of S.monsters) {
@@ -4147,7 +4404,7 @@ function arrive(m) {
   if (S.grid[c] === TNT) { detonate([c]); m.next = null; return; }
   if (S.grid[c]) {
     S.grid[c] = 0;
-    const t = S.towers.get(c); if (t) { S.towers.delete(c); fxText(m.cx, m.cy, "Tower eaten", "#e04a2e"); if (S.sel === t) closeSheet(); }
+    const t = S.towers.get(c); if (t) { S.towers.delete(c); snd("towerLost"); fxText(m.cx, m.cy, "Tower eaten", "#e04a2e"); if (S.sel === t) closeSheet(); }
     S.fx.push({ type: "boom", x: m.cx, y: m.cy, r: 0.8, col: "#8a7a55", t: 0, life: 0.4 });
     S.dirty = true; snd(EATER(m.kind) ? "nom" : "chew");
   }
@@ -4204,7 +4461,7 @@ function spawnMonster() {
   const intro = { volt: "New: Sparky! Zaps blocks on its path", fast: "New: Scout! Small, quick, low health", heavy: "New: Brute! Slow, armored, lots of health", munch: "New: Muncher! Eats through blocks", runner: "New: Sprinter! Armored: at least 5 hits", bomber: "New: Bomber! Explodes when splatted", kiefer: "New: The Jaw! Eats everything, tough" };
   S.seen = S.seen || {};
   const baseHp = G.hpBase * (1 + (G.hpLin || 0) * (w - 1)) * Math.pow(G.hpGrow, w - 1);
-  const hp = ordv("monHpMul") * (w >= 50 ? 1.25 : w >= 20 ? 1.15 : 1) * baseHp * ({ heavy: 2.6, fast: 0.6, munch: 1.5, runner: 2.2, bomber: 1.3, kiefer: 3.2, volt: 1.8, jaguar: 1.4, mummy: 2.4, tiger: 2.2, bear: 4.0, norm: 1 }[kind]);
+  const hp = ordv("monHpMul") * (w >= 50 ? 1.25 : w >= 20 ? 1.15 : 1) * (!S.nuts && w >= 91 && w <= 100 ? 0.75 : 1) * baseHp * ({ heavy: 2.6, fast: 0.6, munch: 1.5, runner: 2.2, bomber: 1.3, kiefer: 3.2, volt: 1.8, jaguar: 1.4, mummy: 2.4, tiger: 2.2, bear: 4.0, norm: 1 }[kind]);
   const sp = ordv("monSpdMul") * Math.min(G.spMax, G.spBase + G.spGrow * w) * ({ fast: 1.5, heavy: 0.7, munch: 0.85, runner: 1.75, bomber: 0.9, kiefer: 1.0, volt: 0.8, jaguar: 1.25, mummy: 0.6, tiger: 1.3, bear: 0.7, norm: 1 }[kind]);
   const spF = ffOn() ? sp * 1.7 : sp;
   const rew = ({ heavy: 14, munch: 11, runner: 22, bomber: 16, kiefer: 40, volt: 26, jaguar: 18, mummy: 24, tiger: 30, bear: 45 }[kind] ?? G.killBase) + w;
@@ -4224,14 +4481,14 @@ function voltZap(m, dt) {
     const c = ty * GW + tx; if (!S.grid[c]) continue;
     if (S.grid[c] === TNT) { detonate([c]); hit++; continue; }
     S.grid[c] = 0; hit++;
-    const t = S.towers.get(c); if (t) { S.towers.delete(c); fxText(t.x, t.y, "Tower zapped", "#f6e05a"); if (S.sel === t) closeSheet(); }
+    const t = S.towers.get(c); if (t) { S.towers.delete(c); snd("towerLost"); fxText(t.x, t.y, "Tower zapped", "#f6e05a"); if (S.sel === t) closeSheet(); }
     for (let i = 0; i < 6; i++) { const a = Math.random() * 6.283, v = 3 + Math.random() * 5; S.fx.push({ type: "spark", x: tx, y: ty, vx: Math.cos(a) * v, vy: Math.sin(a) * v, t: 0, life: 0.4 }); }
   }
   if (hit) { snd("zap"); gridChanged(); }
 }
 function stepMonster(m, dt) {
   if (m.slowT > 0) m.slowT -= dt;
-  if (m.kind === "jaguar") m.pt = (m.pt || 0) + dt;
+  if (m.kind === "jaguar") { m.pt = (m.pt || 0) + dt; const pj = Math.sin(m.pt * 2.4 + m.ph) > 0.55; if (pj && !m.pj) snd("pounce"); m.pj = pj; }
   let mv = (S.lockT > 0 ? 0.3 : 1) * m.speed * (m.kind === "jaguar" ? (Math.sin(m.pt * 2.4 + m.ph) > 0.55 ? 2 : 0.75) : 1) * (m.slowT > 0 && m.kind !== "tiger" ? WEAP.frost.slowF : 1) * (m.chew ? (m.kind === "kiefer" ? 0.8 : m.kind === "munch" ? 0.6 : 0.35) : 1) * dt;
   let guard = 0;
   while (mv > 0 && !m.dead && guard++ < 6) {
@@ -4271,8 +4528,8 @@ function hurt(m, dmg) {
   if (m.dead) return;
   if (m.kind === "runner") { dmg = Math.min(dmg, m.max * 0.2); m.hits++; }
   if (m.kind === "bear") dmg = Math.max(dmg * 0.4, dmg - 2);   // Grizzly: Fell schluckt 3 Schaden je Treffer
-  if (m.kind === "mummy" && !m.rev && m.hp - dmg <= 0) { m.rev = true; m.hp = m.max * 0.5; fxText(m.x, m.y, "BACK UP!", "#e8dcae"); S.fx.push({ type: "boom", x: m.x, y: m.y, r: 0.6, col: "#e8dcae", t: 0, life: 0.3 }); return; }   // Sprinter: höchstens 20 % pro Treffer → mindestens 5 Treffer
-  m.hp -= dmg;
+  if (m.kind === "mummy" && !m.rev && m.hp - dmg <= 0) { m.rev = true; m.hp = m.max * 0.5; fxText(m.x, m.y, "BACK UP!", "#e8dcae"); snd("mummyUp"); S.fx.push({ type: "boom", x: m.x, y: m.y, r: 0.6, col: "#e8dcae", t: 0, life: 0.3 }); return; }   // Sprinter: höchstens 20 % pro Treffer → mindestens 5 Treffer
+  m.hp -= dmg; if (m.hp > 0) snd("hitTick");
   if (m.hp <= 0) {
     m.dead = true; S.kills++; S.gold += m.reward; snd("squeak", m.kind); addScore(SCORE_KILL[m.kind] || 10, m.x, m.y);
     if (m.kind === "bomber") { m.x = m.cx; m.y = m.cy; setTimeout(() => detonate([m.cy * GW + m.cx]), 60); }
@@ -5084,7 +5341,7 @@ function stepChomp(dt) {
   const i = ((Math.floor(C0.p) % PL) + PL) % PL;
   if (i !== C0.last) {
     C0.last = i; const [x, y] = PER[i], c = y * GW + x;
-    if (S.grid[c]) { S.grid[c] = 0; C0.blocks++; const t = S.towers.get(c); if (t) { S.towers.delete(c); const r = Math.round(towerValue(t) / 2); S.gold += r; fxText(t.x, t.y, `Tower eaten +${r}`, "#f2cf5b"); if (S.sel === t) closeSheet(); } gridChanged(); }
+    if (S.grid[c]) { S.grid[c] = 0; C0.blocks++; const t = S.towers.get(c); if (t) { S.towers.delete(c); snd("towerLost"); const r = Math.round(towerValue(t) / 2); S.gold += r; fxText(t.x, t.y, `Tower eaten +${r}`, "#f2cf5b"); if (S.sel === t) closeSheet(); } gridChanged(); }
     snd("chompBite", i);
   }
   const fx = C0.p - Math.floor(C0.p), a = PER[i], b2 = PER[(i + 1) % PL], px = a[0] + (b2[0] - a[0]) * fx, py = a[1] + (b2[1] - a[1]) * fx;
@@ -5559,7 +5816,7 @@ $("infoTabs").addEventListener("click", e => {
   const b = e.target.closest("button"); if (!b) return;
   $("infoTabs").querySelectorAll("button").forEach(x => x.classList.toggle("btn-on", x === b));
   for (const [t, id] of [["rules", "infoList"], ["mon", "monList"], ["arms", "armsList"]]) $(id).hidden = b.dataset.tab !== t;
-  snd("build");
+  snd("uiTap");
 });
 const shopItem = (attr, key, icon0, name, price, desc, btn, dis, cls) => `<div class="shopItem${dis ? " dis" : ""}">${key === "coach" ? `<img class="sprIco" src="${COACH_SRC}" alt="">` : ICO_SPR[String(key).replace(/^w-/, "")] ? `<img class="sprIco" src="${ICO_SPR[String(key).replace(/^w-/, "")]}" alt="">` : icon0}<div class="shopTxt"><b>${name}</b><span>${desc}</span></div><button data-${attr}="${key}" class="${cls || ""}" ${dis ? "disabled" : ""}>${btn}<span class="lbl">${price}</span></button></div>`;
 function openPocket() { S.sel = null; S.shop = true; $("sheetIn").classList.add("pk"); renderPocket(); $("sheet").hidden = false; }
@@ -5606,7 +5863,7 @@ function tesla(x, y) {
   x = Math.max(0, Math.min(GW - 4, x)); y = Math.max(0, Math.min(GH - 4, y));
   const cells = []; for (let yy = y; yy < y + 4; yy++) for (let xx = x; xx < x + 4; xx++) cells.push(yy * GW + xx);
   const set = new Set(cells); let blocks = 0, kills = 0, gold = 0;
-  for (const c of cells) { if (S.grid[c]) { S.grid[c] = 0; blocks++; const t = S.towers.get(c); if (t) { S.towers.delete(c); const r = Math.round(towerValue(t) / 2); S.gold += r; fxText(t.x, t.y, `Tower fried +${r}`, "#f2cf5b"); if (S.sel === t) closeSheet(); } } }
+  for (const c of cells) { if (S.grid[c]) { S.grid[c] = 0; blocks++; const t = S.towers.get(c); if (t) { S.towers.delete(c); snd("towerLost"); const r = Math.round(towerValue(t) / 2); S.gold += r; fxText(t.x, t.y, `Tower fried +${r}`, "#f2cf5b"); if (S.sel === t) closeSheet(); } } }
   for (const m of S.monsters) { if (m.dead) continue; if (set.has(Math.round(m.y) * GW + Math.round(m.x)) || set.has(m.cy * GW + m.cx)) { m.dead = true; kills++; S.kills += 3; gold += m.reward * 2; killMilestones(m); S.fx.push({ type: "splat", x: m.x, y: m.y, t: 0, life: 0.8, col: "#4a1f6a" }); if (m.kind === "bomber") setTimeout(() => detonate([m.cy * GW + m.cx]), 160); } }
   S.monsters = S.monsters.filter(m => !m.dead);
   S.gold += gold; if (kills >= 3) setTimeout(() => SFX.say("sizzled"), 500);   // V178z14
@@ -5628,7 +5885,7 @@ function snipe(x, y) {
   x = Math.max(0, Math.min(GW - 2, x)); y = Math.max(0, Math.min(GH - 2, y));
   const cells = [y * GW + x, y * GW + x + 1, (y + 1) * GW + x, (y + 1) * GW + x + 1], set = new Set(cells);
   let blocks = 0, kills = 0, gold = 0;
-  for (const c of cells) { if (S.grid[c]) { S.grid[c] = 0; blocks++; const t = S.towers.get(c); if (t) { S.towers.delete(c); const r = Math.round(towerValue(t) / 2); S.gold += r; fxText(t.x, t.y, `Tower hit +${r}`, "#f2cf5b"); if (S.sel === t) closeSheet(); } } }
+  for (const c of cells) { if (S.grid[c]) { S.grid[c] = 0; blocks++; const t = S.towers.get(c); if (t) { S.towers.delete(c); snd("towerLost"); const r = Math.round(towerValue(t) / 2); S.gold += r; fxText(t.x, t.y, `Tower hit +${r}`, "#f2cf5b"); if (S.sel === t) closeSheet(); } } }
   const zone = new Set(); for (let yy = y - 1; yy <= y + 2; yy++) for (let xx = x - 1; xx <= x + 2; xx++) if (xx >= 0 && yy >= 0 && xx < GW && yy < GH) zone.add(yy * GW + xx);   // Druckwelle: ein Feld rundum
   for (const m of S.monsters) { if (m.dead) continue; if (zone.has(Math.round(m.y) * GW + Math.round(m.x)) || zone.has(m.cy * GW + m.cx)) { m.dead = true; kills++; S.kills += 2; gold += m.reward; killMilestones(m); S.fx.push({ type: "splat", x: m.x, y: m.y, t: 0, life: 0.8, col: "#5a1a0a" }); if (m.kind === "bomber") setTimeout(() => detonate([m.cy * GW + m.cx]), 120); } }
   S.gold += gold;
@@ -5754,7 +6011,7 @@ function allInPlan(t) {
 function allIn(t) {
   const p = allInPlan(t); if (!p.cost || S.gold < p.price) { snd("nope"); return; }
   S.gold -= p.price; t.w.forEach(w => w.lvl = maxLvl()); p.add.forEach(k => t.w.push({ type: k, lvl: maxLvl(), cd: 0 }));
-  snd("powerup"); setTimeout(() => snd("coin"), 150); praise("ALL IN!", 3, "Maxed out!"); fxText(t.x, t.y, `ALL IN −${p.price}`, "#f2cf5b"); renderSheet();
+  snd("powerup"); setTimeout(() => snd("shopBuy"), 150); praise("ALL IN!", 3, "Maxed out!"); fxText(t.x, t.y, `ALL IN −${p.price}`, "#f2cf5b"); renderSheet();
 }
 function renderSheet() { $("sheetIn").classList.remove("pk");
   const t = S.sel; if (!t) return;
@@ -5786,12 +6043,12 @@ $("sheet").addEventListener("click", e => {
   if (b.dataset.shop) {
     const k = b.dataset.shop;
     if (k === "tower") { closeSheet(); toggleBuild(); }
-    else if (k === "coach") { if (S.gold < COACH_COST) { snd("nope"); return; } S.gold -= COACH_COST; coachSet(coachLeft() + 10); snd("coin"); toast(`COACH OLLIE · ${coachLeft()} practice hacks`, "ARMORY"); renderShop(); setTimeout(() => hint("coachbuy", "BOSS-HACK TRAINING", "Tap POCKET, then TRAIN – a practice duel with Coach Ollie, no gold at stake."), 600); }
-    else if (k === "snipe") { if (!unlocked("snipe") || S.gold < SNIPE_COST) { snd("nope"); return; } S.gold -= SNIPE_COST; S.snipes++; snd("coin"); toast(`SNIPER · pocket ×${S.snipes}`, "ARMORY"); renderShop(); setTimeout(() => hint("pocket", "IN YOUR POCKET", "Tap POCKET, then aim on the field.", "bPocket"), 400); }
-    else if (k === "tesla") { if (!unlocked("tesla") || S.gold < TESLA_COST) { snd("nope"); return; } S.gold -= TESLA_COST; S.teslas++; snd("coin"); toast(`TESLA · pocket ×${S.teslas}`, "ARMORY"); renderShop(); }
-    else if (k === "chomp" || k === "ton") { const pr = k === "chomp" ? CHOMP_COST : TON_COST; if (!unlocked(k) || S.gold < pr) { snd("nope"); return; } S.gold -= pr; const f = k === "chomp" ? "chomps" : "tons"; S[f] = (S[f] || 0) + 1; snd("coin"); toast(`${k === "chomp" ? "CHOMPER" : "TEN-TON"} · pocket ×${S[f]}`, "ARMORY"); renderShop(); }
-    else if (k === "lock") { if (!unlocked("lock") || S.gold < LOCK_COST) { snd("nope"); return; } S.gold -= LOCK_COST; S.locks = (S.locks || 0) + 1; snd("coin"); toast(`LOCKDOWN · pocket ×${S.locks}`, "ARMORY"); renderShop(); }
-    else if (k === "mix") { if (!unlocked("mix") || S.gold < MIX_COST) { snd("nope"); return; } S.gold -= MIX_COST; S.mixers++; snd("coin"); toast(`MIXER · pocket ×${S.mixers}`, "ARMORY"); renderShop(); }
+    else if (k === "coach") { if (S.gold < COACH_COST) { snd("nope"); return; } S.gold -= COACH_COST; coachSet(coachLeft() + 10); snd("shopBuy"); toast(`COACH OLLIE · ${coachLeft()} practice hacks`, "ARMORY"); renderShop(); setTimeout(() => hint("coachbuy", "BOSS-HACK TRAINING", "Tap POCKET, then TRAIN – a practice duel with Coach Ollie, no gold at stake."), 600); }
+    else if (k === "snipe") { if (!unlocked("snipe") || S.gold < SNIPE_COST) { snd("nope"); return; } S.gold -= SNIPE_COST; S.snipes++; snd("shopBuy"); toast(`SNIPER · pocket ×${S.snipes}`, "ARMORY"); renderShop(); setTimeout(() => hint("pocket", "IN YOUR POCKET", "Tap POCKET, then aim on the field.", "bPocket"), 400); }
+    else if (k === "tesla") { if (!unlocked("tesla") || S.gold < TESLA_COST) { snd("nope"); return; } S.gold -= TESLA_COST; S.teslas++; snd("shopBuy"); toast(`TESLA · pocket ×${S.teslas}`, "ARMORY"); renderShop(); }
+    else if (k === "chomp" || k === "ton") { const pr = k === "chomp" ? CHOMP_COST : TON_COST; if (!unlocked(k) || S.gold < pr) { snd("nope"); return; } S.gold -= pr; const f = k === "chomp" ? "chomps" : "tons"; S[f] = (S[f] || 0) + 1; snd("shopBuy"); toast(`${k === "chomp" ? "CHOMPER" : "TEN-TON"} · pocket ×${S[f]}`, "ARMORY"); renderShop(); }
+    else if (k === "lock") { if (!unlocked("lock") || S.gold < LOCK_COST) { snd("nope"); return; } S.gold -= LOCK_COST; S.locks = (S.locks || 0) + 1; snd("shopBuy"); toast(`LOCKDOWN · pocket ×${S.locks}`, "ARMORY"); renderShop(); }
+    else if (k === "mix") { if (!unlocked("mix") || S.gold < MIX_COST) { snd("nope"); return; } S.gold -= MIX_COST; S.mixers++; snd("shopBuy"); toast(`MIXER · pocket ×${S.mixers}`, "ARMORY"); renderShop(); }
     else if (k === "armory") { renderShop(); }
     else closeSheet();
     return;
@@ -5800,7 +6057,7 @@ $("sheet").addEventListener("click", e => {
   if (!S.sel) return;
   const t = S.sel;
   if (b.id === "sAllIn") { allIn(t); return; }
-  if (b.dataset.buy) { const k = b.dataset.buy; if (unlocked(k) && S.gold >= WEAP[k].cost) { S.gold -= WEAP[k].cost; t.w.push({ type: k, lvl: 1, cd: 0 }); snd("coin"); } renderSheet(); }
+  if (b.dataset.buy) { const k = b.dataset.buy; if (unlocked(k) && S.gold >= WEAP[k].cost) { S.gold -= WEAP[k].cost; t.w.push({ type: k, lvl: 1, cd: 0 }); snd("shopBuy"); } renderSheet(); }
   else if (b.dataset.up) { const w = t.w[+b.dataset.up], c = upCost(w); if (S.gold >= c && w.lvl < maxLvl()) { S.gold -= c; w.lvl++; snd("powerup"); if (w.lvl >= maxLvl()) praise("MAXED OUT", 1, "Maxed out!"); } renderSheet(); }
   else if (b.id === "sSell") { snd("sell"); S.gold += Math.round(towerValue(t) / 2); S.towers.delete(t.y * GW + t.x); closeSheet(); }
   else if (b.id === "sCancel") { S.gold += towerValue(t); S.towers.delete(t.y * GW + t.x); snd("sell"); toast("CANCELLED · refunded", "ARMORY"); t.fresh = false; closeSheet(); }
@@ -5823,8 +6080,8 @@ cv.addEventListener("pointerdown", e => {
   if (S.mode === "build") {
     const L = limits(Math.max(1, S.wave));
     if (!S.grid[c]) { toast("NO GROUND · tap a landed block", "DENIED"); snd("nope"); return; }
-    if (S.towers.has(c)) { toast("OCCUPIED", "DENIED"); return; }
-    if (S.towers.size >= L.towers) { toast(`LIMIT · ${L.towers} towers max`, "DENIED"); S.mode = null; return; }
+    if (S.towers.has(c)) { toast("OCCUPIED", "DENIED"); snd("nopeSoft"); return; }
+    if (S.towers.size >= L.towers) { toast(`LIMIT · ${L.towers} towers max`, "DENIED"); snd("nopeSoft"); S.mode = null; return; }
     if (S.gold < TOWER_COST) { toast("NOT ENOUGH GOLD", "DENIED"); S.mode = null; return; }
     S.gold -= TOWER_COST; const t = { id: ++towerId, x, y, w: [], ang: -Math.PI / 2, fresh: true };
     S.towers.set(c, t); S.mode = null; snd("build"); openSheet(t); S.towersBuilt++;
@@ -5834,7 +6091,7 @@ cv.addEventListener("pointerdown", e => {
     return;
   }
   const t = S.towers.get(c);
-  if (t) openSheet(t); else if (S.sel) closeSheet();
+  if (t) { snd("towerTap"); openSheet(t); } else if (S.sel) closeSheet();
 });
 cv.addEventListener("pointermove", e => { const [x, y] = cvCell(e); if (S.mode === "tesla") { S.aim = [Math.max(0, Math.min(GW - 4, x - 1)), Math.max(0, Math.min(GH - 4, y - 1))]; return; } if (S.mode === "mix") { S.aim = [Math.max(0, Math.min(GW - 1, x)), Math.max(0, Math.min(GH - 1, y))]; return; } if (S.mode !== "snipe") return; S.aim = [Math.max(0, Math.min(GW - 2, x)), Math.max(0, Math.min(GH - 2, y))]; });
 function hold(id, fn) {
@@ -5862,7 +6119,7 @@ $("bPocket").addEventListener("click", () => {
 });
 function armSpecial(kind) {
   if (kind === "snipe" && S.snipes < 1 || kind === "mix" && S.mixers < 1 || kind === "tesla" && S.teslas < 1) { snd("nope"); return; }
-  closeSheet(); S.mode = kind; S.aim = null; snd("build");
+  closeSheet(); S.mode = kind; S.aim = null; snd("buildMode");
   toast(kind === "snipe" ? "SNIPER READY · tap the target" : kind === "tesla" ? "TESLA CHARGED · tap the target" : "MIXER READY · tap a hole", "POCKET"); SFX.say("Nice!");
 }
 function toggleBuild() {
@@ -5870,10 +6127,10 @@ function toggleBuild() {
   if (S.mode === "build") { S.mode = null; return; }
   closeSheet();
   const L = limits(Math.max(1, S.wave));
-  if (S.towers.size >= L.towers) { toast(`LIMIT · ${L.towers} towers max`, "DENIED"); return; }
+  if (S.towers.size >= L.towers) { toast(`LIMIT · ${L.towers} towers max`, "DENIED"); snd("nopeSoft"); return; }
   if (S.gold < TOWER_COST) { toast("NOT ENOUGH GOLD", "DENIED"); snd("nope"); return; }
-  if (!S.grid.some(v => v)) { toast("NO GROUND · land a block first", "DENIED"); return; }
-  S.mode = "build";
+  if (!S.grid.some(v => v)) { toast("NO GROUND · land a block first", "DENIED"); snd("nopeSoft"); return; }
+  S.mode = "build"; snd("buildMode");
 }
 window.addEventListener("keydown", e => {
   if (!S.started || S.over || e.target.tagName === "INPUT") return;
@@ -6058,13 +6315,13 @@ function showCamp(action, label) { tutAbort();
   $("ovStart").hidden = true; $("ovOver").hidden = true; $("ovCamp").hidden = true;
   setTimeout(() => { const f = pendingStart; pendingStart = null; if (f) f(); }, 0);   // V176: kein Zwischenscreen mehr – direkt los
 }
-$("modeList").addEventListener("click", e => { const b = e.target.closest("[data-mode]"); if (b && e.target.closest("[data-cp]")) { SFX.init(); snd("coin"); const cp = +LS.get("tarnturm-cp-chill") || 0; $("modeTag").textContent = "CHILL"; $("modeTag").style.color = MODES.chill.color; showCamp(() => startGame("chill", cp), `CHILL · CHECKPOINT WAVE ${cp}`); return; } if (b && b.classList.contains("locked")) { SFX.init(); snd("nope"); toast(`NUTS LOCKED · reach wave ${NUTS_NEED} in Pro`, "DENIED", 1800); b.classList.add("shake"); setTimeout(() => b.classList.remove("shake"), 500); return; } if (b) { SFX.init(); snd("coin"); const k = b.dataset.mode; $("modeTag").textContent = "WORLD TOUR"; $("modeTag").style.color = ""; if (window.ONE_MODE) { startGame(k); return; } showCamp(() => startGame(k), `${MODES[k].label.toUpperCase()} · GET READY`); } });
+$("modeList").addEventListener("click", e => { const b = e.target.closest("[data-mode]"); if (b && e.target.closest("[data-cp]")) { SFX.init(); snd("confirm"); const cp = +LS.get("tarnturm-cp-chill") || 0; $("modeTag").textContent = "CHILL"; $("modeTag").style.color = MODES.chill.color; showCamp(() => startGame("chill", cp), `CHILL · CHECKPOINT WAVE ${cp}`); return; } if (b && b.classList.contains("locked")) { SFX.init(); snd("nope"); toast(`NUTS LOCKED · reach wave ${NUTS_NEED} in Pro`, "DENIED", 1800); b.classList.add("shake"); setTimeout(() => b.classList.remove("shake"), 500); return; } if (b) { SFX.init(); snd("confirm"); const k = b.dataset.mode; $("modeTag").textContent = "WORLD TOUR"; $("modeTag").style.color = ""; if (window.ONE_MODE) { startGame(k); return; } showCamp(() => startGame(k), `${MODES[k].label.toUpperCase()} · GET READY`); } });
 $("btnDeploy").addEventListener("click", () => { $("ovCamp").hidden = true; const a = pendingStart; pendingStart = null; if (a) a(); });
 let introDone = false;
 document.addEventListener("pointerdown", () => { if (introDone || S.started) return; introDone = true; SFX.init(); setTimeout(() => { if (!S.started) snd("intro"); }, 50); }, { capture: true });
 $("btnRestart").addEventListener("click", () => showCamp(() => startGame(MODE), `${MODES[MODE].label.toUpperCase()} · GET READY`));
 $("btnCp").addEventListener("click", () => { const m = MODE, cp = +LS.get("tarnturm-cp-" + m) || 0; if (cp >= 10) showCamp(() => startGame(m, cp), `CHECKPOINT WAVE ${cp}`); });
-$("btnAccept").addEventListener("click", () => { LS.set("tarnturm-terms", "1"); SFX.init(); snd("coin"); renderModes(); SFX.music.menu(); });
+$("btnAccept").addEventListener("click", () => { LS.set("tarnturm-terms", "1"); SFX.init(); snd("confirm"); renderModes(); SFX.music.menu(); });
 // Hauptquartier-Musik: langsamer Militär-Disco-Groove, sobald eine Berührung Audio erlaubt
 const wakeAudio = () => {
   if (!LS.get("tarnturm-terms")) return;
@@ -6073,7 +6330,7 @@ const wakeAudio = () => {
   else if (S.started && !S.over && SFX.music.on && SFX.music.playing < 1 && $("ovCamp").hidden) SFX.music.start(Math.max(1, S.wave));
 };
 for (const ev of ["pointerdown", "pointerup", "touchend", "click", "keydown"]) document.addEventListener(ev, wakeAudio, { passive: true });
-$("btnResume").addEventListener("click", () => { SFX.init(); snd("coin"); showCamp(() => { if (!loadGame()) { LS.del("tarnturm-save"); renderModes(); $("ovStart").hidden = false; } }, "CONTINUE · GET READY"); });
+$("btnResume").addEventListener("click", () => { SFX.init(); snd("confirm"); showCamp(() => { if (!loadGame()) { LS.del("tarnturm-save"); renderModes(); $("ovStart").hidden = false; } }, "CONTINUE · GET READY"); });
 // Mosaik-Bilder: jedes erledigte Feld zeigt seinen Ausschnitt, zusammen ergibt sich das ganze Bild
 const CAMP_ART = {"Jeep": "<path d=\"M4.2 2.1 5.1 .2h4.8v1.9z\" fill=\"#56632f\" stroke=\"#140d06\" stroke-width=\".12\" stroke-linejoin=\"round\"/><path d=\"M5.5 .55h4v1.3H4.95z\" fill=\"#9cd6ff\" stroke=\"#140d06\" stroke-width=\".12\" stroke-linejoin=\"round\"/> <rect x=\"0\" y=\"1.9\" width=\"12\" height=\"1.5\" rx=\".3\" fill=\"#56632f\" stroke=\"#140d06\" stroke-width=\".12\" stroke-linejoin=\"round\"/><path d=\"M.6 2.5h3M6 2.5h5\" stroke=\"#3d4628\" stroke-width=\".2\"/> <circle cx=\"11.6\" cy=\"2.35\" r=\".22\" fill=\"#ffd166\"/><circle cx=\"1.9\" cy=\"3.3\" r=\"0.72\" fill=\"#1a1a14\" stroke=\"#140d06\" stroke-width=\".12\" stroke-linejoin=\"round\"/><circle cx=\"1.9\" cy=\"3.3\" r=\"0.3024\" fill=\"#8f7d4b\"/><circle cx=\"9.9\" cy=\"3.3\" r=\"0.72\" fill=\"#1a1a14\" stroke=\"#140d06\" stroke-width=\".12\" stroke-linejoin=\"round\"/><circle cx=\"9.9\" cy=\"3.3\" r=\"0.3024\" fill=\"#8f7d4b\"/>", "Tent": "<path d=\"M6 0 12 6H0z\" fill=\"#8f7d4b\" stroke=\"#140d06\" stroke-width=\".12\" stroke-linejoin=\"round\"/><path d=\"M6 0 9 6H3z\" fill=\"#a8956a\"/><path d=\"M4.6 6 6 3.1 7.4 6z\" fill=\"#2a2620\" stroke=\"#140d06\" stroke-width=\".12\" stroke-linejoin=\"round\"/> <path d=\"M6 0v-.1M1.5 5.2l2-2M10.5 5.2l-2-2\" stroke=\"#5a4a2a\" stroke-width=\".12\"/><rect x=\"0\" y=\"5.8\" width=\"12\" height=\".2\" fill=\"#3a3220\"/>", "Truck": "<rect x=\"0\" y=\".05\" width=\"7.3\" height=\"3.4\" rx=\".2\" fill=\"#56632f\" stroke=\"#140d06\" stroke-width=\".12\" stroke-linejoin=\"round\"/><path d=\"M1.8.1v3.3M3.6.1v3.3M5.4.1v3.3\" stroke=\"#3d4628\" stroke-width=\".15\"/> <path d=\"M7.6 1h3.4l1 1.4v1.2H7.6z\" fill=\"#4f5d2f\" stroke=\"#140d06\" stroke-width=\".12\" stroke-linejoin=\"round\"/><path d=\"M8.2 1.35h2.5l.75 1H8.2z\" fill=\"#9cd6ff\" stroke=\"#140d06\" stroke-width=\".12\" stroke-linejoin=\"round\"/><rect x=\"0\" y=\"3.4\" width=\"12\" height=\".45\" fill=\"#2a2620\"/><circle cx=\"1.9\" cy=\"4.2\" r=\"0.72\" fill=\"#1a1a14\" stroke=\"#140d06\" stroke-width=\".12\" stroke-linejoin=\"round\"/><circle cx=\"1.9\" cy=\"4.2\" r=\"0.3024\" fill=\"#8f7d4b\"/><circle cx=\"9\" cy=\"4.2\" r=\"0.72\" fill=\"#1a1a14\" stroke=\"#140d06\" stroke-width=\".12\" stroke-linejoin=\"round\"/><circle cx=\"9\" cy=\"4.2\" r=\"0.3024\" fill=\"#8f7d4b\"/>", "Radar": "<path d=\"M2 .1Q5 2.6 8 .1z\" fill=\"#cdbd8c\" stroke=\"#140d06\" stroke-width=\".12\" stroke-linejoin=\"round\"/><path d=\"M5 1.2 6.5-.2\" stroke=\"#140d06\" stroke-width=\".12\"/><circle cx=\"6.5\" cy=\"-.15\" r=\".2\" fill=\"#ee7a2c\"/> <rect x=\"4.6\" y=\"1.4\" width=\".8\" height=\"3.3\" fill=\"#5b6740\" stroke=\"#140d06\" stroke-width=\".12\" stroke-linejoin=\"round\"/><path d=\"M4.1 4.6h2.2l.4 1H3.7z\" fill=\"#3d4628\" stroke=\"#140d06\" stroke-width=\".12\" stroke-linejoin=\"round\"/><rect x=\"2\" y=\"5.2\" width=\"7.2\" height=\".8\" rx=\".2\" fill=\"#56632f\" stroke=\"#140d06\" stroke-width=\".12\" stroke-linejoin=\"round\"/> <path d=\"M8.6 .6q1 .6 1.2 1.6M9.3.1q1.5.9 1.8 2.4\" stroke=\"#9cbf5f\" stroke-width=\".14\" fill=\"none\"/>", "Lighthouse": "<path d=\"M5.6 .6 7 0l1.4 1.5\" fill=\"none\"/><path d=\"M7.6.2 12-.6v2.2zM4.4.2 0-.6v2.2z\" fill=\"#ffe9a0\" opacity=\".45\"/> <rect x=\"4.6\" y=\"0\" width=\"2.8\" height=\"1.4\" rx=\".3\" fill=\"#ffd166\" stroke=\"#140d06\" stroke-width=\".12\" stroke-linejoin=\"round\"/><path d=\"M4.4 1.4h3.2L8.6 6.2H3.4z\" fill=\"#f1e8d0\" stroke=\"#140d06\" stroke-width=\".12\" stroke-linejoin=\"round\"/> <path d=\"M4.25 2.6h3.5l.25 1.1H4zM3.75 4.8h4.5l.25 1.1H3.5z\" fill=\"#c8452e\"/><rect x=\"2\" y=\"6\" width=\"8\" height=\"1\" rx=\".2\" fill=\"#8f7d4b\" stroke=\"#140d06\" stroke-width=\".12\" stroke-linejoin=\"round\"/>", "Flak": "<path d=\"M3.5 4.3 10.7.4l.6.9-7.2 4.1z\" fill=\"#3d4628\" stroke=\"#140d06\" stroke-width=\".12\" stroke-linejoin=\"round\"/><path d=\"M4.2 4.8 11.4.9l.4.6-7.2 4z\" fill=\"#2a2f20\" stroke=\"#140d06\" stroke-width=\".12\" stroke-linejoin=\"round\"/> <ellipse cx=\"4\" cy=\"4.6\" rx=\"1.8\" ry=\"1\" fill=\"#56632f\" stroke=\"#140d06\" stroke-width=\".12\" stroke-linejoin=\"round\"/><rect x=\"0\" y=\"5\" width=\"12\" height=\"1.2\" rx=\".2\" fill=\"#4f5d2f\" stroke=\"#140d06\" stroke-width=\".12\" stroke-linejoin=\"round\"/><circle cx=\"2\" cy=\"6.35\" r=\"0.6\" fill=\"#1a1a14\" stroke=\"#140d06\" stroke-width=\".12\" stroke-linejoin=\"round\"/><circle cx=\"2\" cy=\"6.35\" r=\"0.252\" fill=\"#8f7d4b\"/><circle cx=\"10\" cy=\"6.35\" r=\"0.6\" fill=\"#1a1a14\" stroke=\"#140d06\" stroke-width=\".12\" stroke-linejoin=\"round\"/><circle cx=\"10\" cy=\"6.35\" r=\"0.252\" fill=\"#8f7d4b\"/>", "Tank": "<path d=\"M3 .1h5v1.6H3z\" fill=\"#56632f\" stroke=\"#140d06\" stroke-width=\".12\" stroke-linejoin=\"round\"/><rect x=\"7.8\" y=\".55\" width=\"4.2\" height=\".55\" fill=\"#2a2f20\" stroke=\"#140d06\" stroke-width=\".12\" stroke-linejoin=\"round\"/> <path d=\"M0 1.8h12l-.9 2H.9z\" fill=\"#4f5d2f\" stroke=\"#140d06\" stroke-width=\".12\" stroke-linejoin=\"round\"/><rect x=\"1.2\" y=\"3.5\" width=\"9.6\" height=\"1.4\" rx=\".7\" fill=\"#2a2620\" stroke=\"#140d06\" stroke-width=\".12\" stroke-linejoin=\"round\"/> <g fill=\"#8f7d4b\"><circle cx=\"2\" cy=\"4.2\" r=\".35\"/><circle cx=\"3.6\" cy=\"4.2\" r=\".35\"/><circle cx=\"5.2\" cy=\"4.2\" r=\".35\"/><circle cx=\"6.8\" cy=\"4.2\" r=\".35\"/><circle cx=\"8.4\" cy=\"4.2\" r=\".35\"/><circle cx=\"10\" cy=\"4.2\" r=\".35\"/></g><circle cx=\"5.2\" cy=\".9\" r=\".3\" fill=\"#cdbd8c\"/>", "Helicopter": "<path d=\"M0 1.3h12\" stroke=\"#b8b48a\" stroke-width=\".3\"/><rect x=\"5.5\" y=\"1.3\" width=\".8\" height=\"1.2\" fill=\"#2a2f20\"/> <path d=\"M2.2 4.3Q2.4 2.4 5.6 2.4h1.2q2.2 0 2.4 2.2-.4 1.6-3.6 1.6-3.2 0-3.4-1.9z\" fill=\"#4a5a2a\" stroke=\"#140d06\" stroke-width=\".12\" stroke-linejoin=\"round\"/><path d=\"M2.4 4.2q.2-1.4 2.2-1.6v1.6z\" fill=\"#9cd6ff\" stroke=\"#140d06\" stroke-width=\".12\" stroke-linejoin=\"round\"/> <path d=\"M8.6 4h2.8v.6H8.4z\" fill=\"#4a5a2a\" stroke=\"#140d06\" stroke-width=\".12\" stroke-linejoin=\"round\"/><path d=\"M11.3 3.2v2.4\" stroke=\"#2a2f20\" stroke-width=\".25\"/><path d=\"M3.2 6.4h5M4 6.2v-.4M7.2 6.2v-.4\" stroke=\"#2a2f20\" stroke-width=\".25\" fill=\"none\"/>", "Fortress": "<rect x=\"0\" y=\"1\" width=\"12\" height=\"4\" fill=\"#8f7d4b\" stroke=\"#140d06\" stroke-width=\".12\" stroke-linejoin=\"round\"/><g fill=\"#8f7d4b\" stroke=\"#140d06\" stroke-width=\".12\" stroke-linejoin=\"round\"><rect x=\"0\" y=\"0\" width=\"1\" height=\"1\"/><rect x=\"2\" y=\"0\" width=\"1\" height=\"1\"/><rect x=\"4\" y=\"0\" width=\"1\" height=\"1\"/><rect x=\"5\" y=\"0\" width=\"1\" height=\"1\"/><rect x=\"6\" y=\"0\" width=\"1\" height=\"1\"/><rect x=\"7\" y=\"0\" width=\"1\" height=\"1\"/><rect x=\"9\" y=\"0\" width=\"1\" height=\"1\"/><rect x=\"11\" y=\"0\" width=\"1\" height=\"1\"/></g> <path d=\"M5 5V3.2a1 1 0 0 1 2 0V5z\" fill=\"#2a2620\" stroke=\"#140d06\" stroke-width=\".12\" stroke-linejoin=\"round\"/><g fill=\"#2a2620\"><rect x=\"1.5\" y=\"2\" width=\".6\" height=\".9\"/><rect x=\"9.9\" y=\"2\" width=\".6\" height=\".9\"/></g> <path d=\"M6 0V-.9\" stroke=\"#140d06\" stroke-width=\".1\"/><path d=\"M6-.9h1.1L6-.5z\" fill=\"#ee7a2c\"/>", "Fighter Jet": "<path d=\"M5.5 0 6.6 2 12 3.4V4H6.6l1 1.8H3.6L4.6 4H0v-.6L4.6 2z\" fill=\"#6f7a7e\" stroke=\"#140d06\" stroke-width=\".12\" stroke-linejoin=\"round\"/><ellipse cx=\"5.6\" cy=\"1.7\" rx=\".4\" ry=\".7\" fill=\"#9cd6ff\" stroke=\"#140d06\" stroke-width=\".12\" stroke-linejoin=\"round\"/> <path d=\"M1 3.6h3.4M7 3.6h4\" stroke=\"#4a5458\" stroke-width=\".15\"/><path d=\"M4.6 5.9 5.6 6.6 6.6 5.9\" fill=\"#ee7a2c\"/>", "Submarine": "<rect x=\"4.2\" y=\".05\" width=\"2.6\" height=\"2.1\" rx=\".4\" fill=\"#2f3a3c\" stroke=\"#140d06\" stroke-width=\".12\" stroke-linejoin=\"round\"/><path d=\"M5.4.1V-.6\" stroke=\"#140d06\" stroke-width=\".12\"/> <ellipse cx=\"6\" cy=\"3.4\" rx=\"5.95\" ry=\"1.5\" fill=\"#3d4a4e\" stroke=\"#140d06\" stroke-width=\".12\" stroke-linejoin=\"round\"/><g fill=\"#ffd166\"><circle cx=\"2.5\" cy=\"3.3\" r=\".25\"/><circle cx=\"4\" cy=\"3.3\" r=\".25\"/><circle cx=\"8\" cy=\"3.3\" r=\".25\"/><circle cx=\"9.5\" cy=\"3.3\" r=\".25\"/></g>", "Rocket": "<path d=\"M5.7 0Q4.2 1 4.2 2.2v2.9h3V2.2Q7.2 1 5.7 0z\" fill=\"#e8e2d0\" stroke=\"#140d06\" stroke-width=\".12\" stroke-linejoin=\"round\"/><circle cx=\"5.7\" cy=\"2.3\" r=\".5\" fill=\"#9cd6ff\" stroke=\"#140d06\" stroke-width=\".12\" stroke-linejoin=\"round\"/> <path d=\"M4.2 3.6 3 5.1h1.2zM7.2 3.6l1.2 1.5H7.2z\" fill=\"#c8452e\" stroke=\"#140d06\" stroke-width=\".12\" stroke-linejoin=\"round\"/><path d=\"M2.3 6 4.6 5.1h2.2L9.2 6z\" fill=\"#ffd166\"/><path d=\"M3.6 6l1.2-.9h1.8l1.2.9z\" fill=\"#ee7a2c\"/>", "Battleship": "<path d=\"M6.5 0v1.2\" stroke=\"#2a2f20\" stroke-width=\".2\"/><rect x=\"5\" y=\"1\" width=\"3\" height=\"1.6\" fill=\"#6f7a7e\" stroke=\"#140d06\" stroke-width=\".12\" stroke-linejoin=\"round\"/> <path d=\"M0 2.6h12l-1 2.2H1z\" fill=\"#56626a\" stroke=\"#140d06\" stroke-width=\".12\" stroke-linejoin=\"round\"/><rect x=\"2\" y=\"2\" width=\"1.4\" height=\".7\" fill=\"#4a5458\" stroke=\"#140d06\" stroke-width=\".12\" stroke-linejoin=\"round\"/><path d=\"M3.3 2.25H5\" stroke=\"#2a2f20\" stroke-width=\".22\"/> <rect x=\"9\" y=\"2\" width=\"1.4\" height=\".7\" fill=\"#4a5458\" stroke=\"#140d06\" stroke-width=\".12\" stroke-linejoin=\"round\"/><path d=\"M10.4 2.25h1.4\" stroke=\"#2a2f20\" stroke-width=\".22\"/><path d=\"M0 4.9h12\" stroke=\"#2a9fd8\" stroke-width=\".2\"/>", "Mech": "<rect x=\"4.1\" y=\".05\" width=\"3.8\" height=\"1\" rx=\".3\" fill=\"#56632f\" stroke=\"#140d06\" stroke-width=\".12\" stroke-linejoin=\"round\"/><rect x=\"4.8\" y=\".35\" width=\"2.4\" height=\".35\" fill=\"#ee7a2c\"/> <rect x=\"2\" y=\"1\" width=\"8\" height=\"2.4\" rx=\".4\" fill=\"#4f5d2f\" stroke=\"#140d06\" stroke-width=\".12\" stroke-linejoin=\"round\"/><rect x=\"0\" y=\"1.5\" width=\"1.6\" height=\"1.6\" rx=\".3\" fill=\"#3d4628\" stroke=\"#140d06\" stroke-width=\".12\" stroke-linejoin=\"round\"/><rect x=\"10.4\" y=\"1.5\" width=\"1.6\" height=\"1.6\" rx=\".3\" fill=\"#3d4628\" stroke=\"#140d06\" stroke-width=\".12\" stroke-linejoin=\"round\"/> <rect x=\"3.1\" y=\"3.4\" width=\"1.8\" height=\"1.9\" fill=\"#3d4628\" stroke=\"#140d06\" stroke-width=\".12\" stroke-linejoin=\"round\"/><rect x=\"7.1\" y=\"3.4\" width=\"1.8\" height=\"1.9\" fill=\"#3d4628\" stroke=\"#140d06\" stroke-width=\".12\" stroke-linejoin=\"round\"/><rect x=\"2.3\" y=\"5.2\" width=\"3\" height=\".8\" rx=\".2\" fill=\"#2a2620\" stroke=\"#140d06\" stroke-width=\".12\" stroke-linejoin=\"round\"/><rect x=\"6.7\" y=\"5.2\" width=\"3\" height=\".8\" rx=\".2\" fill=\"#2a2620\" stroke=\"#140d06\" stroke-width=\".12\" stroke-linejoin=\"round\"/>"};
 function campArtUrl(c) { const W = c.rows[0].length, H = c.rows.length; const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><defs><linearGradient id="mg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e9c98a"/><stop offset=".7" stop-color="#c98a4a"/><stop offset="1" stop-color="#8a6a3a"/></linearGradient></defs><rect width="${W}" height="${H}" fill="url(#mg)"/>${CAMP_ART[c.name] || ""}</svg>`; return `url('data:image/svg+xml,${encodeURIComponent(svg).replace(/'/g, "%27")}')`; }
@@ -6103,7 +6360,7 @@ $("btnInfo").addEventListener("click", () => { $("ovStart").hidden = true; $("ov
 // Entwicklerwerkzeuge: 7 schnelle Tipps auf das Logo schalten sie ein/aus (nur auf diesem Gerät)
 { let taps = [], devOn = LS.get("tarnturm-dev") === "1";
   const apply = () => document.querySelectorAll(".devOnly").forEach(el => el.hidden = !devOn); apply();
-  document.querySelector(".logo").addEventListener("pointerdown", () => { const now = performance.now(); taps = taps.filter(t => now - t < 3000); taps.push(now); if (taps.length >= 7) { taps = []; devOn = !devOn; LS.set("tarnturm-dev", devOn ? "1" : "0"); apply(); SFX.init(); snd("build"); toast(devOn ? "DEV TOOLS ON" : "DEV TOOLS OFF", "HQ", 1500); } }); }
+  document.querySelector(".logo").addEventListener("pointerdown", () => { const now = performance.now(); taps = taps.filter(t => now - t < 3000); taps.push(now); if (taps.length >= 7) { taps = []; devOn = !devOn; LS.set("tarnturm-dev", devOn ? "1" : "0"); apply(); SFX.init(); snd("uiTap"); toast(devOn ? "DEV TOOLS ON" : "DEV TOOLS OFF", "HQ", 1500); } }); }
 // V178z15: Wellen nach dem neuen Ablauf (Zyklus 100); Radio silence = Siberia II / Deep Desert II mit Funkabbruch
 const SPECIALS = [["Sonar", "WAVE 15", 15], ["Wild Cards", "AFTER WAVE 20", 20], ["Wounded", "WAVE 23", 23], ["Siberia", "WAVE 35 · BLIZZARD", 35], ["Hailstorm", "WAVE 37", 37], ["Sidewinder", "WAVE 41", 41], ["Sidewinder II", "WAVE 45", 45], ["Deep Desert", "WAVE 47 · SANDSTORM", 47], ["Siberia II", "WAVE 51 · RADIO SILENCE", 51], ["Radio silence", "WAVE 35 · FORCED", 35, "radio"], ["Deep Desert II", "WAVE 65 · RADIO SILENCE", 65], ["Lockdown", "IN POCKET · WAVE 25", 25, "lock"], ["Hack duel", "BOSS · GOLD BET", 6, "hack"], ["Chomper", "IN POCKET · WAVE 17", 17, "chomp"], ["Ten-ton drop", "IN POCKET · WAVE 5", 5, "ton"]];
 function devJump(w, kind) { SFX.init(); const m = MODES[MODE] ? MODE : "chill"; startGame(m); S.wave = w - 1; S.gold += 300 + 60 * w; S.ff = false; S.waveCD = 6; S.testRun = true; S.medDone = 0; S.rotDone = 0; S.rotMode = 0; S.rotT = 0; if (kind === "lock") S.locks = (S.locks || 0) + 1; if (kind === "chomp") S.chomps = (S.chomps || 0) + 2; if (kind === "ton") S.tons = (S.tons || 0) + 2; if (kind === "radio") S.radioForce = true; if (kind === "hack") { S.wave = w; S.gold += 500; S.waveCD = 60; setTimeout(() => openHack(true), 300); } closeIntro(); $("ovSpec").hidden = true; $("ovStart").hidden = true; toast(`TEST · ${kind === "lock" ? "LOCKDOWN IN POCKET" : "wave " + w + " in 6 s"} · build towers`, "HQ", 2500); }
@@ -6127,7 +6384,7 @@ const SPEEDS = [1, 1.5, 2, 2.5, 3];   // V178z3: höchstens ×3
 function maxSpeedIdx() { return SPEEDS.length - 1; }   // V178z4: alle Stufen von Anfang an frei
 function setSpeedIdx(i, quiet) {
   i = Math.max(0, Math.min(maxSpeedIdx(), i)); const v = SPEEDS[i]; if (S.speed === v) return;
-  S.speed = v; snd("build"); if (!quiet) toast(`GAME SPEED ×${v}`, "LEVER", 1200); renderLever();
+  S.speed = v; snd("uiTap"); if (!quiet) toast(`GAME SPEED ×${v}`, "LEVER", 1200); renderLever();
 }
 function renderSpeedChips() {
   const row = $("pSpeedRow"); if (!row) return; const mi = maxSpeedIdx(), cur = Math.max(0, SPEEDS.indexOf(S.speed || 1));
@@ -6171,22 +6428,22 @@ $("fbSend").addEventListener("click", async () => {
     const ref = HSDB.collection("feedback").doc(HSUID), snap = await ref.get(), cur = snap.exists ? { ...snap.data() } : {};
     const items = Array.isArray(cur.items) ? cur.items.slice(-49) : []; items.push(item);
     await ref.set({ items, last: item.t });
-    $("fbMsg").textContent = "Thanks a lot, squad!"; snd("coin"); setTimeout(closeFb, 1400);
+    $("fbMsg").textContent = "Thanks a lot, squad!"; snd("confirm"); setTimeout(closeFb, 1400);
   } catch (e) { $("fbSend").disabled = false; $("fbMsg").textContent = "Could not send. Please try again."; }
 });
 // ---- Pausemenü: weiter, neu starten, Hauptmenü ----
 let restartArm = 0;
-$("btnPResume").addEventListener("click", () => { SFX.init(); S.paused = false; restartArm = 0; snd("build"); });
+$("btnPResume").addEventListener("click", () => { SFX.init(); S.paused = false; restartArm = 0; snd("uiTap"); });
 $("btnPRestart").addEventListener("click", () => {
   SFX.init(); const now = performance.now();
-  if (!restartArm || now - restartArm > 3000) { restartArm = now; $("btnPRestart").textContent = "Tap again to restart"; $("pauseHint").textContent = "Your current run will be lost."; snd("build"); setTimeout(() => { if (!restartArm || performance.now() - restartArm >= 3000) { $("btnPRestart").textContent = "Restart"; $("pauseHint").textContent = "Restart starts the world tour again from wave 1."; } }, 3100); return; }
+  if (!restartArm || now - restartArm > 3000) { restartArm = now; $("btnPRestart").textContent = "Tap again to restart"; $("pauseHint").textContent = "Your current run will be lost."; snd("uiTap"); setTimeout(() => { if (!restartArm || performance.now() - restartArm >= 3000) { $("btnPRestart").textContent = "Restart"; $("pauseHint").textContent = "Restart starts the world tour again from wave 1."; } }, 3100); return; }
   restartArm = 0; $("btnPRestart").textContent = "Restart"; $("pauseHint").textContent = "Restart starts the world tour again from wave 1.";
   const tr = !!S.testRun; LS.del("tarnturm-save"); $("ovPause").hidden = true;
   startGame(MODE); if (tr) { S.testRun = true; S.gold = G.startGold; S.ff = false; S.waveCD = G.firstCD; }
   toast(`RESTART · ${G.label.toUpperCase()} from wave 1`, "HQ", 1800);
 });
 $("btnPMenu").addEventListener("click", () => $("btnHQ").click());
-document.addEventListener("click", e => { const b = e.target.closest(".hpAv"); if (!b) return; SFX.init(); const k = b.dataset.hero; if (k === heroKey()) return; snd("build"); try { localStorage.setItem("tarnturm-hero", k); } catch (er) {} renderThemeBtn(); const sk = document.querySelector("#sky .scene .hero"); if (sk && sk.getAttribute("src")) sk.src = HERO_IMG[k]; });
+document.addEventListener("click", e => { const b = e.target.closest(".hpAv"); if (!b) return; SFX.init(); const k = b.dataset.hero; if (k === heroKey()) return; snd("uiTap"); try { localStorage.setItem("tarnturm-hero", k); } catch (er) {} renderThemeBtn(); const sk = document.querySelector("#sky .scene .hero"); if (sk && sk.getAttribute("src")) sk.src = HERO_IMG[k]; });
 renderThemeBtn(); syncSky();
 
 /* Wellen-Ende: General gratuliert oben links (Sprechblase), Beute im Untertitel */
@@ -6465,7 +6722,7 @@ addEventListener("resize", () => { if (document.body.classList.contains("introFu
   const place = () => { const r = sc.getBoundingClientRect(), w = Math.min(260, innerWidth - 16); pop.style.width = w + "px"; pop.style.top = (r.bottom + 8) + "px"; pop.style.left = Math.max(8, Math.min(innerWidth - w - 8, r.left + r.width / 2 - w / 2)) + "px"; pop.style.setProperty("--ax", (r.left + r.width / 2 - parseFloat(pop.style.left)) + "px"); };
   const close = () => { pop.hidden = true; clearInterval(t); };
   sc.style.cursor = "pointer"; sc.setAttribute("role", "button"); sc.setAttribute("aria-label", "Score breakdown");
-  sc.addEventListener("click", e => { e.stopPropagation(); if (!pop.hidden) return close(); fill(); place(); pop.hidden = false; try { snd("build"); } catch (x) {} clearInterval(t); let n = 0; t = setInterval(() => { fill(); if (++n > 12) close(); }, 500); });
+  sc.addEventListener("click", e => { e.stopPropagation(); if (!pop.hidden) return close(); fill(); place(); pop.hidden = false; try { snd("uiTap"); } catch (x) {} clearInterval(t); let n = 0; t = setInterval(() => { fill(); if (++n > 12) close(); }, 500); });
   document.addEventListener("pointerdown", e => { if (!pop.hidden && !pop.contains(e.target) && !sc.contains(e.target)) close(); }, true);
 })();
 
@@ -6520,7 +6777,7 @@ function albTry() {
   else { $("gName").textContent = `${ms.length} NEW MEDALS`; $("gLine").innerHTML = `<ul class="gList">${ms.map(x => `<li><b>${x.name}</b> · ${x.line}</li>`).join("")}</ul>`; }
   $("ovGive").hidden = false; ALB.wasPaused = S && S.paused; if (S && S.started && !S.over) S.paused = true; snd("powerup");
 }
-$("gOk").addEventListener("click", () => { $("ovGive").hidden = true; if (S && S.started && !S.over && !ALB.wasPaused) S.paused = false; snd("build"); setTimeout(albTry, 350); });
+$("gOk").addEventListener("click", () => { $("ovGive").hidden = true; if (S && S.started && !S.over && !ALB.wasPaused) S.paused = false; snd("uiTap"); setTimeout(albTry, 350); });
 function albSlot(on, img, label, tint) { return `<div class="albSlot ${on ? "on" : "off"} ${tint || ""}"><img src="${MED_IMG[img]}" alt="">${label ? `<b>${label}</b>` : ""}</div>`; }
 function openAlbum() {
   const g = ALB.got; let html = "", n = 0;
@@ -6533,7 +6790,7 @@ function openAlbum() {
   const sk = []; ALB_SK.forEach(d => [0, 1, 2].forEach(i => sk.push(d[0] + i)));
   html += `<div class="albSec">SKILLS<span>${cnt(sk)} / 36</span></div><div class="albSk">` + ALB_SK.map(d => `<div class="albRow"><i>${d[1]}<small>${(ALB.n[d[0]] || 0).toLocaleString("en")} ${d[2]}</small></i>` + [0, 1, 2].map(i => albSlot(g[d[0] + i], "md_" + d[0], d[3][i].toLocaleString("en"), TCL[i])).join("") + "</div>").join("") + "</div>";
   n = Object.keys(g).length;
-  $("albSum").textContent = `${n} of 81 collected`; $("albBody").innerHTML = html; $("ovAlbum").hidden = false; snd("build");
+  $("albSum").textContent = `${n} of 81 collected`; $("albBody").innerHTML = html; $("ovAlbum").hidden = false; snd("uiTap");
 }
 $("btnAlbum").addEventListener("click", () => { SFX.init(); openAlbum(); });
 $("albX").addEventListener("click", () => { $("ovAlbum").hidden = true; });
@@ -6600,7 +6857,7 @@ window.__TT && (window.__TT.album = { ALB, albGrant, albCount, openAlbum, albQ, 
   g.addEventListener("pointerdown", e => { drag = true; g.classList.add("drag"); g.setPointerCapture(e.pointerId); e.preventDefault(); });
   g.addEventListener("pointermove", e => { if (!drag) return; const r = d.getBoundingClientRect(), fx = (e.clientX - r.left) / r.width, fy = (e.clientY - r.top) / r.height;
     const h = Math.max(0, Math.min(4, Math.round(fx * 4))), v = Math.max(0, Math.min(2, Math.round((fy - 0.15) * 2.4))); if (h !== H || v !== V) { H = h; V = v; layout(); } });
-  const end = () => { if (!drag) return; drag = false; g.classList.remove("drag"); save(); try { snd("build"); } catch (e) {} };
+  const end = () => { if (!drag) return; drag = false; g.classList.remove("drag"); save(); try { snd("uiTap"); } catch (e) {} };
   g.addEventListener("pointerup", end); g.addEventListener("pointercancel", end);
   g.addEventListener("keydown", e => { const k = e.key; if (!/^Arrow/.test(k)) return; if (k === "ArrowLeft") H = Math.max(0, H - 1); if (k === "ArrowRight") H = Math.min(4, H + 1); if (k === "ArrowUp") V = Math.max(0, V - 1); if (k === "ArrowDown") V = Math.min(2, V + 1); layout(); save(); e.preventDefault(); e.stopPropagation(); });
   new ResizeObserver(layout).observe(d); layout();
@@ -6616,7 +6873,7 @@ function openCoachPick() {
   const cur = coachLvl();
   el.innerHTML = `<span class="alTag">COACH OLLIE</span><img class="cpImg" src="${COACH_SRC}" alt=""><h2>How tough should I play?</h2><div class="cpGrid">${COACH_LV.map(l => `<button data-lv="${l[0]}" class="${l[0] === cur ? "on" : ""}"><b>${l[1]}</b><small>${l[2]}</small></button>`).join("")}</div><div class="hkRow"><button id="cpBack">Back</button><button id="cpGo" class="btn-accent">TRAIN ▶</button></div><small class="cpLeft">${coachLeft()} practice duels left</small>`;
   el.hidden = false;
-  el.querySelectorAll("[data-lv]").forEach(b => b.onclick = () => { try { localStorage.setItem("tarnturm-coachlv", b.dataset.lv); } catch (e) {} el.querySelectorAll("[data-lv]").forEach(x => x.classList.toggle("on", x === b)); snd("build"); });
+  el.querySelectorAll("[data-lv]").forEach(b => b.onclick = () => { try { localStorage.setItem("tarnturm-coachlv", b.dataset.lv); } catch (e) {} el.querySelectorAll("[data-lv]").forEach(x => x.classList.toggle("on", x === b)); snd("uiTap"); });
   el.querySelector("#cpBack").onclick = () => { el.hidden = true; closeHack(); };
   el.querySelector("#cpGo").onclick = () => { el.hidden = true; HK.coachPicked = true; startCoach(); };
 }
@@ -6662,7 +6919,7 @@ function maybeJoin() {
   $("joinNick").value = LS.get("tarnturm-nick") || funNick();
   renderThemeBtn(); $("ovJoin").hidden = false; snd("radio");
 }
-function closeJoin() { $("ovJoin").hidden = true; S.joinOpen = false; S.intro = false; snd("build"); }
+function closeJoin() { $("ovJoin").hidden = true; S.joinOpen = false; S.intro = false; snd("uiTap"); }
 async function finishJoin(useName) {
   let n = useName ? cleanNick($("joinNick").value) : "";
   if (n.length < 2) n = await autoNick();
@@ -6674,7 +6931,7 @@ $("joinX").addEventListener("click", () => finishJoin(false));
 // Einstellungen (Zahnrad im Startmenü)
 $("btnGear").addEventListener("click", () => { SFX.init(); $("setNick").value = LS.get("tarnturm-nick") || ""; renderThemeBtn(); $("ovSettings").hidden = false; });
 $("setNick").addEventListener("keydown", e => e.stopPropagation());
-$("setX").addEventListener("click", () => { const n = cleanNick($("setNick").value); if (n.length >= 2) LS.set("tarnturm-nick", n); $("ovSettings").hidden = true; snd("build"); });
+$("setX").addEventListener("click", () => { const n = cleanNick($("setNick").value); if (n.length >= 2) LS.set("tarnturm-nick", n); $("ovSettings").hidden = true; snd("uiTap"); });
 
 /* V144 – Startbild: antippen (oder nach 6 s) → Titelmenü */
 (function () { const sp = document.getElementById("splash"); if (!sp) return; let done = false;
@@ -6693,7 +6950,7 @@ $("dj").addEventListener("click", ev => {
   SFX.music.next();                                // im Spiel: nächstes Lied, im Kreis
 });
 $("btnHQ").addEventListener("click", () => {
-  SFX.init(); snd("build");
+  SFX.init(); snd("uiTap");
   if (S.started && !S.over) { S.paused = true; S.mode = null; S.aim = null; saveGame(); }
   closeSheet();
   for (const id of ["ovInfo", "ovHs", "ovCamp", "ovOver"]) $(id).hidden = true;
@@ -6715,7 +6972,7 @@ $("btnHsClose").addEventListener("click", () => { $("ovHs").hidden = true; $("ov
 $("btnSaveHs").addEventListener("click", () => {
   const name = cleanNick($("nick").value) || "Anonymous"; LS.set("tarnturm-nick", name);
   const entry = { name, score: calcScore(), wave: S.wave, lines: S.lines, kills: S.kills, t: Date.now() }; addHs(MODE, entry);
-  $("hsEntry").hidden = true; $("hsOver").innerHTML = hsHtml(MODE, entry.t) + (S.worldOk ? `<h4>Sending…</h4>` : `<h4>This device only</h4>`); snd("coin");
+  $("hsEntry").hidden = true; $("hsOver").innerHTML = hsHtml(MODE, entry.t) + (S.worldOk ? `<h4>Sending…</h4>` : `<h4>This device only</h4>`); snd("confirm");
   if (!S.worldOk) return;
   postGlobalHs(MODE, entry).then(d => {
     if (!S.over) return;
@@ -6743,7 +7000,7 @@ function musicLabel() { const on = SFX.music.on; $("bMusic").innerHTML = `<svg><
 $("bMusic").addEventListener("click", () => { SFX.init(); const on = SFX.music.toggle(); musicLabel(); toast(on ? "MUSIC ON" : "MUSIC OFF", "SOUND"); if (on && !$("ovStart").hidden) SFX.music.menu(); else if (on && S.started && !S.over) SFX.music.start(Math.max(1, S.wave)); }); musicLabel();
 $("vol").value = Math.round(SFX.vol * 100);
 $("vol").addEventListener("input", e => { SFX.init(); SFX.setVol(e.target.value / 100); muteLabel(); });
-$("vol").addEventListener("change", () => { snd("coin"); muteLabel(); });
+$("vol").addEventListener("change", () => { snd("confirm"); muteLabel(); });
 window.addEventListener("keydown", e => { if (e.key === "m" || e.key === "M") { SFX.toggle(); muteLabel(); } if (e.key === "v" || e.key === "V") { SFX.toggleVoice(); voiceLabel(); } if (e.key === "n" || e.key === "N") $("bMusic").click(); });
 
 // ---------- Loop ----------
@@ -6888,7 +7145,7 @@ document.addEventListener("click", e => { if (typeof S === "undefined" || !S || 
   const ZZ = `<svg viewBox="0 0 24 24"><g class="ic"><path d="M3.5 6.5h9l-9 11h9.5" fill="none" stroke="#3a2414" stroke-width="5.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M3.5 6.5h9l-9 11h9.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M15.5 3h5l-5 6h5.2" fill="none" stroke="#3a2414" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M15.5 3h5l-5 6h5.2" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></g></svg>`, PL = `<svg viewBox="0 0 24 24"><g class="ic"><path d="M7 4.6c0-1 1.1-1.6 2-1.1l11.4 7.4c.8.5.8 1.7 0 2.2L9 20.5c-.9.5-2-.1-2-1.1z" fill="#fff" stroke="#3a2414" stroke-width="1.8" stroke-linejoin="round"/></g></svg>`; b.innerHTML = ZZ; b._st = "z";
   document.body.appendChild(b);
   b.addEventListener("click", e => { e.stopPropagation(); if (b.hidden) return;
-    if (S && S.over) { const pv = $("ovPause"), open = pv.hidden; pv.hidden = !open; pv.classList.toggle("overMode", open); $("btnPResume").textContent = open ? "Back ▶" : "Resume ▶"; snd("build"); return; }   // Game Over: Ton-/Pausemenü über den Ergebnissen
+    if (S && S.over) { const pv = $("ovPause"), open = pv.hidden; pv.hidden = !open; pv.classList.toggle("overMode", open); $("btnPResume").textContent = open ? "Back ▶" : "Resume ▶"; snd("uiTap"); return; }   // Game Over: Ton-/Pausemenü über den Ergebnissen
     const w = document.getElementById("bWave"); if (w) w.click(); });
   const pos = () => {
     const w = document.getElementById("bWave"), nx = document.querySelector(".bar .cell"), overUp = !$("ovOver").hidden, menuUp = ["ovStart", "ovCamp", "ovInfo", "ovHs", "ovSettings", "ovAlbum"].some(id => { const e = document.getElementById(id); return e && !e.hidden; });
@@ -6908,7 +7165,7 @@ document.addEventListener("click", e => { if (typeof S === "undefined" || !S || 
   const sync = () => { ins.forEach(i => { const k = i.dataset.ch, v = k === "all" ? SFX.vol : SFX.ch(k); if (document.activeElement !== i) i.value = Math.round(v * 100); i.nextElementSibling.textContent = Math.round(v * 100) + "%"; });
     const m = $("pvMute"); m.textContent = SFX.muted ? "Sound on" : "Mute"; m.classList.toggle("on", SFX.muted); box.classList.toggle("muted", SFX.muted); };
   ins.forEach(i => { i.addEventListener("input", () => { SFX.init(); const v = i.value / 100; if (i.dataset.ch === "all") { SFX.setVol(v); try { $("vol").value = i.value; muteLabel(); } catch (e) {} } else SFX.setCh(i.dataset.ch, v); sync(); });
-    i.addEventListener("change", () => { if (i.dataset.ch === "v") SFX.say("Like this?", 1.0, 1.0); else snd("coin"); }); });
+    i.addEventListener("change", () => { if (i.dataset.ch === "v") SFX.say("Like this?", 1.0, 1.0); else snd("confirm"); }); });
   $("pvMute").addEventListener("click", () => { SFX.init(); SFX.toggle(); try { muteLabel(); } catch (e) {} sync(); });
   setInterval(() => { if (!$("ovPause").hidden) sync(); }, 700); sync();
 })();
@@ -6933,14 +7190,14 @@ setInterval(() => { const g = document.getElementById("sGold"); if (!g) return; 
 // V178f: Game Over – «Main menu» statt «Change mode»
 document.getElementById("btnModes").addEventListener("click", e => { e.stopImmediatePropagation(); e.preventDefault(); $("ovOver").hidden = true; $("btnHQ").click(); }, true);
 
-document.getElementById("btnPResume").addEventListener("click", e => { if (S && S.over) { e.stopImmediatePropagation(); $("ovPause").hidden = true; $("ovPause").classList.remove("overMode"); $("btnPResume").textContent = "Resume ▶"; snd("build"); } }, true);
+document.getElementById("btnPResume").addEventListener("click", e => { if (S && S.over) { e.stopImmediatePropagation(); $("ovPause").hidden = true; $("ovPause").classList.remove("overMode"); $("btnPResume").textContent = "Resume ▶"; snd("uiTap"); } }, true);
 document.getElementById("btnPMenu").addEventListener("click", () => { $("ovPause").classList.remove("overMode"); $("btnPResume").textContent = "Resume ▶"; }, true);
 
 // V178g: beide rosa Knöpfe immer synchron – Zz im Spiel, Play nur in der Pause
 setInterval(() => { const w = document.getElementById("bWave"), tb = document.getElementById("bPauseTop"); if (!w || typeof S === "undefined" || !S) return; const p = tb && tb.classList.contains("isPlay"); if (w.classList.contains("isPlay") !== !!p) w.classList.toggle("isPlay", !!p); }, 120);
 
 // V178g: rosa Knopf ist immer Pause/Weiter – auch zwischen den Wellen (kein SEND IT mehr über diesen Knopf)
-document.getElementById("bWave").addEventListener("click", e => { if (!S || !S.started || S.over) return; if (!S.inWave && !S.paused) { e.stopImmediatePropagation(); S.paused = true; snd("build"); } }, true);
+document.getElementById("bWave").addEventListener("click", e => { if (!S || !S.started || S.over) return; if (!S.inWave && !S.paused) { e.stopImmediatePropagation(); S.paused = true; snd("uiTap"); } }, true);
 
 // V178h: Game-Over-Stinger (Suno: Cello + gedämpfte Posaune), Musik läuft gedämpft weiter
 { const GO = new Audio("sfx/gameover.mp4"); GO.preload = "auto";
@@ -6974,7 +7231,7 @@ setInterval(() => { const g = document.getElementById("genAv"); if (!g) return; 
   setInterval(() => { if (typeof S === "undefined" || !S) return; if (S !== runS) { runS = S; maxSp = 1; t0 = performance.now(); } if (S.started && !S.over) maxSp = Math.max(maxSp, S.speed || 1); }, 500);
   const _g = gameOver; gameOver = function (why) { const was = S && S.over; const r = _g.apply(this, arguments);
     try { if (!was && S && S.over && !S.testRun && !S.nuts) {
-      const run = { t: Date.now(), ver: "V180", wave: S.wave | 0, why: /monster|lap|through/i.test(String(why || "")) ? "monsters" : "blocks", gold: S.gold | 0, lines: S.lines | 0, splats: S.kills | 0, score: (S.score || 0) | 0, medals: S.medals | 0, maxSpeed: maxSp, mins: Math.round((performance.now() - t0) / 600) / 100, hero: heroKey(), dev: LS.get("tarnturm-dev") === "1" };
+      const run = { t: Date.now(), ver: "V181", wave: S.wave | 0, why: /monster|lap|through/i.test(String(why || "")) ? "monsters" : "blocks", gold: S.gold | 0, lines: S.lines | 0, splats: S.kills | 0, score: (S.score || 0) | 0, medals: S.medals | 0, maxSpeed: maxSp, mins: Math.round((performance.now() - t0) / 600) / 100, hero: heroKey(), dev: LS.get("tarnturm-dev") === "1" };
       if (S.won) run.why = "win"; else if (/quit/i.test(String(why || ""))) run.why = "quit";
       if (!(HSDB && HSUID)) { fetch(API_BASE + "/runs", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "pro", ...run, ver: "V180" }) }).catch(() => {}); return r; }
       const ref = HSDB.collection("runs").doc(HSUID);
@@ -7025,7 +7282,7 @@ const NZ = { frozen: null, first: false, ending: false };
 // Spaß-Rufzeichen (erfunden, nie echte Namen)
 const FN_A = ["Captain", "Lucky", "Turbo", "Sunny", "Mighty", "Brave", "Sneaky", "Happy", "Rocket", "Fuzzy", "Major", "Super"], FN_B = ["Mudpaw", "Fluff", "Pebble", "Noodle", "Biscuit", "Coconut", "Mango", "Splash", "Bubbles", "Waffle", "Pickle", "Muffin"];
 function funNick() { for (let i = 0; i < 20; i++) { const n = FN_A[Math.random() * FN_A.length | 0] + " " + FN_B[Math.random() * FN_B.length | 0]; if (n.length <= 14) return n; } return "Capy " + (100 + Math.random() * 900 | 0); }
-$("joinDice").addEventListener("click", e => { e.preventDefault(); SFX.init(); snd("build"); $("joinNick").value = funNick(); });
+$("joinDice").addEventListener("click", e => { e.preventDefault(); SFX.init(); snd("uiTap"); $("joinNick").value = funNick(); });
 
 // --- Oberflächen ---
 const nzBadge = document.createElement("div"); nzBadge.id = "nutsBadge"; nzBadge.hidden = true; document.body.appendChild(nzBadge);
@@ -7052,7 +7309,7 @@ function showSign(c) {
   { const u = nzUnl(); if (!u.includes(c)) { u.push(c); LS.set("tarnturm-nuts-unl", JSON.stringify(u)); } }
 }
 function closeSign() { ovSign.hidden = true; if (S) { S.intro = false; S.signOpen = 0; } }
-$("signNext").addEventListener("click", () => { SFX.init(); snd("build"); const c = (S.signOpen || 1) - 1; S.nutsAsk = { ...(S.nutsAsk || {}), [c]: 1 }; closeSign(); toast(`NUTS DETOUR · any time later from the pause menu`, "HQ", 2400); });
+$("signNext").addEventListener("click", () => { SFX.init(); snd("uiTap"); const c = (S.signOpen || 1) - 1; S.nutsAsk = { ...(S.nutsAsk || {}), [c]: 1 }; closeSign(); toast(`NUTS DETOUR · any time later from the pause menu`, "HQ", 2400); });
 $("signNuts").addEventListener("click", () => { SFX.init(); const c = (S.signOpen || 1) - 1; S.nutsAsk = { ...(S.nutsAsk || {}), [c]: 1 }; closeSign(); startDetour(c); });
 setInterval(() => {
   if (typeof S === "undefined" || !S || !S.started || S.over || S.nuts || S.won || S.paused || S.intro || S.drop || S.ordersOpen || S.duel || S.inWave || !ovRes.hidden) return;
@@ -7111,7 +7368,7 @@ function nutsEnd(why) {
   ovRes.hidden = false; ovRes._c = c; ovRes._cleared = cleared; ovRes._first = n.first;
   if (why !== "quit") { snd(cleared >= 10 ? "hkWin" : "nope"); }
 }
-$("nrBack").addEventListener("click", () => { SFX.init(); snd("build"); nutsResume(ovRes._c, ovRes._cleared, ovRes._first); });
+$("nrBack").addEventListener("click", () => { SFX.init(); snd("uiTap"); nutsResume(ovRes._c, ovRes._cleared, ovRes._first); });
 function nutsResume(c, cleared, first) {
   const fr = NZ.frozen; ovRes.hidden = true; document.body.classList.remove("inNuts"); NZ.frozen = null; window.__NZF = null; NZ.ending = false;
   if (!fr || !loadGame(fr)) { $("btnHQ").click(); return; }
@@ -7129,14 +7386,14 @@ function renderPNuts() {
   box.innerHTML = `<small>NUTS DETOURS</small>` + cs.map(c => `<button data-nz="${c}">☠ ${nzName(c)}<em>${nzFirstOpen(c) ? "first try · +1 % main score per level" : "replay · best L" + nzBest(c) + " · board & medals only"}</em></button>`).join("") + `<div class="nBonus">Nuts bonus this run: +${S.nutsBonus || 0} % main score</div>`;
 }
 new MutationObserver(() => { if (!$("ovPause").hidden) renderPNuts(); }).observe($("ovPause"), { attributes: true, attributeFilter: ["hidden"] });
-$("pNuts").addEventListener("click", e => { const b = e.target.closest("[data-nz]"); if (!b) return; SFX.init(); snd("build"); $("ovPause").hidden = true; S.paused = false; startDetour(+b.dataset.nz); });
+$("pNuts").addEventListener("click", e => { const b = e.target.closest("[data-nz]"); if (!b) return; SFX.init(); snd("uiTap"); $("ovPause").hidden = true; S.paused = false; startDetour(+b.dataset.nz); });
 $("btnPNutsQuit").addEventListener("click", () => { SFX.init(); if (S && S.nuts) nutsEnd("quit"); });
 for (const id of ["btnPMenu", "btnHQ"]) $(id).addEventListener("click", e => { if (S && S.nuts && !S.over) { e.stopImmediatePropagation(); e.preventDefault(); nutsEnd("quit"); } }, true);
 $("btnPSquad").addEventListener("click", () => { SFX.init(); $("setNick").value = LS.get("tarnturm-nick") || ""; renderThemeBtn(); $("ovSettings").hidden = false; });
 // Hall of Fame: Nuts-Listen je Kontinent
 $("btnHs").addEventListener("click", () => { const box = $("hsNuts"); box.innerHTML = ""; [0, 1, 2, 3].forEach(c => nzFetch(c).then(l => { if (l && l.length) box.insertAdjacentHTML("beforeend", nzBoardHtml(c, l)); })); });
 // Guide: Tutorial wiederholen
-$("btnReTut").addEventListener("click", () => { SFX.init(); snd("build"); LS.del("tarnturm-tut"); $("ovInfo").hidden = true;
+$("btnReTut").addEventListener("click", () => { SFX.init(); snd("uiTap"); LS.del("tarnturm-tut"); $("ovInfo").hidden = true;
   if (S && S.started && !S.over && !S.nuts) { $("ovStart").hidden = true; S.paused = false; tutStart(); } else toast("TUTORIAL · starts with your next game", "HQ", 2200); });
 
 // --- Wrapper: Härte, keine Sonderwellen, Game over im Abstecher, Tipp beim ersten Scheitern, erster Splat ---
@@ -7167,6 +7424,15 @@ $("btnReTut").addEventListener("click", () => { SFX.init(); snd("build"); LS.del
 { const _sw = startWave; startWave = function () { const r = _sw.apply(this, arguments); if (S && S.nuts) { setTimeout(() => announce(`NUTS LEVEL ${S.nuts.lvl}/${NZ_MAX}`, `${S.toSpawn} monsters · faster · tougher`, "ALERT", 1600), 60); lvLabel(); } return r; }; }
 // Testzugang
 try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsCount, nutsGrav, nutsHp, funNick, nutsLevelDone }; } catch (e) {}
+
+// V181: Fenster öffnen/schließen und Gefahr-Warnung (Stapel fast oben) mit eigenen Klängen
+(() => {
+  const SKIP = new Set(["ovOver", "ovStart", "ovIntro"]);
+  const obs = new MutationObserver(list => { for (const r of list) { const el = r.target; if (!el.id || SKIP.has(el.id)) continue; const was = r.oldValue !== null; if (was === el.hidden) continue; try { snd(el.hidden ? "close" : "open"); } catch (e) {} } });
+  document.querySelectorAll('[id^="ov"]').forEach(el => obs.observe(el, { attributes: true, attributeFilter: ["hidden"], attributeOldValue: true }));
+  let warned = false;
+  setInterval(() => { try { if (!S || !S.started || S.over || S.paused || !S.grid) return; const hi = S.grid.slice(0, GW * 4).some(v => v); if (hi && !warned) { warned = true; snd("danger"); } else if (!hi) warned = false; } catch (e) {} }, 400);
+})();
 
 })();
 </script>
