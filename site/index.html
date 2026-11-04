@@ -2654,7 +2654,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V240";
+const GAME_VER = "V241";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -7291,7 +7291,7 @@ try { for (const m of ["pro", "nuts"]) { if (!LS.get("tarnturm-cp-" + m)) { cons
 { let last = performance.now(); setInterval(() => { const now = performance.now(), dt = Math.min(1, (now - last) / 1000); last = now; if (typeof S === "undefined" || !S || !S.started || S.over || S.paused || !S.inWave || frozen()) return; S.spT = (S.spT || 0) + dt; S.spW = (S.spW || 0) + dt * (SPEED_BONUS[S.speed || 1] || 1); }, 250); }
 
 // V179: Welt-Tour geschafft – nach Welle 150 kommt das Finale
-(() => { const ov = document.getElementById("ovOver"), img = document.createElement("img"); img.className = "finImg"; img.alt = "World tour complete"; img.src = "fin/finale.webp";
+(() => { const ov = document.getElementById("ovOver"), img = document.createElement("img"); img.className = "finImg"; img.alt = "World tour complete"; img.src = "fin/finale2.webp";
   const t = document.getElementById("overTitle"); if (t && t.parentElement) t.parentElement.insertBefore(img, t);
   const _g = gameOver; gameOver = function () { const r = _g.apply(this, arguments); try { ov.classList.toggle("won", !!(S && S.won)); if (S && S.won) {
       $("overTitle").textContent = "WORLD TOUR COMPLETE!"; const md = $("overMode"); if (md) md.textContent = "ALL 150 WAVES · 5 CONTINENTS";
@@ -8440,5 +8440,8 @@ button .lk{font-style:normal;white-space:nowrap}
 #devBar .dT{grid-template-columns:1fr 1fr}
 #devBar .dT button{background:#3a2a1a!important;color:#fff6e6!important;border:0!important;font-size:11px!important}
 #startMain .startFoot .devOnly{display:none!important}
+</style>
+<style id="v241">
+.finImg{aspect-ratio:16/9;height:auto!important;max-height:26vh;object-fit:cover;object-position:50% 45%!important}
 </style>
 </body></html>
