@@ -2654,7 +2654,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V192";
+const GAME_VER = "V193";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -4041,7 +4041,8 @@ function msgPush(m) {
 }
 function msgTick() {
   if (msgBusy > performance.now() || !MSGQ.length) return;
-  if (S && S.drop) return;                                               // Air Drop hat Vorrang, danach weiter
+  if (S && S.drop) { const now = performance.now(); if (!S._dropAt) S._dropAt = now; if (now - S._dropAt < 9000) { setTimeout(msgTick, 400); return; } S.drop = false; }   // V193: Air Drop hat Vorrang, dann weiter (nicht liegen bleiben)
+  if (S) S._dropAt = 0;
   const m = MSGQ.shift(), age = performance.now() - m.at;
   if (m.kind === "toast" && age > 6000 && !KEEP_TAGS.has(m.tag)) { msgTick(); return; }   // veraltet
   msgBusy = performance.now() + m.hold + 320;
@@ -6630,10 +6631,13 @@ const STATIC = { n: null, t: null,
   }; }
 
 /* --- Musik: Suno-Stücke (Südamerika + Menü), Rotation je Ort, DJ-Tipp = nächster Song --- */
-const TRK = { airport: ["Airport Bossa", 100], copacabana: ["Copacabana Sunset", 102], andes: ["Andes Lounge", 96], jungle: ["Jungle Downtempo", 98], rumba: ["Rumba Lounge", 104], samba: ["Samba Lounge", 108], chilldisco: ["Chill Disco Rio", 110], loungedisco: ["Lounge Disco", 110] };
-const TRK_FILE = { airport: "airport_bossa", copacabana: "copacabana_sunset", andes: "andes_lounge", jungle: "jungle_downtempo", rumba: "rumba_lounge", samba: "samba_lounge", chilldisco: "chill_disco_rio", loungedisco: "lounge_disco" };
+const TRK = { airport: ["Airport Bossa", 100], copacabana: ["Copacabana Sunset", 102], andes: ["Andes Lounge", 96], jungle: ["Jungle Downtempo", 98], rumba: ["Rumba Lounge", 104], samba: ["Samba Lounge", 108], chilldisco: ["Chill Disco Rio", 110], loungedisco: ["Lounge Disco", 110], oasis: ["Oasis Blues", 98], savanna: ["Savanna Groove", 104], dune: ["Dune Dub", 96], dune2: ["Dune Dub II", 96], pyramid: ["Pyramid Disco", 116], taiga: ["Taiga Lounge", 100], frozen: ["Frozen Lake", 96], steppe: ["Steppe Ride", 108], iceport: ["Ice Port Disco", 110], icepalace: ["Ice Palace", 120] };
+const TRK_FILE = { airport: "airport_bossa", copacabana: "copacabana_sunset", andes: "andes_lounge", jungle: "jungle_downtempo", rumba: "rumba_lounge", samba: "samba_lounge", chilldisco: "chill_disco_rio", loungedisco: "lounge_disco", oasis: "af_oasis", savanna: "af_savanna", dune: "af_dune", dune2: "af_dune2", pyramid: "af_pyramid", taiga: "as_taiga", frozen: "as_frozen", steppe: "as_steppe", iceport: "as_iceport", icepalace: "as_icepalace" };
 const TRK_ORDER = ["andes", "jungle", "copacabana", "rumba", "samba", "loungedisco", "chilldisco", "airport"];
-function trkPool(wave) { if (!wave) return ["airport"]; const p = Math.floor(((wave - 1) % 30) / 5); return TRK_ORDER.slice(p, p + 3); }   // je Ort 3 Stücke, eines wechselt pro Ort
+const TRK_AF = ["oasis", "savanna", "dune", "dune2", "pyramid"], TRK_AS = ["taiga", "frozen", "steppe", "iceport", "icepalace"];
+function trkPool(wave) { if (!wave) return ["airport"]; const p = Math.floor(((wave - 1) % 30) / 5);
+  if (wave >= 31 && wave <= 60) return [0, 1, 2].map(i => TRK_AF[(p + i) % 5]); if (wave >= 61 && wave <= 90) return [0, 1, 2].map(i => TRK_AS[(p + i) % 5]);
+  return TRK_ORDER.slice(p, p + 3); }   // je Ort 3 Stücke, eines wechselt pro Ort
 const TP = { el: null, src: null, g: null, key: null, pool: [], wave: -1, paused: false, synthOn: false };
 function tpEl() {
   if (TP.el) return TP.el; const a = new Audio(); a.preload = "auto"; a.loop = false; a.volume = 0; TP.el = a;
@@ -6652,7 +6656,7 @@ function tpPlay(key) {
 function tpNext() { const pool = TP.pool.length ? TP.pool : ["airport"]; const i = pool.indexOf(TP.key); tpPlay(pool[(i + 1) % pool.length]); }
 function tpStop(f = 0.5) { if (!TP.el) return; tpFade(0.0001, f); const a = TP.el; setTimeout(() => { if (TP.key === null || TP.stopping) a.pause(); TP.stopping = false; }, f * 1000 + 60); TP.stopping = true; TP.key = null; }
 { const M = SFX.music, o = { start: M.start, stop: M.stop, menu: M.menu, switchTo: M.switchTo, next: M.next, setPaused: M.setPaused, toggle: M.toggle, duck: M.duck };
-  const useTrk = w => w === 0 || (w >= 1 && w <= 30);
+  const useTrk = w => w === 0 || (w >= 1 && w <= 90);
   const begin = w => { if (!M.on) return; TP.wave = w; const pool = trkPool(w); TP.pool = pool;
     if (TP.synthOn) { o.stop.call(M, 0.3); TP.synthOn = false; }
     if (TP.key && pool.includes(TP.key) && TP.el && !TP.el.paused) { if (TP.paused) M.setPaused(false); return; }   // läuft schon ein passendes Stück → weiterlaufen lassen
@@ -7251,7 +7255,7 @@ setInterval(() => { const g = document.getElementById("genAv"); if (!g) return; 
   setInterval(() => { const n = document.getElementById("waveNum"), k = (typeof S !== "undefined" && S && S.hkMissed) || 0;
     const on = k > 0 && n && !n.hidden && !S.over && !S.duel && !hkOfferOn();
     if (!on) { b.hidden = true; return; } const txt = `×${k}`; if (b._t !== txt) { b._t = txt; b.innerHTML = `<svg viewBox="0 0 40 36" width="16" height="15" style="width:16px!important;height:15px!important;flex:none;display:block"><rect x="5" y="6" width="30" height="27" rx="9" fill="#b0328c" stroke="#17150c" stroke-width="3"/><path d="M8 14h24v3q-3 5-8 5t-6-5h-2q-1 5-6 5t-8-5z" fill="#17150c"/><path d="M12 25q8 6 16 0" stroke="#17150c" stroke-width="2.5" fill="#fff"/></svg>${txt}`; } b.hidden = false;
-    const r = n.getBoundingClientRect(); b.style.left = Math.round(r.left + r.width / 2 - b.offsetWidth / 2) + "px"; b.style.top = Math.round(r.bottom + 3) + "px"; }, 250); })();
+    const r = n.getBoundingClientRect(); b.style.left = Math.round(Math.min(window.innerWidth - b.offsetWidth - 4, r.right + 4)) + "px"; b.style.top = Math.round(r.top + r.height / 2 - b.offsetHeight / 2) + "px"; }, 250); })();
 
 // V178z13: Checkpoints für den einen Modus – einmalig aus dem bisherigen Bestwert übernehmen
 try { for (const m of ["pro", "nuts"]) { if (!LS.get("tarnturm-cp-" + m)) { const b = getBest(m) | 0; if (b >= 10) LS.set("tarnturm-cp-" + m, Math.floor(b / 10) * 10); } } } catch (e) {}

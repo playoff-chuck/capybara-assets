@@ -1,0 +1,229 @@
+<style>
+/* V2: Aktualisieren-Knopf, Aufgaben aus der DB, Balancing mit Vorschlägen je Bericht */
+.refBtn{position:absolute;top:0;right:0;width:76px;height:76px;border-radius:50%;border:3px solid var(--ink);background:var(--orange);color:#fff;cursor:pointer;box-shadow:0 4px 0 var(--ink);display:grid;place-items:center;padding:0}
+.refBtn svg{width:42px;height:42px}
+.refBtn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+.refBtn.spin svg{animation:refSpin 1s linear infinite}
+@keyframes refSpin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.refBtn.spin svg{animation:none}}
+.rateBtn{position:absolute;top:84px;right:0;font:700 12px var(--f-body);padding:5px 10px;border-radius:9px;border:2px solid var(--ink);background:var(--card);color:var(--ink);cursor:pointer}
+.refMsg{font:600 13px var(--f-mono);color:var(--mute);min-height:1.2em;margin-top:6px;background:var(--card);display:inline-block;padding:2px 8px;border-radius:7px}
+.refMsg:empty{display:none}
+.mine{border-left:3px solid var(--orange);padding:4px 8px;margin-top:4px;background:color-mix(in srgb,var(--orange) 8%,transparent);border-radius:0 8px 8px 0;font-size:14px}
+.when2{font:12px var(--f-mono);color:var(--mute)}
+.selrep{display:grid;gap:4px;margin:4px 0 0}
+.prophead{font:800 15px/1.3 var(--f-body);margin:14px 0 4px}
+.propCard{border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:grid;gap:4px}
+.propCard h4{margin:0;font:800 15px/1.3 var(--f-body);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.propCard h4 .n{font:700 12px var(--f-mono);width:22px;height:22px;border-radius:50%;display:inline-grid;place-items:center;background:var(--orange);color:#fff;flex:0 0 auto}
+.propCard p{margin:0;font-size:14px}
+.rep>summary{grid-template-columns:auto 1fr auto auto}
+.rep .badge{font:600 11px var(--f-mono);color:var(--orange);white-space:nowrap}
+</style>
+<div class="bgimg" aria-hidden="true"></div>
+<div class="wrap">
+<header>
+  <button type="button" id="bRef" class="refBtn" aria-label="Aufgaben aktualisieren" title="Aufgaben aktualisieren"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M20 4v5h-5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+  <button type="button" id="bRate" class="rateBtn">Einschätzung</button>
+  <h1>Capybara Squad · Heute</h1>
+  <p><span id="hDate"></span> · <span class="live"><i></i><span id="hVer"></span> live</span></p>
+  <div class="refMsg" id="refMsg"></div>
+</header>
+
+<section>
+  <h2>Von dir <small>– neueste oben</small></h2>
+  <div class="list" id="martin"></div>
+</section>
+
+<section>
+  <h2>Mein Plan <small>– neueste oben</small></h2>
+  <div class="list" id="claude"></div>
+</section>
+
+<section id="balancing">
+  <h2>Balancing <small>– Simulation, keine echten Spieler</small></h2>
+  <div class="panel" style="display:grid;gap:12px">
+    <div id="selInfo" class="note" style="margin:0"></div>
+    <h3 class="dh">Hauptweg: Wie weit kommen Spieler?</h3>
+    <div class="tabs" id="archT" role="tablist"></div>
+    <div class="chartbox" id="archMain"></div><div class="legend" id="archLegM"></div>
+    <h3 class="dh">Nuts-Abstecher: Wie viele Level schafft man?</h3>
+    <div class="tabs" id="archZ" role="tablist"></div>
+    <div class="chartbox" id="archNuts"></div><div class="legend" id="archLegN"></div>
+    <p class="note" style="margin:0" id="archNote"></p>
+    <div id="props"></div>
+    <h3 class="dh">Berichte <small style="font-weight:400;color:var(--mute)">– ankreuzen, was oben angezeigt wird (neueste oben)</small></h3>
+    <div class="arch" id="arch"></div>
+    <h3 class="dh">Neu rechnen</h3>
+    <form class="simf" id="simForm"><label for="simK">Tausend Läufe<input id="simK" type="number" min="1" max="500" step="1" value="50"></label><button type="submit">Balancing neu starten</button></form>
+    <div class="savebar" id="simMsg"></div>
+    <div class="reqs" id="simList"></div>
+  </div>
+</section>
+</div>
+
+<dialog id="dRate"><div class="dlg"><button class="x" data-close aria-label="Schließen">×</button>
+  <h3>Einschätzung je Baustein</h3>
+  <p class="note" style="margin:0" id="rateNote">Note 1 = Store-reif, 5 = Prototyp. Meine Einschätzung, nicht mit echten Spielern geprüft.</p>
+  <div class="tblwrap"><table class="rate"><thead><tr><th>Baustein</th><th>früher</th><th>jetzt</th><th>Nächste To-dos</th></tr></thead><tbody id="rateBody"></tbody></table></div>
+</div></dialog>
+
+<script>
+const D = /*DATA*/null;
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? "" : s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let DEC = {}, TASKS = null, META = null, db = null;
+const STAT = {ok:"angenommen", no:"abgelehnt", cm:"Kommentar", open:"offen"};
+const stat = id => (DEC[id] && DEC[id].status) || "open";
+const OPEN = new Set();
+document.addEventListener("toggle", e => { const d = e.target; if (d.matches && d.matches("details.acc")) { if (d.open) OPEN.add(d.dataset.acc); else OPEN.delete(d.dataset.acc); } }, true);
+const linkHtml = l => (l || []).map(([t,u]) => `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(t)}</a>`).join("");
+const fmtAt = a => { try { return new Date(a).toLocaleString("de-DE",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}); } catch(e){ return ""; } };
+
+/* ---------- Kopf ---------- */
+function renderHead(){ const m = META || D.meta || {};
+  $("hDate").textContent = new Date().toLocaleDateString("de-DE",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+  $("hVer").textContent = m.ver || "";
+}
+
+/* ---------- Entscheidungen (Annehmen / Ablehnen / Kommentar) ---------- */
+function decHtml(id){ const s = stat(id), c = (DEC[id] && DEC[id].comment) || "";
+  return `<div class="dec" data-id="${esc(id)}"><button class="ok" data-v="ok" aria-pressed="${s==="ok"}">Annehmen</button><button class="no" data-v="no" aria-pressed="${s==="no"}">Ablehnen</button><button class="cm" data-v="cm">Kommentar</button></div>
+    <textarea id="c_${esc(id)}" placeholder="Kommentar …" ${c ? "" : "hidden"}>${esc(c)}</textarea><div class="savebar" id="s_${esc(id)}"></div>`; }
+function bindDec(root){
+  root.querySelectorAll(".dec[data-id] button").forEach(b => b.onclick = () => { const id = b.parentNode.dataset.id, v = b.dataset.v;
+    if (v === "cm"){ const t = $("c_"+id); t.hidden = false; t.focus(); return; } save(id, { status: stat(id) === v ? "open" : v }); });
+  root.querySelectorAll("textarea[id^=c_]").forEach(t => { let tm; t.oninput = () => { clearTimeout(tm); const id = t.id.slice(2); tm = setTimeout(() => save(id, { comment: t.value, status: stat(id) === "open" ? "cm" : stat(id) }), 900); }; });
+}
+async function save(id, patch){
+  DEC[id] = Object.assign({}, DEC[id], patch, { at: new Date().toISOString() });
+  const bar = $("s_"+id); refresh(id);
+  if (!db){ if (bar) bar.textContent = "Nicht gespeichert – Seite in claude.ai öffnen (angemeldet)."; return; }
+  try { if (bar) bar.textContent = "Speichert …"; await db.doc("decisions/"+id).set(DEC[id]); if (bar) bar.textContent = "Gespeichert ✓"; }
+  catch(e){ if (bar) bar.textContent = "Konnte nicht speichern (" + (e && e.code || "Fehler") + ")."; }
+}
+function refresh(id){ const s = stat(id);
+  document.querySelectorAll(`.dec[data-id="${id}"] button`).forEach(b => { if (b.dataset.v !== "cm") b.setAttribute("aria-pressed", b.dataset.v === s); });
+  document.querySelectorAll(`[data-tag="${id}"]`).forEach(t => { t.className = "tag " + s; t.textContent = STAT[s]; });
+  document.querySelectorAll(`.mk[data-id="${id}"]`).forEach(m => m.setAttribute("class", "mk " + s)); }
+
+/* ---------- Erledigt: eine Zeile, aufklappbar ---------- */
+function accRow(id, title, inner, label){ return `<details class="acc done" data-acc="${esc(id)}"${OPEN.has(id) ? " open" : ""}><summary><span class="chk" aria-hidden="true">✓</span><span>${esc(title)}</span><span class="tag done">${esc(label || "erledigt")}</span><span class="plus" aria-hidden="true">+</span></summary><div class="body">${inner}</div></details>`; }
+function doneInner(x, d){ d = d || {};
+  return `${x.s ? `<div>${esc(x.s)}</div>` : ""}${x.prop ? `<div class="eff">Vorschlag: ${esc(x.prop)}</div>` : x.why ? `<p>${esc(x.why)}</p>` : ""}${d.comment ? `<p><b>Dein Kommentar:</b> ${esc(d.comment)}</p>` : ""}
+    ${(x.doneNote || d.doneNote) ? `<p class="doneNote"><b>Umgesetzt:</b> ${esc(x.doneNote || d.doneNote)}${(x.doneLink || d.doneLink) ? ` · <a href="${esc(x.doneLink || d.doneLink)}" target="_blank" rel="noopener">${esc(x.doneLinkText || d.doneLinkText || "Prüfen")}</a>` : ""}</p>` : ""}${x.l ? `<div class="links">${linkHtml(x.l)}</div>` : ""}`; }
+
+/* ---------- Aufgaben (DB «tasks», sonst eingebettet) ---------- */
+function tasks(){ return (TASKS && TASKS.length ? TASKS : D.tasks) || []; }
+function renderTasks(){
+  ["martin","claude"].forEach(who => {
+    const L = tasks().filter(t => t.who === who).sort((a,b) => String(b.at || "").localeCompare(String(a.at || "")));
+    const open = L.filter(t => t.st !== "done"), done = L.filter(t => t.st === "done");
+    $(who).innerHTML = (open.length ? open.map(t => `<div class="item"><b>${esc(t.t)}</b><span class="tag ${stat(t.id)}" data-tag="${esc(t.id)}">${STAT[stat(t.id)]}</span>
+      ${t.s ? `<div class="sub">${esc(t.s)}</div>` : ""}${t.prop ? `<div class="mine" style="grid-column:1/-1"><b>Mein Vorschlag:</b> ${esc(t.prop)}</div>` : ""}${t.l ? `<div class="links">${linkHtml(t.l)}</div>` : ""}
+      <div style="grid-column:1/-1">${decHtml(t.id)}</div><span class="when2" style="grid-column:1/-1">${t.at ? "seit " + esc(fmtAt(t.at)) : ""}</span></div>`).join("") : `<p class="note">Nichts offen.</p>`)
+      + done.map(t => accRow(t.id, t.t, doneInner(t, DEC[t.id]), "erledigt")).join("");
+  });
+  bindDec(document.getElementById("martin")); bindDec(document.getElementById("claude"));
+}
+
+/* ---------- Diagramm ---------- */
+function chart(box, opt){
+  const W = 820, H = 300, L = 44, R = 14, T = 14, B = 34, pw = W-L-R, ph = H-T-B;
+  const x = v => L + (v - opt.x0) / (opt.x1 - opt.x0) * pw, y = v => T + ph - v / opt.ymax * ph;
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(opt.label)}"><g class="grid">`;
+  for (const t of opt.yt) s += `<line x1="${L}" x2="${W-R}" y1="${y(t)}" y2="${y(t)}"/><text class="ax" x="${L-6}" y="${y(t)+4}" text-anchor="end">${t}%</text>`;
+  s += `</g>`;
+  for (const t of opt.xt) s += `<text class="ax" x="${x(t)}" y="${H-12}" text-anchor="middle">${opt.xl(t)}</text>`;
+  if (opt.bands) opt.bands.forEach((b,i) => s += `<rect x="${x(b[0])}" y="${T}" width="${x(b[1])-x(b[0])}" height="${ph}" fill="var(--line)" opacity="${i%2 ? 0 : .35}"/><text class="ax" x="${(x(b[0])+x(b[1]))/2}" y="${T+12}" text-anchor="middle">${b[2]}</text>`);
+  for (const ser of opt.series){
+    if (ser.bars){ const bw = pw/(opt.x1-opt.x0+1)*.8; ser.d.forEach((v,i) => { if (v>0) s += `<rect x="${x(ser.x0+i)-bw/2}" y="${y(v*ser.k)}" width="${bw}" height="${y(0)-y(v*ser.k)}" fill="${ser.c}" opacity=".75"/>`; }); continue; }
+    s += `<polyline points="${ser.d.map((v,i) => `${x(ser.x0+i).toFixed(1)},${y(v).toFixed(1)}`).join(" ")}" fill="none" stroke="${ser.c}" stroke-width="${ser.w||2.5}" ${ser.dash ? `stroke-dasharray="${ser.dash}"` : ""} stroke-linejoin="round"/>`;
+  }
+  if (opt.targets) for (const t of opt.targets) s += `<circle cx="${x(t[0])}" cy="${y(t[1])}" r="5" fill="none" stroke="var(--mute)" stroke-width="1.5" stroke-dasharray="2 2"/>`;
+  (opt.marks||[]).forEach(m => { s += `<g class="mk ${stat(m.id)}" data-id="${esc(m.id)}" tabindex="0" role="button" aria-label="Vorschlag ${m.n}: ${esc(m.t)}"><circle class="halo" cx="${x(m.x)}" cy="${y(m.y)}" r="13"/><circle class="dot" cx="${x(m.x)}" cy="${y(m.y)}" r="10"/><text x="${x(m.x)}" y="${y(m.y)+4}" text-anchor="middle">${m.n}</text></g>`; });
+  box.innerHTML = s + `</svg>`;
+  box.querySelectorAll(".mk").forEach(g => { const go = () => { const c = document.getElementById("pc_" + g.dataset.id); if (c){ c.scrollIntoView({behavior:"smooth", block:"center"}); c.animate([{outline:"3px solid var(--orange)"},{outline:"3px solid transparent"}], {duration:1400}); } };
+    g.addEventListener("click", go); g.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " "){ e.preventDefault(); go(); } }); });
+}
+
+/* ---------- Balancing ---------- */
+const TYPES = [["ALL","Alle"],["beginner","Einsteiger"],["martin","Wie Martin"],["good","Gut"],["pro","Profi"]];
+const ZN = [["30","Zone 1"],["60","Zone 2"],["90","Zone 3"],["120","Zone 4"]];
+const BANDS = [[0.5,30.5,"Südamerika"],[30.5,60.5,"Afrika"],[60.5,90.5,"Asien"],[90.5,120.5,"Nordamerika"],[120.5,150,"Antarktis"]];
+const SERC = ["var(--blue)","var(--orange)","var(--green)","var(--pink)","var(--gold)","var(--mute)"];
+let REPS = [], PICK = null, archT = "ALL", archZ = "30";
+const fmt = v => v === null || v === undefined || v === "" ? "–" : String(v).replace(".", ",");
+function reports(){ const m = new Map(); (D.reports || []).forEach(r => m.set(r.id, r)); REPS.forEach(r => m.set(r.id, Object.assign({}, m.get(r.id) || {}, r)));
+  return [...m.values()].sort((a,b) => String(b.at).localeCompare(String(a.at))); }
+function picked(list){ if (!PICK){ PICK = new Set(); const f = list.find(r => r.types || r.props); if (f) PICK.add(f.id); } return list.filter(r => PICK.has(r.id)); }
+function renderBal(){
+  const list = reports(), sel = picked(list);
+  $("arch").innerHTML = list.map((r,i) => { const np = (r.props || []).filter(p => !(DEC[p.id] && (DEC[p.id].done || DEC[p.id].status === "ok" || DEC[p.id].status === "no"))).length;
+    return `<details class="rep${i === 0 ? " newest" : ""}"><summary><input type="checkbox" data-rep="${esc(r.id)}" ${PICK.has(r.id) ? "checked" : ""} aria-label="Oben anzeigen"><span><span class="when">${esc(r.label)}</span><br><b>${esc(r.ver)}</b> · ${esc(r.runsTxt || "")}</span><span class="badge">${np ? np + " offen" : ""}</span><span class="kp">Ø W${fmt(r.median)}${r.w120 != null ? " · W120 " + fmt(r.w120) + " %" : ""}</span></summary>
+    <div class="body"><div>${esc(r.summary || "")}</div>${r.link ? `<a href="${esc(r.link)}" target="_blank" rel="noopener">Bericht öffnen</a>` : ""}</div></details>`; }).join("");
+  $("arch").querySelectorAll("[data-rep]").forEach(c => { c.onclick = e => e.stopPropagation(); c.onchange = () => { if (c.checked) PICK.add(c.dataset.rep); else PICK.delete(c.dataset.rep); renderBal(); }; });
+  $("selInfo").textContent = sel.length ? "Angezeigt: " + sel.map(r => r.ver + " (" + r.label + ")").join(" · ") : "Unten einen Bericht ankreuzen.";
+  const withM = sel.filter(r => r.types || r.reach), withN = sel.filter(r => r.nuts);
+  const col = r => SERC[sel.indexOf(r) % SERC.length];
+  const T = r => (r.types && r.types[archT]) || (archT === "ALL" && r.reach ? { reach: r.reach, median: r.median } : null);
+  $("archT").innerHTML = TYPES.map(([k,tx]) => `<button role="tab" data-k="${k}" aria-selected="${k===archT}">${tx}</button>`).join("");
+  const top = withM.find(r => T(r) && T(r).deadBlocks), td = top && T(top), series = [];
+  if (td){ const k = Math.min(20, 40 / Math.max(0.01, ...td.deadBlocks, ...td.deadMonsters)); series.push({ bars:1, d:td.deadBlocks, x0:1, k, c:"var(--gold)" }, { bars:1, d:td.deadMonsters, x0:1, k, c:"var(--pink)" }); }
+  withM.forEach(r => { const d = T(r); if (d) series.push({ d: d.reach, x0: 1, c: col(r), w: 3 }); });
+  const mr = withM.find(r => T(r) && (r.props || []).some(p => p.chart !== "nuts")) , md = mr && T(mr);
+  const marks = md ? mr.props.filter(p => p.chart !== "nuts" && p.x).map(p => Object.assign({}, p, { y: md.reach[Math.max(0, Math.min(149, p.x - 1))] })) : [];
+  chart($("archMain"), { label:"Anteil der Läufe, die eine Welle erreichen", x0:1, x1:150, ymax:100, yt:[0,25,50,75,100], xt:[1,30,60,90,120,150], xl:t => "W"+t, bands:BANDS, series, marks });
+  $("archLegM").innerHTML = (withM.filter(T).map(r => `<span style="color:${col(r)}">erreichen diese Welle · ${esc(r.ver)}${T(r).median ? " · Median W" + T(r).median : ""}</span>`).join("") + (td ? `<span style="color:var(--gold)">Tod durch Blöcke (${esc(top.ver)})</span><span style="color:var(--pink)">Tod durch Monster (${esc(top.ver)})</span>` : "") + (marks.length ? `<span style="color:var(--orange)">● Vorschlag – antippen</span>` : "")) || "<span>Für die gewählten Berichte gibt es keine Kurve.</span>";
+  $("archZ").innerHTML = ZN.map(([k,tx]) => `<button role="tab" data-k="${k}" aria-selected="${k===archZ}">${tx}</button>`).join("");
+  const nr = withN.find(r => (r.props || []).some(p => p.chart === "nuts")), nmarks = nr ? nr.props.filter(p => p.chart === "nuts" && (!p.z || p.z === archZ)).map(p => Object.assign({}, p, { y: (nr.nuts[archZ] || [])[p.x] || 0 })) : [];
+  chart($("archNuts"), { label:"Anteil, der ein Nuts-Level schafft", x0:0, x1:30, ymax:100, yt:[0,25,50,75,100], xt:[0,5,10,15,20,25,30], xl:t => "L"+t, series: withN.map(r => ({ d: r.nuts[archZ], x0: 0, c: col(r), w: 3 })), targets:[[5,50],[10,10],[20,1.5]], marks: nmarks });
+  $("archLegN").innerHTML = withN.map(r => `<span style="color:${col(r)}">${esc(r.ver)}${r.nutsNote ? " · " + esc(r.nutsNote) : ""}</span>`).join("") + `<span style="color:var(--mute)">○ Ziel 50 % L5 · 10 % L10 · 1–2 % L20</span>`;
+  $("archNote").textContent = sel.some(r => !r.types && !r.reach) ? "Ältere Berichte ohne gespeicherte Kurven erscheinen nur unten in der Liste." : "";
+  $("props").innerHTML = sel.filter(r => (r.props || []).length).map(r => `<div class="prophead">Vorschläge aus ${esc(r.ver)} · ${esc(r.label)}</div><div class="selrep">${r.props.map(p => { const d = DEC[p.id] || {};
+      if (d.done) return accRow(p.id, p.n + ". " + p.t, doneInner(p, d), "umgesetzt");
+      return `<div class="propCard" id="pc_${esc(p.id)}"><h4><span class="n">${p.n}</span>${esc(p.t)} <span class="tag ${stat(p.id)}" data-tag="${esc(p.id)}">${STAT[stat(p.id)]}</span></h4>${p.why ? `<p>${esc(p.why)}</p>` : ""}<p><b>Mein Vorschlag:</b> ${esc(p.prop)}</p>${p.eff ? `<div class="eff">${esc(p.eff)}</div>` : ""}${decHtml(p.id)}</div>`; }).join("")}</div>`).join("");
+  bindDec($("props"));
+}
+$("archT").onclick = e => { const b = e.target.closest("button"); if (!b) return; archT = b.dataset.k; renderBal(); };
+$("archZ").onclick = e => { const b = e.target.closest("button"); if (!b) return; archZ = b.dataset.k; renderBal(); };
+
+/* ---------- Simulation anfordern ---------- */
+let SIM = [];
+function renderSim(){ $("simList").innerHTML = SIM.length ? SIM.map(r => `<div><span>${esc(fmtAt(r.at))} · ${(r.runs/1000).toLocaleString("de-DE")} Tsd. Läufe</span><span>${esc(r.status || "wartet")}${r.result ? " · " + esc(r.result) : ""}</span></div>`).join("") : `<div><span>Noch kein Auftrag.</span><span></span></div>`; }
+$("simForm").addEventListener("submit", async e => { e.preventDefault(); const k = Math.max(1, Math.min(500, Math.round(+$("simK").value || 50)));
+  if (!db){ $("simMsg").textContent = "Nicht gespeichert – Seite in claude.ai öffnen (angemeldet)."; return; }
+  try { await db.doc("simreq/r" + Date.now()).set({ runs: k * 1000, at: new Date().toISOString(), status: "wartet" }); $("simMsg").textContent = `Auftrag gesendet: ${k} Tsd. Läufe.`; } catch(err){ $("simMsg").textContent = "Konnte nicht speichern (" + (err && err.code || "Fehler") + ")."; } });
+
+/* ---------- Aktualisieren ---------- */
+let REF = [];
+function renderRef(){ const last = REF[0]; if (!last){ $("refMsg").textContent = ""; return; }
+  $("refMsg").textContent = last.status === "erledigt" ? `Aktualisiert ${fmtAt(last.doneAt || last.at)}${last.note ? " · " + last.note : ""}` : `↻ angefordert ${fmtAt(last.at)} – Claude aktualisiert beim nächsten Arbeitsschritt`; }
+$("bRef").onclick = async () => { const b = $("bRef"); b.classList.add("spin"); setTimeout(() => b.classList.remove("spin"), 1200);
+  if (!db){ $("refMsg").textContent = "Nur in claude.ai (angemeldet) möglich."; return; }
+  try { await db.doc("refresh/r" + Date.now()).set({ at: new Date().toISOString(), status: "wartet" }); } catch(e){ $("refMsg").textContent = "Konnte nicht senden (" + (e && e.code || "Fehler") + ")."; } };
+
+/* ---------- Dialog ---------- */
+document.querySelectorAll("[data-close]").forEach(b => b.onclick = () => b.closest("dialog").close());
+document.querySelectorAll("dialog").forEach(d => d.addEventListener("click", e => { if (e.target === d) d.close(); }));
+$("bRate").onclick = () => { $("rateBody").innerHTML = (D.rate || []).map(r => `<tr><td><b>${esc(r.a)}</b><div class="note" style="margin:2px 0 0">${esc(r.now)}</div></td><td class="n">${esc(r.was)}</td><td class="n${r.up ? " up" : ""}">${esc(r.cur)}</td><td><ul>${(r.todo || []).map(x => `<li>${esc(x)}</li>`).join("")}</ul></td></tr>`).join(""); $("dRate").showModal(); };
+
+function all(){ renderHead(); renderTasks(); renderBal(); renderSim(); renderRef(); }
+all();
+
+/* ---------- Live-Daten ---------- */
+(async () => {
+  try {
+    db = await claude.use("db"); if (!db) return;
+    const rows = snap => { const docs = snap.docs || snap; return (Array.isArray(docs) ? docs : []).map(d => Object.assign({ id: d.id }, typeof d.data === "function" ? d.data() : d.data)); };
+    const busy = () => document.activeElement && document.activeElement.tagName === "TEXTAREA";
+    db.collection("tasks").onSnapshot(s => { TASKS = rows(s).filter(t => t.t && t.who); if (!busy()) renderTasks(); }, () => {});
+    db.collection("meta").onSnapshot(s => { const m = rows(s).find(r => r.id === "page"); META = m || null; renderHead(); }, () => {});
+    db.collection("reports").onSnapshot(s => { REPS = rows(s).filter(r => r.at); if (!busy()) renderBal(); }, () => {});
+    db.collection("simreq").onSnapshot(s => { SIM = rows(s).sort((a,b) => String(b.at).localeCompare(String(a.at))).slice(0, 6); renderSim(); }, () => {});
+    db.collection("refresh").onSnapshot(s => { REF = rows(s).sort((a,b) => String(b.at).localeCompare(String(a.at))); renderRef(); }, () => {});
+    db.collection("decisions").onSnapshot(s => { const next = {}; rows(s).forEach(r => { const id = r.id; delete r.id; next[id] = r; });
+      const a = busy() ? document.activeElement.id.slice(2) : null; DEC = Object.assign(next, a ? { [a]: DEC[a] } : {}); if (!a){ renderTasks(); renderBal(); } }, () => {});
+  } catch(e) { db = null; }
+})();
+</script>
