@@ -2668,7 +2668,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V248";
+const GAME_VER = "V249";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -3988,7 +3988,7 @@ const SFX = (() => {
     function setPaused(pz) {
       if (!ac || !bus || !cur || pz === paused) return; paused = pz;
       bus.gain.cancelScheduledValues(ac.currentTime); bus.gain.setValueAtTime(Math.max(0.0001, bus.gain.value), ac.currentTime);
-      bus.gain.exponentialRampToValueAtTime(pz ? 0.0001 : LVL * sonarLvl, ac.currentTime + 0.25);
+      bus.gain.exponentialRampToValueAtTime(pz ? 0.0001 : LVL * sonarLvl, ac.currentTime + (pz ? 1.5 : 0.25));
       if (!pz) nextT = ac.currentTime + 0.1;
     }
     // Musik kurz leiser (Sprecher)
@@ -6710,13 +6710,13 @@ function tpStop(f = 0.5) { if (!TP.el) return; tpFade(0.0001, f); const a = TP.e
   M.next = function () { if (TP.key) return tpNext(); return o.next.call(M); };
   M.stop = function (f) { tpStop(f || 0.5); return o.stop.call(M, f); };
   M.setPaused = function (pz) { if (pz && (shopOpenNow() || (S && S.intro)) && TP.key && TP.el) pz = false;   // im Shop läuft die Musik leiser weiter
-    if (TP.key && TP.el) { if (pz === TP.paused) return; TP.paused = pz; if (pz) { tpFade(0.0001, 0.3); setTimeout(() => { if (TP.paused) TP.el.pause(); }, 320); } else { const p = TP.el.play(); if (p && p.catch) p.catch(() => {}); tpFade(0.5, 0.6); } return; } return o.setPaused.call(M, pz); };
+    if (TP.key && TP.el) { if (pz === TP.paused) return; TP.paused = pz; if (pz) { tpFade(0.0001, 1.5); setTimeout(() => { if (TP.paused) TP.el.pause(); }, 1600); } else { const p = TP.el.play(); if (p && p.catch) p.catch(() => {}); tpFade(0.5, 0.6); } return; } return o.setPaused.call(M, pz); };
   M.toggle = function () { const r = o.toggle.call(M); if (!r) tpStop(0.4); return r; };
   M.duck = function (x) { if (TP.key) { tpFade(0.15, 0.2); setTimeout(() => tpFade(0.5, 1.2), (x || 0.8) * 1000); return; } return o.duck.call(M, x); };
   const d = (k, g) => { try { Object.defineProperty(M, k, { get: g, configurable: true }); } catch (e) {} };
   const gi = Object.getOwnPropertyDescriptor(M, "info").get, gp = Object.getOwnPropertyDescriptor(M, "playing").get;
   d("info", () => TP.key ? { no: TP.key === "airport" && TP.wave === 0 ? 0 : TRK_ORDER.indexOf(TP.key) + 1, title: TRK[TP.key][0], style: "Rio lounge", bpm: TRK[TP.key][1] } : gi.call(M));
-  d("playing", () => TP.key ? (TP.wave === 0 ? 0 : TRK_ORDER.indexOf(TP.key) + 1) : gp.call(M));
+  d("playing", () => TP.key ? (TP.wave === 0 ? 0 : (TRK_ORDER.indexOf(TP.key) < 0 ? 90 : TRK_ORDER.indexOf(TP.key) + 1)) : gp.call(M));
 }
 setInterval(() => { const a = TP.el; if (a && !a.paused && TP.key && !TP.paused) { const v = TP_VOL(); if (Math.abs(a.volume - v) > 0.02 && !tpFadeT) tpFade(v > 0 ? 0.5 : 0, 0.6); } }, 500);
 
@@ -7818,7 +7818,8 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
       const end = celebrate(`${contName(oc)} CLEARED!`, `Continent ${P.c} of 5 · the world tour goes on`);
       at(2400, end);
       at(3300, () => { me.classList.remove("on"); go(worldCam(), 1300); });
-      at(4400, () => { label("", "Flying to " + nice(contName(P.c)), ""); fx("engine"); whoosh(); flyPlane(cen(oc), cen(P.c), 3000); });
+      at(4400, () => { label("", "Flying to " + nice(contName(P.c)), ""); fx("engine"); whoosh(); flyPlane(MAP_PTS[oc][5], MAP_PTS[P.c][0], 3000); });
+      at(7420, () => { setMe(MAP_PTS[P.c][0], true); });
       at(5600, whoosh);
       at(7200, () => { go(contCam(P.c), 1300); });
       at(8600, () => { setMe(MAP_PTS[P.c][0], true); label(contName(P.c), `Welcome to ${nice(contName(P.c))}!`, `First stop: ${nice(CONTS[P.c][2][0])}`); fx("tonHit");
