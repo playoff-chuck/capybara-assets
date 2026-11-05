@@ -2669,7 +2669,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V300";
+const GAME_VER = "V301";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -6248,7 +6248,7 @@ function loadGame(given) {
 document.addEventListener("visibilitychange", () => { if (document.hidden) saveGame(); });
 window.addEventListener("pagehide", saveGame);
 // ---- Gemeinsame Bestenliste auf dem Server (nur erfundene Rufzeichen, Punkte, Welle) · lokale Liste als Rückfall ----
-const API_BASE = "https://2-29-147-164.sslip.io/api";   // V180: eigener Server (Hetzner), nur wenn claude.use("db") fehlt
+const API_BASE = /(^|\.)playcapybarasquad\.com$/.test(location.hostname) ? "/api" : "https://2-29-147-164.sslip.io/api";   // V180: eigener Server (Hetzner), nur wenn claude.use("db") fehlt
 const HS_API = API_BASE + "/scores";
 function apiPid() { let p = LS.get("tarnturm-pid"); if (!p) { p = Math.random().toString(36).slice(2, 12) + Date.now().toString(36); LS.set("tarnturm-pid", p); } return p; }
 const apiNick = n => (String(n || "").replace(/[^A-Za-z0-9 _-]/g, "").trim().slice(0, 16) || "Anonymous").padEnd(2, "_");
@@ -7326,7 +7326,7 @@ setInterval(() => { const g = document.getElementById("genAv"); if (!g) return; 
     try { if (!was && S && S.over && !S.testRun && !S.nuts) {
       const run = { t: Date.now(), ver: GAME_VER, wave: S.wave | 0, why: /monster|lap|through/i.test(String(why || "")) ? "monsters" : "blocks", gold: S.gold | 0, lines: S.lines | 0, splats: S.kills | 0, score: (S.score || 0) | 0, medals: S.medals | 0, maxSpeed: maxSp, mins: Math.round((performance.now() - t0) / 600) / 100, hero: heroKey(), dev: LS.get("tarnturm-dev") === "1" };
       if (S.won) run.why = "win"; else if (/quit/i.test(String(why || ""))) run.why = "quit";
-      if (!(HSDB && HSUID)) { fetch(API_BASE + "/runs", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "pro", ...run, ver: "V180" }) }).catch(() => {}); return r; }
+      if (!(HSDB && HSUID)) { fetch(API_BASE + "/runs", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "pro", ...run, ver: GAME_VER }) }).catch(() => {}); return r; }
       const ref = HSDB.collection("runs").doc(HSUID);
       ref.get().then(s => { const cur = s.exists ? (s.data() || {}) : {}; const runs = Array.isArray(cur.runs) ? cur.runs.slice(-99) : []; runs.push(run); return ref.set({ runs }); }).catch(() => {});
     } } catch (e) {}
@@ -8415,6 +8415,45 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
 
   /* V293: Paket-Symbol +90° */
   try { if (typeof LOOT_ICON !== "undefined" && LOOT_ICON.rot && !LOOT_ICON.rotp) LOOT_ICON.rotp = LOOT_ICON.rot.replace("−90", "+90").replace('<path d="M7 4a7 7 0 0 1 11 2"', '<path transform="matrix(-1 0 0 1 24 0)" d="M7 4a7 7 0 0 1 11 2"').replace('<path d="M19 2v4h-4"', '<path transform="matrix(-1 0 0 1 24 0)" d="M19 2v4h-4"'); } catch (e) {}
+
+  /* V301: anonymes Fehler- und Ereignis-Log (To-do 20) */
+  try { (() => {
+    const ON = window.__evForce || /(^|\.)playcapybarasquad\.com$|sslip\.io$/.test(location.hostname);
+    const sess = Array.from(crypto.getRandomValues(new Uint8Array(6)), b => b.toString(16).padStart(2, "0")).join("");
+    const ua = navigator.userAgent || "";
+    const plat = (/Android (\d+)/.exec(ua) || [])[1] ? "Android " + /Android (\d+)/.exec(ua)[1] : /iPhone|iPad/.test(ua) ? "iOS " + ((/OS (\d+)_/.exec(ua) || [])[1] || "") : /Windows/.test(ua) ? "Windows" : /Mac OS/.test(ua) ? "Mac" : /Linux/.test(ua) ? "Linux" : "?";
+    const brw = (/(Edg|SamsungBrowser|Firefox|OPR|Chrome)\/(\d+)/.exec(ua) || []); let br = brw[1] ? brw[1].replace("Edg", "Edge").replace("OPR", "Opera") + " " + brw[2] : /Safari/.test(ua) ? "Safari" : "?";
+    if (/^android-app:/.test(document.referrer || "") || (matchMedia && matchMedia("(display-mode: standalone)").matches)) br += " app";
+    const dev = () => { try { return LS.get("tarnturm-dev") === "1"; } catch (e) { return false; } };
+    const q = [], seenErr = {}; let nErr = 0, t0 = performance.now(), hiddenAt = 0, lastWave = 0;
+    const wave = () => { try { return (S && S.wave) | 0; } catch (e) { return 0; } };
+    const scr = () => { try { if (!S || !S.started) return "menu"; if (S.over) return "over"; if (S.mapShow || S.mapFly || document.body.classList.contains("mapUp")) return "map";
+        if (typeof TUT !== "undefined" && TUT.on) return "tutorial"; if (S.nuts) return "nuts"; if (S.shop) return "shop"; if (S.paused) return "pause"; if (S.duel) return "hack";
+        const v = id => { const e = document.getElementById(id); return e && !e.hidden; }; if (v("ovAd")) return "ad"; if (S.intro || S.ordersOpen) return "window";
+        return S.inWave ? "wave" : "break"; } catch (e) { return "?"; } };
+    const mins = () => Math.round((performance.now() - t0) / 600) / 100;
+    function body() { return JSON.stringify({ ver: GAME_VER, sess, dev: dev(), plat, br, sw: screen.width | 0, sh: screen.height | 0, mem: navigator.deviceMemory || null, ev: q.splice(0, 12) }); }
+    function flush(beacon) { if (!ON || !q.length) return; try { const b = body();
+        if (beacon && navigator.sendBeacon && navigator.sendBeacon(API_BASE + "/events", b)) return;
+        fetch(API_BASE + "/events", { method: "POST", headers: { "Content-Type": "application/json" }, body: b, keepalive: true }).catch(() => {}); } catch (e) {} }
+    function push(k, extra) { if (q.length > 40) return; q.push(Object.assign({ k, w: wave(), scr: scr(), m: mins() }, extra || {})); }
+    function err(msg, src) { msg = String(msg || "").slice(0, 300); if (!msg || /ResizeObserver loop|Script error\.?$/.test(msg)) return;
+      const key = msg.slice(0, 120) + "|" + (src || ""); seenErr[key] = (seenErr[key] || 0) + 1; if (seenErr[key] > 3 || ++nErr > 25) return;
+      push("error", { msg, src: src || "" }); setTimeout(() => flush(false), 1500); }
+    window.addEventListener("error", e => { try { const f = String(e.filename || "").split("/").pop().split("?")[0]; err((e.error && e.error.stack ? String(e.error).slice(0, 200) : e.message), f ? `${f}:${e.lineno || 0}:${e.colno || 0}` : ""); } catch (x) {} }, true);
+    window.addEventListener("unhandledrejection", e => { try { const r = e.reason; err("Unhandled: " + (r && r.message ? r.message : String(r)), ""); } catch (x) {} });
+    const _ce = console.error.bind(console);
+    console.error = function (...a) { try { const tag = typeof a[0] === "string" ? a[0] : ""; const ex = a.find(x => x instanceof Error);
+        err((tag ? "[" + tag.slice(0, 40) + "] " : "") + (ex ? ex.name + ": " + ex.message : a.map(x => typeof x === "string" ? x : "").join(" ")),
+            ex && ex.stack ? ((/index\.html:(\d+):(\d+)/.exec(ex.stack) || [])[0] || "") : ""); } catch (x) {} return _ce(...a); };
+    push("start"); setTimeout(() => flush(false), 4000);
+    setInterval(() => { try { const w = wave(); if (S && S.started && !S.over && w !== lastWave) { lastWave = w; if (w <= 3 || w === 5 || w % 10 === 0) push("wave"); } } catch (e) {} }, 2000);
+    setInterval(() => flush(false), 30000);
+    document.addEventListener("visibilitychange", () => { if (document.hidden) { hiddenAt = performance.now(); push("leave"); flush(true); }
+      else if (hiddenAt && performance.now() - hiddenAt > 30000) { push("back"); } });
+    window.addEventListener("pagehide", () => { if (!document.hidden) push("leave"); flush(true); });
+    window.__evLog = { q, flush, push, sess, plat, br, scr };
+  })(); } catch (e) {}
 })();
 </script>
 
