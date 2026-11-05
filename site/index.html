@@ -2669,7 +2669,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V294";
+const GAME_VER = "V295";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -9243,5 +9243,12 @@ body.ovUp #nutsBadge,body.mapUp #nutsBadge{visibility:hidden}
 <style id="v292sand">
 .board.blizzard.duneStorm{border-color:#e2b46a!important;box-shadow:0 0 0 2px rgba(240,200,130,.6),0 0 26px rgba(222,170,90,.5) inset!important}
 .board.blizzard.duneStorm canvas#cv{filter:saturate(.8) sepia(.25) brightness(1.02)!important}
+</style>
+
+<style id="v295tower">
+#sheet .shopItem:has(button[data-shop="tower"]){background:linear-gradient(180deg,#ffe9a6,#ffd36a)!important;border:3.5px solid #3a2414!important;box-shadow:0 3px 0 #3a2414!important}
+#sheet .shopItem:has(button[data-shop="tower"]) .shopTxt b{color:#3a2414!important}
+#sheet .shopItem:has(button[data-shop="tower"]) .shopTxt span{color:#5a3d1a!important}
+#sheet .shopItem.dis:has(button[data-shop="tower"]){filter:saturate(.75)}
 </style>
 </body></html>
