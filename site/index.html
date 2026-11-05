@@ -1,5 +1,6 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<script>try{["img/d328f1a428.webp","img/b6f38631c6.webp","img/2510465d7d.webp","img/e24cf5d037.webp"].forEach(function(u){var i=new Image();i.src=u;if(i.decode)i.decode().catch(function(){});(window.__PRE0=window.__PRE0||[]).push(i);});}catch(e){}</script><link rel="preload" as="image" href="img/d328f1a428.webp"><link rel="preload" as="image" href="img/b6f38631c6.webp"><link rel="preload" as="image" href="img/2510465d7d.webp"><link rel="preload" as="image" href="img/logo_main.webp?v=227"><link rel="preload" as="image" href="img/mixer_big.webp"><link rel="preload" as="image" href="img/worldmap.webp"><link rel="preload" as="image" href="img/arrive_samerica.webp"><title>Capybara Squad</title><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#2b3a22"><link rel="apple-touch-icon" href="icons/icon-192.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
+<script>try{if(localStorage.getItem("capy-reset")!=="276"){var rk=[];for(var ri=0;ri<localStorage.length;ri++){var rkk=localStorage.key(ri);if(rkk&&/^(tarnturm|capy)/.test(rkk)&&rkk!=="tarnturm-dev")rk.push(rkk);}rk.forEach(function(k){localStorage.removeItem(k);});localStorage.setItem("capy-reset","276");}}catch(e){}
+try{["img/d328f1a428.webp","img/b6f38631c6.webp","img/2510465d7d.webp","img/e24cf5d037.webp"].forEach(function(u){var i=new Image();i.src=u;if(i.decode)i.decode().catch(function(){});(window.__PRE0=window.__PRE0||[]).push(i);});}catch(e){}</script><link rel="preload" as="image" href="img/d328f1a428.webp"><link rel="preload" as="image" href="img/b6f38631c6.webp"><link rel="preload" as="image" href="img/2510465d7d.webp"><link rel="preload" as="image" href="img/logo_main.webp?v=227"><link rel="preload" as="image" href="img/mixer_big.webp"><link rel="preload" as="image" href="img/worldmap.webp"><link rel="preload" as="image" href="img/arrive_samerica.webp"><title>Capybara Squad</title><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#2b3a22"><link rel="apple-touch-icon" href="icons/icon-192.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preload" href="fonts/bangers-400-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/baloo2-var-latin.woff2" as="font" type="font/woff2" crossorigin>
@@ -2668,7 +2669,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V275";
+const GAME_VER = "V276";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -7799,7 +7800,10 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     ov.addEventListener("click", () => { if (mode === "auto") hide(); });
     function flyPlane(a, b, ms) { const t0 = performance.now(), ang = Math.atan2((b[1] - a[1]) * MAP_AR, b[0] - a[0]) * 180 / Math.PI;
       const step = now => { if (mode !== "auto") return; const t = Math.min(1, (now - t0) / ms), e = 0.5 - Math.cos(Math.PI * t) / 2, x = a[0] + (b[0] - a[0]) * e, y = a[1] + (b[1] - a[1]) * e - Math.sin(Math.PI * e) * .12;
-        plane.style.setProperty("--px", (x) * BW + "px"); plane.style.setProperty("--py", (y) * BW * MAP_AR + "px"); { const dx = b[0] - a[0], dy = (b[1] - a[1]) * MAP_AR - Math.cos(Math.PI * e) * 0.12 * Math.PI * MAP_AR, right = dx >= 0, tilt = Math.max(-25, Math.min(25, Math.atan2(dy, Math.abs(dx) + 1e-6) * 180 / Math.PI));
+        plane.style.setProperty("--px", (x) * BW + "px"); plane.style.setProperty("--py", (y) * BW * MAP_AR + "px");
+        { let kc = 1; try { const m = getComputedStyle(world).transform; if (m && m !== "none") kc = parseFloat(m.slice(m.indexOf("(") + 1)) || 1; } catch (er) {}
+          const big = (a[0] > 1 || a[0] < 0) ? 0.8 : 0, sc = 1 + big * (1 - e) * (1 - e * 0.35); plane.style.setProperty("--ik", sc / kc); if (t >= 1) plane.style.removeProperty("--ik"); }
+        { const dx = b[0] - a[0], dy = (b[1] - a[1]) * MAP_AR - Math.cos(Math.PI * e) * 0.12 * Math.PI * MAP_AR, right = dx >= 0, tilt = Math.max(-25, Math.min(25, Math.atan2(dy, Math.abs(dx) + 1e-6) * 180 / Math.PI));
           plane.style.setProperty("--a", (right ? tilt : -tilt) + "deg"); plane.style.setProperty("--fx", right ? -1 : 1); } plane.classList.add("on"); if (t < 1) requestAnimationFrame(step); else plane.classList.remove("on"); };
       step(t0); try { window.__planeSnd && window.__planeSnd(ms, a[0] > 1 || a[0] < 0); } catch (e) {} }
     const cen = c => { const P = MAP_PTS[c]; return [P.reduce((a, p) => a + p[0], 0) / 6, P.reduce((a, p) => a + p[1], 0) / 6]; };
