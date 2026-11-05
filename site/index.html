@@ -2669,7 +2669,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V287";
+const GAME_VER = "V288";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -4641,7 +4641,7 @@ function startWave() {
     toast(P.d === 0 ? `${P.place} · ${D.t} ${D.n}` : `${D.t} · ${D.n}`, P.d === 0 ? P.cont[1] : P.place, 1700);
     if (!S.introQ || !S.intro) setScene(null); setTimeout(maybeJoin, 1500);
     if (P.p === 0 && P.d === 0 && S.wave > 1 && !S.nuts) { try { window.__contFresh && window.__contFresh(); } catch (e) { console.error("contFresh", e); } }
-    if (P.p === 0 && P.d === 0 && S.wave > 1) { const vk = { africa: "welcome_africa", asia: "welcome_asia", namerica: "welcome_namerica" }[P.cont[0]] || "newcont"; setTimeout(() => { announce(`WELCOME TO ${P.cont[1]}!`, `${P.place} · a new continent`, "HQ", 3000); SFX.say(vk); }, 900); } }   // V178z14: neuer Kontinent
+    if (P.p === 0 && P.d === 0 && S.wave > 1) { const vk = { africa: "welcome_africa", asia: "welcome_asia", namerica: "welcome_namerica" }[P.cont[0]] || "newcont"; setTimeout(() => { announce(`WELCOME TO ${P.cont[1]}!`, `${P.place} · a new continent`, "HQ", 3000); if (window.__contSaid !== S.wave) SFX.say(vk); }, 900); } }   // V178z14: neuer Kontinent
   const L = limits(S.wave);
   S.toSpawn = Math.max(1, Math.round(Math.min(L.monsters, G.waveBase + G.wavePer * S.wave) * (!S.nuts && S.wave >= 21 && S.wave <= 150 ? 0.55 : 1))); S.waveTotal = S.toSpawn; if (S.nuts) { S.toSpawn = S.waveTotal = nutsCount(S.nuts.lvl); } S.spawnT = 0; S.spawnIdx = 0; S.inWave = true; S.waveLeaks = 0;   // V251/V268: weniger Monster ab W21 (Kommentar ans Zeilenende, V270)
   { const w = S.wave, r = w >= G.runnerFrom ? 1 + Math.floor((w - G.runnerFrom + 5) / 10) : 0, bm = w >= G.bomberFrom ? 1 + Math.floor((w - G.bomberFrom) / 10) : 0;
@@ -7851,7 +7851,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
       at(7200, () => { go(contCam(P.c), 1300); });
       at(8600, () => { setMe(MAP_PTS[P.c][0], true); label(contName(P.c), `Welcome to ${nice(contName(P.c))}!`, `First stop: ${nice(CONTS[P.c][2][0])}`); fx("tonHit");
         const ak = ["samerica", "africa", "asia", "namerica", "antarctica"][P.c];
-        if (ak && P.c > 0) setTimeout(() => { try { if (!seqDone) return; arrC = document.createElement("div"); arrC.className = "mapArrive"; arrC.innerHTML = `<img src="img/arrive_${ak}.webp" alt=""><div class="maTxt"><small>WORLD TOUR · CONTINENT ${P.c + 1} OF 5</small><b>${contName(P.c)}</b><span>${nice(CONTS[P.c][2][0])} · wave ${w}</span></div>`; arrOrigin(arrC); ov.appendChild(arrC); requestAnimationFrame(() => requestAnimationFrame(() => arrC.classList.add("on"))); } catch (e) {} }, 700); setTimeout(() => fx("powerup"), 120); setTimeout(() => fx("coin"), 420); });
+        if (ak && P.c > 0) setTimeout(() => { try { if (!seqDone) return; arrC = document.createElement("div"); arrC.className = "mapArrive"; arrC.innerHTML = `<img src="img/arrive_${ak}.webp" alt=""><div class="maTxt"><small>WORLD TOUR · CONTINENT ${P.c + 1} OF 5</small><b>${contName(P.c)}</b><span>${nice(CONTS[P.c][2][0])} · wave ${w}</span></div>`; arrOrigin(arrC); ov.appendChild(arrC); requestAnimationFrame(() => requestAnimationFrame(() => arrC.classList.add("on"))); setTimeout(() => { try { if (!seqDone) return; const vk = { africa: "welcome_africa", asia: "welcome_asia", namerica: "welcome_namerica" }[ak] || "newcont"; window.__contSaid = w; SFX.say(vk, 1, 1, SFX.reserveVoice(SFX.voiceDur(vk) * 1000 + 400)); } catch (e) {} }, 900); } catch (e) {} }, 700); setTimeout(() => fx("powerup"), 120); setTimeout(() => fx("coin"), 420); });
       at(12600, hide); }
     function playIntro(done) { let arr = null;
       seqDone = () => { try { arr && arr.remove(); } catch (e) {} try { if (SFX.music.playing < 1) SFX.music.start(1); } catch (e) {} if (done) done(); };
@@ -8073,6 +8073,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
                  chomp: { img: "img/ad_chomp_sale.webp", sale: "img/ad_chomp_sale.webp", st: [[11, 37], [12, 74], [88, 18]], tag: "NEW GEAR", line: "Steel jaws run the ring backwards – eating everything!" },
                  tesla: { img: "img/ad_tesla_sale.webp", sale: "img/ad_tesla_sale.webp", st: [[11, 37], [12, 74], [88, 18]], tag: "NEW GEAR", line: "4×4 lightning strike. Splats count triple!" },
                  lock: { img: "img/ad_lock_sale.webp", sale: "img/ad_lock_sale.webp", st: [[11, 37], [12, 74], [88, 18]], tag: "NEW GEAR", line: "Freeze time for 8 s – cleared lines explode together!" },
+                 elite: { img: "intro/in_blue_elite.webp", sale: "intro/in_blue_elite.webp", st: [[80, 18], [14, 40], [14, 74]], tag: "NEW POWER", line: "Tower levels 4 and 5 are unlocked. Tap a tower and go elite!" },
                  mix: { img: "img/ad_mix.webp", sale: "img/ad_mix_sale.webp", st: [[8.6, 43], [90, 39], [8.6, 78]], tag: "NEW GEAR", line: "Fills a hole to the top and buries monsters." } };
     let saleMode = false, isFree = false;
     const ov = document.createElement("div"); ov.id = "ovAd"; ov.hidden = true;
@@ -8083,19 +8084,20 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     const TOWERW = { kan: 1, frost: 1 }; const price = k => TOWERW[k] ? WEAP[k].cost : k === "mix" ? MIX_COST : k === "snipe" ? SNIPE_COST : k === "chomp" ? CHOMP_COST : k === "tesla" ? TESLA_COST : k === "lock" ? LOCK_COST : TON_COST;
     function slotTower() { const L = limits(Math.max(1, S.wave)); for (const t of S.towers.values()) if (t.w.length < L.weapons) return t; return null; }
     function why(k) { const p = price(k); if (S.gold < p) return `Not enough gold yet · ${p} gold`; if (TOWERW[k] && !slotTower()) return S.towers.size ? "All towers are full · tap a tower later" : "Build a tower first, then mount it"; return ""; }
-    function paint() { if (isFree) { $a("adAct").innerHTML = `<button class="btn-accent" id="adFree">AWESOME! · IT'S FREE ▶</button>`; $a("adLater").textContent = ""; $a("adLater").hidden = true; return; } $a("adLater").hidden = false; const k = cur, w = why(k), act = $a("adAct"), sale = $a("adCard").classList.contains("sale");
+    function paint() { if (isFree) { $a("adAct").innerHTML = `<button class="btn-accent" id="adFree">${cur === "elite" ? "AWESOME! · LET'S GO ▶" : "AWESOME! · IT'S FREE ▶"}</button>`; $a("adLater").textContent = ""; $a("adLater").hidden = true; return; } $a("adLater").hidden = false; const k = cur, w = why(k), act = $a("adAct"), sale = $a("adCard").classList.contains("sale");
       act.innerHTML = w ? `<div class="adNote">${w}</div>` : `<button class="btn-accent" id="adBuy">${sale ? "I WANT IT!" : k === "ton" ? "BUY ANOTHER" : "BUY NOW"} · ${price(k)} GOLD ▶</button>`;
       $a("adLater").textContent = sale ? "No thanks" : w || k === "ton" ? "Got it" : "Later"; }
     function show(k, sale) { const free = sale === "free"; if (free) sale = true; cur = k; saleMode = !!sale; isFree = free; const a = AD[k], d = INTRO_GEAR[k];
-      { const card = $a("adCard"); card.classList.toggle("sale", sale); [1, 2, 3].forEach(n => { const el = card.querySelector(".saleSt.s" + n); if (el && a.st) { let x = Math.max(13, Math.min(87, a.st[n - 1][0])), y = Math.max(15, Math.min(85, a.st[n - 1][1])); if (x > 66 && y < 30) y = 33; el.style.left = x + "%"; el.style.top = y + "%"; } });
+      { const card = $a("adCard"); card.classList.toggle("sale", sale); [1, 2, 3].forEach(n => { const el = card.querySelector(".saleSt.s" + n); if (el && a.st) { const PS = k === "elite" ? [[80, 30], [14, 30], [80, 72]] : [[14, 40], [14, 76], [52, 86]]; let x = PS[n - 1][0], y = PS[n - 1][1]; el.style.left = x + "%"; el.style.top = y + "%"; } });
         if (sale) { const p = price(k), up = 0.4 + Math.random() * 3.6, was = Math.ceil(p * (1 + up) / 10) * 10, pct = Math.round((1 - p / was) * 100);
           $a("saleWas").textContent = `${was} GOLD`; $a("salePct").textContent = `−${pct}%`; $a("saleS1").textContent = `−${pct}%`; $a("saleNow").textContent = `${p} GOLD`; } }
-      $a("adPic").style.backgroundImage = `url(${sale ? a.sale : a.img})`; $a("adTag").textContent = sale ? "SALE" : a.tag; $a("adWave").textContent = `WAVE ${S.wave}`;
+      $a("adPic").style.backgroundImage = `url(${sale ? a.sale : a.img})`; $a("adPic").style.backgroundPosition = ""; $a("adTag").textContent = sale ? "SALE" : a.tag; $a("adWave").textContent = `WAVE ${S.wave}`;
       $a("adPrice").textContent = k === "ton" ? "1 FREE" : `${price(k)} GOLD`; $a("adName").textContent = d[0].toUpperCase(); $a("adLine").textContent = sale && a.sline ? a.sline : a.line;
       $a("adMet").innerHTML = d[2]().filter(x => !/gold|free/i.test(x)).slice(0, 3).map(x => `<span>${x}</span>`).join("");
       lastW = why(k); paint(); window.__adLast = window.__offerLast = performance.now(); $("ovIntro").hidden = true; ov.hidden = false; requestAnimationFrame(() => ov.classList.add("on"));
       { const card = $a("adCard"); card.classList.toggle("free", free); const s2 = card.querySelector(".saleSt.s2"), s3 = card.querySelector(".saleSt.s3"), mg = card.querySelector(".saleMega"), on = card.querySelector(".saleOnly");
-        if (free) { const p = price(k); $a("saleWas").textContent = `${p} GOLD`; $a("saleNow").textContent = "FREE"; $a("salePct").textContent = "−100%"; $a("saleS1").textContent = "−100%"; s2.textContent = "GIFT!"; s3.textContent = "FREE"; mg.textContent = "FREE GIFT"; on.textContent = "ON THE HOUSE!"; $a("adTag").textContent = "FREE"; $a("adLine").textContent = a.line; $a("adPic").style.backgroundImage = `url(${a.sale})`; }
+        if (free) { const p = price(k); $a("saleWas").textContent = `${p} GOLD`; $a("saleNow").textContent = "FREE"; $a("salePct").textContent = "−100%"; $a("saleS1").textContent = "−100%"; s2.textContent = "GIFT!"; s3.textContent = "FREE"; mg.textContent = "FREE GIFT"; on.textContent = "ON THE HOUSE!"; $a("adTag").textContent = "FREE"; $a("adLine").textContent = a.line; $a("adPic").style.backgroundImage = `url(${a.sale})`;
+          if (k === "elite") { let h = "blue"; try { h = heroKey(); } catch (e) {} $a("adPic").style.backgroundImage = `url(intro/in_${h}_elite.webp)`; $a("adPic").style.backgroundPosition = "50% 88%"; $a("saleWas").textContent = "LV 3"; $a("saleNow").textContent = "LV 5"; $a("salePct").textContent = "NEW!"; $a("saleS1").textContent = "NEW!"; s2.textContent = "ELITE"; s3.textContent = "×5"; mg.textContent = "NEW POWER"; on.textContent = "TOWERS GO ELITE!"; $a("adTag").textContent = "NEW"; $a("adPrice").textContent = "ELITE"; } }
         else { s2.textContent = "HOT!"; s3.textContent = "DEAL"; mg.textContent = "MEGA DEAL"; on.textContent = "ONLY THIS WAVE!"; }
         paint(); }
       try { snd("radio"); } catch (e) {} }
@@ -8114,6 +8116,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
       if (q && q.t === "gear" && AD[q.k] && !S.nuts && !window.__newsPrev) { try {   // V271: Anzeige statt altem Fenster
           S.seen = S.seen || {}; S.seen["g:" + q.k] = true; S.introWave = S.wave; S.adDue = S.adDue || {};
           if (q.k === "ton") { if (!S.tonIntroGift) { S.tonIntroGift = true; S.tons = (S.tons || 0) + 1; } S.adDue.ton = 1; late = true; S.intro = true; S.adOpen = true; show("ton", "free"); }
+          else if (q.k === "elite") { late = true; S.intro = true; S.adOpen = true; show("elite", "free"); }
           else S.adDue[q.k] = 1;
         } catch (e) { console.error("ad", e); } return; }
       const r = _si.apply(this, arguments);
@@ -8352,7 +8355,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
         if (v && !was[id]) { until[id] = now + 3000; el && el.classList.add("lock3"); }
         if (el && until[id] && now >= until[id]) { el.classList.remove("lock3"); until[id] = 0; }
         was[id] = v; } }, 100);
-    document.addEventListener("click", e => { for (const id of IDS) { const el = document.getElementById(id); if (el && el.classList.contains("lock3") && el.contains(e.target)) { e.stopImmediatePropagation(); e.preventDefault(); return; } } }, true);
+    document.addEventListener("click", e => { for (const id of IDS) { const el = document.getElementById(id); if (el && el.classList.contains("lock3") && el.contains(e.target) && e.target.closest("#adLater")) { e.stopImmediatePropagation(); e.preventDefault(); return; } } }, true);
   })(); } catch (e) { console.error("lock3", e); }
 
   /* V283: Boss-Hack als große Werbeanzeige */
@@ -9202,5 +9205,10 @@ button .lk{font-style:normal;white-space:nowrap}
 #nutsBadge small{margin:1px 0 0!important;font-size:10px!important}
 body.inNuts #waveNum{visibility:hidden!important}
 body.ovUp #nutsBadge,body.mapUp #nutsBadge{visibility:hidden}
+</style>
+
+<style id="v288lock">
+.lock3 button,.lock3 .btn-accent{pointer-events:auto!important;opacity:1!important;filter:none!important}
+.lock3 #adLater{pointer-events:none!important;opacity:.45!important}
 </style>
 </body></html>
