@@ -2668,7 +2668,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V271";
+const GAME_VER = "V272";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -4534,12 +4534,13 @@ function stepMonster(m, dt) {
   }
 }
 function killMilestones(m) {
-  if (S.kills === 1) praise("FIRST SPLAT", 1, "First splat!");
-  else if (S.kills === 10) praise("TEN DOWN", 1, false);
-  else if (S.kills === 25) praise("SPLAT SPREE", 2, false);
-  else if (S.kills === 50) praise("SUPER SQUISH!", 3, false);
-  else if (S.kills === 100) praise("SPLATASTIC!", 4, "Splatastic!");
-  else if (S.kills % 50 === 0) praise(`${S.kills} SPLATS`, 3, false);
+  const K = S.realK = (S.realK || 0) + 1;   // V272: echte besiegte Monster
+  if (K === 1) praise("FIRST SPLAT", 1, "First splat!");
+  else if (K === 10) praise("TEN DOWN", 1, false);
+  else if (K === 25) praise("SPLAT SPREE", 2, false);
+  else if (K === 50) praise("SUPER SQUISH!", 3, false);
+  else if (K === 100) praise("SPLATASTIC!", 4, "Splatastic!");
+  else if (K % 50 === 0) praise(`${K} SPLATS`, 3, false);
   else killCallout(m);
 }
 // Abschuss-Ansagen: nur die zwei härtesten freigeschalteten Monstertypen, ausgedünnt bei vielen Monstern
@@ -8271,7 +8272,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     const REACH = [100,99,98,97,96,96,96,96,96,96,96,96,96,96,96,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,94,94,94,94,94,94,94,94,94,93,93,93,93,92,92,91,91,91,91,90,90,90,89,88,87,87,86,86];
     const reach = w => REACH[Math.max(1, Math.min(150, w)) - 1];
     const expK = w => { try { return Math.min(limits(w).monsters, G.waveBase + G.wavePer * w) * (w >= 21 ? 0.55 : 1) * 0.95; } catch (e) { return 10; } };
-    try { if (typeof SAVE_KEYS !== "undefined") ["incNext", "statNext", "statSeen", "lifeK", "lifeL", "lifeT", "lifeRun"].forEach(k => { if (!SAVE_KEYS.includes(k)) SAVE_KEYS.push(k); }); } catch (e) {}
+    try { if (typeof SAVE_KEYS !== "undefined") ["realK", "incNext", "statNext", "statSeen", "lifeK", "lifeL", "lifeT", "lifeRun"].forEach(k => { if (!SAVE_KEYS.includes(k)) SAVE_KEYS.push(k); }); } catch (e) {}
     const Phi = z => 1 / (1 + Math.exp(-1.702 * z));
     const pc = (x, med, sig, better = 1) => { if (!(x > 0) || !(med > 0)) return null; const z = Math.log(x / med) / sig * better; return Math.max(3, Math.min(97, Math.round(Phi(z) * 100))); };
     const fmt = n => Math.round(n).toLocaleString("en-US");
