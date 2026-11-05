@@ -2669,7 +2669,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V298";
+const GAME_VER = "V299";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -4095,12 +4095,13 @@ function showAlert(title, sub, tag, hold) {
   snd("radio"); clearTimeout(alertT); alertT = setTimeout(endAlert, hold);
 }
 function endDrop() { const el = $("crate"); el.classList.remove("go"); el.hidden = true; S.drop = false; clearTimeout(crateT); setTimeout(msgTick, 150); }
-function airDrop(title, loot) {
+function airDrop(title, loot) { const _t0 = title, _l0 = loot;
   const el = $("crate"), med = specBase() === WOUND_BASE && !S.inWave && /CLEARED/.test(title) && S.medDone !== S.wave;
   if (med) { S.medDone = S.wave; title = "MEDKIT · VISION RESTORED"; loot = [["med", "Medic", "Sharp"], ...(loot || []).slice(0, 2)]; $("board").classList.remove("wounded"); $("board").classList.remove("sharpen"); void $("board").offsetWidth; $("board").classList.add("sharpen"); setTimeout(() => $("board").classList.remove("sharpen"), 1600); setTimeout(() => SFX.say("healed"), 1500); }
   const rp = !med && ROT_BASES.includes(specBase()) && !S.inWave && /CLEARED/.test(title) && S.rotDone !== S.wave;
   const rpBack = S.rotMode === 2 ? "−90°" : "+90°";
   if (rp) { S.rotDone = S.wave; title = `${rpBack} PACKAGE · WORLD RESTORED`; loot = [[rpBack === "+90°" ? "rotp" : "rot", "Tilt", rpBack], ...(loot || []).slice(0, 2)]; setRotMode(0); syncRotView(); setTimeout(() => SFX.say("Unbelievable!"), 1300); }
+  if ((med || rp || title === "CLEAN SWEEP") && window.__dropAd && !S.nuts) { if (med || rp) genWaveMsg(_t0, _l0); window.__dropAd(med ? "med" : rp ? "rot" : "sweep", { loot, rp: rpBack }); return; }   /* V299 */
   if (!med && !rp) { genWaveMsg(title, loot); return; }   // V177u: Wellen-Ende spricht der General oben links
   el.classList.toggle("medkit", !!med); el.classList.toggle("rotpack", !!rp); el.querySelector(".tag").textContent = med ? "MEDKIT" : rp ? `${rpBack} PACKAGE` : `FROM ${buddyKey().toUpperCase()} ♥`; const gi = $("giftImg"); el.classList.toggle("gift", !med && !rp); if (!med && !rp) { $("giftFrom").src = GEN_HEAD; gi.removeAttribute("src"); $("giftTag").textContent = "FROM GENERAL BRISTLE"; let q = $("crate").querySelector(".fpQuote"); if (!q) { q = document.createElement("i"); q.className = "fpQuote"; $("giftPic") ? 0 : 0; const pic = $("crate").querySelector(".giftPic"); pic.appendChild(q); } q.textContent = "«" + FP_SAY[(S.fpI = ((S.fpI || 0) + 1 + Math.floor(Math.random() * 9)) % FP_SAY.length)] + "»"; }
   $("crateTitle").textContent = title; S.drop = true; if (S.alert) endAlert(); hideToastNow();
@@ -4685,7 +4686,7 @@ function update(dt) {
     if (S.toSpawn === 0 && S.monsters.length === 0) {
       S.inWave = false; if (S.nuts) nutsLevelDone(); else { S.waveCD = ffOn() ? 3 : G.waveCD; const b = Math.round((20 + 5 * S.wave) * (G.goldMul || 1) * goldTaper() * ordv("waveGoldMul")); S.gold += b; if (S.wave % 20 === 0 && S.wave >= 20) { S.ordDue = S.wave; S.ordDueT = performance.now(); }   /* V242: kommt nach dem Air Drop, vor Wegweiser und Flug */ LS.set("tarnturm-waves-" + MODE, campTotal() + 1); lvLabel();
       if (S.wave % 10 === 0 && !S.cpRun && !S.testRun && S.wave > (+LS.get("tarnturm-cp-" + MODE) || 0)) { LS.set("tarnturm-cp-" + MODE, S.wave); setTimeout(() => toast(`CHECKPOINT · wave ${S.wave} saved`, "HQ", 1800), 5200); } setTimeout(maybeJoin, 5600); { const tg = [8, 14, 22].includes(S.wave) && !(S.tonGift || {})[S.wave];   // V178q: geschenkter Ten-ton drop als Rettungsanker
-        if (tg) { S.tonGift = S.tonGift || {}; S.tonGift[S.wave] = 1; S.tons = (S.tons || 0) + 1; S.introQ = S.introQ || []; S.seen = S.seen || {}; if (!S.seen["g:ton"]) S.introQ.push({ t: "gear", k: "ton" }); }
+        if (tg) { S.tonGift = S.tonGift || {}; S.tonGift[S.wave] = 1; S.tons = (S.tons || 0) + 1; S.introQ = S.introQ || []; S.seen = S.seen || {}; if (!S.seen["g:ton"]) S.introQ.push({ t: "gear", k: "ton" }); else if (window.__dropAd) window.__dropAd("ton"); }
         airDrop(`WAVE ${S.wave} CLEARED`, [["gold", "Gold", "+" + b], ...(tg ? [["ton", "Ten-ton drop", "+1 · in your Pocket"]] : []), ["level", "Level", campTotal() + 1], ["score", "Score", calcScore().toLocaleString("en-US")]]); }
       if (hkOfferWave(S.wave) && S.wave < 150) S.hackPending = S.hackPending || S.wave;   // Boss-Banner kommt, sobald Air Drop / Orders vorbei sind
       if (S.wave % 5 === 0) praise(`WAVE ${S.wave}!`, 4, S.wave >= 10 ? "Legendary!" : "Dominating!");
@@ -8096,7 +8097,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     const TOWERW = { kan: 1, frost: 1 }; const price = k => TOWERW[k] ? WEAP[k].cost : k === "mix" ? MIX_COST : k === "snipe" ? SNIPE_COST : k === "chomp" ? CHOMP_COST : k === "tesla" ? TESLA_COST : k === "lock" ? LOCK_COST : TON_COST;
     function slotTower() { const L = limits(Math.max(1, S.wave)); for (const t of S.towers.values()) if (t.w.length < L.weapons) return t; return null; }
     function why(k) { const p = price(k); if (S.gold < p) return `Not enough gold yet · ${p} gold`; if (TOWERW[k] && !slotTower()) return S.towers.size ? "All towers are full · tap a tower later" : "Build a tower first, then mount it"; return ""; }
-    function paint() { if (isFree) { $a("adAct").innerHTML = `<button class="btn-accent" id="adFree">${cur === "elite" ? "AWESOME! · LET'S GO ▶" : "AWESOME! · IT'S FREE ▶"}</button>`; $a("adLater").textContent = ""; $a("adLater").hidden = true; return; } $a("adLater").hidden = false; const k = cur, w = why(k), act = $a("adAct"), sale = $a("adCard").classList.contains("sale");
+    function paint() { if (isFree) { $a("adAct").innerHTML = `<button class="btn-accent" id="adFree">${cur === "drop" ? dropBtn : cur === "elite" ? "AWESOME! · LET'S GO ▶" : "AWESOME! · IT'S FREE ▶"}</button>`; $a("adLater").textContent = ""; $a("adLater").hidden = true; return; } $a("adLater").hidden = false; const k = cur, w = why(k), act = $a("adAct"), sale = $a("adCard").classList.contains("sale");
       act.innerHTML = w ? `<div class="adNote">${w}</div>` : `<button class="btn-accent" id="adBuy">${sale ? "I WANT IT!" : k === "ton" ? "BUY ANOTHER" : "BUY NOW"} · ${price(k)} GOLD ▶</button>`;
       $a("adLater").textContent = sale ? "No thanks" : w || k === "ton" ? "Got it" : "Later"; }
     function show(k, sale) { const free = sale === "free"; if (free) sale = true; cur = k; saleMode = !!sale; isFree = free; const a = AD[k], d = INTRO_GEAR[k];
@@ -8113,7 +8114,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
         else { s2.textContent = "HOT!"; s3.textContent = "DEAL"; mg.textContent = "MEGA DEAL"; on.textContent = "ONLY THIS WAVE!"; }
         paint(); }
       try { snd("radio"); } catch (e) {} }
-    function close(bought) { ov.classList.remove("on"); ov.hidden = true; const k = cur; cur = null; if (late) { late = false; S.intro = false; S.adOpen = false; } else try { closeIntro(); } catch (e) {}
+    function close(bought) { ov.classList.remove("on"); ov.hidden = true; const k = cur; cur = null; if (k === "drop") { bought = false; $a("adCard").classList.remove("drop"); $a("saleWas").hidden = false; } if (late) { late = false; S.intro = false; S.adOpen = false; } else try { closeIntro(); } catch (e) {}
       if (bought) try { toast(`${INTRO_GEAR[k][0].toUpperCase()} · ${TOWERW[k] ? "mounted on your tower" : "in your Pocket"}`, "ARMORY", 2000); } catch (e) {} }
     function buy() { const k = cur; if (window.__newsPrev) { close(false); return; } if (!k || why(k)) { paint(); return; } const p = price(k);
       if (TOWERW[k]) { const t = slotTower(); if (!t) { paint(); return; } t.w.push({ type: k, lvl: 1, cd: 0 }); }
@@ -8142,7 +8143,33 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     const calm = () => S && S.started && !S.over && !S.nuts && !S.testRun0 && !S.intro && !S.drop && !S.alert && !S.ordersOpen && !S.duel && !S.mapShow && !S.mapFly && !S.signOpen && !S.joinOpen
       && !S.mode && !S.sel && !S.shop && !S.paused && !S.mix && !S.banditOpen && !(typeof TUT !== "undefined" && TUT.on) && !(typeof hkOfferOn === "function" && hkOfferOn()) && (typeof inPlay !== "function" || inPlay()) && !document.hidden && ov.hidden;
     setInterval(() => { try { if (!S || !S.adDue || !calm() || !window.__offerOK()) return; for (const k of ["kan", "frost", "mix", "snipe", "ton", "chomp", "tesla", "lock"]) if (S.adDue[k] && !why(k)) { delete S.adDue[k]; late = true; S.intro = true; S.adOpen = true; show(k, true); break; } } catch (e) {} }, 700);
-    window.__TT && (window.__TT.ad = { show, close });
+    /* V299: Gratis-Air-Drops als Anzeige */
+    let dropBtn = "AWESOME! · IT'S FREE ▶";
+    function showDrop(kind, o) { o = o || {}; const tc = typeof TON_COST !== "undefined" ? TON_COST : 300;
+      const gold = ((o.loot || []).find(x => x[0] === "gold") || [])[2] || "";
+      const D = { ton: { img: "img/ad_drop_free.webp", name: "TEN-TON DROP", mega: "RESCUE DROP", only: "ON THE HOUSE!", was: `${tc} GOLD`, now: "FREE", pct: "−100%", st: ["−100%", "GIFT!", "FREE"], price: "1 FREE",
+                       line: "HQ sends you a Ten-ton drop – it's already in your Pocket!", met: ["Crushes monsters", "Stack ÷ 2", "In your Pocket"], btn: "AWESOME! · IT'S FREE ▶" },
+                 sweep: { img: "img/ad_drop_free.webp", name: "CLEAN SWEEP", mega: "AIR DROP", only: "FIELD WIPED CLEAN!", was: "", now: `${gold} GOLD`, pct: "+1 MEDAL", st: ["WOW!", "GIFT!", "FREE"], price: `${gold} GOLD`,
+                       line: "You cleared the whole field! HQ drops gold and a medal.", met: [`${gold} gold`, "+1 medal"], btn: "AWESOME! · COLLECT ▶" },
+                 med: { img: "img/ad_med_free.webp", name: "MEDKIT", mega: "FIELD MEDIC", only: "VISION RESTORED!", was: "BLURRY", now: "SHARP", pct: "FREE", st: ["FREE", "HEAL!", "♥"], price: "FREE",
+                       line: "Doc Hazel patched you up – you can see clearly again!", met: ["Vision sharp", "Wounds healed"], btn: "THANKS, DOC! ▶" },
+                 rot: { img: "img/ad_drop_free.webp", name: `${o.rp || "+90°"} PACKAGE`, mega: "AIR DROP", only: "WORLD RESTORED!", was: "TILTED", now: "UPRIGHT", pct: "FREE", st: ["FREE", "GIFT!", "90°"], price: "FREE",
+                       line: "The field is upright again – normal gravity is back!", met: ["Field upright", "Blocks fall down"], btn: "AWESOME! · LET'S GO ▶" } }[kind];
+      if (!D) return; cur = "drop"; saleMode = true; isFree = true; dropBtn = D.btn; late = true; S.intro = true; S.adOpen = true;
+      const card = $a("adCard"); card.classList.add("sale", "free", "drop"); const PS = [[14, 40], [14, 76], [52, 86]];
+      [1, 2, 3].forEach(n => { const el = card.querySelector(".saleSt.s" + n); if (el) { el.style.left = PS[n - 1][0] + "%"; el.style.top = PS[n - 1][1] + "%"; el.textContent = D.st[n - 1]; } });
+      $a("adPic").style.backgroundImage = `url(${D.img})`; $a("adPic").style.backgroundPosition = ""; $a("adTag").textContent = "FREE"; $a("adWave").textContent = `WAVE ${S.wave}`; $a("adPrice").textContent = D.price;
+      $a("adName").textContent = D.name; $a("adLine").textContent = D.line; $a("adMet").innerHTML = D.met.map(x => `<span>${x}</span>`).join("");
+      $a("saleWas").textContent = D.was; $a("saleWas").hidden = !D.was; $a("saleNow").textContent = D.now; $a("salePct").textContent = D.pct;
+      card.querySelector(".saleMega").textContent = D.mega; card.querySelector(".saleOnly").textContent = D.only;
+      paint(); window.__adLast = performance.now(); $("ovIntro").hidden = true; ov.hidden = false; requestAnimationFrame(() => ov.classList.add("on"));
+      try { snd("crate"); if (kind === "sweep" || kind === "ton") [0.5, 0.8].forEach(d => setTimeout(() => snd("coin"), d * 1000)); } catch (e) {} try { window.__vib && window.__vib([20, 40, 20], true); } catch (e) {} }
+    const dropQ = []; let dropWait = false;
+    function pumpDrop() { if (dropWait || !dropQ.length) return; dropWait = true;
+      window.__whenCalm(() => { if (!ov.hidden || (window.__playScreen && !window.__playScreen()) || S.nuts) { dropWait = false; setTimeout(pumpDrop, 1000); return; }
+        const [k, o] = dropQ.shift(); dropWait = false; showDrop(k, o); const iv = setInterval(() => { if (ov.hidden) { clearInterval(iv); setTimeout(pumpDrop, 300); } }, 300); }, 5000); }
+    window.__dropAd = (k, o) => { dropQ.push([k, o]); pumpDrop(); };
+    window.__TT && (window.__TT.ad = { show, close, showDrop });
   })(); } catch (e) { console.error("ads", e); }
 
   /* V257: Weltkarten-Musik – Low-Beat */
@@ -9258,5 +9285,9 @@ body.ovUp #nutsBadge,body.mapUp #nutsBadge{visibility:hidden}
 
 <style id="v296skip">
 #ovMap.auto:not(.skipOk) .mapSkip{visibility:hidden}
+</style>
+<style id="v299drop">
+.adCard.drop #saleWas[hidden]{display:none}
+.adCard.drop .salePrice #salePct{white-space:nowrap}
 </style>
 </body></html>
