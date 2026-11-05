@@ -2669,7 +2669,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V293";
+const GAME_VER = "V294";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -5239,13 +5239,13 @@ function hkFinish() {
   if (mine === 6) { toast("DRAW · 6 : 6 · the circuit rewires", "HACK", 1800); startDuel(true); return; }
   HK.phase = "done"; const win = mine > 6; snd("arcade", false); $("hkAgain").hidden = !S.testRun && !(HK.coach && coachLeft() > 0);
   if (HK.coach) { $("hackCv").hidden = true; const res = $("hackRes"); res.hidden = false; res.classList.toggle("win", win); res.classList.toggle("lose", !win);
-    $("hkResTag").textContent = "COACH OLLIE"; $("hkResTag").classList.remove("bad"); $("hkResT").textContent = win ? "NICE ROUND!" : "GOOD TRY!"; $("hkDevT").textContent = "";
+    $("hkResTag").textContent = "COACH OLLIE"; $("hkResTag").hidden = false; $("hkResTag").classList.remove("bad"); $("hkResT").textContent = win ? "NICE ROUND!" : "GOOD TRY!"; $("hkDevT").textContent = "";
     $("hkArt").innerHTML = `<img src="${COACH_IMG()}" alt="" style="width:110px;height:110px;object-fit:contain">`; $("hkScMe").textContent = mine; $("hkScBo").textContent = 12 - mine; $("hkConf").innerHTML = ""; document.querySelector(".hkScoreL").innerHTML = `<span>YOU</span><span>COACH</span>`;
     $("hkGoldV").textContent = "COACH'S TIP"; $("hkGoldS").textContent = COACH_TIPS[Math.floor(Math.random() * COACH_TIPS.length)] + ` · ${coachLeft()} practice duels left`;
     snd(win ? "hkWin" : "hkLose"); $("hkAgain").textContent = "AGAIN ▶"; $("hkBack").textContent = "Back to the shop"; return; }
   document.querySelector(".hkScoreL").innerHTML = `<span>YOU</span><span>BOSS</span>`; $("hkBack").textContent = "Back to the game";
   $("hackCv").hidden = true; const res = $("hackRes"); res.hidden = false; res.classList.toggle("win", win); res.classList.toggle("lose", !win);
-  $("hkResTag").textContent = win ? "ACCESS GRANTED" : "ACCESS DENIED"; $("hkResTag").classList.toggle("bad", !win);
+  $("hkResTag").textContent = ""; $("hkResTag").hidden = true; $("hkResTag").classList.toggle("bad", !win);
   $("hkResT").textContent = win ? "BOSS HACKED!" : "THE BOSS WINS"; $("hkDevT").textContent = `dev: BOSS ${HK.type} (${(BOSS_T[HK.type] || {}).txt})`;
   $("hkArt").classList.toggle("proud", win);
   if (win) { const h = heroKey(), b = buddyKey(), hn = h === "rosie" ? "Rosie" : "Blue", bn = b === "rosie" ? "Rosie" : "Blue", pk = a => a[Math.floor(Math.random() * a.length)];
