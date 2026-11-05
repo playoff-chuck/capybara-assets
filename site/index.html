@@ -2669,7 +2669,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V291";
+const GAME_VER = "V292";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -4350,6 +4350,7 @@ function clearLines() {
 }
 function gravityInterval() { const K = G.gravKnee || 1e9, K2 = G.gravKnee2 || 1e9, we = S.wave <= K ? S.wave : K + (Math.min(S.wave, K2) - K) * (G.gravKneeF ?? 1) + Math.max(0, S.wave - K2) * (G.gravKneeF2 ?? (G.gravKneeF ?? 1)), le = S.wave <= K ? S.lines : S.lines * (we / Math.max(1, S.wave));   // ab dem Knick steigt das Tempo langsamer
   const g = Math.max(G.gravMin, G.gravBase - le * G.gravLine - we * G.gravWave) * ordv("gravMul") * (!S.nuts && S.wave >= 21 && S.wave <= 150 ? 1.8 : 1) / (S.wave >= 60 ? 0.7716 : S.wave >= 50 ? 0.857375 : S.wave >= 40 ? 0.9025 : S.wave >= 30 ? 0.95 : 1) / ((S.wave >= 30 ? 0.9 : 1) * (S.wave >= 50 ? 0.93 : 1) * (S.wave >= 91 && S.wave <= 120 ? 0.92 : 1));   /* V183: ab W30 −10 %, ab W50 −7 %, W91–120 −8 % */   // V179: ab W30 −5 %, ab W40 nochmals −5 %, ab W50 nochmals −5 %, ab W60 nochmals −10 % if (hailOn()) return g / (7.65 * HAIL_WAVES[specBase()] * specK());
+  if (hailOn()) return g / 1.5;   /* V292: Hagel 50 % schneller */
   { const e = SPEC_AT[((S.wave - 1) % 100) + 1]; if (e && e[0] === 16 && S.inWave && e[1] >= 2) return g / (e[1] === 2 ? 0.7 : 0.65); }   // V178z12: Sidewinder II 30 % langsamer, ab III 35 %
   return g; }
 
@@ -4977,40 +4978,44 @@ function stepRot(dt) {
 }
 // ---------- Welle 18 «SIBERIA»: Schneesturm, Eiszapfen, Frost, Whiteout ----------
 const SNOW_BASES = [18];
+window.__sandy = () => { try { return !!(S && !S.nuts && wherePos(S.wave).cont[0] === "africa"); } catch (e) { return false; } };   /* V292 */
 function snowOn() { return S && S.started && !S.over && SNOW_BASES.includes(specBase()) && S.inWave && !S.paused && inPlay(); }
 let SNOW = [], snowLast = 0, ICICLES = null;
 function stepSnow(dt) {
   const on = snowOn();
   if (on && !S.snowWas) {
-    S.snowBandT = 5; snd("ice"); setTimeout(() => { if (snowOn()) announce("SIBERIA!", "Whiteout · trust your towers", "ALERT", 2800); }, 250);
+    S.snowBandT = 5; { const sd = window.__sandy(), sb = $("snowBand"); sb.classList.toggle("sandBand", sd); sb.classList.toggle("snowBand", !sd); sb.innerHTML = sd ? "<span>SANDSTORM</span><i>DUNE STORM · 52°C</i><span>SANDSTORM</span>" : "<span>SIBERIA</span><i>BLIZZARD · −40°</i><span>SIBERIA</span>"; if (!sd) snd("ice");
+      setTimeout(() => { if (snowOn()) announce(sd ? "SANDSTORM!" : "SIBERIA!", sd ? "Sand in your eyes · trust your towers" : "Whiteout · trust your towers", "ALERT", 2800); }, 250); }
     setTimeout(() => SFX.say("cantsee"), 1000);
   }
   if (on !== !!S.snowWas) snd("wind", on);
-  if (on) { S.iceT = (S.iceT ?? 2) - dt; if (S.iceT <= 0) { S.iceT = 2.5 + Math.random() * 4; snd("ice"); } }
-  $("board").classList.toggle("blizzard", on); if (on) S.snowBandT = (S.snowBandT || 0) - dt; { const sb = on && S.snowBandT > 0; if ($("snowBand").hidden === sb) $("snowBand").hidden = !sb; }   // Band nur kurz, damit es den Stapel nicht verdeckt
+  if (on && !window.__sandy()) { S.iceT = (S.iceT ?? 2) - dt; if (S.iceT <= 0) { S.iceT = 2.5 + Math.random() * 4; snd("ice"); } }
+  $("board").classList.toggle("blizzard", on); $("board").classList.toggle("duneStorm", on && window.__sandy()); if (on) S.snowBandT = (S.snowBandT || 0) - dt; { const sb = on && S.snowBandT > 0; if ($("snowBand").hidden === sb) $("snowBand").hidden = !sb; }   // Band nur kurz, damit es den Stapel nicht verdeckt
   S.snowWas = on;
 }
 function snowGust(t) { const a = 0.5 + 0.5 * Math.sin(t * 0.31) * Math.sin(t * 0.17 + 1.3), b = Math.max(0, Math.sin(t * 0.083 + 2)) ** 6; return Math.min(1, a * 0.75 + b * 0.6); }   // 0 ruhig … 1 Whiteout
 function drawSnow(s, W, HH) {
   if (!snowOn()) { SNOW.length = 0; return; }
+  const SD = window.__sandy(), FB = SD ? "236,192,112" : "235,242,250";
   const now = performance.now() / 1000, dt = Math.min(0.05, now - (snowLast || now)); snowLast = now;
   const K = specK(), g = Math.min(1, snowGust(now) * K), wind = 1.5 + 6 * g + 1.5 * Math.sin(now * 0.7), want = Math.round(90 + 420 * g);
   while (SNOW.length < want) SNOW.push({ x: Math.random() * (GW + 6) - 6, y: Math.random() * GH - 1, z: Math.random(), w: Math.random() * 6.28 });
   if (SNOW.length > want + 40) SNOW.length = want + 40;
   // Whiteout-Schleier in Böen, wandernde Nebelbänke
   const fogA = Math.min(0.85, (0.06 + 0.62 * g * g) * K);
-  ctx.fillStyle = `rgba(226,236,246,${fogA.toFixed(3)})`; ctx.fillRect(0, 0, W, HH);
-  for (let k = 0; k < 3; k++) { const yy = ((now * (0.6 + k * 0.3) * (0.5 + g) + k * 7) % (GH + 8)) - 4, gr = ctx.createLinearGradient(0, (yy - 3) * s, 0, (yy + 3) * s); gr.addColorStop(0, "rgba(235,242,250,0)"); gr.addColorStop(0.5, `rgba(235,242,250,${(0.25 + 0.45 * g).toFixed(3)})`); gr.addColorStop(1, "rgba(235,242,250,0)"); ctx.fillStyle = gr; ctx.fillRect(0, (yy - 3) * s, W, 6 * s); }
+  ctx.fillStyle = SD ? `rgba(222,170,88,${(fogA * 0.92).toFixed(3)})` : `rgba(226,236,246,${fogA.toFixed(3)})`; ctx.fillRect(0, 0, W, HH);
+  for (let k = 0; k < 3; k++) { const yy = ((now * (0.6 + k * 0.3) * (0.5 + g) + k * 7) % (GH + 8)) - 4, gr = ctx.createLinearGradient(0, (yy - 3) * s, 0, (yy + 3) * s); gr.addColorStop(0, `rgba(${FB},0)`); gr.addColorStop(0.5, `rgba(${FB},${(0.25 + 0.45 * g).toFixed(3)})`); gr.addColorStop(1, `rgba(${FB},0)`); ctx.fillStyle = gr; ctx.fillRect(0, (yy - 3) * s, W, 6 * s); }
   // Flocken: drei Tiefen, schräg im Wind
   for (const f of SNOW) {
     const sp = 0.4 + f.z * 1.1; f.y += (1.2 + 2.6 * sp) * dt; f.x += wind * sp * dt + Math.sin(now * 2 + f.w) * 0.6 * dt;
     if (f.y > GH + 0.5 || f.x > GW + 0.5) { f.y = -0.5 - Math.random(); f.x = Math.random() * (GW + 8) - 8; }
     const r = s * (0.04 + f.z * 0.13), a = 0.35 + f.z * 0.6;
-    ctx.fillStyle = `rgba(255,255,255,${a.toFixed(2)})`; ctx.beginPath(); ctx.arc(f.x * s, f.y * s, r, 0, 7); ctx.fill();
-    if (g > 0.55 && f.z > 0.7) { ctx.strokeStyle = `rgba(255,255,255,${(a * 0.5).toFixed(2)})`; ctx.lineWidth = r; ctx.beginPath(); ctx.moveTo(f.x * s, f.y * s); ctx.lineTo((f.x - wind * 0.06) * s, (f.y - 0.08) * s); ctx.stroke(); }
+    ctx.fillStyle = SD ? `rgba(${f.z > 0.5 ? "190,132,52" : "238,196,118"},${a.toFixed(2)})` : `rgba(255,255,255,${a.toFixed(2)})`; ctx.beginPath(); ctx.arc(f.x * s, f.y * s, SD ? r * 0.7 : r, 0, 7); ctx.fill();
+    if (g > 0.55 && f.z > 0.7) { ctx.strokeStyle = SD ? `rgba(214,160,80,${(a * 0.5).toFixed(2)})` : `rgba(255,255,255,${(a * 0.5).toFixed(2)})`; ctx.lineWidth = r; ctx.beginPath(); ctx.moveTo(f.x * s, f.y * s); ctx.lineTo((f.x - wind * 0.06) * s, (f.y - 0.08) * s); ctx.stroke(); }
   }
   // Frostrand und Eiszapfen oben
-  const vg = ctx.createRadialGradient(W / 2, HH / 2, Math.min(W, HH) * 0.35, W / 2, HH / 2, Math.max(W, HH) * 0.72); vg.addColorStop(0, "rgba(200,225,245,0)"); vg.addColorStop(1, `rgba(214,236,252,${(0.55 + 0.25 * g).toFixed(2)})`); ctx.fillStyle = vg; ctx.fillRect(0, 0, W, HH);
+  const vg = ctx.createRadialGradient(W / 2, HH / 2, Math.min(W, HH) * 0.35, W / 2, HH / 2, Math.max(W, HH) * 0.72); vg.addColorStop(0, SD ? "rgba(214,160,80,0)" : "rgba(200,225,245,0)"); vg.addColorStop(1, SD ? `rgba(200,140,60,${(0.5 + 0.25 * g).toFixed(2)})` : `rgba(214,236,252,${(0.55 + 0.25 * g).toFixed(2)})`); ctx.fillStyle = vg; ctx.fillRect(0, 0, W, HH);
+  if (SD) return;
   if (!ICICLES || ICICLES.n !== GW) { ICICLES = { n: GW, list: [] }; for (let i = 0; i < GW * 3; i++) ICICLES.list.push({ x: (i + Math.random() * 0.6) / 3, w: 0.12 + Math.random() * 0.2, l: 0.3 + Math.random() ** 2 * 1.6 }); }
   ctx.fillStyle = "rgba(240,248,255,.92)"; ctx.fillRect(0, 0, W, s * 0.22);
   for (const c of ICICLES.list) {
@@ -9229,5 +9234,10 @@ body.ovUp #nutsBadge,body.mapUp #nutsBadge{visibility:hidden}
 /* Boss-Hack-Einsatz: Bild */
 .hackBet{padding-top:0!important;overflow:hidden}
 .hackBet .hkBetPic{align-self:stretch;aspect-ratio:960/536;max-width:calc(100% + 28px);margin:0 -14px 2px;background:url(img/hk_bet.webp) center/cover;border-bottom:3px solid var(--ink,#3a1d10)}
+</style>
+
+<style id="v292sand">
+.board.blizzard.duneStorm{border-color:#e2b46a!important;box-shadow:0 0 0 2px rgba(240,200,130,.6),0 0 26px rgba(222,170,90,.5) inset!important}
+.board.blizzard.duneStorm canvas#cv{filter:saturate(.8) sepia(.25) brightness(1.02)!important}
 </style>
 </body></html>
