@@ -2668,7 +2668,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V269";
+const GAME_VER = "V270";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -4021,7 +4021,8 @@ window.__TT = { get S() { return S; }, get HK() { return HK; }, startGame: (m, w
 // ---------- Lob (Stempel + Stimme) ----------
 // Der Buchhalter meldet runde Punktestände
 let bookT = null;
-function bookkeeper(score, mark) {
+function bookkeeper(score, mark) { msgPush({ kind: "book", title: "book" + mark, sub: "", tag: "GOLD", hold: 3600, score, mark }); }
+function bookShow(score, mark) {
   const el = $("book"); $("bookScore").textContent = score.toLocaleString("en-US"); $("bookMark").textContent = `${mark.toLocaleString("en-US")}+ · waves × lines × splats`;
   el.hidden = false; el.classList.remove("go"); void el.offsetWidth; el.classList.add("go");
   snd("book"); setTimeout(() => SFX.say(["Jackpot!", "Rich!", "Wow!", "Sweet!"][Math.floor(Math.random() * 4)]), 900);
@@ -4054,21 +4055,27 @@ const tagShow = t => TAG_SHOW[t] || t;
 window.ONE_MODE = true;   // V156: nur noch ein Modus, für den Spieler unsichtbar (intern Pro)
 const QUICK_TAGS = new Set(["DENIED", "LEVER", "ARMORY", "POCKET", "LINES", "SALVO", "CONCRETE"]);
 const KEEP_TAGS = new Set(["HQ", "ALERT", "HACK", "SOS", "NEW GEAR", "NEW MONSTER", "RADIO", "CLASSIFIED", "SYSTEM"]);
+function uiWinOpen() { try { const v = id => { const e = document.getElementById(id); return e && !e.hidden && getComputedStyle(e).display !== "none"; };
+  return v("ovIntro") || document.body.classList.contains("introWin") || v("ovAd") || v("ovBandit") || v("ovJoin") || document.body.classList.contains("mapUp") || !!(S && (S.joinOpen || S.signOpen || S.banditOpen)); } catch (e) { return false; } }
+window.__msgDbg = () => ({ q: MSGQ.map(x => x.title), busy: Math.round(msgBusy - performance.now()), win: uiWinOpen() });
 function msgPush(m) {
   const last = MSGQ[MSGQ.length - 1]; if (last && last.title === m.title && last.sub === m.sub) return;   // gleiche Meldung nicht doppelt
-  m.at = performance.now(); MSGQ.push(m);
+  m.at = performance.now(); if (!m.low) { const i = MSGQ.findIndex(x => x.low); if (i >= 0) MSGQ.splice(i, 0, m); else MSGQ.push(m); } else MSGQ.push(m);
   while (MSGQ.length > 5) { const i = MSGQ.findIndex(x => x.kind === "toast"); if (i < 0) break; MSGQ.splice(i, 1); }   // Stau: alte Kleinmeldungen fallen weg
   msgTick();
 }
 function msgTick() {
   if (S && S.won && S.over) { MSGQ.length = 0; return; }   // V244
   if (msgBusy > performance.now() || !MSGQ.length) return;
+  if (uiWinOpen()) { clearTimeout(window.__msgWT); window.__msgWT = setTimeout(msgTick, 500); return; }   // V270: Fenster offen → warten
   if (S && S.drop) { const now = performance.now(); if (!S._dropAt) S._dropAt = now; if (now - S._dropAt < 9000) { setTimeout(msgTick, 400); return; } S.drop = false; }   // V193: Air Drop hat Vorrang, dann weiter (nicht liegen bleiben)
   if (S) S._dropAt = 0;
   const m = MSGQ.shift(), age = performance.now() - m.at;
   if (m.kind === "toast" && age > 6000 && !KEEP_TAGS.has(m.tag)) { msgTick(); return; }   // veraltet
+  if (m.low && (age > 8000 || (S && S.radioOut))) { msgTick(); return; }   // V270: Lob/Statistik veraltet
+  window.__msgShowT = performance.now();
   msgBusy = performance.now() + m.hold + 320;
-  if (m.kind === "alert") showAlert(m.title, m.sub, m.tag, m.hold); else showToast(m.title, m.sub, m.tag, m.hold);
+  if (m.kind === "book") bookShow(m.score, m.mark); else if (m.kind === "alert") showAlert(m.title, m.sub, m.tag, m.hold); else showToast(m.title, m.sub, m.tag, m.hold);
   setTimeout(msgTick, m.hold + 330);
 }
 function garble(t) { return String(t || "").replace(/[A-Za-z0-9]/g, (c, i) => (((i * 7) % 5) < 2 ? "▒" : c)); }   // V178z15: jeder 2.–3. Buchstabe weg
@@ -4098,7 +4105,8 @@ function airDrop(title, loot) {
 let stampT = null, lastPraise = 0, lastPraiseTier = 0;
 function praise(text, tier, speech) {
   const now = performance.now();
-  if (now - lastPraise < 1500 || SFX.voiceBusy) return;   // läuft schon ein Lob, fällt das neue komplett weg
+  if (now - lastPraise < 1500 || SFX.voiceBusy) return;
+  if (uiWinOpen() || now - (window.__msgShowT || -1e9) < 400) return;   // V270   // läuft schon ein Lob, fällt das neue komplett weg
   lastPraise = now; lastPraiseTier = tier;
   if (speech !== false && now - (window.__praiseVoiceT || -1e9) < (tier >= 4 ? 8000 : 16000)) speech = false; else if (speech !== false) window.__praiseVoiceT = now;   // V178v: Sprüche 4× seltener
   const key = speech !== false ? SFX.reserveVoice((tier >= 3 ? 420 : 260) + 1500) : 0;
@@ -4627,7 +4635,7 @@ function startWave() {
     if (!S.introQ || !S.intro) setScene(null); setTimeout(maybeJoin, 1500);
     if (P.p === 0 && P.d === 0 && S.wave > 1) { const vk = { africa: "welcome_africa", asia: "welcome_asia", namerica: "welcome_namerica" }[P.cont[0]] || "newcont"; setTimeout(() => { announce(`WELCOME TO ${P.cont[1]}!`, `${P.place} · a new continent`, "HQ", 3000); SFX.say(vk); }, 900); } }   // V178z14: neuer Kontinent
   const L = limits(S.wave);
-  S.toSpawn = Math.max(1, Math.round(Math.min(L.monsters, G.waveBase + G.wavePer * S.wave) * (!S.nuts && S.wave >= 21 && S.wave <= 150 ? 0.55 : 1))); S.waveTotal = S.toSpawn;   // V251: Afrika −25 % Monster if (S.nuts) { S.toSpawn = S.waveTotal = nutsCount(S.nuts.lvl); } S.spawnT = 0; S.spawnIdx = 0; S.inWave = true; S.waveLeaks = 0;
+  S.toSpawn = Math.max(1, Math.round(Math.min(L.monsters, G.waveBase + G.wavePer * S.wave) * (!S.nuts && S.wave >= 21 && S.wave <= 150 ? 0.55 : 1))); S.waveTotal = S.toSpawn; if (S.nuts) { S.toSpawn = S.waveTotal = nutsCount(S.nuts.lvl); } S.spawnT = 0; S.spawnIdx = 0; S.inWave = true; S.waveLeaks = 0;   // V251/V268: weniger Monster ab W21 (Kommentar ans Zeilenende, V270)
   { const w = S.wave, r = w >= G.runnerFrom ? 1 + Math.floor((w - G.runnerFrom + 5) / 10) : 0, bm = w >= G.bomberFrom ? 1 + Math.floor((w - G.bomberFrom) / 10) : 0;
     // Titel: INCOMING + die neueste Monsterart, die in dieser Welle dabei ist
     const order = [["volt", G.voltFrom, "SPARKIES"], ["bomber", G.bomberFrom, "BOMBERS"], ["kiefer", G.kieferFrom, "THE JAW"], ["runner", G.runnerFrom, "SPRINTERS"], ["munch", G.munchFrom, "MUNCHERS"], ["heavy", G.heavyFrom, "BRUTES"], ["fast", G.fastFrom, "SCOUTS"], ["norm", 1, "GRUNTS"]];
@@ -6498,7 +6506,7 @@ renderThemeBtn(); syncSky();
 /* Wellen-Ende: General gratuliert oben links (Sprechblase), Beute im Untertitel */
 function genWaveMsg(title, loot) { let say = FP_SAY[(S.fpI = ((S.fpI || 0) + 1 + Math.floor(Math.random() * 9)) % FP_SAY.length)]; try { const st = window.__genStat && window.__genStat(); if (st) say = st; } catch (e) {}
   const sub = [title.replace(/WAVE (\d+) CLEARED/i, "Wave $1 cleared")].concat((loot || []).filter(l => !/score/i.test(l[1])).map(l => `${l[1]} ${l[2]}`)).join(" · ");
-  announce(say.toUpperCase(), sub, "HQ", 3200); try { const ac = AU.ac(); if (ac) { const t = ac.currentTime + 0.05; PC.surdo(t, 0.16); PC.agogo(t + 0.2, false, 0.08); PC.agogo(t + 0.35, true, 0.08); } } catch (e) {} }
+  msgPush({ kind: "alert", title: say.toUpperCase(), sub, tag: "HQ", hold: 3200, low: true }); try { const ac = AU.ac(); if (ac) { const t = ac.currentTime + 0.05; PC.surdo(t, 0.16); PC.agogo(t + 0.2, false, 0.08); PC.agogo(t + 0.35, true, 0.08); } } catch (e) {} }
 
 /* Pause immer möglich: Steuerkapsel liegt über allen Fenstern; Pause schließt offene Fenster und pausiert */
 { const bw = document.getElementById("bWave"); bw.addEventListener("click", e => { if (!S || !S.started || S.over) return;
