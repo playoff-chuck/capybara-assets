@@ -2373,7 +2373,7 @@ body.inNuts #btnPRestart{display:none!important}
           <button class="btn-accent btn-big" id="btnPResume">Resume ▶</button>
           <button id="btnPRestart">Restart</button>
           <button id="btnPMenu">Main menu</button><button id="btnPNutsQuit" class="nutsQuit" hidden>☠ Leave detour</button><button id="btnPSquad">Hero &amp; name</button><div id="pNuts" class="pNuts"></div>
-          <div class="pVol" id="pVol"><div class="pvHead"><small>SOUND</small><button id="pvMute" class="btn-small">Mute</button></div>
+          <div class="pVol" id="pVol"><div class="pvHead"><small>SOUND</small><button id="pvMute" class="btn-small">Mute</button><button id="pvVib" class="btn-small" hidden>Vibration: on</button></div>
             <label class="pvRow"><span>All</span><input type="range" min="0" max="100" step="5" data-ch="all"><b></b></label>
             <label class="pvRow"><span>Music</span><input type="range" min="0" max="100" step="5" data-ch="m"><b></b></label>
             <label class="pvRow"><span>Effects</span><input type="range" min="0" max="100" step="5" data-ch="f"><b></b></label>
@@ -2668,7 +2668,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V249";
+const GAME_VER = "V250";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -6410,7 +6410,7 @@ $("btnInfo").addEventListener("click", () => { $("ovStart").hidden = true; $("ov
   const apply = () => document.querySelectorAll(".devOnly").forEach(el => el.hidden = !devOn); apply();
   document.querySelector(".logo").addEventListener("pointerdown", () => { const now = performance.now(); taps = taps.filter(t => now - t < 3000); taps.push(now); if (taps.length >= 7) { taps = []; devOn = !devOn; LS.set("tarnturm-dev", devOn ? "1" : "0"); apply(); SFX.init(); snd("uiTap"); toast(devOn ? "DEV TOOLS ON" : "DEV TOOLS OFF", "HQ", 1500); } }); }
 // V178z15: Wellen nach dem neuen Ablauf (Zyklus 100); Radio silence = Siberia II / Deep Desert II mit Funkabbruch
-const SPECIALS = [["Sonar", "WAVE 15", 15], ["Wild Cards", "AFTER WAVE 20", 20], ["Wounded", "WAVE 23", 23], ["Siberia", "WAVE 35 · BLIZZARD", 35], ["Hailstorm", "WAVE 37", 37], ["Sidewinder", "WAVE 41", 41], ["Sidewinder II", "WAVE 45", 45], ["Sandstorm", "WAVE 47", 47], ["Siberia II", "WAVE 51 · RADIO SILENCE", 51], ["Radio silence", "WAVE 35 · FORCED", 35, "radio"], ["Sandstorm II", "WAVE 65 · RADIO SILENCE", 65], ["Lockdown", "IN POCKET · WAVE 25", 25, "lock"], ["Hack duel", "BOSS · GOLD BET", 6, "hack"], ["Chomper", "IN POCKET · WAVE 17", 17, "chomp"], ["Ten-ton drop", "IN POCKET · WAVE 5", 5, "ton"]];
+const SPECIALS = [["Sonar", "WAVE 15", 15], ["Wild Cards", "AFTER WAVE 20", 20], ["Wounded", "WAVE 23", 23], ["Siberia", "WAVE 35 · BLIZZARD", 35], ["Hailstorm", "WAVE 37", 37], ["Sidewinder", "WAVE 41", 41], ["Sidewinder II", "WAVE 45", 45], ["Sandstorm", "WAVE 47", 47], ["Siberia II", "WAVE 51 · RADIO SILENCE", 51], ["Radio silence", "WAVE 35 · FORCED", 35, "radio"], ["Sandstorm II", "WAVE 65 · RADIO SILENCE", 65], ["Lockdown", "IN POCKET · WAVE 25", 25, "lock"], ["Hack duel", "BOSS · GOLD BET", 6, "hack"], ["Chomper", "IN POCKET · WAVE 17", 17, "chomp"], ["Ten-ton drop", "IN POCKET · WAVE 5", 5, "ton"], ["Lucky Supply", "BANDIT · ONE FREE SPIN", 3, "bandit"]];
 function devJump(w, kind) { SFX.init(); const m = MODES[MODE] ? MODE : "chill"; startGame(m); S.wave = w - 1; S.gold += 300 + 60 * w; S.ff = false; S.waveCD = 6; S.testRun = true; S.medDone = 0; S.rotDone = 0; S.rotMode = 0; S.rotT = 0; if (kind === "lock") S.locks = (S.locks || 0) + 1; if (kind === "chomp") S.chomps = (S.chomps || 0) + 2; if (kind === "ton") S.tons = (S.tons || 0) + 2; if (kind === "radio") S.radioForce = true; if (kind === "hack") { S.wave = w; S.gold += 500; S.waveCD = 60; setTimeout(() => openHack(true), 300); } closeIntro(); $("ovSpec").hidden = true; $("ovStart").hidden = true; toast(`TEST · ${kind === "lock" ? "LOCKDOWN IN POCKET" : "wave " + w + " in 6 s"} · build towers`, "HQ", 2500); }
 // Runden: jede Sonderwelle kommt alle 30 Wellen wieder (+150: 25 % härter, +180: 50 % härter)
 let specOff = 0;
@@ -8005,6 +8005,29 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     if (db) db.addEventListener("click", e => { e.stopPropagation(); if (S && S.started && !S.over) open(true); else { try { devJump(3); } catch (er) {} setTimeout(() => open(true), 2500); } });
     window.__TT && (window.__TT.bandit = { open, spin, close });
   })(); } catch (e) { console.error("bandit", e); }
+
+  /* V250: Testpunkt «Lucky Supply» im Specials-Menü */
+  try { document.getElementById("specList").addEventListener("click", e => { const bt = e.target.closest("button[data-i]"); if (!bt) return; const it = SPECIALS[+bt.dataset.i]; if (!it || it[3] !== "bandit") return;
+      e.stopImmediatePropagation(); e.preventDefault(); try { SFX.init(); } catch (er) {} devJump(3); setTimeout(() => { try { window.__TT.bandit.open(true); } catch (er) {} }, 2600); }, true); } catch (e) { console.error("specBandit", e); }
+  /* sanfte Vibration */
+  try { (() => { const can = typeof navigator.vibrate === "function"; const vb = document.getElementById("pvVib");
+      let on = LS.get("tarnturm-vib") !== "0"; const paint = () => { if (vb) { vb.hidden = !can; vb.textContent = "Vibration: " + (on ? "on" : "off"); } }; paint();
+      const hist = []; let lastAny = 0, lastLight = 0;
+      function buzz(pat, strong) { if (!can || !on || document.hidden) return; const now = performance.now(); if (now - lastAny < 300) return;
+        while (hist.length && now - hist[0] > 60000) hist.shift();
+        if (!strong && (hist.length >= 7 || now - lastLight < 4000)) return;
+        try { navigator.vibrate(pat); } catch (e) { return; } hist.push(now); lastAny = now; if (!strong) lastLight = now; }
+      if (vb) vb.addEventListener("click", e => { e.stopPropagation(); on = !on; LS.set("tarnturm-vib", on ? "1" : "0"); paint(); if (on) buzz([25], true); });
+      window.__vib = buzz;
+      let pl = null, pv = null, pHack = 0, pOver = false;
+      setInterval(() => { if (!S || !S.started) { pl = pv = null; pOver = false; return; }
+        if (pl != null && S.lines > pl && !S.over) { const d = S.lines - pl; buzz(d >= 3 ? [20, 40, 20] : [d === 2 ? 22 : 14], false); }
+        if (pv != null && S.lives < pv && !S.over) buzz([45, 60, 45], true);
+        if ((S.hackOfferUntil || 0) > performance.now() && S.hackOfferUntil !== pHack) { pHack = S.hackOfferUntil; buzz([35, 50, 35], true); }
+        if (S.over && !pOver) buzz([60, 80, 60], true);
+        pl = S.lines; pv = S.lives; pOver = !!S.over; }, 120);
+      window.__TT && (window.__TT.vib = { buzz, get hist() { return hist.slice(); } });
+    })(); } catch (e) { console.error("vib", e); }
 })();
 </script>
 
