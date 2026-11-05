@@ -2669,7 +2669,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V281";
+const GAME_VER = "V282";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -2748,7 +2748,7 @@ function queueIntros(w) { if (S.nuts) return;
   for (const k of Object.keys(INTRO_MON)) if (monFrom(k) === w && !S.seen[k]) S.introQ.push({ t: "mon", k });
   for (const k of Object.keys(UNLOCK_NAME)) if (unlockedAt(k) === w && w > 1 && INTRO_GEAR[k] && !S.seen["g:" + k]) S.introQ.push({ t: "gear", k });
   if (w === ELITE_FROM && !S.seen["g:elite"]) { S.introQ.push({ t: "gear", k: "elite" }); setTimeout(() => SFX.say("elitego"), 1500); }
-  const q = S.introQ.shift(); if (q) showIntro(q);             // nur eines je Welle, der Rest nächste Welle
+  const q = S.introQ.shift(); if (q) window.__whenCalm(() => showIntro(q), 5000);             // nur eines je Welle, der Rest nächste Welle
 }
 let introT = null;
 function showIntro(q) {
@@ -4056,6 +4056,11 @@ const tagShow = t => TAG_SHOW[t] || t;
 window.ONE_MODE = true;   // V156: nur noch ein Modus, für den Spieler unsichtbar (intern Pro)
 const QUICK_TAGS = new Set(["DENIED", "LEVER", "ARMORY", "POCKET", "LINES", "SALVO", "CONCRETE"]);
 const KEEP_TAGS = new Set(["HQ", "ALERT", "HACK", "SOS", "NEW GEAR", "NEW MONSTER", "RADIO", "CLASSIFIED", "SYSTEM"]);
+window.__whenCalm = (fn, gap = 5000) => { const t0 = performance.now(); const tick = () => { try {
+    const busy = uiWinOpen() || (S && (S.mapShow || S.mapFly || S.paused || S.ordersOpen || S.duel || S.drop)) || (typeof TUT !== "undefined" && TUT.on) || (typeof hkOfferOn === "function" && hkOfferOn());
+    if (!S || !S.started || S.over) return;
+    if (busy || performance.now() - (window.__evtLast || -1e9) < gap) { if (performance.now() - t0 < 600000) setTimeout(tick, 300); return; }
+    fn(); } catch (e) { console.error("whenCalm", e); } }; setTimeout(tick, 300); };
 function uiWinOpen() { try { const v = id => { const e = document.getElementById(id); return e && !e.hidden && getComputedStyle(e).display !== "none"; };
   return v("ovIntro") || document.body.classList.contains("introWin") || v("ovAd") || v("ovBandit") || v("ovJoin") || document.body.classList.contains("mapUp") || !!(S && (S.joinOpen || S.signOpen || S.banditOpen)); } catch (e) { return false; } }
 window.__msgDbg = () => ({ q: MSGQ.map(x => x.title), busy: Math.round(msgBusy - performance.now()), win: uiWinOpen() });
@@ -6223,7 +6228,7 @@ function loadGame(given) {
   S.grid = Uint8Array.from(d.grid); S.towers = new Map(); for (const t of d.towers) S.towers.set(t.y * GW + t.x, t); towerId = d.towerId || S.towers.size;
   S.monsters = d.monsters || []; S.piece = d.piece; S.next = d.next; S.next2 = d.next2;
   for (const k of SAVE_KEYS) if (d[k] !== undefined) S[k] = d[k];
-  applyOrderCosts(); if (S.ordersOpen) { S.ordersOpen = false; setTimeout(() => showOrders(), 900); }
+  applyOrderCosts(); window.__evtLast = performance.now(); if (S.ordersOpen) { S.ordersOpen = false; window.__whenCalm(() => showOrders(), 5000); }
   S.dirty = true; S.started = true; S.paused = false; closeSheet(); drawNext();
   try { const q = new URLSearchParams(location.search); if (q.get("gift") === "ton" && !window.__giftDone) { window.__giftDone = true; S.tons = (S.tons || 0) + 1; history.replaceState(null, "", location.pathname); setTimeout(() => toast("GIFT FROM HQ · +1 Ten-ton drop", "SQUAD", 2600), 2900); saveGame(); } } catch (e) {}
   $("ovStart").hidden = true; $("ovOver").hidden = true; setTimeout(() => announce("BACK IN ACTION", `Resumed at wave ${S.wave} · tap to go`, "HQ", 2500), 300);
@@ -6303,7 +6308,7 @@ function renderModes() {
   }).join("");
 }
 const ffOn = () => false;   // V178z5: kein Schnellvorlauf in Welle 1–3 mehr (Monster waren für erfahrene Spieler ×1,7 schnell)
-function startGame(m, fromWave = 0) {
+function startGame(m, fromWave = 0) { window.__evtLast = performance.now();
   SFX.init(); snd("start"); setMode(m); newGame(); S.started = true;
   S.ff = getBest(m) >= 10;                                                        // Veteran: Wellen 1–3 im Schnelldurchlauf
   const vet = Math.min(150, Math.floor(campTotal(m) / 25) * 25); S.gold += vet;     // Veteranenbonus aus der Karriere
@@ -7949,7 +7954,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
   /* V242: Reihenfolge am Wellenende – Air Drop → Wild Cards → Wegweiser → Feier/Flug */
   try {
     const ordFree = () => S && S.started && !S.over && !S.nuts && !S.drop && !S.intro && !S.duel && !S.paused && !S.mapShow && !S.ordersOpen && inPlay();
-    setInterval(() => { try { if (!S || !S.ordDue || !ordFree()) return; if (performance.now() - (S.ordDueT || 0) < 1200) return; S.ordDue = 0; showOrders(); } catch (e) {} }, 300);
+    setInterval(() => { try { if (!S || !S.ordDue || !ordFree()) return; if (performance.now() - (S.ordDueT || 0) < 1200 || performance.now() - (window.__evtLast || -1e9) < 5000) return; S.ordDue = 0; showOrders(); } catch (e) {} }, 300);
     const _swG = startWave; startWave = function () {
       try { if (S && S.started && !S.over && !S.nuts && !S.inWave) {
           if (S.ordDue) { if (ordFree()) { S.ordDue = 0; showOrders(); } return; }
