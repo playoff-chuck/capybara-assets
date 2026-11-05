@@ -2668,7 +2668,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V251";
+const GAME_VER = "V252";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -7948,12 +7948,11 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     try { if (typeof SAVE_KEYS !== "undefined" && !SAVE_KEYS.includes("banditDone")) SAVE_KEYS.push("banditDone"); } catch (e) {}
     const ov = document.createElement("div"); ov.id = "ovBandit"; ov.hidden = true;
     ov.innerHTML = `<div class="bdBox"><div class="bdBurst"></div><span class="bdTag">FREE SUPPLY DROP</span><h2>LUCKY SUPPLY</h2><div class="bdSub" id="bdSub">One spin on the house, squad!</div>
-      <div class="bdMach"><div class="bdWin">${[0, 1, 2].map(i => `<div class="bdReel" id="bdR${i}"><div class="bdStrip" id="bdS${i}"></div></div>`).join("")}</div><div class="bdLights">${"<i></i>".repeat(12)}</div>
-        <div class="bdLever" id="bdLever" aria-label="Pull"><u></u><b></b><i></i></div></div>
+      <div class="bdCab" id="bdCab"><img class="bdCabImg" src="img/bandit_cab.webp" alt="" draggable="false"><div class="bdReel" id="bdR0" style="left:12.25%;top:37.7%;width:13.4%;height:22.5%"><div class="bdStrip" id="bdS0"></div></div><div class="bdReel" id="bdR1" style="left:31.75%;top:38.1%;width:13.6%;height:22.9%"><div class="bdStrip" id="bdS1"></div></div><div class="bdReel" id="bdR2" style="left:51.8%;top:38.5%;width:14.0%;height:23.1%"><div class="bdStrip" id="bdS2"></div></div><div class="bdFlash"></div><button class="bdLever" id="bdLever" aria-label="Pull the lever"></button></div>
       <div class="bdRes"><b id="bdResT">&nbsp;</b><span id="bdResS">&nbsp;</span></div>
       <button class="btn-accent" id="bdGo">SPIN ▶</button></div>`;
     document.body.appendChild(ov);
-    const $b = id => document.getElementById(id), H = 96, LEN = 30;
+    const $b = id => document.getElementById(id), LEN = 30; const rh = i => Math.max(40, $b("bdR" + i).clientHeight || 96);
     let st = 0, prize = null, wasPaused = false;   // st: 0 bereit, 1 dreht, 2 gewonnen
     const fill = (i, last) => { const s = $b("bdS" + i); let h = ""; for (let k = 0; k < LEN; k++) { const p = k === LEN - 1 && last ? last : PR[(k * 5 + i * 2 + Math.floor(Math.random() * 6)) % 6]; h += `<div><img src="${IMG[p[0]] || ""}" alt=""></div>`; }
       s.innerHTML = h; s.style.transition = "none"; s.style.transform = "translateY(0)"; };
@@ -7964,16 +7963,16 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
       $b("bdGo").textContent = "SPIN ▶"; $b("bdGo").disabled = false; $b("bdLever").classList.remove("pull");
       ov.classList.remove("spin", "win", "on"); ov.querySelectorAll(".bdConf").forEach(e => e.remove());
       if (S) { S.banditDone = true; wasPaused = !!S.intro; S.intro = true; S.banditOpen = true; }
-      ov.hidden = false; requestAnimationFrame(() => ov.classList.add("on"));
+      ov.hidden = false; [0, 1, 2].forEach(i => $b("bdS" + i).style.setProperty("--rh", rh(i) + "px")); requestAnimationFrame(() => ov.classList.add("on"));
       try { SFX.init(); snd("radio"); } catch (e) {}
     }
     function spin() {
       if (st !== 0) return; st = 1; ov.classList.add("spin"); $b("bdGo").disabled = true; $b("bdGo").textContent = "SPINNING…";
-      const lv = $b("bdLever"); lv.classList.add("pull"); setTimeout(() => lv.classList.remove("pull"), 420);
+      const cab = $b("bdCab"); cab.classList.remove("kick"); void cab.offsetWidth; cab.classList.add("kick");
       try { SFX.init(); snd("uiTap"); } catch (e) {}
       const stops = [1300, 2000, 2900]; let tick = setInterval(() => { try { snd("hkTick", 1); } catch (e) {} }, 110);
       [0, 1, 2].forEach(i => { const s = $b("bdS" + i);
-        requestAnimationFrame(() => { s.style.transition = `transform ${stops[i]}ms cubic-bezier(.12,.62,.18,1)`; s.style.transform = `translateY(${-(LEN - 1) * H}px)`; });
+        requestAnimationFrame(() => { s.style.setProperty("--rh", rh(i) + "px"); s.style.transition = `transform ${stops[i]}ms cubic-bezier(.12,.62,.18,1)`; s.style.transform = `translateY(${-(LEN - 1) * rh(i)}px)`; });
         setTimeout(() => { $b("bdR" + i).classList.add("hit"); try { snd(i < 2 ? "confirm" : "coin"); } catch (e) {}
           if (i === 1) $b("bdSub").textContent = "Two of a kind… one more!";
           if (i === 2) { clearInterval(tick); win(); } }, stops[i] + 40); });
@@ -8632,5 +8631,28 @@ button .lk{font-style:normal;white-space:nowrap}
 @keyframes bdRot{to{transform:rotate(360deg)}}
 .bdConf{position:absolute;width:9px;height:14px;top:30%;left:50%;border-radius:2px;pointer-events:none}
 @media (prefers-reduced-motion:reduce){#ovBandit.win .bdBurst{animation:none}}
+</style>
+
+<style id="v252bandit">
+#ovBandit .bdBox{width:min(360px,100%);padding:12px 12px 14px}
+#ovBandit .bdBox h2{margin:4px 0 0}
+#ovBandit .bdSub{margin-bottom:4px}
+.bdCab{position:relative;width:min(100%,calc((100vh - 270px) * .751));aspect-ratio:600/799;margin:0 auto;user-select:none;-webkit-user-select:none}
+.bdCabImg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;filter:drop-shadow(0 8px 10px rgba(58,42,26,.28))}
+.bdCab.kick{animation:bdKick .42s cubic-bezier(.3,1.6,.5,1)}
+@keyframes bdKick{0%{transform:none}25%{transform:translateY(6px) rotate(-1.2deg)}55%{transform:translateY(-3px) rotate(.8deg)}100%{transform:none}}
+#ovBandit .bdCab .bdReel{position:absolute;border:0;border-radius:9px/12px;background:#fff;overflow:hidden;box-shadow:inset 0 0 0 1px rgba(58,42,26,.08)}
+#ovBandit .bdCab .bdReel:after{border-radius:inherit;background:linear-gradient(180deg,rgba(58,42,26,.32),rgba(58,42,26,0) 30%,rgba(58,42,26,0) 70%,rgba(58,42,26,.32))}
+#ovBandit .bdCab .bdStrip div{height:var(--rh,96px)}
+#ovBandit .bdCab .bdStrip img{width:88%;height:auto;max-height:80%;aspect-ratio:1}
+#ovBandit .bdCab .bdReel.hit{box-shadow:0 0 0 3px #f6c945,0 0 16px 4px #ffe79a,inset 0 0 0 1px rgba(58,42,26,.08)}
+.bdFlash{position:absolute;inset:3% 4%;border-radius:22px;pointer-events:none;opacity:0;background:radial-gradient(60% 40% at 45% 48%,rgba(255,231,154,.75),rgba(255,231,154,0) 70%)}
+#ovBandit.spin .bdFlash{animation:bdFl .5s ease-in-out infinite alternate}
+#ovBandit.win .bdFlash{animation:bdFl .16s steps(2) infinite}
+@keyframes bdFl{from{opacity:0}to{opacity:.85}}
+.bdCab .bdLever{position:absolute;left:79%;top:30%;width:21%;height:42%;border:0!important;background:transparent!important;box-shadow:none!important;padding:0!important;min-height:0!important;cursor:pointer;border-radius:30px!important}
+.bdCab .bdLever:focus-visible{outline:3px solid #4f86c9}
+#ovBandit .bdRes{margin:6px 0 8px}
+@media (prefers-reduced-motion:reduce){.bdCab.kick,#ovBandit.spin .bdFlash,#ovBandit.win .bdFlash{animation:none}}
 </style>
 </body></html>
