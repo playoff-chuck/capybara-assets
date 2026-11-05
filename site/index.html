@@ -2669,7 +2669,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V290";
+const GAME_VER = "V291";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -8381,7 +8381,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
   window.__contFresh = () => { if (!S) return; let sum = 0, n = 0; for (const t of S.towers.values()) { sum += towerValue(t); n++; }   /* V290: Türme werden zum vollen Preis verkauft */
     S.grid = new Uint8Array(NN); S.towers = new Map(); seedGarbage(); try { if (S.sel) closeSheet(); } catch (e) {}
     S.monsters = []; S.shots = []; try { gridChanged(); } catch (e) { S.dirty = true; }
-    if (n) { S.gold += sum; announce(`TOWERS SOLD · +${sum} GOLD`, `New continent, fresh start: ${n} tower${n > 1 ? "s" : ""} sold at full price. The gold is in your account.`, "HQ", 6500); } };
+    if (n) { S.gold += sum; announce(`TOWERS SOLD · +${sum} GOLD`, `New continent, fresh start: ${n} tower${n > 1 ? "s" : ""} sold at full price. The gold is in your account.`, "GOLD", 6500); } };
 })();
 </script>
 
