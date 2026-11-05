@@ -2668,7 +2668,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V265";
+const GAME_VER = "V266";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -5090,6 +5090,7 @@ const HK = { phase: "off", t: 0, last: 0 };
 const HK_WAVES = new Set([8, 12, 18, 22, 28, 32, 38, 42, 48, 52, 58, 62, 68, 72, 78, 82, 88, 92, 98, 102, 107, 112, 117, 121, 127, 132, 138, 142, 148]);   // V247: nur ruhige Wellen
 function hkOfferWave(w) { return HK_WAVES.has(w); }   // nach jeder 5. Welle
 function hkOfferOn() { return S && S.started && !S.over && (S.hackOfferUntil || 0) > performance.now() && !S.duel && inPlay() && !S.ordersOpen; }
+window.__offerOK = (force) => force || (performance.now() - (window.__evtLast || -1e9) >= 45000 && performance.now() - (window.__offerLast || -1e9) >= 150000);
 const HK_OFFER_S = 20;   // V178z6: 20 s
 let hkLastT = 0, hkHeldMs = 0;   // V242: Uhr steht während Szenen/Fenstern
 function hkHold() { return !!(S.mapShow || S.intro || S.drop || S.ordersOpen || S.paused || !inPlay()); }
@@ -5098,7 +5099,7 @@ function hkOfferTick() {
   if (!S || !S.started || S.over) { hkLastT = 0; return; }
   { const now = performance.now(), dt = hkLastT ? now - hkLastT : 0; hkLastT = now;
     if (S.hackOfferUntil > 0 && !S.duel) { if (hkHold()) { S.hackOfferUntil += dt; hkHeldMs += dt; } else { if (hkHeldMs > 1500) S.hackOfferUntil = Math.max(S.hackOfferUntil, now + 8000); hkHeldMs = 0; } } else hkHeldMs = 0; }
-  if (S.hackPending && !S.drop && !S.ordersOpen && !S.duel && !S.paused && !S.intro && !S.mapShow && !S.ordDue && !hkSignFirst() && !(!S.inWave && S.waveCD < 0.6) && inPlay() && !(S.hackOfferUntil > performance.now())) { S.hackOfferWave = S.hackPending; S.hackPending = 0; S.hackOfferUntil = performance.now() + HK_OFFER_S * 1000; snd("radio"); setTimeout(() => snd("hkTick", 1), 250); const p = $("hackPill"); p.classList.remove("fly"); }
+  if (S.hackPending && !S.drop && !S.ordersOpen && !S.duel && !S.paused && !S.intro && !S.mapShow && !S.ordDue && !hkSignFirst() && !(!S.inWave && S.waveCD < 0.6) && inPlay() && !(S.hackOfferUntil > performance.now()) && window.__offerOK(S.wave >= S.hackPending + 2)) { window.__offerLast = performance.now(); S.hackOfferWave = S.hackPending; S.hackPending = 0; S.hackOfferUntil = performance.now() + HK_OFFER_S * 1000; snd("radio"); setTimeout(() => snd("hkTick", 1), 250); const p = $("hackPill"); p.classList.remove("fly"); }
   const p = $("hackPill"), on = hkOfferOn();
   if (on) { const left = Math.ceil((S.hackOfferUntil - performance.now()) / 1000), el = $("hpT"); if (el.textContent !== String(left)) { el.textContent = left; if (left <= 3) snd("hkTick", 1); } p.classList.toggle("hot", left <= 3); if (p.hidden) p.hidden = false; }
   else if (!p.hidden && !p.classList.contains("fly")) {
@@ -6974,7 +6975,8 @@ function maybeJoin() {
   if (typeof S === "undefined" || !S || !S.started || S.over || S.testRun || joined() || S.joinOpen || S.intro || S.nuts || S.inWave || S.wave < 7) return;   // V180: erst nach Welle 3
   if (S.inWave && S.introWave === S.wave) return;     // während einer Welle mit Neuheit nicht; zwischen den Wellen ja
   if (S.drop || S.ordersOpen || S.duel) { setTimeout(maybeJoin, 1500); return; }
-  S.intro = true; S.joinOpen = true; $("joinWave").textContent = `WAVE ${S.wave}`;
+  if (!window.__offerOK()) { clearTimeout(window.__joinT); window.__joinT = setTimeout(maybeJoin, 3000); return; }
+  window.__offerLast = performance.now(); S.intro = true; S.joinOpen = true; $("joinWave").textContent = `WAVE ${S.wave}`;
   $("joinNick").value = LS.get("tarnturm-nick") || funNick();
   renderThemeBtn(); $("ovJoin").hidden = false; snd("radio");
 }
@@ -7969,7 +7971,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
       $b("bdResT").innerHTML = "&nbsp;"; $b("bdResS").innerHTML = "&nbsp;"; $b("bdSub").textContent = "One spin on the house, squad!";
       $b("bdGo").textContent = "SPIN ▶"; $b("bdGo").disabled = false; $b("bdLever").classList.remove("pull");
       ov.classList.remove("spin", "win", "on"); ov.querySelectorAll(".bdConf").forEach(e => e.remove());
-      if (S) { S.banditDone = true; S.banditNext = (S.wave || 1) + 5 + Math.floor(Math.random() * 3); wasPaused = !!S.intro; S.intro = true; S.banditOpen = true; }
+      if (S) { window.__offerLast = performance.now(); S.banditDone = true; S.banditNext = (S.wave || 1) + 5 + Math.floor(Math.random() * 3); wasPaused = !!S.intro; S.intro = true; S.banditOpen = true; }
       ov.hidden = false; [0, 1, 2].forEach(i => $b("bdS" + i).style.setProperty("--rh", rh(i) + "px")); requestAnimationFrame(() => ov.classList.add("on"));
       try { SFX.init(); snd("radio"); } catch (e) {}
     }
@@ -8005,7 +8007,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     $b("bdLever").addEventListener("click", e => { e.stopPropagation(); if (st === 0) spin(); });
     ov.addEventListener("click", e => e.stopPropagation());
     // Wann: einmal je Lauf, ab ~60 s Spielzeit, an der ersten ruhigen Stelle
-    const calm = () => S && S.started && !S.over && !S.nuts && (S.banditNext ? (S.wave || 0) >= S.banditNext : !S.banditDone) && (S.playT || 0) >= 60 && performance.now() - Math.max(window.__evtLast || -1e9, window.__adLast || -1e9) >= 45000 && !S.inWave && (S.waveCD || 0) > 2.5
+    const calm = () => S && S.started && !S.over && !S.nuts && (S.banditNext ? (S.wave || 0) >= S.banditNext : !S.banditDone) && (S.playT || 0) >= 60 && window.__offerOK() && !S.inWave && (S.waveCD || 0) > 2.5
       && !S.intro && !S.drop && !S.alert && !S.ordersOpen && !S.duel && !S.mapShow && !S.mapFly && !S.signOpen && !S.joinOpen && !S.mode && !S.sel && !S.shop && !S.paused && !S.mix
       && !(typeof TUT !== "undefined" && TUT.on) && !(typeof hkOfferOn === "function" && hkOfferOn()) && !S.hackPending && (typeof inPlay !== "function" || inPlay()) && !document.hidden;
     setInterval(() => { try { if (ov.hidden && calm()) open(false); } catch (e) {} }, 500);
@@ -8066,7 +8068,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
       $a("adPic").style.backgroundImage = `url(${sale ? a.sale : a.img})`; $a("adTag").textContent = sale ? "SALE" : a.tag; $a("adWave").textContent = `WAVE ${S.wave}`;
       $a("adPrice").textContent = k === "ton" ? "1 FREE" : `${price(k)} GOLD`; $a("adName").textContent = d[0].toUpperCase(); $a("adLine").textContent = sale && a.sline ? a.sline : a.line;
       $a("adMet").innerHTML = d[2]().filter(x => !/gold|free/i.test(x)).slice(0, 3).map(x => `<span>${x}</span>`).join("");
-      lastW = why(k); paint(); window.__adLast = performance.now(); $("ovIntro").hidden = true; ov.hidden = false; requestAnimationFrame(() => ov.classList.add("on"));
+      lastW = why(k); paint(); window.__adLast = window.__offerLast = performance.now(); $("ovIntro").hidden = true; ov.hidden = false; requestAnimationFrame(() => ov.classList.add("on"));
       try { snd("radio"); } catch (e) {} }
     function close(bought) { ov.classList.remove("on"); ov.hidden = true; const k = cur; cur = null; if (late) { late = false; S.intro = false; S.adOpen = false; } else try { closeIntro(); } catch (e) {}
       if (bought) try { toast(`${INTRO_GEAR[k][0].toUpperCase()} · ${TOWERW[k] ? "mounted on your tower" : "in your Pocket"}`, "ARMORY", 2000); } catch (e) {} }
@@ -8089,7 +8091,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
         } } catch (e) { console.error("ad", e); } return r; };
     const calm = () => S && S.started && !S.over && !S.nuts && !S.testRun0 && !S.intro && !S.drop && !S.alert && !S.ordersOpen && !S.duel && !S.mapShow && !S.mapFly && !S.signOpen && !S.joinOpen
       && !S.mode && !S.sel && !S.shop && !S.paused && !S.mix && !S.banditOpen && !(typeof TUT !== "undefined" && TUT.on) && !(typeof hkOfferOn === "function" && hkOfferOn()) && (typeof inPlay !== "function" || inPlay()) && !document.hidden && ov.hidden;
-    setInterval(() => { try { if (!S || !S.adDue || !calm() || performance.now() - Math.max(window.__adLast || -1e9, window.__evtLast || -1e9) < 45000) return; for (const k of ["kan", "frost", "mix", "snipe", "ton", "chomp", "tesla", "lock"]) if (S.adDue[k] && !why(k)) { delete S.adDue[k]; late = true; S.intro = true; S.adOpen = true; show(k, true); break; } } catch (e) {} }, 700);
+    setInterval(() => { try { if (!S || !S.adDue || !calm() || !window.__offerOK()) return; for (const k of ["kan", "frost", "mix", "snipe", "ton", "chomp", "tesla", "lock"]) if (S.adDue[k] && !why(k)) { delete S.adDue[k]; late = true; S.intro = true; S.adOpen = true; show(k, true); break; } } catch (e) {} }, 700);
     window.__TT && (window.__TT.ad = { show, close });
   })(); } catch (e) { console.error("ads", e); }
 
