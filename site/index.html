@@ -2668,7 +2668,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V272";
+const GAME_VER = "V273";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -8322,6 +8322,16 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
       return null; };
     window.__TT && (window.__TT.announce = announce); window.__TT && (window.__TT.stats = { list: () => { const L = life(), w = S.wave || 1; return STATS.map((f, i) => { try { return i + ": " + f(w, L); } catch (e) { return i + ": ERR " + e.message; } }); } });
   })(); } catch (e) { console.error("genStat", e); }
+
+  /* V273: 3 s Sperre gegen versehentliches Wegtippen */
+  try { (() => { const IDS = ["ovAd", "ovIntro", "ovBandit", "ovJoin"], was = {}, until = {};
+    const vis = el => el && !el.hidden && getComputedStyle(el).display !== "none";
+    setInterval(() => { const now = performance.now(); for (const id of IDS) { const el = document.getElementById(id); const v = vis(el) || (id === "ovIntro" && document.body.classList.contains("introWin"));
+        if (v && !was[id]) { until[id] = now + 3000; el && el.classList.add("lock3"); }
+        if (el && until[id] && now >= until[id]) { el.classList.remove("lock3"); until[id] = 0; }
+        was[id] = v; } }, 100);
+    document.addEventListener("click", e => { for (const id of IDS) { const el = document.getElementById(id); if (el && el.classList.contains("lock3") && el.contains(e.target)) { e.stopImmediatePropagation(); e.preventDefault(); return; } } }, true);
+  })(); } catch (e) { console.error("lock3", e); }
 })();
 </script>
 
@@ -9066,5 +9076,9 @@ button .lk{font-style:normal;white-space:nowrap}
 #ovMap .mapPlane .biPlane{transform:scaleX(var(--fx,1)) translateZ(0);filter:none!important;animation:biBob 1.4s ease-in-out infinite;will-change:transform}
 #ovMap .mapPlane .biPlane::before{content:"";position:absolute;left:14%;right:10%;bottom:-16%;height:20%;border-radius:50%;background:radial-gradient(ellipse at center,rgba(0,0,0,.28),rgba(0,0,0,0) 70%)}
 @media (prefers-reduced-motion:reduce){#ovMap .mapPlane .biPlane{animation:none}}
+</style>
+
+<style id="v273lock">
+.lock3 button,.lock3 .btn-accent{pointer-events:none!important;opacity:.5;filter:grayscale(.3);transition:opacity .3s}
 </style>
 </body></html>
