@@ -2654,7 +2654,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V241";
+const GAME_VER = "V242";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -4650,7 +4650,7 @@ function update(dt) {
     S.spawnT -= dt;
     if (S.toSpawn > 0 && S.spawnT <= 0 && S.monsters.length < L.monsters) { spawnMonster(); S.toSpawn--; S.spawnT = Math.max(G.spawnMin, G.spawnBase - S.wave * 0.03) * (ffOn() ? 0.5 : 1); }
     if (S.toSpawn === 0 && S.monsters.length === 0) {
-      S.inWave = false; if (S.nuts) nutsLevelDone(); else { S.waveCD = ffOn() ? 3 : G.waveCD; const b = Math.round((20 + 5 * S.wave) * (G.goldMul || 1) * goldTaper() * ordv("waveGoldMul")); S.gold += b; if (S.wave % 20 === 0 && S.wave >= 20) setTimeout(() => { if (S.started && !S.over) showOrders(); }, 5300); LS.set("tarnturm-waves-" + MODE, campTotal() + 1); lvLabel();
+      S.inWave = false; if (S.nuts) nutsLevelDone(); else { S.waveCD = ffOn() ? 3 : G.waveCD; const b = Math.round((20 + 5 * S.wave) * (G.goldMul || 1) * goldTaper() * ordv("waveGoldMul")); S.gold += b; if (S.wave % 20 === 0 && S.wave >= 20) { S.ordDue = S.wave; S.ordDueT = performance.now(); }   /* V242: kommt nach dem Air Drop, vor Wegweiser und Flug */ LS.set("tarnturm-waves-" + MODE, campTotal() + 1); lvLabel();
       if (S.wave % 10 === 0 && !S.cpRun && !S.testRun && S.wave > (+LS.get("tarnturm-cp-" + MODE) || 0)) { LS.set("tarnturm-cp-" + MODE, S.wave); setTimeout(() => toast(`CHECKPOINT · wave ${S.wave} saved`, "HQ", 1800), 5200); } setTimeout(maybeJoin, 5600); { const tg = [8, 14, 22].includes(S.wave) && !(S.tonGift || {})[S.wave];   // V178q: geschenkter Ten-ton drop als Rettungsanker
         if (tg) { S.tonGift = S.tonGift || {}; S.tonGift[S.wave] = 1; S.tons = (S.tons || 0) + 1; S.introQ = S.introQ || []; S.seen = S.seen || {}; if (!S.seen["g:ton"]) S.introQ.push({ t: "gear", k: "ton" }); }
         airDrop(`WAVE ${S.wave} CLEARED`, [["gold", "Gold", "+" + b], ...(tg ? [["ton", "Ten-ton drop", "+1 · in your Pocket"]] : []), ["level", "Level", campTotal() + 1], ["score", "Score", calcScore().toLocaleString("en-US")]]); }
@@ -5075,9 +5075,14 @@ const HK = { phase: "off", t: 0, last: 0 };
 function hkOfferWave(w) { return w >= 6 && w % 20 !== 0 && (w % 6 === 0 || w % 10 === 0); }   // nach jeder 5. Welle
 function hkOfferOn() { return S && S.started && !S.over && (S.hackOfferUntil || 0) > performance.now() && !S.duel && inPlay() && !S.ordersOpen; }
 const HK_OFFER_S = 20;   // V178z6: 20 s
+let hkLastT = 0, hkHeldMs = 0;   // V242: Uhr steht während Szenen/Fenstern
+function hkHold() { return !!(S.mapShow || S.intro || S.drop || S.ordersOpen || S.paused || !inPlay()); }
+function hkSignFirst() { try { const c = NZ_BASES.indexOf(S.wave); return c >= 0 && !S.inWave && !S.nuts && !S.won && !(S.nutsAsk || {})[c]; } catch (e) { return false; } }
 function hkOfferTick() {
-  if (!S || !S.started || S.over) return;
-  if (S.hackPending && !S.drop && !S.ordersOpen && !S.duel && !S.paused && inPlay() && !(S.hackOfferUntil > performance.now())) { S.hackOfferWave = S.hackPending; S.hackPending = 0; S.hackOfferUntil = performance.now() + HK_OFFER_S * 1000; snd("radio"); setTimeout(() => snd("hkTick", 1), 250); const p = $("hackPill"); p.classList.remove("fly"); }
+  if (!S || !S.started || S.over) { hkLastT = 0; return; }
+  { const now = performance.now(), dt = hkLastT ? now - hkLastT : 0; hkLastT = now;
+    if (S.hackOfferUntil > 0 && !S.duel) { if (hkHold()) { S.hackOfferUntil += dt; hkHeldMs += dt; } else { if (hkHeldMs > 1500) S.hackOfferUntil = Math.max(S.hackOfferUntil, now + 8000); hkHeldMs = 0; } } else hkHeldMs = 0; }
+  if (S.hackPending && !S.drop && !S.ordersOpen && !S.duel && !S.paused && !S.intro && !S.mapShow && !S.ordDue && !hkSignFirst() && !(!S.inWave && S.waveCD < 0.6) && inPlay() && !(S.hackOfferUntil > performance.now())) { S.hackOfferWave = S.hackPending; S.hackPending = 0; S.hackOfferUntil = performance.now() + HK_OFFER_S * 1000; snd("radio"); setTimeout(() => snd("hkTick", 1), 250); const p = $("hackPill"); p.classList.remove("fly"); }
   const p = $("hackPill"), on = hkOfferOn();
   if (on) { const left = Math.ceil((S.hackOfferUntil - performance.now()) / 1000), el = $("hpT"); if (el.textContent !== String(left)) { el.textContent = left; if (left <= 3) snd("hkTick", 1); } p.classList.toggle("hot", left <= 3); if (p.hidden) p.hidden = false; }
   else if (!p.hidden && !p.classList.contains("fly")) {
@@ -6174,7 +6179,7 @@ document.addEventListener("visibilitychange", () => { if (document.hidden && S.s
 const MEM = {};
 const LS = { get(k) { try { const v = localStorage.getItem(k); return v === null ? (MEM[k] ?? null) : v; } catch (e) { return MEM[k] ?? null; } }, set(k, v) { MEM[k] = String(v); try { localStorage.setItem(k, v); } catch (e) {} }, del(k) { delete MEM[k]; try { localStorage.removeItem(k); } catch (e) {} } };
 // ---- Spielstand automatisch sichern ----
-const SAVE_KEYS = ["nutsAsk", "nutsDone", "nutsBonus", "gotSplat", "spW", "spT", "hkMissed", "tonGift", "tonIntroGift", "introQ", "chomps", "tons", "locks", "hackDone", "rotDone", "rotMode", "rotT", "gold", "lives", "wave", "lines", "kills", "score", "toSpawn", "spawnT", "spawnIdx", "inWave", "waveCD", "waveTotal", "waveLeaks", "gravT", "playT", "builtOnce", "goldMark", "killMark", "lowLifeSaid", "veteran", "towersBuilt", "totalSpawned", "seen", "pieceNo", "lineStreak", "scoreMark", "snipes", "mixers", "teslas", "ff", "cpRun", "speed", "medals", "medalProg", "sweeps", "sendIts", "testRun", "medDone", "ord", "ordersOpen", "lockCharge", "lockT", "lockLines"];
+const SAVE_KEYS = ["ordDue", "hackPending", "nutsAsk", "nutsDone", "nutsBonus", "gotSplat", "spW", "spT", "hkMissed", "tonGift", "tonIntroGift", "introQ", "chomps", "tons", "locks", "hackDone", "rotDone", "rotMode", "rotT", "gold", "lives", "wave", "lines", "kills", "score", "toSpawn", "spawnT", "spawnIdx", "inWave", "waveCD", "waveTotal", "waveLeaks", "gravT", "playT", "builtOnce", "goldMark", "killMark", "lowLifeSaid", "veteran", "towersBuilt", "totalSpawned", "seen", "pieceNo", "lineStreak", "scoreMark", "snipes", "mixers", "teslas", "ff", "cpRun", "speed", "medals", "medalProg", "sweeps", "sendIts", "testRun", "medDone", "ord", "ordersOpen", "lockCharge", "lockT", "lockLines"];
 function buildSave() {
   if (!S.started || S.over) return null;
   const pc = p => p && { k: p.k, cells: p.cells, x: p.x, y: p.y, col: p.col, tnt: p.tnt };
@@ -7353,7 +7358,7 @@ $("signNuts").addEventListener("click", () => { SFX.init(); const c = (S.signOpe
 setInterval(() => {
   if (typeof S === "undefined" || !S || !S.started || S.over || S.nuts || S.won || S.paused || S.intro || S.drop || S.ordersOpen || S.duel || S.inWave || !ovRes.hidden) return;
   const c = NZ_BASES.indexOf(S.wave); if (c < 0 || (S.nutsAsk || {})[c]) return;
-  if (S.toSpawn > 0 || S.monsters.length || S.hackPending || hkOfferOn() || !inPlay()) return;
+  if (S.toSpawn > 0 || S.monsters.length || S.ordDue || hkOfferOn() || !inPlay()) return;
   showSign(c);
 }, 500);
 
@@ -7895,6 +7900,18 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
         else if (b.id === "devSpec") { const x = document.getElementById("btnSpecials"); if (x) x.click(); }
         else if (b.id === "devZero") { const x = document.getElementById("btn711Test"); if (x) x.click(); } });
       document.getElementById("devWave").addEventListener("keydown", e => { e.stopPropagation(); if (e.key === "Enter") go(+e.target.value); }); } } catch (e) { console.error("devBar", e); }
+
+  /* V242: Reihenfolge am Wellenende – Air Drop → Wild Cards → Wegweiser → Feier/Flug */
+  try {
+    const ordFree = () => S && S.started && !S.over && !S.nuts && !S.drop && !S.intro && !S.duel && !S.paused && !S.mapShow && !S.ordersOpen && inPlay();
+    setInterval(() => { try { if (!S || !S.ordDue || !ordFree()) return; if (performance.now() - (S.ordDueT || 0) < 1200) return; S.ordDue = 0; showOrders(); } catch (e) {} }, 300);
+    const _swG = startWave; startWave = function () {
+      try { if (S && S.started && !S.over && !S.nuts && !S.inWave) {
+          if (S.ordDue) { if (ordFree()) { S.ordDue = 0; showOrders(); } return; }
+          if (hkSignFirst()) { if (!S.drop && !S.intro && !S.duel && !S.paused && inPlay() && !hkOfferOn()) showSign(NZ_BASES.indexOf(S.wave)); if (!hkOfferOn()) return; }
+        } } catch (e) {}
+      return _swG.apply(this, arguments); };
+  } catch (e) { console.error("v242", e); }
 })();
 </script>
 
