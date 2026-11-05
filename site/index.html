@@ -2668,7 +2668,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V245";
+const GAME_VER = "V246";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -2905,14 +2905,14 @@ const DAY = [
 const NUTS_D = { t: "", n: "NUTS", th: "moon", field: "rgba(52,18,14,.42)", f: "sepia(.2) saturate(1.35) brightness(.92) hue-rotate(-10deg)", night: .12, tint: "linear-gradient(180deg,rgba(210,40,30,.34),rgba(90,12,10,.22))" };
 function wherePos(w) { w = Math.max(1, w | 0); const c = Math.min(CONTS.length - 1, Math.floor((w - 1) / 30)), r = (w - 1) % 30, p = Math.floor(r / 5), d = r % 5; return { c, p, d, cont: CONTS[c], place: CONTS[c][2][p] }; }
 let skyKey = "";
-const PLACE_BG = { africa: [0, 1, 2, 3, 4, 5].map(i => `bg/pl_africa_${i}.webp`), asia: [0, 1, 2, 3, 4, 5].map(i => `bg/pl_asia_${i}.webp`) };   // V178z14: eigene Hintergründe je Ort
+const PLACE_BG = Object.fromEntries(["samerica", "africa", "asia", "namerica", "antarctica"].map(k => [k, [0, 1, 2, 3, 4, 5].map(i => `bg/pl_${k}_${i}.webp`)]));   // V246: alle 5 Kontinente   // V178z14: eigene Hintergründe je Ort
 function syncSky() {
   const sky = document.getElementById("sky"); if (!sky) return;
   const live = typeof S !== "undefined" && S && S.started && !S.over;
   const P = wherePos(live ? S.wave || 1 : 1), D = live ? (S.nuts ? NUTS_D : DAY[P.d]) : DAY[1];
   const key = P.cont[0] + "|" + P.p + "|" + (live ? (S.nuts ? "nuts" : P.d) : "menu");
   if (key === skyKey) return; skyKey = key;
-  const im = SKY_BG[P.cont[0]], pl = (PLACE_BG[P.cont[0]] || [])[P.p];
+  const im = SKY_BG[P.cont[0]], pl = (PLACE_BG[P.c === 4 ? "antarctica" : P.cont[0]] || [])[P.p];
   sky.querySelector(".day").style.backgroundImage = pl ? `url(${pl}), url(${im[0]})` : `url(${im[0]})`;
   sky.querySelector(".night").style.backgroundImage = `url(${im[1]})`;
   sky.style.setProperty("--skyF", live ? D.f : "brightness(.75) saturate(.9)");
@@ -7812,7 +7812,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
       at(5850, () => { me.classList.remove("fly"); drawPins(P.g); const pin = pinsEl.querySelector(`.mPin[data-g="${P.g}"]`); pin && pin.classList.add("pop");
         label(contName(P.c), `Welcome to ${newN}!`, P.p === 5 ? "The landmark · the boss lives here" : `Waves ${w}–${w + 4}`); fx("tonHit"); setTimeout(() => fx("powerup"), 120); setTimeout(() => fx("coin"), 420); });
       at(8600, hide); }
-    function playCont(w, done) { const P = posOf(w), oc = Math.max(0, P.c - 1); seqDone = done; show("auto"); drawPins(P.g); setMe(MAP_PTS[oc][5], true);
+    function playCont(w, done) { const P = posOf(w), oc = Math.max(0, P.c - 1); let arrC = null; seqDone = () => { try { arrC && arrC.remove(); } catch (e) {} if (done) done(); }; show("auto"); drawPins(P.g); setMe(MAP_PTS[oc][5], true);
       label(contName(oc), "Continent cleared!", `Next: ${contName(P.c)}`); go(contCam(oc), 0);
       const end = celebrate(`${contName(oc)} CLEARED!`, `Continent ${P.c} of 5 · the world tour goes on`);
       at(2400, end);
@@ -7820,8 +7820,10 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
       at(4400, () => { label("", "Flying to " + nice(contName(P.c)), ""); fx("engine"); whoosh(); flyPlane(cen(oc), cen(P.c), 3000); });
       at(5600, whoosh);
       at(7200, () => { go(contCam(P.c), 1300); });
-      at(8600, () => { setMe(MAP_PTS[P.c][0], true); label(contName(P.c), `Welcome to ${nice(contName(P.c))}!`, `First stop: ${nice(CONTS[P.c][2][0])}`); fx("tonHit"); setTimeout(() => fx("powerup"), 120); setTimeout(() => fx("coin"), 420); });
-      at(11000, hide); }
+      at(8600, () => { setMe(MAP_PTS[P.c][0], true); label(contName(P.c), `Welcome to ${nice(contName(P.c))}!`, `First stop: ${nice(CONTS[P.c][2][0])}`); fx("tonHit");
+        const ak = ["samerica", "africa", "asia", "namerica", "antarctica"][P.c];
+        if (ak && P.c > 0) setTimeout(() => { try { if (!seqDone) return; arrC = document.createElement("div"); arrC.className = "mapArrive"; arrC.innerHTML = `<img src="img/arrive_${ak}.webp" alt=""><div class="maTxt"><small>WORLD TOUR · CONTINENT ${P.c + 1} OF 5</small><b>${contName(P.c)}</b><span>${nice(CONTS[P.c][2][0])} · wave ${w}</span></div>`; ov.appendChild(arrC); requestAnimationFrame(() => arrC.classList.add("on")); } catch (e) {} }, 700); setTimeout(() => fx("powerup"), 120); setTimeout(() => fx("coin"), 420); });
+      at(12600, hide); }
     function playIntro(done) { let arr = null;
       seqDone = () => { try { arr && arr.remove(); } catch (e) {} try { if (SFX.music.playing < 1) SFX.music.start(1); } catch (e) {} if (done) done(); };
       show("auto"); drawPins(-1); setMe(MAP_PTS[0][0], false); label("", "The world tour begins", "5 continents · 30 places · 150 waves");
