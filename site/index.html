@@ -2668,7 +2668,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V266";
+const GAME_VER = "V267";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -5099,7 +5099,7 @@ function hkOfferTick() {
   if (!S || !S.started || S.over) { hkLastT = 0; return; }
   { const now = performance.now(), dt = hkLastT ? now - hkLastT : 0; hkLastT = now;
     if (S.hackOfferUntil > 0 && !S.duel) { if (hkHold()) { S.hackOfferUntil += dt; hkHeldMs += dt; } else { if (hkHeldMs > 1500) S.hackOfferUntil = Math.max(S.hackOfferUntil, now + 8000); hkHeldMs = 0; } } else hkHeldMs = 0; }
-  if (S.hackPending && !S.drop && !S.ordersOpen && !S.duel && !S.paused && !S.intro && !S.mapShow && !S.ordDue && !hkSignFirst() && !(!S.inWave && S.waveCD < 0.6) && inPlay() && !(S.hackOfferUntil > performance.now()) && window.__offerOK(S.wave >= S.hackPending + 2)) { window.__offerLast = performance.now(); S.hackOfferWave = S.hackPending; S.hackPending = 0; S.hackOfferUntil = performance.now() + HK_OFFER_S * 1000; snd("radio"); setTimeout(() => snd("hkTick", 1), 250); const p = $("hackPill"); p.classList.remove("fly"); }
+  if (S.hackPending && !S.drop && !S.ordersOpen && !S.duel && !S.paused && !S.intro && !S.mapShow && !S.ordDue && !hkSignFirst() && !(!S.inWave && S.waveCD < 0.6) && inPlay() && !(S.hackOfferUntil > performance.now()) && window.__offerOK()) { window.__offerLast = performance.now(); S.hackOfferWave = S.hackPending; S.hackPending = 0; S.hackOfferUntil = performance.now() + HK_OFFER_S * 1000; snd("radio"); setTimeout(() => snd("hkTick", 1), 250); const p = $("hackPill"); p.classList.remove("fly"); }
   const p = $("hackPill"), on = hkOfferOn();
   if (on) { const left = Math.ceil((S.hackOfferUntil - performance.now()) / 1000), el = $("hpT"); if (el.textContent !== String(left)) { el.textContent = left; if (left <= 3) snd("hkTick", 1); } p.classList.toggle("hot", left <= 3); if (p.hidden) p.hidden = false; }
   else if (!p.hidden && !p.classList.contains("fly")) {
