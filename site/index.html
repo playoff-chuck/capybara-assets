@@ -2668,7 +2668,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V243";
+const GAME_VER = "V244";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -4061,6 +4061,7 @@ function msgPush(m) {
   msgTick();
 }
 function msgTick() {
+  if (S && S.won && S.over) { MSGQ.length = 0; return; }   // V244
   if (msgBusy > performance.now() || !MSGQ.length) return;
   if (S && S.drop) { const now = performance.now(); if (!S._dropAt) S._dropAt = now; if (now - S._dropAt < 9000) { setTimeout(msgTick, 400); return; } S.drop = false; }   // V193: Air Drop hat Vorrang, dann weiter (nicht liegen bleiben)
   if (S) S._dropAt = 0;
@@ -4668,7 +4669,7 @@ function update(dt) {
       if (S.wave % 10 === 0 && !S.cpRun && !S.testRun && S.wave > (+LS.get("tarnturm-cp-" + MODE) || 0)) { LS.set("tarnturm-cp-" + MODE, S.wave); setTimeout(() => toast(`CHECKPOINT · wave ${S.wave} saved`, "HQ", 1800), 5200); } setTimeout(maybeJoin, 5600); { const tg = [8, 14, 22].includes(S.wave) && !(S.tonGift || {})[S.wave];   // V178q: geschenkter Ten-ton drop als Rettungsanker
         if (tg) { S.tonGift = S.tonGift || {}; S.tonGift[S.wave] = 1; S.tons = (S.tons || 0) + 1; S.introQ = S.introQ || []; S.seen = S.seen || {}; if (!S.seen["g:ton"]) S.introQ.push({ t: "gear", k: "ton" }); }
         airDrop(`WAVE ${S.wave} CLEARED`, [["gold", "Gold", "+" + b], ...(tg ? [["ton", "Ten-ton drop", "+1 · in your Pocket"]] : []), ["level", "Level", campTotal() + 1], ["score", "Score", calcScore().toLocaleString("en-US")]]); }
-      if (hkOfferWave(S.wave)) S.hackPending = S.wave;   // Boss-Banner kommt, sobald Air Drop / Orders vorbei sind
+      if (hkOfferWave(S.wave) && S.wave < 150) S.hackPending = S.wave;   // Boss-Banner kommt, sobald Air Drop / Orders vorbei sind
       if (S.wave % 5 === 0) praise(`WAVE ${S.wave}!`, 4, S.wave >= 10 ? "Legendary!" : "Dominating!");
       else if (S.waveLeaks === 0 && S.lives <= 2) praise("COMEBACK!", 3, "Comeback!");
       else if (S.waveLeaks === 0) { if (S.wave % 2) praise("FLAWLESS!", 2, "Flawless!"); else praise("CLEAN SWEEP", 2, "Clean sweep!"); }
@@ -5735,7 +5736,7 @@ function drawNext() { if (!S) return; drawPieceTo("nextCv", S.next); drawPieceTo
 let hudT = 0, toastT = null, saveT = 5;
 function hud() {
   medalTag();
-  { const po = $("ovPause"), want = !!(S.paused && !S.mapShow && S.started && !S.over && $("ovStart").hidden && $("ovCamp").hidden && $("ovOver").hidden); if (po.classList.contains("overMode")) { if (!S.over) { po.classList.remove("overMode"); po.hidden = !want; } } else if (po.hidden === want) { po.hidden = !want; if (!want) restartArm = 0; } }
+  { const po = $("ovPause"), want = !!(S.paused && !S.mapShow && !S.won && S.started && !S.over && $("ovStart").hidden && $("ovCamp").hidden && $("ovOver").hidden); if (po.classList.contains("overMode")) { if (!S.over) { po.classList.remove("overMode"); po.hidden = !want; } } else if (po.hidden === want) { po.hidden = !want; if (!want) restartArm = 0; } }
   const L = limits(Math.max(1, S.wave));
   $("sLives").textContent = S.lives; $("sGold").textContent = S.gold; $("sWave").textContent = S.wave; $("sScore").textContent = S.score.toLocaleString("en-US");
   $("sLines").textContent = S.lines; $("sKills").textContent = S.kills;
@@ -5765,7 +5766,7 @@ function hud() {
   const gi = gravityInterval(), tp = Math.max(0.06, Math.min(1, (1.05 - gi) / 0.95));
   $("tempoBar").style.width = (tp * 100).toFixed(0) + "%";
   const ban = $("banner");
-  const txt = S.alert ? "" : S.drop ? "" : S.mapShow ? "" : S.paused ? "Paused" : S.mode === "build" ? "Place tower · tap a block" : S.mode === "snipe" ? "Sniper · tap the target" : S.mode === "mix" ? "Mixer · tap a hole" : S.mode === "tesla" ? "Tesla · tap the target" : S.mix ? "Pouring concrete…" : S.sel ? "Paused · tower menu" : "";
+  const txt = S.alert ? "" : S.drop ? "" : (S.mapShow || S.won) ? "" : S.paused ? "Paused" : S.mode === "build" ? "Place tower · tap a block" : S.mode === "snipe" ? "Sniper · tap the target" : S.mode === "mix" ? "Mixer · tap a hole" : S.mode === "tesla" ? "Tesla · tap the target" : S.mix ? "Pouring concrete…" : S.sel ? "Paused · tower menu" : "";
   ban.hidden = !txt || !S.started || S.over; ban.textContent = txt;
 }
 let tickerT = null;
@@ -6809,8 +6810,16 @@ function albCount(k, v, absolute) {
 }
 function albRank(m) { const id = m.id || ""; if (/^or/.test(id)) return 9; if (/^n[zd]/.test(id)) return 7; if (/^pl/.test(id)) return 5; return 1 + (+id.slice(-1) || 0); }
 function albTake() { const all = albQ.splice(0); all.sort((a, b) => albRank(b) - albRank(a)); return all.slice(0, 3); }   // höchstens 3 zusammen, die unwichtigsten fallen weg (bleiben im Album)
+function finMedals(ms) {   // V244
+  const st = $("ovOver").querySelector(".aarStats"); if (!st || !ms.length) return;
+  let box = $("finMedals"); if (!box) { box = document.createElement("div"); box.id = "finMedals"; box.innerHTML = '<small></small><div class="fmRow"></div>'; st.insertAdjacentElement("afterend", box); }
+  const row = box.querySelector(".fmRow"); ms.sort((a, b) => albRank(b) - albRank(a));
+  for (const m of ms) { const d = document.createElement("span"); d.className = "fm " + (m.tint || ""); d.innerHTML = `<img src="${MED_IMG[m.img]}" alt=""><b></b>`; d.querySelector("b").textContent = m.name; row.appendChild(d); }
+  const n = row.children.length; box.querySelector("small").textContent = n === 1 ? "NEW MEDAL" : n > 4 ? `${n} NEW MEDALS · all in your album` : `${n} NEW MEDALS`; box.hidden = false; try { snd("powerup"); } catch (e) {}
+}
 function albTry() {
   if (!albQ.length || !$("ovGive").hidden) return;
+  if (typeof S !== "undefined" && S && S.won) { if (!$("ovOver").hidden) finMedals(albQ.splice(0)); return; }   // V244: Finale zuerst, Orden stehen auf der Karte
   if (performance.now() - (window.__waveEndT || 0) < 1600) return;   // erst schauen, ob Feldpost kommt
   if (performance.now() - (window.__waveEndT || 0) < 9000 && typeof S !== "undefined" && S && S.started && !S.over) { const ms = albTake(); if (ms.length === 1) announce("🎖 NEW MEDAL: " + ms[0].name.toUpperCase(), ms[0].line + " · well deserved!", "HQ", 2800); else announce(`🎖 ${ms.length} NEW MEDALS`, ms.map(x => x.name).join(" · ") + " · well deserved!", "HQ", 3200); try { medalHello(); } catch (e) {} return; }
   { const cr = $("crate"); if (cr && !cr.hidden && cr.classList.contains("gift")) {   // Sammelmeldung: Orden in die Feldpost des Generals
@@ -7312,7 +7321,7 @@ try { for (const m of ["pro", "nuts"]) { if (!LS.get("tarnturm-cp-" + m)) { cons
 // V179: Welt-Tour geschafft – nach Welle 150 kommt das Finale
 (() => { const ov = document.getElementById("ovOver"), img = document.createElement("img"); img.className = "finImg"; img.alt = "World tour complete"; img.src = "fin/finale2.webp";
   const t = document.getElementById("overTitle"); if (t && t.parentElement) t.parentElement.insertBefore(img, t);
-  const _g = gameOver; gameOver = function () { const r = _g.apply(this, arguments); try { ov.classList.toggle("won", !!(S && S.won)); if (S && S.won) {
+  const _g = gameOver; gameOver = function () { const r = _g.apply(this, arguments); try { const fm = document.getElementById("finMedals"); if (fm) { fm.hidden = true; fm.querySelector(".fmRow").innerHTML = ""; } } catch (e) {} try { ov.classList.toggle("won", !!(S && S.won)); if (S && S.won) {
       $("overTitle").textContent = "WORLD TOUR COMPLETE!"; const md = $("overMode"); if (md) md.textContent = "ALL 150 WAVES · 5 CONTINENTS";
       const c = ov.querySelector(".comfort b"), s = ov.querySelector(".comfort small"); if (c) c.textContent = "We did it! Around the whole world – you are my hero!"; if (s) s.textContent = (buddyKey() === "rosie" ? "ROSIE" : "BLUE") + " SAYS";
       try { SFX.say("godlike"); snd("hkWin"); } catch (e) {} } } catch (e) {} return r; };
@@ -7849,7 +7858,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     { const pr = document.getElementById("btnPResume"); if (pr) { const b = document.createElement("button"); b.type = "button"; b.id = "btnPMap"; b.className = "btn-small"; b.innerHTML = PIN_SVG + "<span>WORLD MAP</span>"; pr.insertAdjacentElement("afterend", b); b.addEventListener("click", e => { e.stopPropagation(); openMap(); }); } }
     { const st = document.querySelector("#ovOver .aarStats"); if (st) { const b = document.createElement("button"); b.type = "button"; b.id = "btnOMap"; b.className = "btn-small"; st.insertAdjacentElement("afterend", b);
         b.addEventListener("click", () => { let w = 1; try { w = Math.max(1, S.wave || 1); } catch (e) {} openMap(w, "over"); });
-        new MutationObserver(() => { const o = document.getElementById("ovOver"); if (o && !o.hidden) { let w = 1; try { w = Math.max(1, S.wave || 1); } catch (e) {} const P = wherePos(w); b.innerHTML = PIN_SVG + `<span>You reached <b>${nice(P.place)}</b> · map</span>`; } }).observe(document.getElementById("ovOver"), { attributes: true, attributeFilter: ["hidden"] }); } }
+        new MutationObserver(() => { const o = document.getElementById("ovOver"); if (o && !o.hidden) { let w = 1; try { w = Math.max(1, S.wave || 1); } catch (e) {} const P = wherePos(w); b.innerHTML = PIN_SVG + ((() => { try { return S && S.won; } catch (e) { return false; } })() ? `<span><b>Your world tour</b> · map</span>` : `<span>Reached <b>${nice(P.place)}</b> · map</span>`); } }).observe(document.getElementById("ovOver"), { attributes: true, attributeFilter: ["hidden"] }); } }
     addEventListener("resize", () => { if (!ov.hidden) { layout(); apply(0); } });
     window.__TT && Object.assign(window.__TT, { openMap, playPlace: w => playPlace(w, null), playCont: w => playCont(w, null), playIntro: () => playIntro(null), mapCam: () => cam });
   } catch (e) { console.warn("map", e); }
@@ -8474,5 +8483,20 @@ button .lk{font-style:normal;white-space:nowrap}
 </style>
 <style id="v241">
 .finImg{aspect-ratio:16/9;height:auto!important;max-height:26vh;object-fit:cover;object-position:50% 45%!important}
+</style>
+<style id="v244">
+#finMedals{align-self:stretch;box-sizing:border-box;margin:6px 0 0;padding:5px 6px 6px;background:#fff;border:3px solid #3a2414;border-radius:14px;box-shadow:0 3px 0 #3a2414;text-align:center}
+#finMedals[hidden]{display:none}
+#finMedals small{display:block;font:900 10px/1.2 var(--f-ui,system-ui);letter-spacing:.08em;color:#b0328c;margin-bottom:3px}
+#finMedals .fmRow{display:flex;justify-content:center;gap:4px}
+#finMedals .fm{display:flex;flex-direction:column;align-items:center;gap:1px;min-width:0;flex:0 1 25%}
+#finMedals .fm:nth-child(n+5){display:none}
+#finMedals .fm img{width:34px;height:34px;object-fit:contain;animation:fmPop .5s cubic-bezier(.2,1.5,.4,1) both}
+#finMedals .fm:nth-child(2) img{animation-delay:.12s}#finMedals .fm:nth-child(3) img{animation-delay:.24s}#finMedals .fm:nth-child(4) img{animation-delay:.36s}
+#finMedals .fm b{font:800 10px/1.1 var(--f-ui,system-ui);color:#3a2414;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@keyframes fmPop{0%{transform:scale(.2) rotate(-25deg);opacity:0}100%{transform:none;opacity:1}}
+#btnOMap{letter-spacing:0!important}
+#ovOver.won{overflow-y:auto!important;justify-content:safe center!important}
+@media (max-height:800px){#ovOver.won .finImg{max-height:16vh!important}#finMedals{padding:3px 6px 4px}#finMedals .fm img{width:28px;height:28px}}
 </style>
 </body></html>
