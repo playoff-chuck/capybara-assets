@@ -2668,7 +2668,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V262";
+const GAME_VER = "V263";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -7786,11 +7786,11 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
         label(contName(best), best * 6 > g ? "Not yet reached" : nice(CONTS[best][2][Math.min(5, Math.max(0, g - best * 6))]), best * 6 > g ? `Arrive at wave ${best * 30 + 1}` : `${done} of 6 places cleared`); try { snd("uiTap"); } catch (er) {} } });
     /* automatische Szenen */
     ov.addEventListener("click", () => { if (mode === "auto") hide(); });
-    function flyPlane(a, b, ms) { plane.classList.add("on"); const t0 = performance.now(), ang = Math.atan2((b[1] - a[1]) * MAP_AR, b[0] - a[0]) * 180 / Math.PI;
-      const step = now => { if (mode !== "auto") return; const t = Math.min(1, (now - t0) / ms), e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2, x = a[0] + (b[0] - a[0]) * e, y = a[1] + (b[1] - a[1]) * e - Math.sin(Math.PI * e) * .12;
+    function flyPlane(a, b, ms) { const t0 = performance.now(), ang = Math.atan2((b[1] - a[1]) * MAP_AR, b[0] - a[0]) * 180 / Math.PI;
+      const step = now => { if (mode !== "auto") return; const t = Math.min(1, (now - t0) / ms), e = 0.5 - Math.cos(Math.PI * t) / 2, x = a[0] + (b[0] - a[0]) * e, y = a[1] + (b[1] - a[1]) * e - Math.sin(Math.PI * e) * .12;
         plane.style.setProperty("--px", (x) * BW + "px"); plane.style.setProperty("--py", (y) * BW * MAP_AR + "px"); { const dx = b[0] - a[0], dy = (b[1] - a[1]) * MAP_AR - Math.cos(Math.PI * e) * 0.12 * Math.PI * MAP_AR, right = dx >= 0, tilt = Math.max(-25, Math.min(25, Math.atan2(dy, Math.abs(dx) + 1e-6) * 180 / Math.PI));
-          plane.style.setProperty("--a", (right ? tilt : -tilt) + "deg"); plane.style.setProperty("--fx", right ? -1 : 1); } if (t < 1) requestAnimationFrame(step); else plane.classList.remove("on"); };
-      requestAnimationFrame(step); try { window.__planeSnd && window.__planeSnd(ms, a[0] > 1 || a[0] < 0); } catch (e) {} }
+          plane.style.setProperty("--a", (right ? tilt : -tilt) + "deg"); plane.style.setProperty("--fx", right ? -1 : 1); } plane.classList.add("on"); if (t < 1) requestAnimationFrame(step); else plane.classList.remove("on"); };
+      step(t0); try { window.__planeSnd && window.__planeSnd(ms, a[0] > 1 || a[0] < 0); } catch (e) {} }
     const cen = c => { const P = MAP_PTS[c]; return [P.reduce((a, p) => a + p[0], 0) / 6, P.reduce((a, p) => a + p[1], 0) / 6]; };
     function hopMe(a, b, ms) { const t0 = performance.now(); me.classList.add("on", "hop");
       const step = now => { if (mode !== "auto") return; const t = Math.min(1, (now - t0) / ms), x = a[0] + (b[0] - a[0]) * t, y = a[1] + (b[1] - a[1]) * t - Math.sin(Math.PI * t) * .09;
@@ -8063,7 +8063,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
       $a("adPic").style.backgroundImage = `url(${sale ? a.sale : a.img})`; $a("adTag").textContent = sale ? "SALE" : a.tag; $a("adWave").textContent = `WAVE ${S.wave}`;
       $a("adPrice").textContent = k === "ton" ? "1 FREE" : `${price(k)} GOLD`; $a("adName").textContent = d[0].toUpperCase(); $a("adLine").textContent = sale && a.sline ? a.sline : a.line;
       $a("adMet").innerHTML = d[2]().filter(x => !/gold|free/i.test(x)).slice(0, 3).map(x => `<span>${x}</span>`).join("");
-      lastW = why(k); paint(); $("ovIntro").hidden = true; ov.hidden = false; requestAnimationFrame(() => ov.classList.add("on"));
+      lastW = why(k); paint(); window.__adLast = performance.now(); $("ovIntro").hidden = true; ov.hidden = false; requestAnimationFrame(() => ov.classList.add("on"));
       try { snd("radio"); } catch (e) {} }
     function close(bought) { ov.classList.remove("on"); ov.hidden = true; const k = cur; cur = null; if (late) { late = false; S.intro = false; S.adOpen = false; } else try { closeIntro(); } catch (e) {}
       if (bought) try { toast(`${INTRO_GEAR[k][0].toUpperCase()} · ${TOWERW[k] ? "mounted on your tower" : "in your Pocket"}`, "ARMORY", 2000); } catch (e) {} }
@@ -8079,13 +8079,14 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     showIntro = function (q) { const r = _si.apply(this, arguments);
       try { if (q && q.t === "gear" && AD[q.k] && (S.wave || 0) <= 14 && !S.nuts) {
           S.adDue = S.adDue || {};
-          if (q.k === "ton") { show("ton", false); S.adDue.ton = 1; }                       // Geschenk sofort, Sale später (600 Gold)
-          else if (!why(q.k)) show(q.k, true);                                              // sofort nutzbar → gleich als Sale
+          const recent = performance.now() - (window.__adLast || -1e9) < 45000;
+          if (q.k === "ton") { if (!recent) show("ton", false); S.adDue.ton = 1; }                       // Geschenk sofort, Sale später (600 Gold)
+          else if (!why(q.k) && !recent) show(q.k, true);                                              // sofort nutzbar → gleich als Sale
           else { S.adDue[q.k] = 1; $("ovIntro").hidden = true; try { closeIntro(); } catch (e) {} }   // sonst später, wenn nutzbar
         } } catch (e) { console.error("ad", e); } return r; };
     const calm = () => S && S.started && !S.over && !S.nuts && !S.testRun0 && !S.intro && !S.drop && !S.alert && !S.ordersOpen && !S.duel && !S.mapShow && !S.mapFly && !S.signOpen && !S.joinOpen
       && !S.mode && !S.sel && !S.shop && !S.paused && !S.mix && !S.banditOpen && !(typeof TUT !== "undefined" && TUT.on) && !(typeof hkOfferOn === "function" && hkOfferOn()) && (typeof inPlay !== "function" || inPlay()) && !document.hidden && ov.hidden;
-    setInterval(() => { try { if (!S || !S.adDue || !calm()) return; for (const k of ["kan", "frost", "mix", "snipe", "ton"]) if (S.adDue[k] && !why(k)) { delete S.adDue[k]; late = true; S.intro = true; S.adOpen = true; show(k, true); break; } } catch (e) {} }, 700);
+    setInterval(() => { try { if (!S || !S.adDue || !calm() || performance.now() - (window.__adLast || -1e9) < 45000) return; for (const k of ["kan", "frost", "mix", "snipe", "ton"]) if (S.adDue[k] && !why(k)) { delete S.adDue[k]; late = true; S.intro = true; S.adOpen = true; show(k, true); break; } } catch (e) {} }, 700);
     window.__TT && (window.__TT.ad = { show, close });
   })(); } catch (e) { console.error("ads", e); }
 
@@ -8951,5 +8952,12 @@ button .lk{font-style:normal;white-space:nowrap}
 #ovBandit .bdRes{position:absolute;left:12%;right:12%;bottom:31%;height:auto;min-height:0;margin:0!important;padding:6px 8px;border-radius:14px;z-index:4;pointer-events:none}
 #ovBandit.win .bdRes{background:rgba(255,246,230,.94);box-shadow:0 0 0 3px #3a2a1a,0 6px 14px rgba(0,0,0,.3)}
 #ovBandit #bdGo{margin-top:8px}
+</style>
+
+<style id="v263plane">
+#ovMap .mapPlane{filter:none!important;backface-visibility:hidden}
+#ovMap .mapPlane .biPlane{transform:scaleX(var(--fx,1)) translateZ(0);filter:none!important;animation:biBob 1.4s ease-in-out infinite;will-change:transform}
+#ovMap .mapPlane .biPlane::before{content:"";position:absolute;left:14%;right:10%;bottom:-16%;height:20%;border-radius:50%;background:radial-gradient(ellipse at center,rgba(0,0,0,.28),rgba(0,0,0,0) 70%)}
+@media (prefers-reduced-motion:reduce){#ovMap .mapPlane .biPlane{animation:none}}
 </style>
 </body></html>
