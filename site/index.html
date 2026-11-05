@@ -1,5 +1,5 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<script>try{if(localStorage.getItem("capy-reset")!=="276"){var rk=[];for(var ri=0;ri<localStorage.length;ri++){var rkk=localStorage.key(ri);if(rkk&&/^(tarnturm|capy)/.test(rkk)&&rkk!=="tarnturm-dev")rk.push(rkk);}rk.forEach(function(k){localStorage.removeItem(k);});localStorage.setItem("capy-reset","276");}}catch(e){}
+<script>try{if(localStorage.getItem("capy-reset")!=="276"){var rk=[];for(var ri=0;ri<localStorage.length;ri++){var rkk=localStorage.key(ri);if(rkk&&/^(tarnturm|capy)/.test(rkk)&&rkk!=="tarnturm-dev"&&rkk!=="capy-cloud")rk.push(rkk);}rk.forEach(function(k){localStorage.removeItem(k);});localStorage.setItem("capy-reset","276");}}catch(e){}
 try{["img/d328f1a428.webp","img/b6f38631c6.webp","img/2510465d7d.webp","img/e24cf5d037.webp"].forEach(function(u){var i=new Image();i.src=u;if(i.decode)i.decode().catch(function(){});(window.__PRE0=window.__PRE0||[]).push(i);});}catch(e){}</script><link rel="preload" as="image" href="img/d328f1a428.webp"><link rel="preload" as="image" href="img/b6f38631c6.webp"><link rel="preload" as="image" href="img/2510465d7d.webp"><link rel="preload" as="image" href="img/logo_main.webp?v=227"><link rel="preload" as="image" href="img/mixer_big.webp"><link rel="preload" as="image" href="img/worldmap.webp"><link rel="preload" as="image" href="img/arrive_samerica.webp"><title>Capybara Squad</title><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#2b3a22"><link rel="apple-touch-icon" href="icons/icon-192.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preload" href="fonts/bangers-400-latin.woff2" as="font" type="font/woff2" crossorigin>
@@ -2354,7 +2354,7 @@ body.inNuts #btnPRestart{display:none!important}
   <div class="heroPick" id="heroPickJoin"><div class="hpHead">YOUR HERO</div><div class="hpRow"><button class="hpAv" data-hero="blue" aria-label="Play as Blue"><img alt=""><b>BLUE</b></button><button class="hpAv" data-hero="rosie" aria-label="Play as Rosie"><img alt=""><b>ROSIE</b></button></div><div class="hpSub"></div></div>
   <label for="joinNick">YOUR PLAYER NAME · optional · made up, never your real name</label>
   <div class="joinNickRow"><input id="joinNick" type="text" maxlength="14" autocomplete="off" spellcheck="false" placeholder="e.g. CapyKing"><button type="button" class="btn-small" id="joinDice" aria-label="New name idea">🎲</button></div>
-  <p class="joinSmall">No name? You get a number like <b>Blue 00042</b>. By playing on you agree that your player name, hero and scores are saved and shown to other players on the world high-score list. Your game progress stays on this device. We collect no other personal data. Voice lines and sounds are entertainment only.</p>
+  <p class="joinSmall">No name? You get a number like <b>Blue 00042</b>. By playing on you agree that your player name, hero and scores are saved and shown to other players on the world high-score list. Your progress is backed up under a random code (☁ Cloud save) – no name, no e-mail. We collect no other personal data. Voice lines and sounds are entertainment only.</p>
   <button class="btn-accent btn-big" id="joinOk">Let's go! ▶</button>
 </div></div>
       <div class="overlay joinOv" id="ovSettings" hidden><div class="joinBox">
@@ -2380,7 +2380,7 @@ body.inNuts #btnPRestart{display:none!important}
             <label class="pvRow"><span>Effects</span><input type="range" min="0" max="100" step="5" data-ch="f"><b></b></label>
             <label class="pvRow"><span>Voice</span><input type="range" min="0" max="100" step="5" data-ch="v"><b></b></label>
           </div>
-          <button id="btnPSound" class="pSound" hidden>Sound: on</button><button id="btnPFb">Send feedback</button>
+          <button id="btnPSound" class="pSound" hidden>Sound: on</button><button id="btnPCloud">☁ Cloud save</button><button id="btnPFb">Send feedback</button>
         </div>
         <div class="pSpeed"><small>GAME SPEED</small><div class="pSpeedRow" id="pSpeedRow"></div><em id="pSpeedHint"></em></div>
         <p class="pauseHint" id="pauseHint">Restart starts the world tour again from wave 1.</p>
@@ -2580,17 +2580,17 @@ body.inNuts #btnPRestart{display:none!important}
 </svg></div>
           <h2 class="termsH">HOW TO PLAY</h2>
           <ul class="termsList">
-            <li><b>No personal data.</b> Your progress stays on this device.</li>
+            <li><b>No personal data.</b> Your progress is backed up under a random code – no name, no e-mail.</li>
             <li><b>Call signs only.</b> The world high-score list keeps only a made-up call sign, score and wave. Never use your real name.</li>
             <li><b>Just a game.</b> Voice lines and sounds are entertainment only.</li>
           </ul>
-          <button class="btn-accent btn-big" id="btnAccept">Let's go!</button>
+          <button class="btn-accent btn-big" id="btnAccept">Let's go!</button><button class="btn-small cloudT" id="btnCloudT">☁ I already play – restore my progress</button>
         </div>
         <div id="startMain" hidden>
           <button id="btnInfo" class="btn-small btn-ico infoTR" aria-label="Guide" title="Guide"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2.4"/><circle cx="12" cy="7.5" r="1.6"/><rect x="10.6" y="10.5" width="2.8" height="7.5" rx="1"/></svg></button>
           <div class="heroBox heroStart"><img class="heroImg" alt="Rosie and Blue at their tower of camo blocks" src="img/b6f38631c6.webp"><div class="tagline claim"><span>Stack 'em.</span><span class="hot">Splat 'em.</span></div></div>
           <button class="btn-small btn-ico gearTR" id="btnGear" aria-label="Settings" title="Settings"><svg viewBox="0 0 24 24"><path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7zm8.6 4.9l1.9 1.5-1.9 3.3-2.3-.8a7.6 7.6 0 0 1-2 1.2l-.4 2.4h-3.8l-.4-2.4a7.6 7.6 0 0 1-2-1.2l-2.3.8-1.9-3.3 1.9-1.5a7.7 7.7 0 0 1 0-2.4L1.5 9.4l1.9-3.3 2.3.8a7.6 7.6 0 0 1 2-1.2L8.1 3.3h3.8l.4 2.4a7.6 7.6 0 0 1 2 1.2l2.3-.8 1.9 3.3-1.9 1.5a7.7 7.7 0 0 1 0 2.5z" fill="currentColor"/></svg></button><div class="squad"><div class="modes" id="modeList"></div></div>
-          <div class="startFoot"><button id="btn711Test" class="btn-small devOnly" hidden title="Test: fresh run from wave 0, no veteran bonus, not sent to the world list">Test from 0</button><button id="btnSpecials" class="btn-small devOnly" hidden title="Test: jump straight to any special wave">Specials</button><button id="btnFb" class="btn-small">Feedback</button><button id="btnHs" class="btn-small">Hall of fame</button><button id="btnAlbum" class="btn-small">Medals</button></div>
+          <div class="startFoot"><button id="btn711Test" class="btn-small devOnly" hidden title="Test: fresh run from wave 0, no veteran bonus, not sent to the world list">Test from 0</button><button id="btnSpecials" class="btn-small devOnly" hidden title="Test: jump straight to any special wave">Specials</button><button id="btnFb" class="btn-small">Feedback</button><button id="btnHs" class="btn-small">Hall of fame</button><button id="btnCloud" class="btn-small">☁ Cloud save</button><button id="btnAlbum" class="btn-small">Medals</button></div>
           <button class="btn-accent btn-big" id="btnResume" hidden>Continue</button>
         </div>
       </div>
@@ -2669,7 +2669,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V301";
+const GAME_VER = "V302";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -8454,6 +8454,77 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     window.addEventListener("pagehide", () => { if (!document.hidden) push("leave"); flush(true); });
     window.__evLog = { q, flush, push, sess, plat, br, scr };
   })(); } catch (e) {}
+
+  /* V302: Cloud-Speicherstand mit Wiederherstellungscode (To-do 19) */
+  try { (() => {
+    const AL = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
+    const SKIP = new Set(["tarnturm-dev", "tarnturm-devnointro", "capy-offline", "capy-cloud", "capy-cloudT"]);
+    const norm = c => { c = String(c || "").toUpperCase().replace(/[\s-]/g, "").replace(/O/g, "0").replace(/[IL]/g, "1"); if (c.startsWith("CAPY")) c = c.slice(4); return /^[0-9A-HJKMNP-TV-Z]{10}$/.test(c) ? c : null; };
+    const show = c => c ? `CAPY-${c.slice(0, 5)}-${c.slice(5)}` : "";
+    const get = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+    const set = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
+    function code(make) { let c = norm(get("capy-cloud")); if (!c && make) { c = Array.from(crypto.getRandomValues(new Uint8Array(10)), b => AL[b & 31]).join(""); set("capy-cloud", c); } return c; }
+    function snap() { const d = {}; try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && /^(tarnturm|capy)-[a-z0-9_-]{1,40}$/.test(k) && !SKIP.has(k)) d[k] = localStorage.getItem(k); } } catch (e) {} return d; }
+    const worth = d => Object.keys(d).some(k => k === "tarnturm-save" || /^tarnturm-(best|hs|cp|nuts-best)-/.test(k) || k === "tarnturm-album");
+    try { navigator.storage && navigator.storage.persist && navigator.storage.persist().catch(() => {}); } catch (e) {}
+    let lastUp = 0, pend = null, busy = false, lastErr = "";
+    function body() { const d = snap(); if (!worth(d)) return null; let w = 0; try { w = (S && S.wave) | 0; } catch (e) {} return JSON.stringify({ code: code(true), ver: GAME_VER, wave: w, data: d }); }
+    async function upload(beacon) { const b = body(); if (!b) return false;
+      if (beacon && navigator.sendBeacon) { try { if (navigator.sendBeacon(API_BASE + "/save", b)) { lastUp = Date.now(); set("capy-cloudT", String(lastUp)); return true; } } catch (e) {} }
+      if (busy) return false; busy = true;
+      try { const r = await fetch(API_BASE + "/save", { method: "POST", headers: { "Content-Type": "application/json" }, body: b, keepalive: b.length < 60000 });
+        busy = false; if (r.ok) { lastUp = Date.now(); set("capy-cloudT", String(lastUp)); lastErr = ""; paint(); return true; } lastErr = "Server busy – will retry"; }
+      catch (e) { busy = false; lastErr = "Offline – will retry"; }
+      paint(); return false; }
+    function soon() { if (pend) return; const wait = Math.max(3000, 60000 - (Date.now() - lastUp)); pend = setTimeout(() => { pend = null; upload(false); }, wait); }
+    const _sg = saveGame; saveGame = function () { const r = _sg.apply(this, arguments); try { soon(); } catch (e) {} return r; };
+    document.addEventListener("visibilitychange", () => { if (document.hidden && Date.now() - lastUp > 5000) upload(true); });
+    setInterval(() => { if (Date.now() - lastUp > 10 * 60000) upload(false); }, 5 * 60000);
+
+    const ov = document.createElement("div"); ov.className = "overlay joinOv"; ov.id = "ovCloud"; ov.hidden = true;
+    ov.innerHTML = `<div class="joinBox cloudBox"><button class="xBtn" id="cloudX" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg></button>
+      <div class="alHead"><span class="alTag">☁ CLOUD SAVE</span></div>
+      <p class="cloudTxt">Your progress is backed up on our server. Write down your code – with it you get your progress back on any phone.</p>
+      <div class="cloudCode" id="cloudCode"></div>
+      <div class="cloudRow"><button class="btn-small" id="cloudCopy">Copy code</button><button class="btn-small" id="cloudNow">Back up now</button></div>
+      <p class="cloudStat" id="cloudStat"></p>
+      <div class="cloudSep">RESTORE ON THIS DEVICE</div>
+      <div class="cloudRow"><input id="cloudIn" type="text" maxlength="20" autocomplete="off" spellcheck="false" autocapitalize="characters" placeholder="CAPY-XXXXX-XXXXX"><button class="btn-small" id="cloudGet">Find</button></div>
+      <p class="cloudStat" id="cloudMsg"></p>
+      <div class="cloudRow" id="cloudAsk" hidden><button class="btn-accent" id="cloudYes">Yes, restore</button><button class="btn-small" id="cloudNo">Cancel</button></div></div>`;
+    document.body.appendChild(ov);
+    const $c = id => document.getElementById(id); let found = null;
+    const ago = t => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? "just now" : m < 60 ? `${m} min ago` : m < 1440 ? `${Math.round(m / 60)} h ago` : new Date(t).toLocaleDateString("en-GB", { day: "numeric", month: "short" }); };
+    function paint() { if (ov.hidden) return; const c = code(false), t = +get("capy-cloudT") || 0;
+      $c("cloudCode").textContent = c ? show(c) : "–"; $c("cloudCopy").disabled = !c;
+      $c("cloudStat").textContent = lastErr ? lastErr : !c ? "Your code appears after your first wave." : t ? `Last backup: ${ago(t)}` : "Not backed up yet."; }
+    let wasPaused = null;
+    function open() { try { SFX.init(); snd("uiTap"); } catch (e) {} found = null; $c("cloudAsk").hidden = true; $c("cloudMsg").textContent = ""; $c("cloudIn").value = "";
+      ov.hidden = false; paint(); if (!code(false) && worth(snap())) upload(false); }
+    function close() { ov.hidden = true; try { snd("uiTap"); } catch (e) {} }
+    async function find() { const c = norm($c("cloudIn").value); found = null; $c("cloudAsk").hidden = true;
+      if (!c) { $c("cloudMsg").textContent = "That code doesn't look right. It has 10 letters/digits after CAPY."; return; }
+      $c("cloudMsg").textContent = "Looking…";
+      try { const r = await fetch(API_BASE + "/save?code=" + c, { cache: "no-store" });
+        if (r.status === 404) { $c("cloudMsg").textContent = "No backup found for this code."; return; }
+        if (!r.ok) { $c("cloudMsg").textContent = "Server busy – please try again in a minute."; return; }
+        const d = await r.json(); found = { c, d };
+        $c("cloudMsg").textContent = `Found: wave ${d.wave || "?"}, saved ${ago(d.t)}. This replaces the progress on this device.`; $c("cloudAsk").hidden = false; }
+      catch (e) { $c("cloudMsg").textContent = "No connection – please try again online."; } }
+    async function restore() { if (!found) return; const { c, d } = found;
+      try { const mine = code(false); if (mine && mine !== c) await upload(false); } catch (e) {}
+      try { const keep = new Set(["tarnturm-dev"]); const rm = []; for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && /^(tarnturm|capy)-/.test(k) && !keep.has(k)) rm.push(k); }
+        rm.forEach(k => localStorage.removeItem(k)); Object.entries(d.data || {}).forEach(([k, v]) => { if (/^(tarnturm|capy)-/.test(k) && typeof v === "string") localStorage.setItem(k, v); });
+        localStorage.setItem("capy-cloud", c); localStorage.setItem("capy-cloudT", String(Date.now())); localStorage.setItem("capy-reset", "276"); } catch (e) { $c("cloudMsg").textContent = "Could not write the save on this device."; return; }
+      $c("cloudMsg").textContent = "Restored! Restarting…"; setTimeout(() => location.reload(), 600); }
+    ov.addEventListener("click", e => { e.stopPropagation(); const b = e.target.closest("button"); if (!b) { if (e.target === ov) close(); return; }
+      if (b.id === "cloudX") close(); else if (b.id === "cloudCopy") { const t = show(code(false)); try { navigator.clipboard.writeText(t).then(() => { $c("cloudStat").textContent = "Copied!"; }, () => {}); } catch (er) {} try { snd("uiTap"); } catch (er) {} }
+      else if (b.id === "cloudNow") { $c("cloudStat").textContent = "Backing up…"; upload(false).then(ok => { if (!ok && !lastErr) $c("cloudStat").textContent = "Nothing to back up yet – play a wave first."; }); }
+      else if (b.id === "cloudGet") find(); else if (b.id === "cloudYes") restore(); else if (b.id === "cloudNo") { found = null; $c("cloudAsk").hidden = true; $c("cloudMsg").textContent = ""; } });
+    $c("cloudIn").addEventListener("keydown", e => { if (e.key === "Enter") find(); });
+    ["btnCloud", "btnPCloud", "btnCloudT"].forEach(id => { const b = $c(id); b && b.addEventListener("click", e => { e.stopPropagation(); open(); }); });
+    window.__cloud = { code, snap, upload, open, norm, show };
+  })(); } catch (e) { console.error("cloud", e); }
 })();
 </script>
 
@@ -9332,5 +9403,17 @@ body.ovUp #nutsBadge,body.mapUp #nutsBadge{visibility:hidden}
 .adCard.drop .adMet span{background:#cfe4fa;color:#123a63}
 .adCard.drop #adFree{background:linear-gradient(180deg,#5aa7f0,#2f7fd1)!important;color:#fff!important;border:3px solid #123a63!important;box-shadow:0 4px 0 #123a63!important}
 .adCard.drop #adFree:after{display:none!important}
+</style>
+<style id="v302cloud">
+#ovCloud{z-index:990}
+.cloudBox{text-align:center}
+.cloudTxt{margin:8px 0 10px;font-weight:700;font-size:14px;line-height:1.35}
+.cloudCode{font:800 26px/1.2 "Baloo 2",system-ui,sans-serif;letter-spacing:1.5px;background:#fff6e6;border:3px dashed #3a2a1a;border-radius:14px;padding:10px 8px;margin:4px 0 10px;user-select:all;-webkit-user-select:all;color:#3a2a1a}
+.cloudRow{display:flex;gap:8px;justify-content:center;align-items:center;margin:6px 0}
+.cloudRow input{flex:1;min-width:0;font:800 17px/1.2 "Baloo 2",system-ui,sans-serif;letter-spacing:1px;text-transform:uppercase;padding:9px 10px;border-radius:10px;border:2px solid #3a2a1a;background:#fff!important;color:#3a2a1a!important}
+.cloudRow input::placeholder{color:#b9a88c}
+.cloudT{display:block;margin:10px auto 0}
+.cloudStat{min-height:18px;margin:4px 0;font-size:13px;font-weight:700;opacity:.85}
+.cloudSep{margin:14px 0 4px;font:900 11px/1 system-ui;letter-spacing:1px;opacity:.7}
 </style>
 </body></html>

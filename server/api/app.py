@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Capybara Squad API - high scores, nuts board, anonymous round stats, anonymous error/event log.
+"""Capybara Squad API - high scores, nuts board, anonymous round stats, anonymous error/event log, cloud save by restore code.
 Stdlib only (http.server + sqlite3). Listens on 127.0.0.1:8770 behind Caddy (/api/*).
 Privacy: no cookies, no IPs stored. Rate limiting uses an in-memory hash of
 (IP + random daily salt) that is never written to disk and is forgotten daily.
@@ -20,7 +20,15 @@ MAX_SCORE = 100_000_000
 MAX_WAVE = 500
 MAX_LEVEL = 1000
 RUN_RETENTION_DAYS = 365
-VERSION = "1.1"
+VERSION = "1.2"
+SAVE_MAX_BODY = 60000
+SAVE_MAX_DATA = 48000
+SAVE_KEEP = 5
+SAVE_RETENTION_DAYS = 730
+SAVES_PER_MIN = 20
+SAVE_READS_PER_MIN = 10
+CODE_RE = re.compile(r"[0-9A-HJKMNP-TV-Z]{10}")
+SAVE_KEY_RE = re.compile(r"(tarnturm|capy)-[a-z0-9_-]{1,40}")
 EVENT_RETENTION_DAYS = 90
 EVENT_MAX_BODY = 8192
 EVENTS_PER_MIN = 20
@@ -49,6 +57,9 @@ CREATE TABLE IF NOT EXISTS events(
   msg TEXT, src TEXT, mins REAL, dev INTEGER, plat TEXT, br TEXT, sw INTEGER, sh INTEGER, mem REAL);
 CREATE INDEX IF NOT EXISTS events_t ON events(t);
 CREATE INDEX IF NOT EXISTS events_kind ON events(kind, t);
+CREATE TABLE IF NOT EXISTS saves(
+  id INTEGER PRIMARY KEY, k TEXT NOT NULL, t INTEGER NOT NULL, ver TEXT, wave INTEGER, size INTEGER, data TEXT NOT NULL);
+CREATE INDEX IF NOT EXISTS saves_k ON saves(k, t DESC);
 """
 
 def db():
@@ -66,6 +77,19 @@ def purge_old_runs():
     with db() as c:
         c.execute("DELETE FROM runs WHERE t < ?", (cutoff,))
         c.execute("DELETE FROM events WHERE t < ?", (ecut,))
+        scut = int(time.time() * 1000) - SAVE_RETENTION_DAYS * 86400 * 1000
+        c.execute("DELETE FROM saves WHERE k IN (SELECT k FROM saves GROUP BY k HAVING MAX(t) < ?)", (scut,))
+
+def save_key(code):
+    """Der Code selbst wird nie gespeichert, nur sein Hash."""
+    if not isinstance(code, str):
+        raise Bad("bad code")
+    c = code.upper().replace("-", "").replace(" ", "").replace("O", "0").replace("I", "1").replace("L", "1")
+    if c.startswith("CAPY"):
+        c = c[4:]
+    if not CODE_RE.fullmatch(c):
+        raise Bad("bad code")
+    return hashlib.sha256(("capy-save:" + c).encode()).hexdigest()
 
 _URLQ = re.compile(r"(https?://[^\s?#]*)[?#]\S*")
 def clean_text(v, maxlen):
@@ -264,6 +288,15 @@ class H(BaseHTTPRequestHandler):
                 return self.send_json(200, self.summary(qs))
             if p == "/events/summary":
                 return self.send_json(200, self.event_summary(qs))
+            if p == "/save":
+                if not rate_ok(self.client_ip(), "r", SAVE_READS_PER_MIN):
+                    return self.send_json(429, {"error": "too many requests"})
+                k = save_key(qs.get("code", [""])[0])
+                with db() as c:
+                    r = c.execute("SELECT t, ver, wave, data FROM saves WHERE k=? ORDER BY t DESC, id DESC LIMIT 1", (k,)).fetchone()
+                if not r:
+                    return self.send_json(404, {"error": "unknown code"})
+                return self.send_json(200, {"ok": True, "t": r["t"], "ver": r["ver"], "wave": r["wave"], "data": json.loads(r["data"])})
             return self.send_json(404, {"error": "not found"})
         except Bad as e:
             return self.send_json(400, {"error": str(e)})
@@ -342,11 +375,35 @@ class H(BaseHTTPRequestHandler):
                               "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", rows)
         return self.send_json(200, {"ok": True, "n": len(rows)})
 
+    def post_save(self, d):
+        k = save_key(d.get("code"))
+        data = d.get("data")
+        if not isinstance(data, dict) or not data or len(data) > 200:
+            raise Bad("data object required")
+        clean = {}
+        for key, val in data.items():
+            if not (isinstance(key, str) and SAVE_KEY_RE.fullmatch(key) and isinstance(val, str)):
+                raise Bad("bad data entry")
+            clean[key] = val
+        blob = json.dumps(clean, ensure_ascii=False, separators=(",", ":"))
+        if len(blob) > SAVE_MAX_DATA:
+            raise Bad("save too large")
+        t = now_ms()
+        with db() as c:
+            c.execute("INSERT INTO saves(k,t,ver,wave,size,data) VALUES(?,?,?,?,?,?)",
+                      (k, t, short_str(d.get("ver"), "ver", None, 24, ""), integer(d.get("wave"), "wave", 0, MAX_WAVE, 0), len(blob), blob))
+            c.execute("DELETE FROM saves WHERE k=? AND id NOT IN (SELECT id FROM saves WHERE k=? ORDER BY t DESC, id DESC LIMIT ?)", (k, k, SAVE_KEEP))
+        return self.send_json(200, {"ok": True, "t": t})
+
     def do_POST(self):
         try:
             raw, n = self.read_body()
             if raw is None:
                 return self.send_json(413, {"error": "body too large"})
+            if self.route()[0] == "/save":
+                if not rate_ok(self.client_ip(), "s", SAVES_PER_MIN):
+                    return self.send_json(429, {"error": "too many requests"})
+                return self.post_save(self.parse_json(raw, n, SAVE_MAX_BODY))
             if self.route()[0] == "/events":
                 if not rate_ok(self.client_ip(), "e", EVENTS_PER_MIN):
                     return self.send_json(429, {"error": "too many requests"})
