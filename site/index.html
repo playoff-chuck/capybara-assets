@@ -2669,7 +2669,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V297";
+const GAME_VER = "V298";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -4643,7 +4643,7 @@ function startWave() {
     toast(P.d === 0 ? `${P.place} · ${D.t} ${D.n}` : `${D.t} · ${D.n}`, P.d === 0 ? P.cont[1] : P.place, 1700);
     if (!S.introQ || !S.intro) setScene(null); setTimeout(maybeJoin, 1500);
     if (P.p === 0 && P.d === 0 && S.wave > 1 && !S.nuts) { try { window.__contFresh && window.__contFresh(); } catch (e) { console.error("contFresh", e); } }
-    if (P.p === 0 && P.d === 0 && S.wave > 1) { const vk = { africa: "welcome_africa", asia: "welcome_asia", namerica: "welcome_namerica" }[P.cont[0]] || "newcont"; setTimeout(() => { announce(`WELCOME TO ${P.cont[1]}!`, `${P.place} · a new continent`, "HQ", 3000); if (window.__contSaid !== S.wave) SFX.say(vk); }, 900); } }   // V178z14: neuer Kontinent
+    if (P.p === 0 && P.d === 0 && S.wave > 1) { const vk = { africa: "welcome_africa", asia: "welcome_asia", namerica: "welcome_namerica" }[P.cont[0]] || "newcont"; setTimeout(() => { if (window.__contSaid === S.wave) return; announce(`WELCOME TO ${P.cont[1]}!`, `${P.place} · a new continent`, "HQ", 3000); SFX.say(vk); }, 900); } }   // V178z14: neuer Kontinent
   const L = limits(S.wave);
   S.toSpawn = Math.max(1, Math.round(Math.min(L.monsters, G.waveBase + G.wavePer * S.wave) * (!S.nuts && S.wave >= 21 && S.wave <= 150 ? 0.55 : 1))); S.waveTotal = S.toSpawn; if (S.nuts) { S.toSpawn = S.waveTotal = nutsCount(S.nuts.lvl); } S.spawnT = 0; S.spawnIdx = 0; S.inWave = true; S.waveLeaks = 0;   // V251/V268: weniger Monster ab W21 (Kommentar ans Zeilenende, V270)
   { const w = S.wave, r = w >= G.runnerFrom ? 1 + Math.floor((w - G.runnerFrom + 5) / 10) : 0, bm = w >= G.bomberFrom ? 1 + Math.floor((w - G.bomberFrom) / 10) : 0;
@@ -7409,7 +7409,7 @@ $("signNuts").addEventListener("click", () => { SFX.init(); const c = (S.signOpe
 setInterval(() => {
   if (typeof S === "undefined" || !S || !S.started || S.over || S.nuts || S.won || S.paused || S.intro || S.drop || S.ordersOpen || S.duel || S.inWave || !ovRes.hidden) return;
   const c = NZ_BASES.indexOf(S.wave); if (c < 0 || (S.nutsAsk || {})[c]) return;
-  if (S.toSpawn > 0 || S.monsters.length || S.ordDue || hkOfferOn() || !inPlay()) return;
+  if (S.toSpawn > 0 || S.monsters.length || S.ordDue || hkOfferOn() || !inPlay() || performance.now() - (window.__evtLast || -1e9) < 5000) return;
   showSign(c);
 }, 500);
 
@@ -7879,10 +7879,10 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     /* Einhängen vor dem Wellenstart */
     let busy = false, pendSW = null;
     const _sw2 = startWave; startWave = function () { const a = arguments, self = this;
-      try { if (!busy && S && S.started && !S.over && !S.nuts) { const nw = (S.wave || 0) + 1, P = wherePos(nw);
+      try { if (!busy && S && S.started && !S.over && !S.nuts && S.mapDoneFor !== (S.wave || 0) + 1) { const nw = (S.wave || 0) + 1, P = wherePos(nw);
           let play = null; if (nw > 1 && nw <= 150 && P.d === 0) play = P.p === 0 ? (d => playCont(nw, d)) : (d => playPlace(nw, d));
           if (play) { busy = true; const was = S.paused; S.paused = true; S.mapShow = true;
-            play(() => { S.paused = was; S.mapShow = false; busy = false; _sw2.apply(self, a); }); return; } } } catch (e) { busy = false; }
+            play(() => { S.paused = was; S.mapShow = false; busy = false; if (P.p === 0) { S.mapDoneFor = nw; S.waveCD = 6; return; } _sw2.apply(self, a); }); return; } } } catch (e) { busy = false; }
       if (busy) { pendSW = [this, a]; return; } return _sw2.apply(this, a); };
     const _sg = startGame; startGame = function (m, fromWave) { const r = _sg.apply(this, arguments);
       try { if (!fromWave && S && S.started && !S.over && !S.nuts) { busy = true; const was = S.paused; S.paused = true; S.mapShow = true;
@@ -7954,10 +7954,13 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
   try { const sm = document.getElementById("startMain"); if (sm) { const d = document.createElement("div"); d.id = "devBar"; d.className = "devOnly"; d.hidden = LS.get("tarnturm-dev") !== "1";
       d.innerHTML = '<span class="dTag">DEV</span><input id="devWave" type="number" min="1" max="150" value="31" inputmode="numeric" aria-label="Start wave"><button class="btn-accent" id="devGo">GO ▶</button>'
         + '<div class="dRow dQ">' + [5, 15, 31, 61, 91, 121].map(w => '<button data-w="' + w + '">' + w + '</button>').join("") + '</div>'
-        + '<div class="dRow dT"><button id="devSpec">Specials</button><button id="devZero">Test from 0</button><button id="devBandit">Bandit</button></div><div class="dRow dR"><button id="devFresh">Street player</button><button id="devNews">Check news</button></div>';
+        + '<div class="dRow dT"><button id="devSpec">Specials</button><button id="devZero">Test from 0</button><button id="devBandit">Bandit</button><button id="devAA">AA</button></div><div class="dRow dR"><button id="devFresh">Street player</button><button id="devNews">Check news</button></div>';
       sm.appendChild(d);
       const go = w => { w = Math.max(1, Math.min(150, w | 0 || 1)); try { SFX.init(); snd("confirm"); } catch (e) {} devJump(w); };
-      d.addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; e.stopPropagation();
+      window.__devAA = () => { try { SFX.init(); snd("confirm"); } catch (e) {} devJump(60); let t0 = 0; const iv = setInterval(() => { try { if (!S || S.over) { clearInterval(iv); return; }
+          if (S.wave === 60 && S.inWave) { if (!t0) { t0 = performance.now(); S.toSpawn = Math.min(S.toSpawn, 2); S.waveTotal = Math.min(S.waveTotal || 2, 2); }
+            if (performance.now() - t0 > 10000) { S.toSpawn = 0; S.monsters = []; clearInterval(iv); } } else if (S.wave > 60) clearInterval(iv); } catch (e) { clearInterval(iv); } }, 200); };
+      d.addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; e.stopPropagation(); if (b.id === "devAA") { window.__devAA(); return; }
         if (b.dataset.w) { document.getElementById("devWave").value = b.dataset.w; go(+b.dataset.w); }
         else if (b.id === "devGo") go(+document.getElementById("devWave").value);
         else if (b.id === "devSpec") { const x = document.getElementById("btnSpecials"); if (x) x.click(); }
@@ -7971,7 +7974,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     const _swG = startWave; startWave = function () {
       try { if (S && S.started && !S.over && !S.nuts && !S.inWave) {
           if (S.ordDue) { if (ordFree()) { S.ordDue = 0; showOrders(); } return; }
-          if (hkSignFirst()) { if (!S.drop && !S.intro && !S.duel && !S.paused && inPlay() && !hkOfferOn()) showSign(NZ_BASES.indexOf(S.wave)); if (!hkOfferOn()) return; }
+          if (hkSignFirst()) { if (!S.drop && !S.intro && !S.duel && !S.paused && inPlay() && !hkOfferOn() && performance.now() - (window.__evtLast || -1e9) >= 5000) showSign(NZ_BASES.indexOf(S.wave)); if (!hkOfferOn()) return; }
         } } catch (e) {}
       return _swG.apply(this, arguments); };
   } catch (e) { console.error("v242", e); }
