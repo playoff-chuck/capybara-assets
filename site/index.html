@@ -2668,7 +2668,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V267";
+const GAME_VER = "V268";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -4335,7 +4335,7 @@ function clearLines() {
   return cleared;
 }
 function gravityInterval() { const K = G.gravKnee || 1e9, K2 = G.gravKnee2 || 1e9, we = S.wave <= K ? S.wave : K + (Math.min(S.wave, K2) - K) * (G.gravKneeF ?? 1) + Math.max(0, S.wave - K2) * (G.gravKneeF2 ?? (G.gravKneeF ?? 1)), le = S.wave <= K ? S.lines : S.lines * (we / Math.max(1, S.wave));   // ab dem Knick steigt das Tempo langsamer
-  const g = Math.max(G.gravMin, G.gravBase - le * G.gravLine - we * G.gravWave) * ordv("gravMul") * (!S.nuts && S.wave >= 31 && S.wave <= 60 ? 1.3333 : 1) / (S.wave >= 60 ? 0.7716 : S.wave >= 50 ? 0.857375 : S.wave >= 40 ? 0.9025 : S.wave >= 30 ? 0.95 : 1) / ((S.wave >= 30 ? 0.9 : 1) * (S.wave >= 50 ? 0.93 : 1) * (S.wave >= 91 && S.wave <= 120 ? 0.92 : 1));   /* V183: ab W30 −10 %, ab W50 −7 %, W91–120 −8 % */   // V179: ab W30 −5 %, ab W40 nochmals −5 %, ab W50 nochmals −5 %, ab W60 nochmals −10 % if (hailOn()) return g / (7.65 * HAIL_WAVES[specBase()] * specK());
+  const g = Math.max(G.gravMin, G.gravBase - le * G.gravLine - we * G.gravWave) * ordv("gravMul") * (!S.nuts && S.wave >= 21 && S.wave <= 150 ? 1.8 : 1) / (S.wave >= 60 ? 0.7716 : S.wave >= 50 ? 0.857375 : S.wave >= 40 ? 0.9025 : S.wave >= 30 ? 0.95 : 1) / ((S.wave >= 30 ? 0.9 : 1) * (S.wave >= 50 ? 0.93 : 1) * (S.wave >= 91 && S.wave <= 120 ? 0.92 : 1));   /* V183: ab W30 −10 %, ab W50 −7 %, W91–120 −8 % */   // V179: ab W30 −5 %, ab W40 nochmals −5 %, ab W50 nochmals −5 %, ab W60 nochmals −10 % if (hailOn()) return g / (7.65 * HAIL_WAVES[specBase()] * specK());
   { const e = SPEC_AT[((S.wave - 1) % 100) + 1]; if (e && e[0] === 16 && S.inWave && e[1] >= 2) return g / (e[1] === 2 ? 0.7 : 0.65); }   // V178z12: Sidewinder II 30 % langsamer, ab III 35 %
   return g; }
 
@@ -4487,8 +4487,8 @@ function spawnMonster() {
   const intro = { volt: "New: Sparky! Zaps blocks on its path", fast: "New: Scout! Small, quick, low health", heavy: "New: Brute! Slow, armored, lots of health", munch: "New: Muncher! Eats through blocks", runner: "New: Sprinter! Armored: at least 5 hits", bomber: "New: Bomber! Explodes when splatted", kiefer: "New: The Jaw! Eats everything, tough" };
   S.seen = S.seen || {};
   const baseHp = G.hpBase * (1 + (G.hpLin || 0) * (w - 1)) * Math.pow(G.hpGrow, w - 1);
-  const hp = ordv("monHpMul") * (w >= 50 ? 1.25 : w >= 20 ? 1.15 : 1) * (S.nuts ? 1 : w >= 91 && w <= 100 ? 0.75 : w >= 101 && w <= 110 ? 0.75 : w >= 111 && w <= 120 ? 0.85 : w >= 121 && w <= 150 ? 0.90 : 1) * baseHp * ({ heavy: 2.6, fast: 0.6, munch: 1.5, runner: 2.2, bomber: 1.3, kiefer: 3.2, volt: 1.8, jaguar: 1.4, mummy: 2.4, tiger: 2.2, bear: 4.0, norm: 1 }[kind]);
-  const sp = ordv("monSpdMul") * (!S.nuts && w >= 31 && w <= 60 ? 0.75 : 1) * Math.min(G.spMax, G.spBase + G.spGrow * w) * ({ fast: 1.5, heavy: 0.7, munch: 0.85, runner: 1.75, bomber: 0.9, kiefer: 1.0, volt: 0.8, jaguar: 1.25, mummy: 0.6, tiger: 1.3, bear: 0.7, norm: 1 }[kind]);
+  const hp = ordv("monHpMul") * (w >= 50 ? 1.25 : w >= 20 ? 1.15 : 1) * (S.nuts ? 1 : w >= 91 && w <= 100 ? 0.75 : w >= 101 && w <= 110 ? 0.75 : w >= 111 && w <= 120 ? 0.85 : w >= 121 && w <= 150 ? 0.90 : 1) * (!S.nuts && w >= 21 && w <= 150 ? 0.4 : 1) * baseHp * ({ heavy: 2.6, fast: 0.6, munch: 1.5, runner: 2.2, bomber: 1.3, kiefer: 3.2, volt: 1.8, jaguar: 1.4, mummy: 2.4, tiger: 2.2, bear: 4.0, norm: 1 }[kind]);
+  const sp = ordv("monSpdMul") * (!S.nuts && w >= 21 && w <= 150 ? 0.65 : 1) * Math.min(G.spMax, G.spBase + G.spGrow * w) * ({ fast: 1.5, heavy: 0.7, munch: 0.85, runner: 1.75, bomber: 0.9, kiefer: 1.0, volt: 0.8, jaguar: 1.25, mummy: 0.6, tiger: 1.3, bear: 0.7, norm: 1 }[kind]);
   const spF = ffOn() ? sp * 1.7 : sp;
   const rew = ({ heavy: 14, munch: 11, runner: 22, bomber: 16, kiefer: 40, volt: 26, jaguar: 18, mummy: 24, tiger: 30, bear: 45 }[kind] ?? G.killBase) + w;
   S.monsters.push({ x, y, cx: x, cy: y, prog: i, trav: 0, hp, max: hp, speed: spF, kind, slowT: 0, next: null, chew: false, dead: false, reward: Math.max(1, Math.round(rew * (G.goldMul || 1) * goldTaper())), dir: 0, ph: Math.random() * 6.283, hits: 0 });
@@ -4627,7 +4627,7 @@ function startWave() {
     if (!S.introQ || !S.intro) setScene(null); setTimeout(maybeJoin, 1500);
     if (P.p === 0 && P.d === 0 && S.wave > 1) { const vk = { africa: "welcome_africa", asia: "welcome_asia", namerica: "welcome_namerica" }[P.cont[0]] || "newcont"; setTimeout(() => { announce(`WELCOME TO ${P.cont[1]}!`, `${P.place} · a new continent`, "HQ", 3000); SFX.say(vk); }, 900); } }   // V178z14: neuer Kontinent
   const L = limits(S.wave);
-  S.toSpawn = Math.max(1, Math.round(Math.min(L.monsters, G.waveBase + G.wavePer * S.wave) * (S.wave >= 31 && S.wave <= 60 ? 0.75 : 1))); S.waveTotal = S.toSpawn;   // V251: Afrika −25 % Monster if (S.nuts) { S.toSpawn = S.waveTotal = nutsCount(S.nuts.lvl); } S.spawnT = 0; S.spawnIdx = 0; S.inWave = true; S.waveLeaks = 0;
+  S.toSpawn = Math.max(1, Math.round(Math.min(L.monsters, G.waveBase + G.wavePer * S.wave) * (!S.nuts && S.wave >= 21 && S.wave <= 150 ? 0.55 : 1))); S.waveTotal = S.toSpawn;   // V251: Afrika −25 % Monster if (S.nuts) { S.toSpawn = S.waveTotal = nutsCount(S.nuts.lvl); } S.spawnT = 0; S.spawnIdx = 0; S.inWave = true; S.waveLeaks = 0;
   { const w = S.wave, r = w >= G.runnerFrom ? 1 + Math.floor((w - G.runnerFrom + 5) / 10) : 0, bm = w >= G.bomberFrom ? 1 + Math.floor((w - G.bomberFrom) / 10) : 0;
     // Titel: INCOMING + die neueste Monsterart, die in dieser Welle dabei ist
     const order = [["volt", G.voltFrom, "SPARKIES"], ["bomber", G.bomberFrom, "BOMBERS"], ["kiefer", G.kieferFrom, "THE JAW"], ["runner", G.runnerFrom, "SPRINTERS"], ["munch", G.munchFrom, "MUNCHERS"], ["heavy", G.heavyFrom, "BRUTES"], ["fast", G.fastFrom, "SCOUTS"], ["norm", 1, "GRUNTS"]];
