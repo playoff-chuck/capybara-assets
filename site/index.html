@@ -2668,7 +2668,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V258";
+const GAME_VER = "V259";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -7733,7 +7733,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     const contName = c => ["SOUTH AMERICA", "AFRICA", "ASIA", "NORTH AMERICA", "ANTARCTICA"][c];
     const nice = t => t.toLowerCase().replace(/\b\w/g, m => m.toUpperCase());
     const ov = document.createElement("div"); ov.id = "ovMap"; ov.hidden = true;
-    ov.innerHTML = `<div class="mapVp"><div class="mapWorld"><img class="mapImg" src="img/worldmap.webp" alt="World map" draggable="false"><svg class="mapPath" viewBox="0 0 1000 ${Math.round(1000 * MAP_AR)}" preserveAspectRatio="none"></svg><div class="mapPins"></div><div class="mapPlane"><svg viewBox="0 0 24 24" width="46" height="46" aria-hidden="true"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" fill="#ff6fb5" stroke="#3a2414" stroke-width="1.3" stroke-linejoin="round"/><path d="M11.5 4v4.2" stroke="#fff" stroke-width="1.1" stroke-linecap="round" opacity=".9"/></svg></div><div class="mapMe"><img alt=""></div></div></div>
+    ov.innerHTML = `<div class="mapVp"><div class="mapWorld"><img class="mapImg" src="img/worldmap.webp" alt="World map" draggable="false"><svg class="mapPath" viewBox="0 0 1000 ${Math.round(1000 * MAP_AR)}" preserveAspectRatio="none"></svg><div class="mapPins"></div><div class="mapPlane"><img class="biPlane" src="img/biplane.webp" alt=""></div><div class="mapMe"><img alt=""></div></div></div>
       <div class="mapTop"><small class="mapCont"></small><b class="mapPlace"></b><span class="mapSub"></span></div>
       <div class="mapBar"><button type="button" class="mapWorldBtn">WORLD</button><button type="button" class="mapPlay">PLAY ▶</button><button type="button" class="mapClose">CLOSE</button></div>
       <div class="mapSkip">tap to skip</div>`;
@@ -7788,7 +7788,8 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     ov.addEventListener("click", () => { if (mode === "auto") hide(); });
     function flyPlane(a, b, ms) { plane.classList.add("on"); const t0 = performance.now(), ang = Math.atan2((b[1] - a[1]) * MAP_AR, b[0] - a[0]) * 180 / Math.PI;
       const step = now => { if (mode !== "auto") return; const t = Math.min(1, (now - t0) / ms), e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2, x = a[0] + (b[0] - a[0]) * e, y = a[1] + (b[1] - a[1]) * e - Math.sin(Math.PI * e) * .12;
-        plane.style.setProperty("--px", (x) * BW + "px"); plane.style.setProperty("--py", (y) * BW * MAP_AR + "px"); plane.style.setProperty("--a", (ang - Math.cos(Math.PI * e) * 18) + "deg"); if (t < 1) requestAnimationFrame(step); else plane.classList.remove("on"); };
+        plane.style.setProperty("--px", (x) * BW + "px"); plane.style.setProperty("--py", (y) * BW * MAP_AR + "px"); { const dx = b[0] - a[0], dy = (b[1] - a[1]) * MAP_AR - Math.cos(Math.PI * e) * 0.12 * Math.PI * MAP_AR, right = dx >= 0, tilt = Math.max(-25, Math.min(25, Math.atan2(dy, Math.abs(dx) + 1e-6) * 180 / Math.PI));
+          plane.style.setProperty("--a", (right ? tilt : -tilt) + "deg"); plane.style.setProperty("--fx", right ? -1 : 1); } if (t < 1) requestAnimationFrame(step); else plane.classList.remove("on"); };
       requestAnimationFrame(step); try { window.__planeSnd && window.__planeSnd(ms, a[0] > 1 || a[0] < 0); } catch (e) {} }
     const cen = c => { const P = MAP_PTS[c]; return [P.reduce((a, p) => a + p[0], 0) / 6, P.reduce((a, p) => a + p[1], 0) / 6]; };
     function hopMe(a, b, ms) { const t0 = performance.now(); me.classList.add("on", "hop");
@@ -8865,5 +8866,12 @@ button .lk{font-style:normal;white-space:nowrap}
 #devBar .dR button{background:#e86fa3!important;color:#fff!important;border:0!important;font-size:11px!important}
 #devBar .dR button.armed{background:#e0262a!important}
 #devBar .dR #devIntro.off{background:#7a6650!important}
+</style>
+
+<style id="v259plane">
+#ovMap .mapPlane{left:0!important;top:0!important;transform:translate3d(var(--px,0),var(--py,0),0) translate(-50%,-50%) scale(var(--ik,1)) rotate(var(--a,0deg))!important;will-change:transform}
+#ovMap .mapPlane img.biPlane{display:block;width:86px;height:auto;transform:scaleX(var(--fx,1));filter:drop-shadow(0 8px 5px rgba(0,0,0,.28));animation:biBob .9s ease-in-out infinite}
+@keyframes biBob{0%,100%{translate:0 0}50%{translate:0 -3px}}
+@media (prefers-reduced-motion:reduce){#ovMap .mapPlane img.biPlane{animation:none}}
 </style>
 </body></html>
