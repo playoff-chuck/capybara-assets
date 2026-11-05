@@ -2668,7 +2668,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V255";
+const GAME_VER = "V256";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -8039,9 +8039,10 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
 
   /* V253: Werbeanzeigen für die ersten Waffen */
   try { (() => {
-    const AD = { kan: { img: "img/ad_kan.webp", tag: "NEW GEAR", line: "Big splash damage. Cracks the tough guys." },
-                 ton: { img: "img/ad_ton.webp", tag: "FREE GIFT", line: "Your first one is free – it's already in your Pocket!" },
-                 mix: { img: "img/ad_mix.webp", tag: "NEW GEAR", line: "Fills a hole to the top and buries monsters." } };
+    const AD = { kan: { img: "img/ad_kan.webp", sale: "img/ad_kan_sale.webp", st: [[79, 17], [11, 36], [16.5, 71]], tag: "NEW GEAR", line: "Big splash damage. Cracks the tough guys." },
+                 ton: { img: "img/ad_ton.webp", sale: "img/ad_ton_sale.webp", st: [[73, 16], [10, 78], [11, 51]], tag: "FREE GIFT", line: "Your first one is free – it's already in your Pocket!", sline: "Crush them all again – grab a second one!" },
+                 mix: { img: "img/ad_mix.webp", sale: "img/ad_mix_sale.webp", st: [[8.6, 43], [90, 39], [8.6, 78]], tag: "NEW GEAR", line: "Fills a hole to the top and buries monsters." } };
+    let saleMode = false;
     const ov = document.createElement("div"); ov.id = "ovAd"; ov.hidden = true;
     ov.innerHTML = `<div class="adCard" id="adCard"><div class="adPic" id="adPic"><span class="saleSt s1" id="saleS1"></span><span class="saleSt s2">HOT!</span><span class="saleSt s3">DEAL</span><span class="adTag" id="adTag"></span><span class="adWave" id="adWave"></span><span class="adPrice" id="adPrice"></span></div>
       <div class="adBody"><div class="saleHead"><b class="saleMega">MEGA DEAL</b><span class="saleOnly">ONLY THIS WAVE!</span></div><h2 id="adName"></h2><div class="salePrice"><s id="saleWas"></s><b id="saleNow"></b><i id="salePct"></i></div><p id="adLine"></p><div class="adMet" id="adMet"></div><div class="adAct" id="adAct"></div><button id="adLater"></button></div></div>`;
@@ -8053,16 +8054,16 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     function paint() { const k = cur, w = why(k), act = $a("adAct"), sale = $a("adCard").classList.contains("sale");
       act.innerHTML = w ? `<div class="adNote">${w}</div>` : `<button class="btn-accent" id="adBuy">${sale ? "I WANT IT!" : k === "ton" ? "BUY ANOTHER" : "BUY NOW"} · ${price(k)} GOLD ▶</button>`;
       $a("adLater").textContent = sale ? "No thanks" : w || k === "ton" ? "Got it" : "Later"; }
-    function show(k) { cur = k; const a = AD[k], d = INTRO_GEAR[k];
-      { const card = $a("adCard"), sale = k === "kan"; card.classList.toggle("sale", sale); const old = $a("saleOld");
+    function show(k, sale) { cur = k; saleMode = !!sale; const a = AD[k], d = INTRO_GEAR[k];
+      { const card = $a("adCard"); card.classList.toggle("sale", sale); [1, 2, 3].forEach(n => { const el = card.querySelector(".saleSt.s" + n); if (el && a.st) { el.style.left = a.st[n - 1][0] + "%"; el.style.top = a.st[n - 1][1] + "%"; } });
         if (sale) { const p = price(k), up = 0.4 + Math.random() * 3.6, was = Math.ceil(p * (1 + up) / 10) * 10, pct = Math.round((1 - p / was) * 100);
           $a("saleWas").textContent = `${was} GOLD`; $a("salePct").textContent = `−${pct}%`; $a("saleS1").textContent = `−${pct}%`; $a("saleNow").textContent = `${p} GOLD`; } }
-      $a("adPic").style.backgroundImage = `url(${k === "kan" ? "img/ad_kan_sale.webp" : a.img})`; $a("adTag").textContent = k === "kan" ? "SALE" : a.tag; $a("adWave").textContent = `WAVE ${S.wave}`;
-      $a("adPrice").textContent = k === "ton" ? "1 FREE" : `${price(k)} GOLD`; $a("adName").textContent = d[0].toUpperCase(); $a("adLine").textContent = a.line;
+      $a("adPic").style.backgroundImage = `url(${sale ? a.sale : a.img})`; $a("adTag").textContent = sale ? "SALE" : a.tag; $a("adWave").textContent = `WAVE ${S.wave}`;
+      $a("adPrice").textContent = k === "ton" ? "1 FREE" : `${price(k)} GOLD`; $a("adName").textContent = d[0].toUpperCase(); $a("adLine").textContent = sale && a.sline ? a.sline : a.line;
       $a("adMet").innerHTML = d[2]().filter(x => !/gold|free/i.test(x)).slice(0, 3).map(x => `<span>${x}</span>`).join("");
       lastW = why(k); paint(); $("ovIntro").hidden = true; ov.hidden = false; requestAnimationFrame(() => ov.classList.add("on"));
       try { snd("radio"); } catch (e) {} }
-    function close(bought) { ov.classList.remove("on"); ov.hidden = true; const k = cur; cur = null; try { closeIntro(); } catch (e) {}
+    function close(bought) { ov.classList.remove("on"); ov.hidden = true; const k = cur; cur = null; if (late) { late = false; S.intro = false; S.adOpen = false; } else try { closeIntro(); } catch (e) {}
       if (bought) try { toast(`${INTRO_GEAR[k][0].toUpperCase()} · ${k === "kan" ? "mounted on your tower" : "in your Pocket"}`, "ARMORY", 2000); } catch (e) {} }
     function buy() { const k = cur; if (!k || why(k)) { paint(); return; } const p = price(k);
       if (k === "kan") { const t = slotTower(); if (!t) { paint(); return; } t.w.push({ type: "kan", lvl: 1, cd: 0 }); }
@@ -8071,7 +8072,18 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     ov.addEventListener("click", e => { e.stopPropagation(); if (e.target.closest("#adBuy")) buy(); else if (e.target.closest("#adLater")) { try { snd("uiTap"); } catch (er) {} close(false); } });
     let lastW = null; setInterval(() => { if (!ov.hidden && cur) { const w = why(cur); if (w !== lastW) { lastW = w; paint(); } } }, 400);
     const _si = showIntro;
-    showIntro = function (q) { const r = _si.apply(this, arguments); try { if (q && q.t === "gear" && AD[q.k] && (S.wave || 0) <= 10 && !S.nuts) show(q.k); } catch (e) { console.error("ad", e); } return r; };
+    let late = false;
+    try { if (typeof SAVE_KEYS !== "undefined" && !SAVE_KEYS.includes("adDue")) SAVE_KEYS.push("adDue"); } catch (e) {}
+    showIntro = function (q) { const r = _si.apply(this, arguments);
+      try { if (q && q.t === "gear" && AD[q.k] && (S.wave || 0) <= 10 && !S.nuts) {
+          S.adDue = S.adDue || {};
+          if (q.k === "ton") { show("ton", false); S.adDue.ton = 1; }                       // Geschenk sofort, Sale später (600 Gold)
+          else if (!why(q.k)) show(q.k, true);                                              // sofort nutzbar → gleich als Sale
+          else { S.adDue[q.k] = 1; $("ovIntro").hidden = true; try { closeIntro(); } catch (e) {} }   // sonst später, wenn nutzbar
+        } } catch (e) { console.error("ad", e); } return r; };
+    const calm = () => S && S.started && !S.over && !S.nuts && !S.testRun0 && !S.intro && !S.drop && !S.alert && !S.ordersOpen && !S.duel && !S.mapShow && !S.mapFly && !S.signOpen && !S.joinOpen
+      && !S.mode && !S.sel && !S.shop && !S.paused && !S.mix && !S.banditOpen && !(typeof TUT !== "undefined" && TUT.on) && !(typeof hkOfferOn === "function" && hkOfferOn()) && (typeof inPlay !== "function" || inPlay()) && !document.hidden && ov.hidden;
+    setInterval(() => { try { if (!S || !S.adDue || !calm()) return; for (const k of ["kan", "mix", "ton"]) if (S.adDue[k] && !why(k)) { delete S.adDue[k]; late = true; S.intro = true; S.adOpen = true; show(k, true); break; } } catch (e) {} }, 700);
     window.__TT && (window.__TT.ad = { show, close });
   })(); } catch (e) { console.error("ads", e); }
 })();
@@ -8764,5 +8776,11 @@ button .lk{font-style:normal;white-space:nowrap}
 #ovMap .mPin.done i{background:#9fd18a!important}
 #ovMap .mPin.star.done i::after{background:#9fd18a!important}
 #ovMap .mapPath polyline.done{stroke:#6fae58!important;opacity:.8}
+</style>
+
+<style id="v256sale">
+.adCard.sale .adPic{overflow:hidden}
+.adCard.sale .adTag{left:-38px!important;top:18px!important;width:150px;box-sizing:border-box;text-align:center;transform:rotate(-38deg);background:linear-gradient(180deg,#ff5a44,#c8161b)!important;color:#fff!important;border:0!important;border-top:2.5px solid #ffd23a!important;border-bottom:2.5px solid #ffd23a!important;border-radius:0!important;font:400 19px/1 Bangers,system-ui!important;letter-spacing:3px!important;padding:5px 0 4px!important;box-shadow:0 4px 8px rgba(0,0,0,.35);text-shadow:0 2px 0 #7a1010;animation:none!important;z-index:3}
+.adCard.sale .adWave{background:#3a2a1a;color:#ffd23a;border-color:#ffd23a}
 </style>
 </body></html>
