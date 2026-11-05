@@ -2669,7 +2669,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V283";
+const GAME_VER = "V284";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -5106,7 +5106,10 @@ const HK = { phase: "off", t: 0, last: 0 };
 const HK_WAVES = new Set([8, 12, 18, 22, 28, 32, 38, 42, 48, 52, 58, 62, 68, 72, 78, 82, 88, 92, 98, 102, 107, 112, 117, 121, 127, 132, 138, 142, 148]);   // V247: nur ruhige Wellen
 function hkOfferWave(w) { return HK_WAVES.has(w); }   // nach jeder 5. Welle
 function hkOfferOn() { return S && S.started && !S.over && (S.hackOfferUntil || 0) > performance.now() && !S.duel && inPlay() && !S.ordersOpen; }
-window.__offerOK = (force) => force ? performance.now() - Math.max(window.__evtLast || -1e9, window.__offerLast || -1e9) >= 30000 : (performance.now() - (window.__evtLast || -1e9) >= 30000 && performance.now() - (window.__offerLast || -1e9) >= 120000);
+window.__playScreen = () => { try { const v = id => { const e = document.getElementById(id); return e && !e.hidden && getComputedStyle(e).display !== "none"; };
+    return !!(S && S.started && !S.over && !S.paused && !S.shop && !S.sel && !S.mode && !S.duel && !S.intro && !S.mapShow && !S.ordersOpen && !S.joinOpen && !S.banditOpen && !S.signOpen && !S.hackAdOpen
+      && !v("sheet") && !v("ovStart") && !v("ovPause") && !uiWinOpen() && !document.body.classList.contains("mapUp") && !(typeof TUT !== "undefined" && TUT.on) && !document.hidden); } catch (e) { return false; } };
+window.__offerOK = (force) => !window.__playScreen() ? false : force ? performance.now() - Math.max(window.__evtLast || -1e9, window.__offerLast || -1e9) >= 30000 : (performance.now() - (window.__evtLast || -1e9) >= 30000 && performance.now() - (window.__offerLast || -1e9) >= 120000);
 const HK_OFFER_S = 20;   // V178z6: 20 s
 let hkLastT = 0, hkHeldMs = 0;   // V242: Uhr steht während Szenen/Fenstern
 function hkHold() { return !!(S.mapShow || S.intro || S.hackAdOpen || S.drop || S.ordersOpen || S.paused || !inPlay()); }
@@ -6512,7 +6515,7 @@ document.addEventListener("click", e => { const b = e.target.closest(".hpAv"); i
 renderThemeBtn(); syncSky();
 
 /* Wellen-Ende: General gratuliert oben links (Sprechblase), Beute im Untertitel */
-function genWaveMsg(title, loot) { let say = FP_SAY[(S.fpI = ((S.fpI || 0) + 1 + Math.floor(Math.random() * 9)) % FP_SAY.length)]; try { const st = window.__genStat && window.__genStat(); if (st) say = st; } catch (e) {}
+function genWaveMsg(title, loot) { let say = FP_SAY[(S.fpI = ((S.fpI || 0) + 1 + Math.floor(Math.random() * 9)) % FP_SAY.length)]; try { const st = window.__genStat && window.__genStat(); if (st) { msgPush({ kind: "alert", title: st.toUpperCase(), sub: "", tag: "HQ", hold: 10000, low: true }); return; } } catch (e) {}
   const sub = [title.replace(/WAVE (\d+) CLEARED/i, "Wave $1 cleared")].concat((loot || []).filter(l => !/score/i.test(l[1])).map(l => `${l[1]} ${l[2]}`)).join(" · ");
   msgPush({ kind: "alert", title: say.toUpperCase(), sub, tag: "HQ", hold: 3200, low: true }); try { const ac = AU.ac(); if (ac) { const t = ac.currentTime + 0.05; PC.surdo(t, 0.16); PC.agogo(t + 0.2, false, 0.08); PC.agogo(t + 0.35, true, 0.08); } } catch (e) {} }
 
@@ -9177,4 +9180,19 @@ button .lk{font-style:normal;white-space:nowrap}
 #sheet .ledgerTop .ledgerBubble{min-height:0!important;height:auto!important;align-content:start!important}
 #sheet .ledgerTop .ledgerBubble span{min-height:0!important}
 </style>
+
+<style id="v284cel">
+#ovMap .mapCel{transition:opacity .6s ease!important}
+#ovMap .mapCel.out{opacity:0!important;transition:opacity .7s ease!important}
+#ovMap .celRays{opacity:0;transition:opacity .9s ease}
+#ovMap .mapCel.on .celRays{opacity:1}
+#ovMap .celTxt{transform:scale(.97);opacity:0}
+#ovMap .mapCel.on .celTxt{animation:celFade .8s ease-out forwards!important}
+@keyframes celFade{to{transform:scale(1);opacity:1}}
+#ovMap .celTxt em{animation:none!important;opacity:0;transition:opacity .8s ease .5s}
+#ovMap .mapCel.on .celTxt em{opacity:1}
+#ovMap .mapVp,#ovMap .mapTop,#ovMap .mapSkip{transition:opacity .7s ease}
+@media (prefers-reduced-motion:reduce){#ovMap .celRays{animation:none!important}}
+</style>
+<style id="v284sub">#alSub:empty{display:none!important}</style>
 </body></html>
