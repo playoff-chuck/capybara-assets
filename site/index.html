@@ -2669,7 +2669,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V292";
+const GAME_VER = "V293";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -4099,9 +4099,10 @@ function airDrop(title, loot) {
   const el = $("crate"), med = specBase() === WOUND_BASE && !S.inWave && /CLEARED/.test(title) && S.medDone !== S.wave;
   if (med) { S.medDone = S.wave; title = "MEDKIT · VISION RESTORED"; loot = [["med", "Medic", "Sharp"], ...(loot || []).slice(0, 2)]; $("board").classList.remove("wounded"); $("board").classList.remove("sharpen"); void $("board").offsetWidth; $("board").classList.add("sharpen"); setTimeout(() => $("board").classList.remove("sharpen"), 1600); setTimeout(() => SFX.say("healed"), 1500); }
   const rp = !med && ROT_BASES.includes(specBase()) && !S.inWave && /CLEARED/.test(title) && S.rotDone !== S.wave;
-  if (rp) { S.rotDone = S.wave; title = "−90° PACKAGE · WORLD RESTORED"; loot = [["rot", "Tilt", "−90°"], ...(loot || []).slice(0, 2)]; setRotMode(0); syncRotView(); setTimeout(() => SFX.say("Unbelievable!"), 1300); }
+  const rpBack = S.rotMode === 2 ? "−90°" : "+90°";
+  if (rp) { S.rotDone = S.wave; title = `${rpBack} PACKAGE · WORLD RESTORED`; loot = [[rpBack === "+90°" ? "rotp" : "rot", "Tilt", rpBack], ...(loot || []).slice(0, 2)]; setRotMode(0); syncRotView(); setTimeout(() => SFX.say("Unbelievable!"), 1300); }
   if (!med && !rp) { genWaveMsg(title, loot); return; }   // V177u: Wellen-Ende spricht der General oben links
-  el.classList.toggle("medkit", !!med); el.classList.toggle("rotpack", !!rp); el.querySelector(".tag").textContent = med ? "MEDKIT" : rp ? "−90° PACKAGE" : `FROM ${buddyKey().toUpperCase()} ♥`; const gi = $("giftImg"); el.classList.toggle("gift", !med && !rp); if (!med && !rp) { $("giftFrom").src = GEN_HEAD; gi.removeAttribute("src"); $("giftTag").textContent = "FROM GENERAL BRISTLE"; let q = $("crate").querySelector(".fpQuote"); if (!q) { q = document.createElement("i"); q.className = "fpQuote"; $("giftPic") ? 0 : 0; const pic = $("crate").querySelector(".giftPic"); pic.appendChild(q); } q.textContent = "«" + FP_SAY[(S.fpI = ((S.fpI || 0) + 1 + Math.floor(Math.random() * 9)) % FP_SAY.length)] + "»"; }
+  el.classList.toggle("medkit", !!med); el.classList.toggle("rotpack", !!rp); el.querySelector(".tag").textContent = med ? "MEDKIT" : rp ? `${rpBack} PACKAGE` : `FROM ${buddyKey().toUpperCase()} ♥`; const gi = $("giftImg"); el.classList.toggle("gift", !med && !rp); if (!med && !rp) { $("giftFrom").src = GEN_HEAD; gi.removeAttribute("src"); $("giftTag").textContent = "FROM GENERAL BRISTLE"; let q = $("crate").querySelector(".fpQuote"); if (!q) { q = document.createElement("i"); q.className = "fpQuote"; $("giftPic") ? 0 : 0; const pic = $("crate").querySelector(".giftPic"); pic.appendChild(q); } q.textContent = "«" + FP_SAY[(S.fpI = ((S.fpI || 0) + 1 + Math.floor(Math.random() * 9)) % FP_SAY.length)] + "»"; }
   $("crateTitle").textContent = title; S.drop = true; if (S.alert) endAlert(); hideToastNow();
   $("crateLoot").innerHTML = (loot || []).slice(0, 3).map(([icon, label, val]) => `<div>${LOOT_ICON[icon] || ""}<span>${label}</span><b>${val}</b></div>`).join("");
   el.hidden = false; el.classList.remove("go"); void el.offsetWidth; el.classList.add("go");
@@ -4956,18 +4957,18 @@ function syncRotView() {
     b.classList.remove("tilting"); void b.offsetWidth; b.classList.add("tilting"); setTimeout(() => b.classList.remove("tilting"), 1000);
   }
   const show = !!m && inPlay(); if ($("tiltBand").hidden === show) $("tiltBand").hidden = !show;
-  if (show) { const t = m === 1 ? "WORLD TILT −90°" : "FLIPPED · +90°"; const el = $("tiltBand").querySelector("i"); if (el.textContent !== t) el.textContent = t; }
+  if (show) { const t = m === 1 ? "WORLD TILT −90°" : "WORLD TILT +90°"; const el = $("tiltBand").querySelector("i"); if (el.textContent !== t) el.textContent = t; }
 }
 function stepRot(dt) {
   const on = rotOn();
   if (on && !S.rotWas) {
-    S.rotT = S.rotT || 0; if (!S.rotMode) setRotMode(1);
+    S.rotT = S.rotT || 0; if (!S.rotMode) { if (S.rotNW !== S.wave) { S.rotNW = S.wave; S.rotN = (S.rotN || 0) + 1; } setRotMode(S.rotN % 2 === 0 ? 2 : 1); }   /* V293: abwechselnd −90° / +90° */
     snd("siren"); setTimeout(() => { if (rotOn()) announce("SIDEWINDER!", "Field tilts 90° · blocks still fall down", "ALERT", 2800); }, 250);
     setTimeout(() => SFX.say("Hold the line!"), 900);
   }
   if (on && !S.paused) {
     S.rotT = (S.rotT || 0) + dt;
-    if (S.rotMode === 1 && (S.rotT >= ROT_FLIP_AT / specK() || (S.toSpawn === 0 && S.rotT >= 20))) {
+    if (false && S.rotMode === 1 && (S.rotT >= ROT_FLIP_AT / specK() || (S.toSpawn === 0 && S.rotT >= 20))) {   /* V293: kein 180°-Flip mehr */
       setRotMode(2); snd("siren");
       announce("FLIP SIDE!", "Blocks now fall from the other side", "ALERT", 2400); setTimeout(() => SFX.say("flip"), 700);
     }
@@ -6219,7 +6220,7 @@ document.addEventListener("visibilitychange", () => { if (document.hidden && S.s
 const MEM = {};
 const LS = { get(k) { try { const v = localStorage.getItem(k); return v === null ? (MEM[k] ?? null) : v; } catch (e) { return MEM[k] ?? null; } }, set(k, v) { MEM[k] = String(v); try { localStorage.setItem(k, v); } catch (e) {} }, del(k) { delete MEM[k]; try { localStorage.removeItem(k); } catch (e) {} } };
 // ---- Spielstand automatisch sichern ----
-const SAVE_KEYS = ["ordDue", "hackPending", "nutsAsk", "nutsDone", "nutsBonus", "gotSplat", "spW", "spT", "hkMissed", "tonGift", "tonIntroGift", "introQ", "chomps", "tons", "locks", "hackDone", "rotDone", "rotMode", "rotT", "gold", "lives", "wave", "lines", "kills", "score", "toSpawn", "spawnT", "spawnIdx", "inWave", "waveCD", "waveTotal", "waveLeaks", "gravT", "playT", "builtOnce", "goldMark", "killMark", "lowLifeSaid", "veteran", "towersBuilt", "totalSpawned", "seen", "pieceNo", "lineStreak", "scoreMark", "snipes", "mixers", "teslas", "ff", "cpRun", "speed", "medals", "medalProg", "sweeps", "sendIts", "testRun", "medDone", "ord", "ordersOpen", "lockCharge", "lockT", "lockLines"];
+const SAVE_KEYS = ["rotN", "rotNW", "ordDue", "hackPending", "nutsAsk", "nutsDone", "nutsBonus", "gotSplat", "spW", "spT", "hkMissed", "tonGift", "tonIntroGift", "introQ", "chomps", "tons", "locks", "hackDone", "rotDone", "rotMode", "rotT", "gold", "lives", "wave", "lines", "kills", "score", "toSpawn", "spawnT", "spawnIdx", "inWave", "waveCD", "waveTotal", "waveLeaks", "gravT", "playT", "builtOnce", "goldMark", "killMark", "lowLifeSaid", "veteran", "towersBuilt", "totalSpawned", "seen", "pieceNo", "lineStreak", "scoreMark", "snipes", "mixers", "teslas", "ff", "cpRun", "speed", "medals", "medalProg", "sweeps", "sendIts", "testRun", "medDone", "ord", "ordersOpen", "lockCharge", "lockT", "lockLines"];
 function buildSave() {
   if (!S.started || S.over) return null;
   const pc = p => p && { k: p.k, cells: p.cells, x: p.x, y: p.y, col: p.col, tnt: p.tnt };
@@ -8387,6 +8388,9 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     S.grid = new Uint8Array(NN); S.towers = new Map(); seedGarbage(); try { if (S.sel) closeSheet(); } catch (e) {}
     S.monsters = []; S.shots = []; try { gridChanged(); } catch (e) { S.dirty = true; }
     if (n) { S.gold += sum; announce(`TOWERS SOLD · +${sum} GOLD`, `New continent, fresh start: ${n} tower${n > 1 ? "s" : ""} sold at full price. The gold is in your account.`, "GOLD", 6500); } };
+
+  /* V293: Paket-Symbol +90° */
+  try { if (typeof LOOT_ICON !== "undefined" && LOOT_ICON.rot && !LOOT_ICON.rotp) LOOT_ICON.rotp = LOOT_ICON.rot.replace("−90", "+90").replace('<path d="M7 4a7 7 0 0 1 11 2"', '<path transform="matrix(-1 0 0 1 24 0)" d="M7 4a7 7 0 0 1 11 2"').replace('<path d="M19 2v4h-4"', '<path transform="matrix(-1 0 0 1 24 0)" d="M19 2v4h-4"'); } catch (e) {}
 })();
 </script>
 
