@@ -2668,7 +2668,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V264";
+const GAME_VER = "V265";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -7945,7 +7945,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     const IMG = { snipe: "img/slot_snipe.webp", mix: "img/slot_mix.webp", tesla: "img/slot_tesla.webp", lock: "img/slot_lock.webp", chomp: "img/slot_chomp.webp", ton: "img/slot_ton.webp" };
     const PR = [["snipe", "Sniper strike", "snipes"], ["mix", "Concrete mixer", "mixers"], ["tesla", "Tesla storm", "teslas"],
                 ["lock", "Lockdown", "locks"], ["chomp", "Chomper", "chomps"], ["ton", "Ten-ton drop", "tons"]];
-    try { if (typeof SAVE_KEYS !== "undefined" && !SAVE_KEYS.includes("banditDone")) SAVE_KEYS.push("banditDone"); } catch (e) {}
+    try { if (typeof SAVE_KEYS !== "undefined") ["banditDone", "banditNext"].forEach(k => { if (!SAVE_KEYS.includes(k)) SAVE_KEYS.push(k); }); } catch (e) {}
     const ov = document.createElement("div"); ov.id = "ovBandit"; ov.hidden = true;
     ov.innerHTML = `<div class="bdBox"><div class="bdBurst"></div><span class="bdTag">FREE SUPPLY DROP</span><h2>LUCKY SUPPLY</h2><div class="bdSub" id="bdSub">One spin on the house, squad!</div>
       <div class="bdCab" id="bdCab"><img class="bdCabImg" src="img/bandit_cab3.webp" alt="" draggable="false"><div class="bdReel" id="bdR0" style="left:10.6%;top:47.9%;width:19.2%;height:19.16%"><div class="bdStrip" id="bdS0"></div></div><div class="bdReel" id="bdR1" style="left:32.4%;top:47.9%;width:19.2%;height:19.16%"><div class="bdStrip" id="bdS1"></div></div><div class="bdReel" id="bdR2" style="left:54.1%;top:47.9%;width:19.2%;height:19.16%"><div class="bdStrip" id="bdS2"></div></div><div class="bdFlash"></div><button class="bdLever" id="bdLever" aria-label="Pull the lever"></button></div>
@@ -7969,7 +7969,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
       $b("bdResT").innerHTML = "&nbsp;"; $b("bdResS").innerHTML = "&nbsp;"; $b("bdSub").textContent = "One spin on the house, squad!";
       $b("bdGo").textContent = "SPIN ▶"; $b("bdGo").disabled = false; $b("bdLever").classList.remove("pull");
       ov.classList.remove("spin", "win", "on"); ov.querySelectorAll(".bdConf").forEach(e => e.remove());
-      if (S) { S.banditDone = true; wasPaused = !!S.intro; S.intro = true; S.banditOpen = true; }
+      if (S) { S.banditDone = true; S.banditNext = (S.wave || 1) + 5 + Math.floor(Math.random() * 3); wasPaused = !!S.intro; S.intro = true; S.banditOpen = true; }
       ov.hidden = false; [0, 1, 2].forEach(i => $b("bdS" + i).style.setProperty("--rh", rh(i) + "px")); requestAnimationFrame(() => ov.classList.add("on"));
       try { SFX.init(); snd("radio"); } catch (e) {}
     }
@@ -8005,7 +8005,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     $b("bdLever").addEventListener("click", e => { e.stopPropagation(); if (st === 0) spin(); });
     ov.addEventListener("click", e => e.stopPropagation());
     // Wann: einmal je Lauf, ab ~60 s Spielzeit, an der ersten ruhigen Stelle
-    const calm = () => S && S.started && !S.over && !S.nuts && !S.banditDone && (S.playT || 0) >= 60 && !S.inWave && (S.waveCD || 0) > 2.5
+    const calm = () => S && S.started && !S.over && !S.nuts && (S.banditNext ? (S.wave || 0) >= S.banditNext : !S.banditDone) && (S.playT || 0) >= 60 && performance.now() - Math.max(window.__evtLast || -1e9, window.__adLast || -1e9) >= 45000 && !S.inWave && (S.waveCD || 0) > 2.5
       && !S.intro && !S.drop && !S.alert && !S.ordersOpen && !S.duel && !S.mapShow && !S.mapFly && !S.signOpen && !S.joinOpen && !S.mode && !S.sel && !S.shop && !S.paused && !S.mix
       && !(typeof TUT !== "undefined" && TUT.on) && !(typeof hkOfferOn === "function" && hkOfferOn()) && !S.hackPending && (typeof inPlay !== "function" || inPlay()) && !document.hidden;
     setInterval(() => { try { if (ov.hidden && calm()) open(false); } catch (e) {} }, 500);
@@ -8043,6 +8043,9 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
                  ton: { img: "img/ad_ton.webp", sale: "img/ad_ton_sale.webp", st: [[73, 16], [10, 78], [11, 51]], tag: "FREE GIFT", line: "Your first one is free – it's already in your Pocket!", sline: "Crush them all again – grab a second one!" },
                  frost: { img: "img/ad_frost_sale.webp", sale: "img/ad_frost_sale.webp", st: [[11, 37], [12, 74], [88, 18]], tag: "NEW GEAR", line: "Slows everything it hits. Pair it with an MG." },
                  snipe: { img: "img/ad_snipe_sale.webp", sale: "img/ad_snipe_sale.webp", st: [[80, 16], [11, 49], [12.5, 79]], tag: "NEW GEAR", line: "One shot wipes a 2×2 patch – splats all around it!" },
+                 chomp: { img: "img/ad_chomp_sale.webp", sale: "img/ad_chomp_sale.webp", st: [[11, 37], [12, 74], [88, 18]], tag: "NEW GEAR", line: "Steel jaws run the ring backwards – eating everything!" },
+                 tesla: { img: "img/ad_tesla_sale.webp", sale: "img/ad_tesla_sale.webp", st: [[11, 37], [12, 74], [88, 18]], tag: "NEW GEAR", line: "4×4 lightning strike. Splats count triple!" },
+                 lock: { img: "img/ad_lock_sale.webp", sale: "img/ad_lock_sale.webp", st: [[11, 37], [12, 74], [88, 18]], tag: "NEW GEAR", line: "Freeze time for 8 s – cleared lines explode together!" },
                  mix: { img: "img/ad_mix.webp", sale: "img/ad_mix_sale.webp", st: [[8.6, 43], [90, 39], [8.6, 78]], tag: "NEW GEAR", line: "Fills a hole to the top and buries monsters." } };
     let saleMode = false;
     const ov = document.createElement("div"); ov.id = "ovAd"; ov.hidden = true;
@@ -8050,7 +8053,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
       <div class="adBody"><div class="saleHead"><b class="saleMega">MEGA DEAL</b><span class="saleOnly">ONLY THIS WAVE!</span></div><h2 id="adName"></h2><div class="salePrice"><s id="saleWas"></s><b id="saleNow"></b><i id="salePct"></i></div><p id="adLine"></p><div class="adMet" id="adMet"></div><div class="adAct" id="adAct"></div><button id="adLater"></button></div></div>`;
     document.body.appendChild(ov);
     const $a = id => document.getElementById(id); let cur = null;
-    const TOWERW = { kan: 1, frost: 1 }; const price = k => TOWERW[k] ? WEAP[k].cost : k === "mix" ? MIX_COST : k === "snipe" ? SNIPE_COST : TON_COST;
+    const TOWERW = { kan: 1, frost: 1 }; const price = k => TOWERW[k] ? WEAP[k].cost : k === "mix" ? MIX_COST : k === "snipe" ? SNIPE_COST : k === "chomp" ? CHOMP_COST : k === "tesla" ? TESLA_COST : k === "lock" ? LOCK_COST : TON_COST;
     function slotTower() { const L = limits(Math.max(1, S.wave)); for (const t of S.towers.values()) if (t.w.length < L.weapons) return t; return null; }
     function why(k) { const p = price(k); if (S.gold < p) return `Not enough gold yet · ${p} gold`; if (TOWERW[k] && !slotTower()) return S.towers.size ? "All towers are full · tap a tower later" : "Build a tower first, then mount it"; return ""; }
     function paint() { const k = cur, w = why(k), act = $a("adAct"), sale = $a("adCard").classList.contains("sale");
@@ -8069,7 +8072,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
       if (bought) try { toast(`${INTRO_GEAR[k][0].toUpperCase()} · ${TOWERW[k] ? "mounted on your tower" : "in your Pocket"}`, "ARMORY", 2000); } catch (e) {} }
     function buy() { const k = cur; if (window.__newsPrev) { close(false); return; } if (!k || why(k)) { paint(); return; } const p = price(k);
       if (TOWERW[k]) { const t = slotTower(); if (!t) { paint(); return; } t.w.push({ type: k, lvl: 1, cd: 0 }); }
-      else if (k === "mix") S.mixers = (S.mixers || 0) + 1; else if (k === "snipe") S.snipes = (S.snipes || 0) + 1; else S.tons = (S.tons || 0) + 1;
+      else if (k === "mix") S.mixers = (S.mixers || 0) + 1; else if (k === "snipe") S.snipes = (S.snipes || 0) + 1; else if (k === "chomp") S.chomps = (S.chomps || 0) + 1; else if (k === "tesla") S.teslas = (S.teslas || 0) + 1; else if (k === "lock") S.locks = (S.locks || 0) + 1; else S.tons = (S.tons || 0) + 1;
       S.gold -= p; try { snd("shopBuy"); setTimeout(() => SFX.say("Nice!", 1.0, 1.0), 200); } catch (e) {} try { window.__vib && window.__vib([20], true); } catch (e) {} close(true); }
     ov.addEventListener("click", e => { e.stopPropagation(); if (e.target.closest("#adBuy")) buy(); else if (e.target.closest("#adLater")) { try { snd("uiTap"); } catch (er) {} close(false); } });
     let lastW = null; setInterval(() => { if (!ov.hidden && cur) { const w = why(cur); if (w !== lastW) { lastW = w; paint(); } } }, 400);
@@ -8077,16 +8080,16 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     let late = false;
     try { if (typeof SAVE_KEYS !== "undefined" && !SAVE_KEYS.includes("adDue")) SAVE_KEYS.push("adDue"); } catch (e) {}
     showIntro = function (q) { const r = _si.apply(this, arguments);
-      try { if (q && q.t === "gear" && AD[q.k] && (S.wave || 0) <= 14 && !S.nuts) {
+      try { if (q && q.t === "gear" && AD[q.k] && !S.nuts) {
           S.adDue = S.adDue || {};
-          const recent = performance.now() - (window.__adLast || -1e9) < 45000;
-          if (q.k === "ton") { if (!recent) show("ton", false); S.adDue.ton = 1; }                       // Geschenk sofort, Sale später (600 Gold)
-          else if (!why(q.k) && !recent) show(q.k, true);                                              // sofort nutzbar → gleich als Sale
-          else { S.adDue[q.k] = 1; $("ovIntro").hidden = true; try { closeIntro(); } catch (e) {} }   // sonst später, wenn nutzbar
+          S.adDue[q.k] = 1;   // V265: Anzeige immer später, wenn bezahlbar und ruhig (Neuheiten-Fenster bleibt)
+          if (false) {}                       // Geschenk sofort, Sale später (600 Gold)
+          else if (false) show(q.k, true);                                              // sofort nutzbar → gleich als Sale
+          
         } } catch (e) { console.error("ad", e); } return r; };
     const calm = () => S && S.started && !S.over && !S.nuts && !S.testRun0 && !S.intro && !S.drop && !S.alert && !S.ordersOpen && !S.duel && !S.mapShow && !S.mapFly && !S.signOpen && !S.joinOpen
       && !S.mode && !S.sel && !S.shop && !S.paused && !S.mix && !S.banditOpen && !(typeof TUT !== "undefined" && TUT.on) && !(typeof hkOfferOn === "function" && hkOfferOn()) && (typeof inPlay !== "function" || inPlay()) && !document.hidden && ov.hidden;
-    setInterval(() => { try { if (!S || !S.adDue || !calm() || performance.now() - (window.__adLast || -1e9) < 45000) return; for (const k of ["kan", "frost", "mix", "snipe", "ton"]) if (S.adDue[k] && !why(k)) { delete S.adDue[k]; late = true; S.intro = true; S.adOpen = true; show(k, true); break; } } catch (e) {} }, 700);
+    setInterval(() => { try { if (!S || !S.adDue || !calm() || performance.now() - Math.max(window.__adLast || -1e9, window.__evtLast || -1e9) < 45000) return; for (const k of ["kan", "frost", "mix", "snipe", "ton", "chomp", "tesla", "lock"]) if (S.adDue[k] && !why(k)) { delete S.adDue[k]; late = true; S.intro = true; S.adOpen = true; show(k, true); break; } } catch (e) {} }, 700);
     window.__TT && (window.__TT.ad = { show, close });
   })(); } catch (e) { console.error("ads", e); }
 
@@ -8221,9 +8224,9 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     const btn = document.getElementById("devNews"); if (!btn) return; let run = null;
     const vis = id => { const el = document.getElementById(id); return el && !el.hidden && getComputedStyle(el).display !== "none"; };
     function list() { const L = []; Object.keys(INTRO_MON).forEach(k => L.push({ t: "mon", k }));
-      const AD = ["kan", "ton", "mix", "frost", "snipe"]; Object.keys(INTRO_GEAR).forEach(k => L.push({ t: AD.includes(k) ? "ad" : "gear", k })); L.push({ t: "bandit" }); return L; }
-    function snap() { return { seen: JSON.stringify(S.seen || {}), gold: S.gold, tons: S.tons, tg: S.tonIntroGift, due: JSON.stringify(S.adDue || {}), iw: S.introWave, bd: S.banditDone, pk: ["snipes", "mixers", "teslas", "locks", "chomps"].map(k => S[k]) }; }
-    function restore(z) { S.seen = JSON.parse(z.seen); S.gold = z.gold; S.tons = z.tons; S.tonIntroGift = z.tg; S.adDue = JSON.parse(z.due); S.introWave = z.iw; S.banditDone = z.bd; ["snipes", "mixers", "teslas", "locks", "chomps"].forEach((k, i) => { S[k] = z.pk[i]; }); }
+      const AD = ["kan", "ton", "mix", "frost", "snipe", "chomp", "tesla", "lock"]; Object.keys(INTRO_GEAR).forEach(k => L.push({ t: AD.includes(k) ? "ad" : "gear", k })); L.push({ t: "bandit" }); return L; }
+    function snap() { return { seen: JSON.stringify(S.seen || {}), gold: S.gold, tons: S.tons, tg: S.tonIntroGift, due: JSON.stringify(S.adDue || {}), iw: S.introWave, bd: S.banditDone, bn: S.banditNext, pk: ["snipes", "mixers", "teslas", "locks", "chomps"].map(k => S[k]) }; }
+    function restore(z) { S.seen = JSON.parse(z.seen); S.gold = z.gold; S.tons = z.tons; S.tonIntroGift = z.tg; S.adDue = JSON.parse(z.due); S.introWave = z.iw; S.banditDone = z.bd; S.banditNext = z.bn; ["snipes", "mixers", "teslas", "locks", "chomps"].forEach((k, i) => { S[k] = z.pk[i]; }); }
     function stop(msg) { if (!run) return; clearInterval(run.iv); restore(run.z); window.__newsPrev = false; run = null; btn.textContent = "Check news"; btn.classList.remove("armed"); try { toast(msg || "NEWS · done", "DEV", 1500); } catch (e) {} }
     function open(q) { if (q.t === "ad") { S.intro = true; S.adOpen = true; window.__adLast = 0; window.__TT.ad.show(q.k, q.k !== "ton"); }
       else if (q.t === "bandit") { const b = document.getElementById("devBandit"); if (b) b.click(); }
@@ -8239,6 +8242,13 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
       run.iv = setInterval(() => { if (!run) return; if (busy()) { run.wait = 0; return; } if (++run.wait >= 2) { S.intro = false; S.adOpen = false; next(); } }, 250);
     });
   })(); } catch (e) { console.error("devNews", e); }
+
+  /* V265: letzte Zeit eines sichtbaren Fensters/Ereignisses merken (Abstand für Anzeigen) */
+  try { setInterval(() => { try { if (!S || !S.started) return; const v = id => { const e = document.getElementById(id); return e && !e.hidden && getComputedStyle(e).display !== "none"; };
+      const b = document.body.classList;
+      if (S.intro || S.alert || S.duel || S.drop || S.ordersOpen || S.signOpen || S.joinOpen || S.banditOpen || S.mapShow || S.mapFly || S.paused || b.contains("mapUp") || b.contains("introWin")
+          || v("ovIntro") || v("ovAd") || v("ovBandit") || (typeof hkOfferOn === "function" && hkOfferOn()) || (typeof TUT !== "undefined" && TUT.on)) window.__evtLast = performance.now();
+    } catch (e) {} }, 300); } catch (e) {}
 })();
 </script>
 
