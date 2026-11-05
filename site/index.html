@@ -2294,7 +2294,7 @@ body.inNuts #btnPRestart{display:none!important}
       </div>
       <button class="hackPill" id="hackPill" hidden><span class="hpFace"><svg viewBox="0 0 40 36"><path d="M12 6q2-6 5-1M28 6q-2-6-5-1" stroke="#17150c" stroke-width="2" fill="#7a1f60"/><rect x="5" y="6" width="30" height="27" rx="9" fill="#b0328c" stroke="#17150c" stroke-width="2.5"/><path d="M8 14h24v3q-3 5-8 5t-6-5h-2q-1 5-6 5t-8-5z" fill="#17150c"/><path d="M12 25q8 6 16 0" stroke="#17150c" stroke-width="2.5" fill="#fff"/></svg></span><span class="hpTxt"><small>BOSS SIGNAL</small><b>HACK FOR GOLD ▶</b></span><span class="hpT" id="hpT">20</span></button>
       <div class="overlay hackOv" id="ovHack" hidden>
-        <div class="hackBet" id="hackBet">
+        <div class="hackBet" id="hackBet"><div class="hkBetPic"></div>
           <span class="alTag hackTag">BOSS SIGNAL</span>
           <h2 id="hkBoss">THE BOSS</h2>
           <p>Tap your wires to claim core cells. 10 seconds, more than 6 wins. <b>Win: stake ×2 · Lose: stake gone.</b></p>
@@ -2669,7 +2669,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V288";
+const GAME_VER = "V289";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -7378,7 +7378,7 @@ const ovSign = document.createElement("div"); ovSign.className = "signOv"; ovSig
 ovSign.innerHTML = `<div class="signBox" id="signBox"><div class="signTxt"><h2 id="signTitle">CONTINENT CLEARED!</h2><p id="signInfo"></p></div><div class="signRule" id="signRule"></div><div class="signBtns"><button id="signNuts">☠ NUTS DETOUR<small>30 crazy levels</small></button><button id="signNext">NEXT →<small>continue the tour</small></button></div></div>`;
 document.body.appendChild(ovSign);
 const ovRes = document.createElement("div"); ovRes.className = "nutsRes"; ovRes.id = "ovNutsRes"; ovRes.hidden = true;
-ovRes.innerHTML = `<div class="nutsResBox"><span class="alTag" id="nrTag">NUTS DETOUR</span><h2 id="nrTitle"></h2><div class="big" id="nrBig"></div><p id="nrSub"></p><p class="bonus" id="nrBonus"></p><div class="hs" id="nrHs"></div><button class="btn-accent btn-big" id="nrBack">BACK TO THE MAIN ROAD ▶</button></div>`;
+ovRes.innerHTML = `<div class="nutsResBox"><div class="nrPic"></div><span class="alTag" id="nrTag">NUTS DETOUR</span><h2 id="nrTitle"></h2><div class="big" id="nrBig"></div><p id="nrSub"></p><p class="bonus" id="nrBonus"></p><div class="hs" id="nrHs"></div><button class="btn-accent btn-big" id="nrBack">BACK TO THE MAIN ROAD ▶</button></div>`;
 document.body.appendChild(ovRes);
 function nzBadgeSync() {
   const on = !!(S && S.nuts && S.started && !S.over); nzBadge.hidden = !on; document.body.classList.toggle("inNuts", !!(S && S.nuts));
@@ -7852,6 +7852,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
       at(8600, () => { setMe(MAP_PTS[P.c][0], true); label(contName(P.c), `Welcome to ${nice(contName(P.c))}!`, `First stop: ${nice(CONTS[P.c][2][0])}`); fx("tonHit");
         const ak = ["samerica", "africa", "asia", "namerica", "antarctica"][P.c];
         if (ak && P.c > 0) setTimeout(() => { try { if (!seqDone) return; arrC = document.createElement("div"); arrC.className = "mapArrive"; arrC.innerHTML = `<img src="img/arrive_${ak}.webp" alt=""><div class="maTxt"><small>WORLD TOUR · CONTINENT ${P.c + 1} OF 5</small><b>${contName(P.c)}</b><span>${nice(CONTS[P.c][2][0])} · wave ${w}</span></div>`; arrOrigin(arrC); ov.appendChild(arrC); requestAnimationFrame(() => requestAnimationFrame(() => arrC.classList.add("on"))); setTimeout(() => { try { if (!seqDone) return; const vk = { africa: "welcome_africa", asia: "welcome_asia", namerica: "welcome_namerica" }[ak] || "newcont"; window.__contSaid = w; SFX.say(vk, 1, 1, SFX.reserveVoice(SFX.voiceDur(vk) * 1000 + 400)); } catch (e) {} }, 900); } catch (e) {} }, 700); setTimeout(() => fx("powerup"), 120); setTimeout(() => fx("coin"), 420); });
+      at(11000, () => { try { arrC && arrC.classList.remove("on"); } catch (e) {} });
       at(12600, hide); }
     function playIntro(done) { let arr = null;
       seqDone = () => { try { arr && arr.remove(); } catch (e) {} try { if (SFX.music.playing < 1) SFX.music.start(1); } catch (e) {} if (done) done(); };
@@ -7866,6 +7867,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
       at(6700, () => { arr = document.createElement("div"); arr.className = "mapArrive"; arr.innerHTML = `<img src="img/arrive_samerica.webp" alt=""><div class="maTxt"><small>WORLD TOUR · STOP 1 OF 30</small><b>SOUTH AMERICA</b><span>River Bank · wave 1</span></div>`;
         arrOrigin(arr); ov.appendChild(arr); requestAnimationFrame(() => requestAnimationFrame(() => arr.classList.add("on")));
         setTimeout(() => { try { if (SFX.music.playing < 1) SFX.music.start(1); } catch (e) {} }, 1500); try { SFX.say && SFX.say("welcome", 1.0, 1.0, "welcome"); } catch (e) {} });
+      at(9000, () => { try { arr && arr.classList.remove("on"); } catch (e) {} });
       at(10600, hide); }
     /* Einhängen vor dem Wellenstart */
     let busy = false, pendSW = null;
@@ -9210,5 +9212,24 @@ body.ovUp #nutsBadge,body.mapUp #nutsBadge{visibility:hidden}
 <style id="v288lock">
 .lock3 button,.lock3 .btn-accent{pointer-events:auto!important;opacity:1!important;filter:none!important}
 .lock3 #adLater{pointer-events:none!important;opacity:.45!important}
+</style>
+
+<style id="v289">
+/* Nuts-Endscreen: Bild, zwei Schriften */
+.nutsResBox{padding:0 0 16px!important;overflow:auto;font-family:"Baloo 2",system-ui,sans-serif!important}
+.nutsResBox .nrPic{aspect-ratio:960/536;max-width:100%;background:url(img/nuts_chase.webp) center/cover;border-bottom:3px solid #3a1d10;border-radius:13px 13px 0 0;margin-bottom:10px}
+.nutsResBox>*:not(.nrPic){margin-left:14px!important;margin-right:14px!important}
+.nutsResBox>button{width:calc(100% - 28px)!important}
+.nutsResBox .alTag{display:block;background:none!important;color:#3a1d10!important;font:400 15px/1 Bangers,var(--f-display),sans-serif!important;letter-spacing:.14em!important;padding:0!important;border:0!important;box-shadow:none!important}
+.nutsResBox h2{font-size:38px!important;line-height:1!important;color:#e0453a!important;-webkit-text-stroke:1.2px #3a1d10;margin:6px 14px 0!important;letter-spacing:.02em}
+.nutsResBox .big{font-size:52px!important;color:#3a1d10;margin:2px 14px!important}
+.nutsResBox p,.nutsResBox .hs,.nutsResBox .hs *{font-family:"Baloo 2",system-ui,sans-serif!important}
+.nutsResBox p{font-size:14px!important;font-weight:600}
+.nutsResBox .bonus{font-weight:800!important;font-size:14px!important;border-radius:12px!important}
+.nutsResBox .hs h4{font:400 17px/1 Bangers,var(--f-display),sans-serif!important;letter-spacing:.06em;margin:4px 0 6px!important;color:#3a1d10}
+.nutsResBox .hs .row{font-size:14px;font-weight:700}
+/* Boss-Hack-Einsatz: Bild */
+.hackBet{padding-top:0!important;overflow:hidden}
+.hackBet .hkBetPic{align-self:stretch;aspect-ratio:960/536;max-width:calc(100% + 28px);margin:0 -14px 2px;background:url(img/hk_bet.webp) center/cover;border-bottom:3px solid var(--ink,#3a1d10)}
 </style>
 </body></html>
