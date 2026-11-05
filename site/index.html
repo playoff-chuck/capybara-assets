@@ -2668,7 +2668,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V274";
+const GAME_VER = "V275";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -8152,7 +8152,9 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
 
   /* V258: realistisches Flugzeug-Geräusch */
   try { window.__planeSnd = (ms, fromOff) => {
-      const ac = AU.ac(), out = AU.out(); if (!ac || !out) return; const T = ac.currentTime + 0.02, D = Math.max(1.2, ms / 1000);
+      const ac = AU.ac(), out0 = AU.out(); if (!ac || !out0) return; let out = out0;   /* V275: erste Sequenz +25 % */
+      if (fromOff && !window.__planeFirstDone) { window.__planeFirstDone = true; const bo = ac.createGain(); bo.gain.value = 1.25; bo.connect(out0); out = bo; }
+      const T = ac.currentTime + 0.02, D = Math.max(1.2, ms / 1000);
       const up = fromOff ? 0.25 : 0.9, down = 0.9;   // Hochlauf / Gas weg (s)
       const g = ac.createGain(), lp = ac.createBiquadFilter(), am = ac.createGain(), lfo = ac.createOscillator(), lfoG = ac.createGain();
       lp.type = "lowpass"; lp.Q.value = 0.7; am.gain.value = 1; lfo.frequency.value = 22; lfoG.gain.value = 0.28; lfo.connect(lfoG); lfoG.connect(am.gain);
@@ -8176,7 +8178,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     }; } catch (e) { console.error("planeSnd", e); }
   /* V258: Dev – Street player / Intros aus */
   try { (() => { const fr = document.getElementById("devFresh"), ib = document.getElementById("devIntro"); let arm = 0, armT = null;
-      const introsOff = () => LS.get("tarnturm-dev") === "1" && LS.get("tarnturm-devnointro") === "1";
+      try { LS.del("tarnturm-devnointro"); } catch (er) {} const introsOff = () => false;
       const paint = () => { if (!ib) return; const off = LS.get("tarnturm-devnointro") === "1"; ib.textContent = off ? "Intros: off" : "Intros: on"; ib.classList.toggle("off", off); }; paint();
       if (ib) ib.addEventListener("click", e => { e.stopPropagation(); LS.set("tarnturm-devnointro", LS.get("tarnturm-devnointro") === "1" ? "0" : "1"); paint(); try { snd("uiTap"); } catch (er) {} });
       if (fr) fr.addEventListener("click", e => { e.stopPropagation(); try { snd("uiTap"); } catch (er) {}
