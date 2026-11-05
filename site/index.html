@@ -2669,7 +2669,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V279";
+const GAME_VER = "V280";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -3478,8 +3478,8 @@ const SFX = (() => {
     },
     // ---- Türme ----
     mg()     { if (ok("mg", 0.06)) { smp("mg", 0.55, rnd(1.5, 1.9)); noise(0.03, 0.18, "bandpass", rnd(2200, 3000), 1200, 0, 1.4); kick(300, 90, 0.03, 0.1); } },
-    kan()    { if (ok("kan", 0.1)) { smp("kan", 0.7, rnd(0.7, 0.85)); kick(230, 60, 0.12, 0.35); noise(0.08, 0.2, "lowpass", 1800, 200); } },
-    boom()   { if (ok("boom", 0.08)) { smp("boom", 0.7, rnd(0.9, 1.1), 0, 0.3); smp("boomlow", 0.6, rnd(0.9, 1.1)); kick(120, 28, 0.4, 0.5); } },
+    kan()    { if (ok("kan", 0.1)) { smp("kan", 0.385, rnd(0.7, 0.85)); kick(230, 60, 0.12, 0.1925); noise(0.08, 0.11, "lowpass", 1800, 200); } },
+    boom(k)  { const q = typeof k === "number" && k < 1 ? k : 1; if (ok("boom", 0.08)) { smp("boom", 0.7 * q, rnd(0.9, 1.1), 0, 0.3); smp("boomlow", 0.6 * q, rnd(0.9, 1.1)); kick(120, 28, 0.4, 0.5 * q); } },
     tnt(n = 1) {
       if (!ok("tnt", 0.1)) return;
       MUSIC.duck(1.4);
@@ -4617,7 +4617,7 @@ function stepShots(dt) {
   for (const s of S.shots) {
     const dx = s.tx - s.x, dy = s.ty - s.y, d = Math.hypot(dx, dy), mv = s.spd * dt;
     if (d <= mv) {
-      s.done = true; snd("boom");
+      s.done = true; snd("boom", 0.55);
       for (const m of S.monsters) if (!m.dead && Math.hypot(m.x - s.tx, m.y - s.ty) <= s.splash) hurt(m, s.dmg);
       S.fx.push({ type: "boom", x: s.tx, y: s.ty, r: s.splash, col: "#ff8b3d", t: 0, life: 0.35 });
     } else { s.x += dx / d * mv; s.y += dy / d * mv; }
