@@ -2669,7 +2669,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V305";
+const GAME_VER = "V306";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -8526,6 +8526,9 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     ["btnCloud", "btnPCloud", "btnCloudT"].forEach(id => { const b = $c(id); b && b.addEventListener("click", e => { e.stopPropagation(); open(); }); });
     window.__cloud = { code, snap, upload, open, norm, show };
   })(); } catch (e) { console.error("cloud", e); }
+
+  /* V306: Boss-Hack-Fenster nie an das (wackelnde) Spielfeld binden */
+  try { const ov = document.getElementById("ovHack"); if (ov && ov.parentElement !== document.body) document.body.appendChild(ov); } catch (e) {}
 })();
 </script>
 
@@ -9416,5 +9419,13 @@ body.ovUp #nutsBadge,body.mapUp #nutsBadge{visibility:hidden}
 .cloudT{display:block;margin:10px auto 0}
 .cloudStat{min-height:18px;margin:4px 0;font-size:13px;font-weight:700;opacity:.85}
 .cloudSep{margin:14px 0 4px;font:900 11px/1 system-ui;letter-spacing:1px;opacity:.7}
+</style>
+<style id="v306hack">
+body.duelOn .board,body.duelOn #board,body.duelOn #boardWrap,body.duelOn .boardWrap,body.duelOn #app,body.duelOn .app{animation:none!important;transform:none!important;translate:none!important;rotate:none!important;scale:none!important}
+body.duelOn #ovHack{overflow-y:auto!important;align-items:center}
+#ovHack .hackBet,#ovHack .hackRes{max-height:100%;overflow-y:auto!important;flex:0 1 auto;min-height:0}
+#ovHack .hackBet{gap:6px}
+@media (max-height:760px){#ovHack .hackBet .hkBetPic{aspect-ratio:auto!important;height:clamp(80px,calc(100vh - 470px),200px);background-position:center 35%!important}}
+@media (max-height:600px){#ovHack .hackBet p{font-size:13px;margin:0}#ovHack .hkStake b{font-size:32px!important}}
 </style>
 </body></html>
