@@ -2668,7 +2668,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V270";
+const GAME_VER = "V271";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -4642,7 +4642,7 @@ function startWave() {
     const newest = order.find(([, from]) => w >= from) || order[order.length - 1];
     const parts = [`Wave ${w} · ${S.toSpawn} monsters`]; if (r) parts.push(`${r} sprinter${r > 1 ? "s" : ""}`); if (bm) parts.push(`${bm} bomber${bm > 1 ? "s" : ""}`);
     S.introNow = !!S.intro;   // Neuheiten-Fenster offen → General kommentiert nicht doppelt
-    if (!S.introNow) announce(`INCOMING: ${newest[2]}`, parts.join(" · "), "RADIO", 1600); S.incomingKey = "inc_" + newest[0]; }
+    if (!S.introNow && (!S.incNext || S.wave >= S.incNext)) { S.incNext = S.wave + 2 + Math.floor(Math.random() * 2); const IV = ["INCOMING", "HEADS UP", "ON THE RADAR", "HERE THEY COME", "CONTACT", "EYES OPEN", "BRACE FOR"]; announce(`${IV[Math.floor(Math.random() * IV.length)]}: ${newest[2]}`, parts.join(" · "), "RADIO", 1600); } S.incomingKey = "inc_" + newest[0]; }
   snd("wave");
   if (!S.introNow) setTimeout(() => SFX.say(S.incomingKey || "Incoming!"), 1300);
   if (S.wave > 1) SFX.music.switchTo(S.wave);
@@ -6324,7 +6324,7 @@ const TUT_STEPS = [
   { t: "BUILD A TOWER", s: "Tap SHOP, then PLACE.", at: "bBuild", done: () => S.mode === "build" || S.towers.size >= 1 },
   { t: "PICK A BLOCK", s: "Tap one of your landed blocks.", at: "board", done: () => S.towers.size >= 1 },
   { t: "ARM IT", s: "Buy the MG. Then tap Done.", at: "sheet", done: () => [...S.towers.values()].some(t => t.w.length) && !S.sel },
-  { t: "HOLD THE RING", s: "Monsters run the lane. Full laps cost lives. Clear rows for gold.", at: "board", done: () => S.kills >= 1 || (S.inWave && S.playT > 14) },
+  { t: "HOLD THE RING", s: "Monsters run the lane. Full laps cost lives. Clear rows for gold. Good luck, squad!", at: "board", done: () => TUT.t >= 20 },
 ];
 function tutStart() { TUT.on = true; TUT.step = 0; TUT.t = 0; $("coach").hidden = false; tutShow(); }
 function tutEnd(skipped) { TUT.on = false; $("coach").hidden = true; coachHi(null); LS.set("tarnturm-tut", "1"); if (!skipped) { toast("TUTORIAL DONE · good luck, squad", "HQ", 1800); SFX.say("Nice!"); } }
@@ -7743,7 +7743,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     const contName = c => ["SOUTH AMERICA", "AFRICA", "ASIA", "NORTH AMERICA", "ANTARCTICA"][c];
     const nice = t => t.toLowerCase().replace(/\b\w/g, m => m.toUpperCase());
     const ov = document.createElement("div"); ov.id = "ovMap"; ov.hidden = true;
-    ov.innerHTML = `<div class="mapVp"><div class="mapWorld"><img class="mapImg" src="img/worldmap.webp" alt="World map" draggable="false"><svg class="mapPath" viewBox="0 0 1000 ${Math.round(1000 * MAP_AR)}" preserveAspectRatio="none"></svg><div class="mapPins"></div><div class="mapPlane"><div class="biPlane"><img class="bpCap" src="img/biplane_cap.webp" alt=""><img class="bpBody" src="img/biplane_body.webp" alt=""><i class="bpDisc"></i><i class="bpProp"></i><i class="bpHub"></i></div></div><div class="mapMe"><img alt=""></div></div></div>
+    ov.innerHTML = `<div class="mapVp"><div class="mapWorld"><img class="mapImg" src="img/worldmap.webp" alt="World map" draggable="false"><svg class="mapPath" viewBox="0 0 1000 ${Math.round(1000 * MAP_AR)}" preserveAspectRatio="none"></svg><div class="mapPins"></div><div class="mapPlane"><div class="biPlane"><img class="bpCap" src="img/biplane_cap2.webp" alt=""><img class="bpBody" src="img/biplane_body.webp" alt=""><i class="bpDisc"></i><i class="bpProp"></i><i class="bpHub"></i></div></div><div class="mapMe"><img alt=""></div></div></div>
       <div class="mapTop"><small class="mapCont"></small><b class="mapPlace"></b><span class="mapSub"></span></div>
       <div class="mapBar"><button type="button" class="mapWorldBtn">WORLD</button><button type="button" class="mapPlay">PLAY ▶</button><button type="button" class="mapClose">CLOSE</button></div>
       <div class="mapSkip">tap to skip</div>`;
@@ -8089,7 +8089,13 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     const _si = showIntro;
     let late = false;
     try { if (typeof SAVE_KEYS !== "undefined" && !SAVE_KEYS.includes("adDue")) SAVE_KEYS.push("adDue"); } catch (e) {}
-    showIntro = function (q) { const r = _si.apply(this, arguments);
+    showIntro = function (q) {
+      if (q && q.t === "gear" && AD[q.k] && !S.nuts && !window.__newsPrev) { try {   // V271: Anzeige statt altem Fenster
+          S.seen = S.seen || {}; S.seen["g:" + q.k] = true; S.introWave = S.wave; S.adDue = S.adDue || {};
+          if (q.k === "ton") { if (!S.tonIntroGift) { S.tonIntroGift = true; S.tons = (S.tons || 0) + 1; } S.adDue.ton = 1; late = true; S.intro = true; S.adOpen = true; show("ton", false); }
+          else S.adDue[q.k] = 1;
+        } catch (e) { console.error("ad", e); } return; }
+      const r = _si.apply(this, arguments);
       try { if (q && q.t === "gear" && AD[q.k] && !S.nuts) {
           S.adDue = S.adDue || {};
           S.adDue[q.k] = 1;   // V265: Anzeige immer später, wenn bezahlbar und ruhig (Neuheiten-Fenster bleibt)
@@ -8265,7 +8271,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     const REACH = [100,99,98,97,96,96,96,96,96,96,96,96,96,96,96,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,94,94,94,94,94,94,94,94,94,93,93,93,93,92,92,91,91,91,91,90,90,90,89,88,87,87,86,86];
     const reach = w => REACH[Math.max(1, Math.min(150, w)) - 1];
     const expK = w => { try { return Math.min(limits(w).monsters, G.waveBase + G.wavePer * w) * (w >= 21 ? 0.55 : 1) * 0.95; } catch (e) { return 10; } };
-    try { if (typeof SAVE_KEYS !== "undefined") ["statNext", "statSeen", "lifeK", "lifeL", "lifeT", "lifeRun"].forEach(k => { if (!SAVE_KEYS.includes(k)) SAVE_KEYS.push(k); }); } catch (e) {}
+    try { if (typeof SAVE_KEYS !== "undefined") ["incNext", "statNext", "statSeen", "lifeK", "lifeL", "lifeT", "lifeRun"].forEach(k => { if (!SAVE_KEYS.includes(k)) SAVE_KEYS.push(k); }); } catch (e) {}
     const Phi = z => 1 / (1 + Math.exp(-1.702 * z));
     const pc = (x, med, sig, better = 1) => { if (!(x > 0) || !(med > 0)) return null; const z = Math.log(x / med) / sig * better; return Math.max(3, Math.min(97, Math.round(Phi(z) * 100))); };
     const fmt = n => Math.round(n).toLocaleString("en-US");
@@ -9041,7 +9047,7 @@ button .lk{font-style:normal;white-space:nowrap}
 .biPlane{position:relative;width:86px!important;height:59.5px!important}
 .biPlane img{position:absolute;display:block}
 .biPlane .bpBody{left:0;top:0;width:100%;height:100%}
-.biPlane .bpCap{left:43.08%;top:6.67%;width:28.46%;height:38.89%;transform-origin:50% 95%;animation:bpCap 1.1s ease-in-out infinite alternate}
+.biPlane .bpCap{left:43.08%;top:6.67%;width:28.46%;height:48.89%;transform-origin:50% 80%;animation:bpCap 1.1s ease-in-out infinite alternate}
 .biPlane .bpDisc{position:absolute;left:6.2%;top:55.6%;width:7px;height:64%;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(ellipse at center,rgba(236,214,170,.55),rgba(236,214,170,.18) 60%,rgba(236,214,170,0) 72%)}
 .biPlane .bpProp{position:absolute;left:6.2%;top:55.6%;width:5px;height:64%;margin:-19px 0 0 -2.5px;border-radius:3px;background:linear-gradient(180deg,#a7804c,#f0d9a6 20%,#c49b5d 48%,#c49b5d 52%,#f0d9a6 80%,#a7804c);animation:bpSpin .11s linear infinite}
 .biPlane .bpHub{position:absolute;left:6.2%;top:55.6%;width:6px;height:8px;margin:-4px 0 0 -3px;border-radius:50% 40% 40% 50%;background:radial-gradient(circle at 35% 35%,#f6e3b8,#b08550 70%);box-shadow:0 0 0 1px rgba(80,55,25,.35)}
