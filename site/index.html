@@ -2669,7 +2669,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V296";
+const GAME_VER = "V297";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -4351,7 +4351,7 @@ function clearLines() {
 }
 function gravityInterval() { const K = G.gravKnee || 1e9, K2 = G.gravKnee2 || 1e9, we = S.wave <= K ? S.wave : K + (Math.min(S.wave, K2) - K) * (G.gravKneeF ?? 1) + Math.max(0, S.wave - K2) * (G.gravKneeF2 ?? (G.gravKneeF ?? 1)), le = S.wave <= K ? S.lines : S.lines * (we / Math.max(1, S.wave));   // ab dem Knick steigt das Tempo langsamer
   const g = Math.max(G.gravMin, G.gravBase - le * G.gravLine - we * G.gravWave) * ordv("gravMul") * (!S.nuts && S.wave >= 21 && S.wave <= 150 ? 1.8 : 1) / (S.wave >= 60 ? 0.7716 : S.wave >= 50 ? 0.857375 : S.wave >= 40 ? 0.9025 : S.wave >= 30 ? 0.95 : 1) / ((S.wave >= 30 ? 0.9 : 1) * (S.wave >= 50 ? 0.93 : 1) * (S.wave >= 91 && S.wave <= 120 ? 0.92 : 1));   /* V183: ab W30 −10 %, ab W50 −7 %, W91–120 −8 % */   // V179: ab W30 −5 %, ab W40 nochmals −5 %, ab W50 nochmals −5 %, ab W60 nochmals −10 % if (hailOn()) return g / (7.65 * HAIL_WAVES[specBase()] * specK());
-  if (hailOn()) return g / 1.5;   /* V292: Hagel 50 % schneller */
+  if (hailOn()) return g / 3;   /* V292/V297: Hagel ×3 schneller als normal */
   { const e = SPEC_AT[((S.wave - 1) % 100) + 1]; if (e && e[0] === 16 && S.inWave && e[1] >= 2) return g / (e[1] === 2 ? 0.7 : 0.65); }   // V178z12: Sidewinder II 30 % langsamer, ab III 35 %
   return g; }
 
