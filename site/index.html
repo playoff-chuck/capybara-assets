@@ -2669,7 +2669,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V295";
+const GAME_VER = "V296";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -7800,7 +7800,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     function placeSub(w) { const P = wherePos(w), left = 5 - P.d, lm = (5 - P.p) * 5 - P.d; return P.p === 5 ? `Landmark · boss waits here · wave ${w}` : `Wave ${w} · next stop in ${left} wave${left > 1 ? "s" : ""} · landmark in ${lm}`; }
     function clearSeq() { seqT.forEach(clearTimeout); seqT = []; }
     function at(ms, f) { seqT.push(setTimeout(f, ms)); }
-    function show(m) { mode = m; layout(); ov.hidden = false; ov.className = m === "browse" ? "browse" : "auto"; document.body.classList.add("mapUp"); }
+    function show(m) { mode = m; mapShownAt = performance.now(); ov.classList.remove("skipOk"); clearTimeout(skipT); skipT = setTimeout(() => ov.classList.add("skipOk"), 3000); layout(); ov.hidden = false; ov.className = m === "browse" ? "browse" : "auto"; document.body.classList.add("mapUp"); }
     function hide() { clearSeq(); ov.hidden = true; mode = null; document.body.classList.remove("mapUp"); plane.classList.remove("on"); const f = seqDone; seqDone = null; if (f) f(); }
     /* frei ansehen */
     function openMap(w, why) { clearSeq(); w = w || curWave(); const P = posOf(w); show("browse");
@@ -7815,7 +7815,8 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
       if (best >= 0 && bd < .12) { ov.classList.remove("wv"); ov.querySelector(".mapWorldBtn").textContent = "WORLD"; go(contCam(best), 800); const g = posOf(curWave()).g; const done = Math.max(0, Math.min(6, g - best * 6));
         label(contName(best), best * 6 > g ? "Not yet reached" : nice(CONTS[best][2][Math.min(5, Math.max(0, g - best * 6))]), best * 6 > g ? `Arrive at wave ${best * 30 + 1}` : `${done} of 6 places cleared`); try { snd("uiTap"); } catch (er) {} } });
     /* automatische Szenen */
-    ov.addEventListener("click", () => { if (mode === "auto") hide(); });
+    let mapShownAt = 0, skipT = null;
+    ov.addEventListener("click", () => { if (mode === "auto" && performance.now() - mapShownAt >= 3000) hide(); });
     function flyPlane(a, b, ms) { const t0 = performance.now(), ang = Math.atan2((b[1] - a[1]) * MAP_AR, b[0] - a[0]) * 180 / Math.PI;
       const step = now => { if (mode !== "auto") return; const t = Math.min(1, (now - t0) / ms), e = 0.5 - Math.cos(Math.PI * t) / 2, x = a[0] + (b[0] - a[0]) * e, y = a[1] + (b[1] - a[1]) * e - Math.sin(Math.PI * e) * .12;
         plane.style.setProperty("--px", (x) * BW + "px"); plane.style.setProperty("--py", (y) * BW * MAP_AR + "px");
@@ -9250,5 +9251,9 @@ body.ovUp #nutsBadge,body.mapUp #nutsBadge{visibility:hidden}
 #sheet .shopItem:has(button[data-shop="tower"]) .shopTxt b{color:#3a2414!important}
 #sheet .shopItem:has(button[data-shop="tower"]) .shopTxt span{color:#5a3d1a!important}
 #sheet .shopItem.dis:has(button[data-shop="tower"]){filter:saturate(.75)}
+</style>
+
+<style id="v296skip">
+#ovMap.auto:not(.skipOk) .mapSkip{visibility:hidden}
 </style>
 </body></html>
