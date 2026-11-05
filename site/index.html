@@ -2669,7 +2669,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V276";
+const GAME_VER = "V277";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -7777,6 +7777,9 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
       pinsEl.innerHTML = h;
       const H = Math.round(1000 * MAP_AR); pathEl.innerHTML = MAP_PTS.map((P, c) => `<polyline points="${P.map(p => (p[0] * 1000).toFixed(1) + "," + (p[1] * H).toFixed(1)).join(" ")}" class="${c * 6 + 5 < g ? "done" : ""}"/>`).join("");
     }
+    function arrOrigin(el) { try { const o = ov.getBoundingClientRect(), r = me.getBoundingClientRect(); let x = r.left + r.width / 2 - o.left, y = r.top + r.height / 2 - o.top;
+        if (x < 0 || y < 0 || x > o.width || y > o.height) { x = o.width / 2; y = o.height / 2; }
+        el.style.setProperty("--ox", x + "px"); el.style.setProperty("--oy", y + "px"); el.classList.add("fromPt"); } catch (e) {} }
     function setMe(pt, on) { me.style.setProperty("--px", (pt[0]) * BW + "px"); me.style.setProperty("--py", (pt[1]) * BW * MAP_AR + "px"); me.classList.toggle("on", !!on); try { me.querySelector("img").src = HERO_IMG[heroKey()]; } catch (e) {} }
     function label(cont, place, sub) { ov.querySelector(".mapCont").textContent = cont || ""; ov.querySelector(".mapPlace").textContent = place || ""; ov.querySelector(".mapSub").textContent = sub || ""; }
     function placeSub(w) { const P = wherePos(w), left = 5 - P.d, lm = (5 - P.p) * 5 - P.d; return P.p === 5 ? `Landmark · boss waits here · wave ${w}` : `Wave ${w} · next stop in ${left} wave${left > 1 ? "s" : ""} · landmark in ${lm}`; }
@@ -7839,7 +7842,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
       at(7200, () => { go(contCam(P.c), 1300); });
       at(8600, () => { setMe(MAP_PTS[P.c][0], true); label(contName(P.c), `Welcome to ${nice(contName(P.c))}!`, `First stop: ${nice(CONTS[P.c][2][0])}`); fx("tonHit");
         const ak = ["samerica", "africa", "asia", "namerica", "antarctica"][P.c];
-        if (ak && P.c > 0) setTimeout(() => { try { if (!seqDone) return; arrC = document.createElement("div"); arrC.className = "mapArrive"; arrC.innerHTML = `<img src="img/arrive_${ak}.webp" alt=""><div class="maTxt"><small>WORLD TOUR · CONTINENT ${P.c + 1} OF 5</small><b>${contName(P.c)}</b><span>${nice(CONTS[P.c][2][0])} · wave ${w}</span></div>`; ov.appendChild(arrC); requestAnimationFrame(() => arrC.classList.add("on")); } catch (e) {} }, 700); setTimeout(() => fx("powerup"), 120); setTimeout(() => fx("coin"), 420); });
+        if (ak && P.c > 0) setTimeout(() => { try { if (!seqDone) return; arrC = document.createElement("div"); arrC.className = "mapArrive"; arrC.innerHTML = `<img src="img/arrive_${ak}.webp" alt=""><div class="maTxt"><small>WORLD TOUR · CONTINENT ${P.c + 1} OF 5</small><b>${contName(P.c)}</b><span>${nice(CONTS[P.c][2][0])} · wave ${w}</span></div>`; arrOrigin(arrC); ov.appendChild(arrC); requestAnimationFrame(() => requestAnimationFrame(() => arrC.classList.add("on"))); } catch (e) {} }, 700); setTimeout(() => fx("powerup"), 120); setTimeout(() => fx("coin"), 420); });
       at(12600, hide); }
     function playIntro(done) { let arr = null;
       seqDone = () => { try { arr && arr.remove(); } catch (e) {} try { if (SFX.music.playing < 1) SFX.music.start(1); } catch (e) {} if (done) done(); };
@@ -7852,7 +7855,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
       at(4200, () => go({ x: RB[0] + .02, y: RB[1] - .06, k: Math.min(4.2, W0.k * 3) }, 1300));
       at(5300, () => { drawPins(0); setMe(RB, true); label("SOUTH AMERICA", "Landed: River Bank", "Waves 1–5 · the Jungle Temple waits at wave 26"); try { snd("coin"); } catch (e) {} });
       at(6700, () => { arr = document.createElement("div"); arr.className = "mapArrive"; arr.innerHTML = `<img src="img/arrive_samerica.webp" alt=""><div class="maTxt"><small>WORLD TOUR · STOP 1 OF 30</small><b>SOUTH AMERICA</b><span>River Bank · wave 1</span></div>`;
-        ov.appendChild(arr); requestAnimationFrame(() => arr.classList.add("on"));
+        arrOrigin(arr); ov.appendChild(arr); requestAnimationFrame(() => requestAnimationFrame(() => arr.classList.add("on")));
         try { SFX.music.start(1); } catch (e) {} try { SFX.say && SFX.say("welcome", 1.0, 1.0, "welcome"); } catch (e) {} });
       at(10600, hide); }
     /* Einhängen vor dem Wellenstart */
@@ -9086,5 +9089,12 @@ button .lk{font-style:normal;white-space:nowrap}
 
 <style id="v273lock">
 .lock3 button,.lock3 .btn-accent{pointer-events:none!important;opacity:.5;filter:grayscale(.3);transition:opacity .3s}
+</style>
+
+<style id="v277arr">
+#ovMap .mapArrive.fromPt{opacity:1;clip-path:circle(0px at var(--ox,50%) var(--oy,50%));transition:clip-path 1.4s cubic-bezier(.55,0,.3,1)}
+#ovMap .mapArrive.fromPt.on{clip-path:circle(150vmax at var(--ox,50%) var(--oy,50%))}
+#ovMap .mapArrive.fromPt img{transform-origin:var(--ox,50%) var(--oy,50%);transform:scale(1.35);transition:transform 4.5s cubic-bezier(.2,.7,.3,1)}
+#ovMap .mapArrive.fromPt.on img{transform:scale(1)}
 </style>
 </body></html>
