@@ -2668,7 +2668,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V273";
+const GAME_VER = "V274";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -4678,7 +4678,7 @@ function update(dt) {
       if (S.wave % 10 === 0 && !S.cpRun && !S.testRun && S.wave > (+LS.get("tarnturm-cp-" + MODE) || 0)) { LS.set("tarnturm-cp-" + MODE, S.wave); setTimeout(() => toast(`CHECKPOINT · wave ${S.wave} saved`, "HQ", 1800), 5200); } setTimeout(maybeJoin, 5600); { const tg = [8, 14, 22].includes(S.wave) && !(S.tonGift || {})[S.wave];   // V178q: geschenkter Ten-ton drop als Rettungsanker
         if (tg) { S.tonGift = S.tonGift || {}; S.tonGift[S.wave] = 1; S.tons = (S.tons || 0) + 1; S.introQ = S.introQ || []; S.seen = S.seen || {}; if (!S.seen["g:ton"]) S.introQ.push({ t: "gear", k: "ton" }); }
         airDrop(`WAVE ${S.wave} CLEARED`, [["gold", "Gold", "+" + b], ...(tg ? [["ton", "Ten-ton drop", "+1 · in your Pocket"]] : []), ["level", "Level", campTotal() + 1], ["score", "Score", calcScore().toLocaleString("en-US")]]); }
-      if (hkOfferWave(S.wave) && S.wave < 150) S.hackPending = S.wave;   // Boss-Banner kommt, sobald Air Drop / Orders vorbei sind
+      if (hkOfferWave(S.wave) && S.wave < 150) S.hackPending = S.hackPending || S.wave;   // Boss-Banner kommt, sobald Air Drop / Orders vorbei sind
       if (S.wave % 5 === 0) praise(`WAVE ${S.wave}!`, 4, S.wave >= 10 ? "Legendary!" : "Dominating!");
       else if (S.waveLeaks === 0 && S.lives <= 2) praise("COMEBACK!", 3, "Comeback!");
       else if (S.waveLeaks === 0) { if (S.wave % 2) praise("FLAWLESS!", 2, "Flawless!"); else praise("CLEAN SWEEP", 2, "Clean sweep!"); }
@@ -5099,7 +5099,7 @@ const HK = { phase: "off", t: 0, last: 0 };
 const HK_WAVES = new Set([8, 12, 18, 22, 28, 32, 38, 42, 48, 52, 58, 62, 68, 72, 78, 82, 88, 92, 98, 102, 107, 112, 117, 121, 127, 132, 138, 142, 148]);   // V247: nur ruhige Wellen
 function hkOfferWave(w) { return HK_WAVES.has(w); }   // nach jeder 5. Welle
 function hkOfferOn() { return S && S.started && !S.over && (S.hackOfferUntil || 0) > performance.now() && !S.duel && inPlay() && !S.ordersOpen; }
-window.__offerOK = (force) => force || (performance.now() - (window.__evtLast || -1e9) >= 45000 && performance.now() - (window.__offerLast || -1e9) >= 150000);
+window.__offerOK = (force) => force || (performance.now() - (window.__evtLast || -1e9) >= 30000 && performance.now() - (window.__offerLast || -1e9) >= 120000);
 const HK_OFFER_S = 20;   // V178z6: 20 s
 let hkLastT = 0, hkHeldMs = 0;   // V242: Uhr steht während Szenen/Fenstern
 function hkHold() { return !!(S.mapShow || S.intro || S.drop || S.ordersOpen || S.paused || !inPlay()); }
@@ -5108,7 +5108,7 @@ function hkOfferTick() {
   if (!S || !S.started || S.over) { hkLastT = 0; return; }
   { const now = performance.now(), dt = hkLastT ? now - hkLastT : 0; hkLastT = now;
     if (S.hackOfferUntil > 0 && !S.duel) { if (hkHold()) { S.hackOfferUntil += dt; hkHeldMs += dt; } else { if (hkHeldMs > 1500) S.hackOfferUntil = Math.max(S.hackOfferUntil, now + 8000); hkHeldMs = 0; } } else hkHeldMs = 0; }
-  if (S.hackPending && !S.drop && !S.ordersOpen && !S.duel && !S.paused && !S.intro && !S.mapShow && !S.ordDue && !hkSignFirst() && !(!S.inWave && S.waveCD < 0.6) && inPlay() && !(S.hackOfferUntil > performance.now()) && window.__offerOK()) { window.__offerLast = performance.now(); S.hackOfferWave = S.hackPending; S.hackPending = 0; S.hackOfferUntil = performance.now() + HK_OFFER_S * 1000; snd("radio"); setTimeout(() => snd("hkTick", 1), 250); const p = $("hackPill"); p.classList.remove("fly"); }
+  if (S.hackPending && !S.drop && !S.ordersOpen && !S.duel && !S.paused && !S.intro && !S.mapShow && !S.ordDue && !hkSignFirst() && !(!S.inWave && S.waveCD < 0.6) && inPlay() && !(S.hackOfferUntil > performance.now()) && window.__offerOK((S.wave || 0) >= S.hackPending + 2)) { window.__offerLast = performance.now(); S.hackOfferWave = S.hackPending; S.hackPending = 0; S.hackOfferUntil = performance.now() + HK_OFFER_S * 1000; snd("radio"); setTimeout(() => snd("hkTick", 1), 250); const p = $("hackPill"); p.classList.remove("fly"); }
   const p = $("hackPill"), on = hkOfferOn();
   if (on) { const left = Math.ceil((S.hackOfferUntil - performance.now()) / 1000), el = $("hpT"); if (el.textContent !== String(left)) { el.textContent = left; if (left <= 3) snd("hkTick", 1); } p.classList.toggle("hot", left <= 3); if (p.hidden) p.hidden = false; }
   else if (!p.hidden && !p.classList.contains("fly")) {
@@ -8263,7 +8263,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
   /* V265: letzte Zeit eines sichtbaren Fensters/Ereignisses merken (Abstand für Anzeigen) */
   try { setInterval(() => { try { if (!S || !S.started) return; const v = id => { const e = document.getElementById(id); return e && !e.hidden && getComputedStyle(e).display !== "none"; };
       const b = document.body.classList;
-      if (S.intro || S.alert || S.duel || S.drop || S.ordersOpen || S.signOpen || S.joinOpen || S.banditOpen || S.mapShow || S.mapFly || S.paused || b.contains("mapUp") || b.contains("introWin")
+      if (S.intro || S.duel || S.ordersOpen || S.signOpen || S.joinOpen || S.banditOpen || S.mapShow || S.mapFly || S.paused || b.contains("mapUp") || b.contains("introWin")
           || v("ovIntro") || v("ovAd") || v("ovBandit") || (typeof hkOfferOn === "function" && hkOfferOn()) || (typeof TUT !== "undefined" && TUT.on)) window.__evtLast = performance.now();
     } catch (e) {} }, 300); } catch (e) {}
 
