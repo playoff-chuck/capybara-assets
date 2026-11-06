@@ -2298,6 +2298,13 @@ body.inNuts #btnPRestart{display:none!important}
 </svg>
 
 <div id="splash" class="loading" role="button" aria-label="Tap to start"><img alt="Capybara Squad: Rosie and Blue defend a tower of camo blocks against funny monsters" src="img/b6f38631c6.webp"><div class="spT">CAPYBARA<span>SQUAD</span></div><div class="spGo">TAP TO START</div><div class="spDots" aria-hidden="true"><i></i><i></i><i></i></div></div>
+<script>(function(){try{var c=CanvasRenderingContext2D.prototype,d=c.drawImage;c.drawImage=function(im){if(im&&im.tagName==="IMG"&&(!im.complete||!im.naturalWidth))return;return d.apply(this,arguments);};}catch(e){}
+setTimeout(function(){try{var sp=document.getElementById("splash");if(!sp||!document.body.contains(sp)||sp.querySelector(".verTag"))return;
+var st=window.__TT?"tt":"none";try{fetch("/api/events",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ver:"boot",sess:"boot"+Date.now()%1e6,dev:0,plat:navigator.userAgent.slice(0,120),br:"",sw:screen.width|0,sh:screen.height|0,ev:[{k:"error",msg:"boot-stall "+st+" rs="+document.readyState,src:"splash"}]}),keepalive:true});}catch(e){}
+var f=document.createElement("div");f.className="spGo";f.style.display="block";f.textContent="TAP TO RELOAD";var g=sp.querySelector(".spDots");if(g)g.style.display="none";sp.appendChild(f);
+sp.addEventListener("click",function(ev){ev.stopImmediatePropagation();var go=function(){location.replace(location.pathname+"?r="+Date.now());};
+try{var p=[];if(navigator.serviceWorker)p.push(navigator.serviceWorker.getRegistrations().then(function(rs){return Promise.all(rs.map(function(r){return r.unregister();}));}));
+if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.map(function(k){return caches.delete(k);}));}));Promise.all(p).then(go,go);setTimeout(go,2500);}catch(e){go();}},true);}catch(e){}},12000);})();</script>
 <div id="sky" aria-hidden="true"><div class="sl day"></div><div class="sl night"></div><div class="tint"></div><div class="scene"><img class="full" alt=""><img class="hero" alt=""><img class="foe" alt=""></div><div class="dim"></div></div>
 <div id="buddy" class="l" aria-hidden="true"><div class="say"></div><img alt=""></div>
 <div class="app">
@@ -2736,7 +2743,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V331";
+const GAME_VER = "V332";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
