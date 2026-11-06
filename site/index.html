@@ -2702,7 +2702,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V324";
+const GAME_VER = "V325";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -8692,6 +8692,10 @@ try { (() => {
     if (uiWinOpen() || S.paused || S.mapShow || S.ordersOpen || S.drop || S.mode || S.sel || S.shop || performance.now() - (window.__evtLast || -1e9) < 5000) return;
     show(i); } catch (e) {} }, 400);
 })(); } catch (e) { console.error("v323 tips", e); }
+
+/* V325: keine «soldier»-Sprüche */
+try { (() => { const sy = SFX.say; SFX.say = function (k) { try { const t = String((typeof VOICE_TEXT !== "undefined" && VOICE_TEXT[k]) || k || "");
+      if (/soldier/i.test(t)) { if (/wounded/i.test(t)) { const a = [...arguments]; a[0] = "Mayday! Mayday!"; return sy.apply(SFX, a); } return; } } catch (e) {} return sy.apply(SFX, arguments); }; })(); } catch (e) { console.error("v325", e); }
 })();
 </script>
 
