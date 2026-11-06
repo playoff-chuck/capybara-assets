@@ -2743,7 +2743,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V354";
+const GAME_VER = "V355";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -8541,9 +8541,9 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
   /* V283: neuer Kontinent – freies Spielfeld, Türme ziehen mit */
   window.__gdim = () => [GW, GH];
   window.__contFresh = () => { if (!S) return; let sum = 0, n = 0; for (const t of S.towers.values()) { sum += towerValue(t); n++; }   /* V290: Türme werden zum vollen Preis verkauft */
-    S.grid = new Uint8Array(NN); S.towers = new Map(); seedGarbage(); try { if (S.sel) closeSheet(); } catch (e) {}
+    S.grid = new Uint8Array(NN); S.towers = new Map(); try { if (S.sel) closeSheet(); } catch (e) {}   /* V355: ganz leer, keine Start-Steine */
     S.monsters = []; S.shots = []; try { gridChanged(); } catch (e) { S.dirty = true; }
-    if (n) { S.gold += sum; announce(`TOWERS SOLD · +${sum} GOLD`, `New continent, fresh start: ${n} tower${n > 1 ? "s" : ""} sold at full price. The gold is in your account.`, "GOLD", 6500); } };
+    if (n) { S.gold += sum; announce(`TOWERS SOLD · +${sum} GOLD`, `New continent, empty field: ${n} tower${n > 1 ? "s" : ""} and all weapons sold at full price. The gold is in your account.`, "GOLD", 6500); } else toast("NEW CONTINENT · EMPTY FIELD", "HQ", 1800); };
 
   /* V293: Paket-Symbol +90° */
   try { if (typeof LOOT_ICON !== "undefined" && LOOT_ICON.rot && !LOOT_ICON.rotp) LOOT_ICON.rotp = LOOT_ICON.rot.replace("−90", "+90").replace('<path d="M7 4a7 7 0 0 1 11 2"', '<path transform="matrix(-1 0 0 1 24 0)" d="M7 4a7 7 0 0 1 11 2"').replace('<path d="M19 2v4h-4"', '<path transform="matrix(-1 0 0 1 24 0)" d="M19 2v4h-4"'); } catch (e) {}
