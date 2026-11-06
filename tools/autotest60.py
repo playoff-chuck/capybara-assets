@@ -53,7 +53,11 @@ BOT = r"""
     const click = (b, why) => { if (b) { LOG.ev.push({ t, k: 'bot', e: why + ':' + (b.innerText || '').trim().slice(0, 20), wave: S.wave }); b.click(); return true; } return false; };
     if (w.intro && age('intro') > 2500) click(pick(document.getElementById('ovIntro'), ['GOT IT', "LET'S GO", 'OK']), 'intro');
     if (w.ad && age('ad') > 3600) { const r = document.getElementById('ovAd'); click(pick(r, ['NO THANKS', 'LATER', "IT'S FREE", 'GOT IT', "LET'S GO"]) , 'ad'); }
-    if (w.bandit && age('bandit') > 3600) click(pick(document.getElementById('ovBandit'), ['NO THANKS', 'LATER', 'SKIP', 'CLOSE']), 'bandit');
+    if (w.bandit && age('bandit') > 3600 && Math.floor(age('bandit') / 1000) % 2 === 0) click(pick(document.getElementById('ovBandit'), ['SPIN', 'COLLECT', 'TAKE', 'GRAB', 'GOT IT', 'OK', 'NO THANKS', 'LATER', 'CLOSE']), 'bandit');
+    /* Notbremse: Fenster hängt > 15 s → ersten sichtbaren Knopf darin drücken und protokollieren */
+    { const IDS = { intro: 'ovIntro', ad: 'ovAd', bandit: 'ovBandit', hackAd: 'ovHackAd', orders: 'ovOrders', join: 'ovJoin', duel: 'ovHack' };
+      for (const k of Object.keys(IDS)) if (w[k] && age(k) > 15000 && Math.floor(age(k) / 1000) % 3 === 0) {
+        const r = document.getElementById(IDS[k]); const b = r && btns(r)[0]; LOG.ev.push({ t, k: 'stuck', e: k + ':' + (b ? (b.innerText || '').trim().slice(0, 20) : 'kein Knopf'), wave: S.wave }); if (b) b.click(); } }
     if (w.hackAd && age('hackAd') > 3600) click(pick(document.getElementById('ovHackAd'), ['LATER', 'NO THANKS']), 'hackAd');
     if (w.orders && age('orders') > 2500) click(pick(document.getElementById('ovOrders'), ['ACCEPT', 'GO', 'OK', 'SKIP']) || btns(document.getElementById('ovOrders'))[0], 'orders');
     if (w.join && age('join') > 2500) click(pick(document.getElementById('ovJoin'), ['LATER', 'SKIP', 'NO THANKS', 'NOT NOW']) || btns(document.getElementById('ovJoin')).slice(-1)[0], 'join');
@@ -87,11 +91,15 @@ def main():
             pg.clock.run_for(3000)
             pg.evaluate(BOT)
             pg.evaluate("window.__TT.startGame('chill', 0)")
-            wall0 = time.time(); last = -1
+            wall0 = time.time(); last = -1; last_t = 0
             while True:
                 pg.clock.run_for(5000)
                 st = pg.evaluate("({w: window.__TT.S.wave, over: !!window.__TT.S.over, t: performance.now()})")
+                if st["w"] == last and st["t"] - last_t > 10 * 60000:
+                    dump = pg.evaluate("(()=>{const S=window.__TT.S;return {inWave:S.inWave,toSpawn:S.toSpawn,mon:S.monsters.length,cd:S.waveCD,intro:!!S.intro,paused:!!S.paused,open:Object.keys(window.__AT.open),body:document.body.className,vis:[...document.querySelectorAll('[id^=ov]')].filter(e=>!e.hidden&&getComputedStyle(e).display!=='none').map(e=>e.id)}})()")
+                    print("HAENGT in Welle", last, dump, flush=True); st["stall"] = dump; break
                 if st["w"] != last:
+                    last_t = st["t"]
                     last = st["w"]; print(f"W{st['w']:3d}  Spielzeit {st['t']/1000/60:5.1f} min  real {time.time()-wall0:5.0f} s", flush=True)
                 if st["w"] > UNTIL or st["over"] or time.time() - wall0 > 3 * 3600:
                     break
