@@ -2669,7 +2669,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V308";
+const GAME_VER = "V309";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -7882,7 +7882,8 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     const _sw2 = startWave; startWave = function () { const a = arguments, self = this;
       try { if (!busy && S && S.started && !S.over && !S.nuts && S.mapDoneFor !== (S.wave || 0) + 1) { const nw = (S.wave || 0) + 1, P = wherePos(nw);
           let play = null; if (nw > 1 && nw <= 150 && P.d === 0) play = P.p === 0 ? (d => playCont(nw, d)) : (d => playPlace(nw, d));
-          if (play) { busy = true; const was = S.paused; S.paused = true; S.mapShow = true;
+          if (play) { const calm = performance.now() - (window.__evtLast || -1e9); if (calm < 5000) { S.waveCD = Math.max(S.waveCD || 0, (5000 - calm) / 1000 + 0.1); return; }   /* V309: 5 s Ruhe vor der Karte */
+            busy = true; const was = S.paused; S.paused = true; S.mapShow = true;
             play(() => { S.paused = was; S.mapShow = false; busy = false; if (P.p === 0) { S.mapDoneFor = nw; S.waveCD = 6; return; } _sw2.apply(self, a); }); return; } } } catch (e) { busy = false; }
       if (busy) { pendSW = [this, a]; return; } return _sw2.apply(this, a); };
     const _sg = startGame; startGame = function (m, fromWave) { const r = _sg.apply(this, arguments);

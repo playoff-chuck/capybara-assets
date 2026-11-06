@@ -2,13 +2,14 @@
 """Automatischer Testlauf W1–W60 mit Zeitleiste gegen die Ablauf-Regeln (Fenster & Anzeigen).
 Spielt mit simulierter Uhr (Playwright clock), Bot schließt Fenster wie ein Spieler,
 Leben/Gold werden aufgefüllt, damit der Lauf durchkommt und alle Angebote fällig werden.
-Aufruf: python3 tools/autotest60.py [bis_welle] [ausgabe.json]
+Aufruf: python3 tools/autotest60.py [bis_welle] [ausgabe.json] [ab_welle]
 """
 import json, sys, time, subprocess, os, signal
 from playwright.sync_api import sync_playwright
 
 UNTIL = int(sys.argv[1]) if len(sys.argv) > 1 else 60
 OUT = sys.argv[2] if len(sys.argv) > 2 else "autotest60.json"
+FROM = int(sys.argv[3]) if len(sys.argv) > 3 else 0   # Start ab Checkpoint-Welle (z. B. 30)
 PORT = 8765
 
 BOT = r"""
@@ -21,12 +22,12 @@ BOT = r"""
     const b = document.body.classList;
     return {
       intro: vis('ovIntro') || b.contains('introWin'), ad: vis('ovAd'), bandit: vis('ovBandit') || !!S.banditOpen,
-      hackAd: vis('ovHackAd') || !!S.hackAdOpen, duel: vis('ovHack') || !!S.duel, join: vis('ovJoin') || !!S.joinOpen || !!S.signOpen,
+      hackAd: vis('ovHackAd') || !!S.hackAdOpen, duel: vis('ovHack') || !!S.duel, join: vis('ovJoin') || !!S.joinOpen, sign: vis('ovSign') || !!S.signOpen,
       orders: vis('ovOrders') || !!S.ordersOpen, map: b.contains('mapUp') || !!S.mapShow || !!S.mapFly, drop: !!S.drop,
       pause: vis('ovPause') || !!S.paused, sheet: vis('sheet'), over: vis('ovOver') || !!S.over, cloud: vis('ovCloud'),
     };
   };
-  const title = k => { const id = {intro:'ovIntro',ad:'ovAd',bandit:'ovBandit',hackAd:'ovHackAd',orders:'ovOrders',join:'ovJoin',duel:'ovHack'}[k];
+  const title = k => { const id = {intro:'ovIntro',ad:'ovAd',bandit:'ovBandit',hackAd:'ovHackAd',orders:'ovOrders',join:'ovJoin',duel:'ovHack',sign:'ovSign'}[k];
     const e = id && document.getElementById(id); return e ? (e.innerText || '').replace(/\s+/g, ' ').slice(0, 70) : ''; };
   const btns = root => [...(root || document).querySelectorAll('button, .btn, [role=button]')].filter(e => e.offsetParent !== null && !e.disabled);
   const pick = (root, prefs) => { const bs = btns(root); for (const p of prefs) { const b = bs.find(x => (x.innerText || '').toUpperCase().includes(p)); if (b) return b; } return null; };
@@ -55,12 +56,13 @@ BOT = r"""
     if (w.ad && age('ad') > 3600) { const r = document.getElementById('ovAd'); click(pick(r, ['NO THANKS', 'LATER', "IT'S FREE", 'GOT IT', "LET'S GO"]) , 'ad'); }
     if (w.bandit && age('bandit') > 3600 && Math.floor(age('bandit') / 1000) % 2 === 0) click(pick(document.getElementById('ovBandit'), ['SPIN', 'COLLECT', 'TAKE', 'GRAB', 'GOT IT', 'OK', 'NO THANKS', 'LATER', 'CLOSE']), 'bandit');
     /* Notbremse: Fenster hängt > 15 s → ersten sichtbaren Knopf darin drücken und protokollieren */
-    { const IDS = { intro: 'ovIntro', ad: 'ovAd', bandit: 'ovBandit', hackAd: 'ovHackAd', orders: 'ovOrders', join: 'ovJoin', duel: 'ovHack' };
+    { const IDS = { intro: 'ovIntro', ad: 'ovAd', bandit: 'ovBandit', hackAd: 'ovHackAd', orders: 'ovOrders', join: 'ovJoin', duel: 'ovHack', sign: 'ovSign' };
       for (const k of Object.keys(IDS)) if (w[k] && age(k) > 15000 && Math.floor(age(k) / 1000) % 3 === 0) {
         const r = document.getElementById(IDS[k]); const b = r && btns(r)[0]; LOG.ev.push({ t, k: 'stuck', e: k + ':' + (b ? (b.innerText || '').trim().slice(0, 20) : 'kein Knopf'), wave: S.wave }); if (b) b.click(); } }
     if (w.hackAd && age('hackAd') > 3600) click(pick(document.getElementById('ovHackAd'), ['LATER', 'NO THANKS']), 'hackAd');
     if (w.orders && age('orders') > 2500) click(pick(document.getElementById('ovOrders'), ['ACCEPT', 'GO', 'OK', 'SKIP']) || btns(document.getElementById('ovOrders'))[0], 'orders');
     if (w.join && age('join') > 2500) click(pick(document.getElementById('ovJoin'), ['LATER', 'SKIP', 'NO THANKS', 'NOT NOW']) || btns(document.getElementById('ovJoin')).slice(-1)[0], 'join');
+    if (w.sign && age('sign') > 3000) click(document.getElementById('signNext'), 'sign');
     if (w.drop && age('drop') > 2500) click(pick(document, ['COLLECT', 'GRAB', 'TAKE', 'GOT IT', 'OPEN', "IT'S FREE"]), 'drop');
     if (w.map && age('map') > 4000 && (Math.floor(age('map') / 1500) % 2 === 0)) {
       const b = pick(document, ['CONTINUE', "LET'S GO", 'GO', 'NEXT']); if (b) click(b, 'map');
@@ -90,7 +92,7 @@ def main():
             pg.goto(f"http://localhost:{PORT}/index.html")
             pg.clock.run_for(3000)
             pg.evaluate(BOT)
-            pg.evaluate("window.__TT.startGame('chill', 0)")
+            pg.evaluate(f"window.__TT.startGame('chill', {FROM})")
             wall0 = time.time(); last = -1; last_t = 0
             while True:
                 pg.clock.run_for(5000)
