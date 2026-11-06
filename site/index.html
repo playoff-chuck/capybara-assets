@@ -2743,7 +2743,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V357";
+const GAME_VER = "V358";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -9072,13 +9072,17 @@ try { (() => {
   }
   window.__thiefPos = T => { if (!T) { el.style.display = "none"; return; }
     const ge = document.getElementById("sGold"), r = ge ? ge.getBoundingClientRect() : { left: innerWidth / 2, width: 0, top: 40, height: 0 };
-    const gy = r.top + r.height / 2, t = T.t, stop = r.left - 112, reach = r.left - 84, end = innerWidth + SZ;
-    const x = t < 6 ? -SZ + (stop + SZ) * (1 - Math.pow(1 - t / 6, 2))                       /* läuft heran und bremst sanft */
+    const cvE = document.getElementById("cv"), cr = cvE ? cvE.getBoundingClientRect() : { left: 0, top: 120, width: innerWidth };   /* V358: auf der oberen Spur */
+    const gw = (window.__gdim && window.__gdim()[0]) || 12, cell = cr.width / gw, feet = cr.top + cell * 0.92, gx = r.left + r.width / 2;
+    const t = T.t, reach = Math.max(cr.left + SZ / 2, gx - 18), stop = reach - 30, end = innerWidth + SZ;
+    const sc = Math.max(0.62, Math.min(1, (feet - 26) / (SZ - 5))), ga = (document.getElementById("genAv") || { getBoundingClientRect: () => null }).getBoundingClientRect();
+    let x0 = cr.left - SZ / 2, fade = 1; if (ga && ga.width && feet - (SZ - 5) * sc < ga.bottom) { x0 = Math.max(x0, ga.right + SZ * sc / 2 + 6); fade = Math.min(1, t / 0.6); }
+    const x = t < 6 ? x0 + (stop - x0) * (1 - Math.pow(1 - t / 6, 2))                       /* läuft heran und bremst sanft */
       : t < 8.4 ? stop
       : t < 10 ? stop + (reach - stop) * ease((t - 8.4) / 1.6)                                    /* schleicht hin */
       : t < 10.6 ? reach
       : reach + (end - reach) * Math.pow(Math.min(1, (t - 10.6) / 19.4), 1.35);                  /* rennt weg, wird schneller */
-    el.style.display = "block"; el.style.transform = `translate(${(x - SZ / 2).toFixed(1)}px,${Math.round(Math.max(gy - SZ + 30, 4))}px)`; sprite(T); };
+    el.style.display = "block"; el.style.transformOrigin = "50% 100%"; el.style.opacity = fade.toFixed(2); el.style.transform = `translate(${(x - SZ / 2).toFixed(1)}px,${Math.round(feet - SZ + 5)}px) scale(${sc.toFixed(3)})`; sprite(T); };
   el.addEventListener("pointerdown", ev => { ev.preventDefault(); ev.stopPropagation(); const D = window.__dist && window.__dist.D, T = D && D.thief; if (!T) return;
     let used = null;
     if (S.mode === "snipe" && S.snipes > 0) { S.snipes--; used = "snipe"; } else if (S.mode === "tesla" && S.teslas > 0) { S.teslas--; used = "tesla"; }
