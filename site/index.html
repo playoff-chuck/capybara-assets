@@ -2743,7 +2743,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V361";
+const GAME_VER = "V362";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -9043,7 +9043,7 @@ try { (() => {
   document.body.appendChild(el); const g = el.getContext("2d");
   // Ablauf (Sekunden): 0–6 laufen · 6–7,3 umschauen · 7,3–8,4 zum Gold schauen · 8,4–10 schleichen · 10 greifen · 10–30 rennen
   function phase(t) { return t < 8 ? "walk" : t < 9.4 ? "eye" : t < 10.6 ? "grab" : "run"; }
-  const FR = [1, 2, 3, 4, 5, 6, 7].map(n => "thief_" + n).concat([1, 2, 3, 4, 5, 6, 7, 8].map(n => "thief_w" + n)).map(f => { const im = new Image(); im.decoding = "async"; im.src = "img/" + f + ".webp"; return im; });   /* V360: 7..14 = Laufzyklus */
+  const FR = [1, 2, 3, 4, 5, 6, 7].map(n => "thief_" + n).concat([1, 2, 3, 4, 5, 6, 7, 8].map(n => "thief_w" + n)).concat([1, 2, 3, 4].map(n => "thief_r" + n)).map(f => { const im = new Image(); im.decoding = "async"; im.src = "img/" + f + ".webp"; return im; });   /* V360: 7..14 = Laufzyklus */
   const ease = p => p < 0 ? 0 : p > 1 ? 1 : p * p * (3 - 2 * p);   // weich an und aus
   function pose(t) {   // Bild, Spiegelung (−1…1), Wippen, Neigung
     const ph = phase(t); let fi = 0, sx = 1, bob = 0, tilt = 0;
@@ -9052,7 +9052,7 @@ try { (() => {
     else if (ph === "eye") { fi = 3; bob = (1 - Math.cos(t * 18)) * 0.5; }
     else if (ph === "sneak") { fi = 4; bob = (1 - Math.cos(t * 6.5)) * 1.4; tilt = Math.sin(t * 6.5) * 0.03; }
     else if (ph === "grab") { fi = 5; tilt = 0.04 * Math.sin(Math.min(1, (t - 9.4) / 1.2) * Math.PI); }
-    else { fi = 6; const c = t * 2.6; bob = (1 - Math.cos(c * Math.PI * 2)) * 2.4; tilt = 0.07 + Math.sin(c * Math.PI * 2) * 0.035; }
+    else { fi = 15 + Math.floor(t * 9) % 4; tilt = 0.05; }   /* V362: Renn-Zyklus mit Geldsack */
     return { ph, fi, sx, bob, tilt }; }
   function drawFrame(fi, alpha, P, h) { const im = FR[fi]; if (!im.complete || !im.naturalWidth || alpha <= 0) return;
     const w = h * im.naturalWidth / im.naturalHeight; g.save(); g.globalAlpha = alpha; g.translate(SZ / 2, SZ - 5 - P.bob); g.rotate(P.tilt); g.scale(Math.abs(P.sx) < 0.08 ? 0.08 * Math.sign(P.sx || 1) : P.sx, 1);
@@ -9075,7 +9075,7 @@ try { (() => {
     const ge = document.getElementById("sGold"), r = ge ? ge.getBoundingClientRect() : { left: innerWidth / 2, width: 0, top: 40, height: 0 };
     const cvE = document.getElementById("cv"), cr = cvE ? cvE.getBoundingClientRect() : { left: 0, top: 120, width: innerWidth };   /* V358: auf der oberen Spur */
     const gw = (window.__gdim && window.__gdim()[0]) || 12, cell = cr.width / gw, feet = cr.top + cell * 0.92, gx = r.left + r.width / 2;
-    const t = T.t, reach = Math.max(cr.left + SZ / 2, gx - 18), stop = reach - 30, end = innerWidth + SZ;
+    const t = T.t, sc0 = Math.max(0.62, Math.min(1, (feet - 26) / (SZ - 5))), reach = Math.max(cr.left + SZ / 2, gx - 38 * sc0), stop = reach - 30, end = innerWidth + SZ;
     const sc = Math.max(0.62, Math.min(1, (feet - 26) / (SZ - 5))), ga = (document.getElementById("genAv") || { getBoundingClientRect: () => null }).getBoundingClientRect();
     let x0 = Math.min(cr.left, 0) - SZ * sc / 2 - 4, fade = 1;   /* V361: immer von links herein */
     const x = t < 8 ? x0 + (stop - x0) * (1 - Math.pow(1 - t / 8, 1.5))                       /* läuft heran und bremst sanft */
