@@ -2743,7 +2743,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V342";
+const GAME_VER = "V343";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -8966,7 +8966,7 @@ try { (() => {
 try { (() => {
   const DK = ["blk", "mag", "weed", "thief", "egg"];
   const _dj = devJump; devJump = function (w, kind) { const r = _dj.apply(this, arguments);
-    if (DK.includes(kind)) { S.snipes = (S.snipes || 0) + 2; S.teslas = (S.teslas || 0) + 2; S.waveCD = 3; S.testLongW = w; S.testLongUntil = performance.now() + 180000;
+    if (DK.includes(kind)) { S.snipes = (S.snipes || 0) + 2; S.teslas = (S.teslas || 0) + 2; S.waveCD = 3; S.testLongW = w; S.testLongUntil = performance.now() + 300000;
       if (kind === "egg") toast("TEST · EASTER EGG: push a block 5× into the left or right wall", "HQ", 3500);
       else toast(`TEST · ${kind.toUpperCase()} starts a few seconds into wave ${w} · 2 Sniper + 2 Tesla in Pocket`, "HQ", 3000); }
     return r; };
