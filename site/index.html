@@ -2743,7 +2743,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V355";
+const GAME_VER = "V356";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -8039,6 +8039,8 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
       return false; };
     const ios = /iP(hone|ad|od)/.test(navigator.userAgent), standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone;
     navigator.serviceWorker.register("sw.js").then(reg => { navigator.serviceWorker.ready.then(r => { try { r.active && r.active.postMessage({ t: "sync" }); } catch (e) {} }); }).catch(() => {});
+    navigator.serviceWorker.addEventListener("message", e => { const d = e.data || {}; if (d.t !== "newver") return; let done = false; try { done = sessionStorage.getItem("capy-upd") === "1"; sessionStorage.setItem("capy-upd", "1"); } catch (x) {} if (done) return;   /* V356 */
+      if (typeof S === "undefined" || !S || !S.started) location.reload(); else try { toast("UPDATE READY · restart to get it", "HQ", 3500); } catch (x) {} });
     navigator.serviceWorker.addEventListener("message", e => { const d = e.data || {}; if (d.t !== "offline" || state !== "busy") return; const pct = d.total ? Math.min(100, Math.floor(d.done / d.total * 100)) : 0; draw(pct);
       if (d.n >= d.of) { state = "ready"; LS.set("capy-offline", "1"); draw(); try { snd("coin"); } catch (er) {}
         toast(ios && !standalone ? "Saved! Tip: Share → Add to Home Screen" : prompt && !isInst() ? "Saved! Tap ✈ again for the home-screen icon" : "Saved! Works in flight mode now.", "OFFLINE", 3200); } });

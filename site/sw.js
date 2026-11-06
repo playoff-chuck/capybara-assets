@@ -2,7 +2,7 @@
    index.html: erst Netz (damit Updates sofort ankommen), sonst Speicher.
    Alles andere: erst Speicher, sonst Netz (und dann speichern). /api/ nie speichern.
    Liste aller Dateien: offline.json (tools/make_offline.py). Musik/Audio mit Range-Antworten (206). */
-const CACHE = "capy-offline-v1";
+const CACHE = "capy-offline-v1";   /* V356 */
 const CORE = ["/", "/index.html", "/manifest.webmanifest", "/offline.json"];
 self.addEventListener("install", e => { self.skipWaiting(); e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE)).then(() => fillAll(false)).catch(() => {})); });
 self.addEventListener("activate", e => { e.waitUntil((async () => { for (const k of await caches.keys()) if (k !== CACHE) await caches.delete(k); await self.clients.claim(); })()); });
@@ -29,11 +29,14 @@ self.addEventListener("fetch", e => {
   const req = e.request, u = new URL(req.url); if (req.method !== "GET" || u.origin !== location.origin || u.pathname.startsWith("/api/") || u.pathname.startsWith("/privacy") || u.pathname.startsWith("/logos/")) return;
   if (u.pathname === "/" || u.pathname === "/index.html") {
     /* V331: erst Netz, aber nach 3,5 s die gespeicherte Fassung zeigen (langsames Handynetz); das Netz aktualisiert im Hintergrund weiter */
-    const net = (async () => { const c = await caches.open(CACHE); const res = await fetch(req, { cache: "no-cache" }); if (res.ok) { await c.put("/index.html", res.clone()); await c.put("/", res.clone()); } return res; })();
+    let servedOld = false, oldLen = 0;   /* V356: alte Fassung gezeigt → nach dem Laden «newver» melden */
+    const net = (async () => { const c = await caches.open(CACHE); const res = await fetch(req, { cache: "no-cache" }); if (res.ok) { const len = +(res.headers.get("content-length") || 0); await c.put("/index.html", res.clone()); await c.put("/", res.clone());
+      if (servedOld) { const etag = res.headers.get("etag") || ""; if (etag !== oldEtag) for (const cl of await self.clients.matchAll({ includeUncontrolled: true })) cl.postMessage({ t: "newver" }); } } return res; })();
+    let oldEtag = "";
     e.waitUntil(net.catch(() => {}));
     e.respondWith((async () => { const c = await caches.open(CACHE); const old = (await c.match("/index.html")) || (await c.match("/"));
-      if (!old) return net.catch(() => Response.error());
-      return Promise.race([net.then(r => r.clone()), new Promise(r => setTimeout(() => r(old), 3500))]).catch(() => old); })());
+      if (!old) return net.catch(() => Response.error()); oldEtag = old.headers.get("etag") || "";
+      return Promise.race([net.then(r => r.clone()), new Promise(r => setTimeout(() => { servedOld = true; r(old); }, 3500))]).catch(() => { servedOld = true; return old; }); })());
     return; }
   e.respondWith((async () => { const c = await caches.open(CACHE); const key = u.pathname + u.search;
     let hit = await c.match(key) || await c.match(key, { ignoreSearch: true });
