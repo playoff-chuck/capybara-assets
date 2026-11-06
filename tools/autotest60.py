@@ -10,7 +10,10 @@ from playwright.sync_api import sync_playwright
 UNTIL = int(sys.argv[1]) if len(sys.argv) > 1 else 60
 OUT = sys.argv[2] if len(sys.argv) > 2 else "autotest60.json"
 FROM = int(sys.argv[3]) if len(sys.argv) > 3 else 0   # Start ab Checkpoint-Welle (z. B. 30)
-PORT = 8765
+import socket
+def _free_port():   # freier Port: ein hängengebliebener alter Testserver darf nie eine alte Version ausliefern (06.11.)
+    with socket.socket() as so: so.bind(("127.0.0.1", 0)); return so.getsockname()[1]
+PORT = _free_port()
 
 BOT = r"""
 (() => {

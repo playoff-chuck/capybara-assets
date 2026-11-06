@@ -3,7 +3,7 @@
 - apply(): Zoom mindestens so groß, dass die Karte Breite UND Höhe des Bildschirms deckt (vorher wurde sie im Hochformat
   mittig mit Streifen gezeigt). Antarktis-Ansicht (free) unten bündig statt mit Rand.
 - Flüge: Kamera folgt dem Flugzeug weich (Flugzeug bleibt immer im Bild, auch wenn die Welt nicht mehr ganz drauf passt);
-  Kontinentflug zoomt auf den Abflugort statt auf die Weltmitte."""
+  Kontinentflug zoomt auf den Abflugort statt auf die Weltmitte; Welttour-Start zeigt Südamerika."""
 import sys
 src, dst = sys.argv[1], sys.argv[2]
 s = open(src, encoding='utf-8').read()
@@ -29,5 +29,7 @@ old = 'go(worldCam(), 1300);'
 assert body.count(old) == 1, body.count(old)
 body = body.replace(old, 'go({ ...worldCam(), x: MAP_PTS[oc][5][0], y: MAP_PTS[oc][5][1] }, 1300);   /* V317: auf den Abflugort */')
 s = s[:i] + body + s[j:]
+# Welttour-Start: Kamera auf Südamerika (Ankunftsort), nicht auf die Weltmitte (Afrika) – Fund Erststart-Test 06.11.
+rep('const W0 = worldCam(), RB = MAP_PTS[0][0]; go(W0, 0);', 'const RB = MAP_PTS[0][0], W0 = { ...worldCam(), x: RB[0], y: RB[1] }; go(W0, 0);   /* V317 */')
 open(dst, 'w', encoding='utf-8').write(s)
 print("ok")

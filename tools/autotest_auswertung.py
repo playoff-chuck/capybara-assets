@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Auswertung eines autotest60-Laufs gegen die Ablauf-Regeln (Stand V290):
 R1 nie zwei Fenster gleichzeitig · R2 Pflicht-Fenster frühestens 5 s nach letztem Fenster/Übergang ·
-R3 Angebote frühestens 30 s nach letztem Fenster/Übergang · R4 höchstens 1 Angebot je 2 min (Boss-Hack ausgenommen).
+R3 Angebote frühestens 30 s nach letztem Fenster/Übergang · R4 höchstens 1 Angebot je 95 s (Boss-Hack ausgenommen; V311).
 Aufruf: python3 tools/autotest_auswertung.py lauf.json [weitere.json ...]
 """
 import json, sys
@@ -39,8 +39,8 @@ def pruefe(ev):
         if a == "angebot":
             if not andere and gap < 30 - 0.3:
                 out.append(("R3 <30 s Abstand", z + f"  (nur {gap:.1f} s)"))
-            if k != "hackAd" and t - last_offer < 120 - 0.3:
-                out.append(("R4 >1 Angebot/2 min", z + f"  (nur {t-last_offer:.0f} s nach letztem Angebot)"))
+            if k != "hackAd" and t - last_offer < 95 - 0.3:
+                out.append(("R4 >1 Angebot/95 s", z + f"  (nur {t-last_offer:.0f} s nach letztem Angebot)"))
             last_offer = t
         offen[k] = t
     return out
