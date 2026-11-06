@@ -6,6 +6,7 @@
 3. Kein Ten-ton-Sale, wenn in den nächsten 3 Wellen ein Gratis-Ten-ton (Air-Drop W8/14/22) kommt.
 4. Sprechblasen warten auch während Boss-Hack-Einsatz/Duell (uiWinOpen kennt jetzt #ovHack und S.duel/S.hackAdOpen).
 5. Erstes-Mal-Hinweise warten, solange ein Fenster/Anzeige offen ist (nie zusammen mit einer Anzeige).
+6. Wegweiser nach der Kontinent-Feier nur, wenn er noch nicht beantwortet ist.
 Aufruf: python3 tools/patch318.py src dst   (kopiert review/v313/food_*.webp als site/img/<hash>.webp)"""
 import sys, hashlib, shutil, os
 src, dst = sys.argv[1], sys.argv[2]
@@ -47,6 +48,9 @@ rep('return v("ovIntro") || document.body.classList.contains("introWin") || v("o
 rep('if (TUT.on || LS.get("tarnturm-hint-" + key) === "1" || hintKey) return;',
     'if (TUT.on || LS.get("tarnturm-hint-" + key) === "1" || hintKey) return;\n'
     '  try { if (uiWinOpen() || (S && (S.ordersOpen || S.mapShow || S.drop || S.paused))) { setTimeout(() => hint(key, title, sub, at), 1500); return; } } catch (e) {}   /* V318 */')
+# 6) Wegweiser nach der Feier nur, wenn er nicht schon beantwortet wurde (Testlauf V318: sonst konnte er über der Karte erscheinen)
+rep('window.__contCel(nzName(c), c, () => { S.signOpen = 0; showSign(c); }); return; }',
+    'window.__contCel(nzName(c), c, () => { S.signOpen = 0; if (!(S.nutsAsk || {})[c]) showSign(c); }); return; }')
 anchor = '})();\n</script>'
 p = s.rindex(anchor); s = s[:p] + JS + s[p:]
 open(dst, 'w', encoding='utf-8').write(s)
