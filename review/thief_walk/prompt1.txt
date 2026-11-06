@@ -1,0 +1,9 @@
+Use the character in the reference image EXACTLY: the same cartoon raccoon burglar, same 3D render style, same black knitted sweater, same black flat cap, same black eye mask, same grey fur, same striped tail, same proportions and size.
+
+Create a 2D game sprite sheet of a smooth side-view WALK CYCLE, the raccoon facing RIGHT, sneaking/walking happily.
+Layout: a grid of 4 columns x 2 rows = 8 frames, read left to right, top row first. Every frame shows the full body, same scale, same camera, feet on the same ground line, character centered in its cell, with generous empty space around it.
+The 8 frames are the classic walk cycle:
+1 contact (right foot forward, heel down), 2 down (weight on right leg, knees bent), 3 passing (left leg passing under the body, lifted), 4 up (body highest, left foot reaching forward),
+5 contact (left foot forward, heel down), 6 down, 7 passing (right leg passing), 8 up.
+The legs and feet must clearly move between frames (clear stride, clearly different leg positions), arms swing opposite to the legs, tail sways slightly. Head, cap and sweater stay identical.
+Background: one flat solid pure green (#00FF00) everywhere, no floor, no shadow, no grid lines, no numbers, no text, no borders.
