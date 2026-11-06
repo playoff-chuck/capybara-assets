@@ -40,6 +40,8 @@ BOT = r"""
       const GW = 12, GH = 18; let ch = false;
       for (let i = 0; i < (GH - 6) * GW; i++) if (S.grid[i]) { S.grid[i] = 0; ch = true; if (S.towers && S.towers.delete) S.towers.delete(i); }
       if (ch) { S.dirty = true; S.dist = null; } }
+    /* Türme ersetzen: jedes Monster nach 8 s erledigen, sonst laufen sie endlos Runden und die Welle endet nie */
+    for (const m of S.monsters) { m.__at = m.__at || now(); if (now() - m.__at > 8000) m.dead = true; }
     const w = W(), t = now();
     for (const k of Object.keys(w)) {
       if (w[k] && !prev[k]) { LOG.open[k] = t; LOG.ev.push({ t, k, e: 'open', wave: S.wave, ttl: title(k), ps: null }); }
