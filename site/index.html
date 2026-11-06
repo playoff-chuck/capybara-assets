@@ -2702,7 +2702,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V323";
+const GAME_VER = "V324";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -6345,7 +6345,7 @@ function renderModes() {
   $("terms").hidden = accepted; $("startMain").hidden = !accepted;
   let sv = null; try { sv = JSON.parse(LS.get("tarnturm-save") || "null"); } catch (e) {}
   $("btnResume").hidden = !(sv && sv.grid); if (sv && sv.grid) $("btnResume").innerHTML = `CONTINUE<span class="lbl">WORLD TOUR · WAVE ${sv.wave} · ${(sv.score || 0).toLocaleString("en-US")} PTS</span>`;
-  if (window.ONE_MODE) { const b = getBest("pro"); { const cp = window.__cpGet ? window.__cpGet() : 0; if (cp >= 10) { const P = wherePos(cp + 1), nm = t => t.toLowerCase().replace(/\b\w/g, m => m.toUpperCase());   /* V321 */
+  if (window.ONE_MODE) { const b = getBest("pro"); { const cp = window.__cpGet ? window.__cpGet() : 0; if (cp >= 5) { const P = wherePos(cp + 1), nm = t => t.toLowerCase().replace(/\b\w/g, m => m.toUpperCase());   /* V321 */
       $("modeList").innerHTML = `<button class="modeBtn playBtn" data-mode="pro" data-cont="1"><span class="mName">CONTINUE ▶</span><span class="mSub">Wave ${cp + 1} · ${nm(P.cont[1])} · ${nm(P.place)}</span></button><button class="newRun" data-mode="pro" data-new="1">Start over · wave 1</button>`; return; } }
     $("modeList").innerHTML = `<button class="modeBtn playBtn" data-mode="pro"><span class="mName">PLAY ▶</span><span class="mSub">${b ? `Best · wave ${b}` : "South America · River Bank"}</span></button>`; return; }
   $("modeList").innerHTML = Object.entries(MODES).map(([k, m]) => {
@@ -6426,12 +6426,12 @@ function showCamp(action, label) { tutAbort();
   $("ovStart").hidden = true; $("ovOver").hidden = true; $("ovCamp").hidden = true;
   setTimeout(() => { const f = pendingStart; pendingStart = null; if (f) f(); }, 0);   // V176: kein Zwischenscreen mehr – direkt los
 }
-$("modeList").addEventListener("click", e => { const b = e.target.closest("[data-mode]"); if (b && e.target.closest("[data-cp]")) { SFX.init(); snd("confirm"); const cp = +LS.get("tarnturm-cp-chill") || 0; $("modeTag").textContent = "CHILL"; $("modeTag").style.color = MODES.chill.color; showCamp(() => startGame("chill", cp), `CHILL · CHECKPOINT WAVE ${cp}`); return; } if (b && b.classList.contains("locked")) { SFX.init(); snd("nope"); toast(`NUTS LOCKED · reach wave ${NUTS_NEED} in Pro`, "DENIED", 1800); b.classList.add("shake"); setTimeout(() => b.classList.remove("shake"), 500); return; } if (b) { SFX.init(); snd("confirm"); const k = b.dataset.mode; $("modeTag").textContent = "WORLD TOUR"; $("modeTag").style.color = ""; if (window.ONE_MODE) { const cp = window.__cpGet ? window.__cpGet() : 0; if (b.dataset.cont && cp >= 10) { startGame(k, cp); return; } startGame(k); return; }   /* V321 */ showCamp(() => startGame(k), `${MODES[k].label.toUpperCase()} · GET READY`); } });
+$("modeList").addEventListener("click", e => { const b = e.target.closest("[data-mode]"); if (b && e.target.closest("[data-cp]")) { SFX.init(); snd("confirm"); const cp = +LS.get("tarnturm-cp-chill") || 0; $("modeTag").textContent = "CHILL"; $("modeTag").style.color = MODES.chill.color; showCamp(() => startGame("chill", cp), `CHILL · CHECKPOINT WAVE ${cp}`); return; } if (b && b.classList.contains("locked")) { SFX.init(); snd("nope"); toast(`NUTS LOCKED · reach wave ${NUTS_NEED} in Pro`, "DENIED", 1800); b.classList.add("shake"); setTimeout(() => b.classList.remove("shake"), 500); return; } if (b) { SFX.init(); snd("confirm"); const k = b.dataset.mode; $("modeTag").textContent = "WORLD TOUR"; $("modeTag").style.color = ""; if (window.ONE_MODE) { const cp = window.__cpGet ? window.__cpGet() : 0; if (b.dataset.cont && cp >= 5) { startGame(k, cp); return; } startGame(k); return; }   /* V321 */ showCamp(() => startGame(k), `${MODES[k].label.toUpperCase()} · GET READY`); } });
 $("btnDeploy").addEventListener("click", () => { $("ovCamp").hidden = true; const a = pendingStart; pendingStart = null; if (a) a(); });
 let introDone = false;
 document.addEventListener("pointerdown", () => { if (introDone || S.started) return; introDone = true; SFX.init(); setTimeout(() => { if (!S.started) snd("intro"); }, 50); }, { capture: true });
 $("btnRestart").addEventListener("click", () => showCamp(() => startGame(MODE), `${MODES[MODE].label.toUpperCase()} · GET READY`));
-$("btnCp").addEventListener("click", () => { const m = MODE, cp = +LS.get("tarnturm-cp-" + m) || 0; if (cp >= 10) showCamp(() => startGame(m, cp), `CHECKPOINT WAVE ${cp}`); });
+$("btnCp").addEventListener("click", () => { const m = MODE, cp = +LS.get("tarnturm-cp-" + m) || 0; if (cp >= 5) showCamp(() => startGame(m, cp), `CHECKPOINT WAVE ${cp}`); });
 $("btnAccept").addEventListener("click", () => { LS.set("tarnturm-terms", "1"); SFX.init(); snd("confirm"); renderModes(); SFX.music.menu(); });
 // Hauptquartier-Musik: langsamer Militär-Disco-Groove, sobald eine Berührung Audio erlaubt
 const wakeAudio = () => {
@@ -8645,10 +8645,10 @@ try { (() => { const sy = SFX.say; let letT = -1e9; SFX.say = function (k) { try
 /* V321: Checkpoint = letzte runde Welle vor dem Tod (125 → 120), Game over zeigt CONTINUE */
 try { (() => { const key = () => "tarnturm-cp-" + (window.ONE_MODE ? "pro" : MODE);
   window.__cpGet = () => +LS.get(key()) || 0;
-  const bump = w => { const c = Math.floor(((w | 0) - 1) / 10) * 10; if (c >= 10 && c > window.__cpGet()) LS.set(key(), c); };
+  const bump = w => { const c = Math.floor(((w | 0) - 1) / 5) * 5; if (c >= 5 && c > window.__cpGet()) LS.set(key(), c); };
   window.__cpBump = bump;
   const _go = gameOver; gameOver = function () { try { if (S && !S.nuts && !S.testRun) bump(S.wave); } catch (e) {} const r = _go.apply(this, arguments);
-    try { const cp = window.__cpGet(), bc = $("btnCp"); if (bc && cp >= 10 && !(S && S.nuts)) { bc.hidden = false; bc.innerHTML = `CONTINUE · WAVE ${cp + 1}`; bc.classList.add("btn-big"); const p = bc.parentNode; if (p && p.firstElementChild !== bc) p.insertBefore(bc, p.firstElementChild); const rs = $("btnRestart"); if (rs) { rs.classList.remove("btn-big"); rs.textContent = "Start over · wave 1"; } } } catch (e) {}
+    try { const cp = window.__cpGet(), bc = $("btnCp"); if (bc && cp >= 5 && !(S && S.nuts)) { bc.hidden = false; bc.innerHTML = `CONTINUE · WAVE ${cp + 1} · ${String(wherePos(cp + 1).place || "")}`; bc.classList.add("btn-big"); const p = bc.parentNode; if (p && p.firstElementChild !== bc) p.insertBefore(bc, p.firstElementChild); const rs = $("btnRestart"); if (rs) { rs.classList.remove("btn-big"); rs.textContent = "Start over · wave 1"; } } } catch (e) {}
     return r; };
   try { if (typeof renderModes === "function") renderModes(); } catch (e) {}
 })(); } catch (e) { console.error("v321 cp", e); }
