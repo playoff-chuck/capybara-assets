@@ -2,7 +2,7 @@
 """Automatischer Testlauf W1–W60 mit Zeitleiste gegen die Ablauf-Regeln (Fenster & Anzeigen).
 Spielt mit simulierter Uhr (Playwright clock), Bot schließt Fenster wie ein Spieler,
 Leben/Gold werden aufgefüllt, damit der Lauf durchkommt und alle Angebote fällig werden.
-Aufruf: python3 tools/autotest60.py [bis_welle] [ausgabe.json] [ab_welle]
+Aufruf: [BUYER=1] python3 tools/autotest60.py [bis_welle] [ausgabe.json] [ab_welle]   (BUYER=1: kauft Anzeigen, hackt den Boss)
 """
 import json, sys, time, subprocess, os, signal
 from playwright.sync_api import sync_playwright
@@ -56,13 +56,20 @@ BOT = r"""
     const age = k => t - (LOG.open[k] || t);
     const click = (b, why) => { if (b) { LOG.ev.push({ t, k: 'bot', e: why + ':' + (b.innerText || '').trim().slice(0, 20), wave: S.wave }); b.click(); return true; } return false; };
     if (w.intro && age('intro') > 2500) click(pick(document.getElementById('ovIntro'), ['GOT IT', "LET'S GO", 'OK']), 'intro');
-    if (w.ad && age('ad') > 3600) { const r = document.getElementById('ovAd'); click(pick(r, ['NO THANKS', 'LATER', "IT'S FREE", 'GOT IT', "LET'S GO"]) , 'ad'); }
+    const BUY = !!window.__AT_BUYER;
+    if (w.ad && age('ad') > 3600) { const r = document.getElementById('ovAd'); click(pick(r, BUY ? ['I WANT IT', 'BUY', "IT'S FREE", 'THANKS', 'GOT IT', "LET'S GO", 'NO THANKS', 'LATER'] : ['NO THANKS', 'LATER', 'THANKS', "IT'S FREE", 'GOT IT', "LET'S GO"]) , 'ad'); }
     if (w.bandit && age('bandit') > 3600 && Math.floor(age('bandit') / 1000) % 2 === 0) click(pick(document.getElementById('ovBandit'), ['SPIN', 'COLLECT', 'TAKE', 'GRAB', 'GOT IT', 'OK', 'NO THANKS', 'LATER', 'CLOSE']), 'bandit');
     /* Notbremse: Fenster hängt > 15 s → ersten sichtbaren Knopf darin drücken und protokollieren */
     { const IDS = { intro: 'ovIntro', ad: 'ovAd', bandit: 'ovBandit', hackAd: 'ovHackAd', orders: 'ovOrders', join: 'ovJoin', duel: 'ovHack', sign: 'ovSign' };
       for (const k of Object.keys(IDS)) if (w[k] && age(k) > 15000 && Math.floor(age(k) / 1000) % 3 === 0) {
         const r = document.getElementById(IDS[k]); const b = r && btns(r)[0]; LOG.ev.push({ t, k: 'stuck', e: k + ':' + (b ? (b.innerText || '').trim().slice(0, 20) : 'kein Knopf'), wave: S.wave }); if (b) b.click(); } }
-    if (w.hackAd && age('hackAd') > 3600) click(pick(document.getElementById('ovHackAd'), ['LATER', 'NO THANKS']), 'hackAd');
+    if (w.hackAd && age('hackAd') > 3600) click(pick(document.getElementById('ovHackAd'), BUY ? ['HACK THE BOSS', 'HACK', 'LATER'] : ['LATER', 'NO THANKS']), 'hackAd');
+    if (w.duel && age('duel') > 2500 && Math.floor(age('duel') / 1000) % 2 === 0) { const r = document.getElementById('ovHack');
+      if (BUY) { const p25 = r && [...r.querySelectorAll('.hkChips button')].find(b => /25/.test(b.textContent)); p25 && p25.click(); }
+      click(pick(r, BUY ? ['HACK!', 'CONTINUE', 'COLLECT', 'OK', 'BACK', 'CLOSE', 'SKIP'] : ['SKIP', 'CONTINUE', 'CLOSE', 'OK', 'BACK']), 'duel'); }
+    if (BUY && S.duel && window.__TT && window.__TT.HK && ['pick', 'play'].includes(window.__TT.HK.phase)) { try { const cv = document.getElementById('hackCv'), r = cv.getBoundingClientRect();
+        const x = r.left + r.width * (0.2 + Math.random() * 0.6), y = r.top + r.height * (0.3 + Math.random() * 0.5);
+        for (const ty of ['pointerdown', 'pointerup']) cv.dispatchEvent(new PointerEvent(ty, { bubbles: true, clientX: x, clientY: y, pointerId: 1, isPrimary: true })); cv.dispatchEvent(new MouseEvent('click', { bubbles: true, clientX: x, clientY: y })); } catch (e) {} }   /* Käufer tippt im Duell */
     if (w.orders && age('orders') > 2500) click(pick(document.getElementById('ovOrders'), ['ACCEPT', 'GO', 'OK', 'SKIP']) || btns(document.getElementById('ovOrders'))[0], 'orders');
     if (w.join && age('join') > 2500) click(pick(document.getElementById('ovJoin'), ['LATER', 'SKIP', 'NO THANKS', 'NOT NOW']) || btns(document.getElementById('ovJoin')).slice(-1)[0], 'join');
     if (w.sign && age('sign') > 3000) click(document.getElementById('signNext'), 'sign');
@@ -94,6 +101,7 @@ def main():
             pg.clock.install()
             pg.goto(f"http://localhost:{PORT}/index.html")
             pg.clock.run_for(3000)
+            if os.environ.get("BUYER"): pg.evaluate("window.__AT_BUYER = true")   # Käufer-Profil: kauft Anzeigen, hackt den Boss
             pg.evaluate(BOT)
             pg.evaluate(f"window.__TT.startGame('chill', {FROM})")
             wall0 = time.time(); last = -1; last_t = 0
