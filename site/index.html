@@ -6,6 +6,19 @@
 .mPin.lblDown em{top:16px!important;transform:translate(-50%,0)!important}
 .mPin.cur.lblDown em{top:30px!important}
 .newRun{display:block;margin:10px auto 0;background:none;border:0;color:#fff7e8;font:700 14px/1.2 var(--f-body,"Baloo 2",sans-serif);text-decoration:underline;text-underline-offset:3px;opacity:.85;text-shadow:0 1px 2px rgba(0,0,0,.6);padding:6px 10px}
+
+/* V322: Pause-Menü auf einen Screen */
+#ovPause #btnPMap,#btnPMap{display:none!important}
+#ovPause .pNuts{display:grid!important;grid-template-columns:1fr 1fr;gap:5px!important}
+#ovPause .pNuts small,#ovPause .pNuts .nBonus{grid-column:1/-1}
+#ovPause .pNuts button{padding:5px 6px 4px!important;min-height:0!important;font:400 13px/1.05 var(--f-display,"Bangers",sans-serif)!important;letter-spacing:.04em;border-width:2px!important;border-radius:12px!important}
+#ovPause .pNuts button em{font:400 11px/1.1 var(--f-display,"Bangers",sans-serif)!important;letter-spacing:.05em;opacity:.8;margin-top:2px}
+#ovPause .pNuts .nBonus{font-size:11px}
+#ovPause .pVol .pvRow{padding:1px 0!important;min-height:0!important}
+#ovPause .pVol{padding:6px 10px!important;gap:2px!important}
+@media (max-height:780px){#ovPause .pauseBtns{gap:5px!important}#ovPause .pauseBtns>button{padding-top:7px!important;padding-bottom:6px!important}#ovPause h2{margin:0!important;font-size:28px!important}#ovPause .btn-big{padding-top:8px!important;padding-bottom:7px!important}#ovPause .pSpeed{margin-top:4px!important}#ovPause .pCapy{height:54px!important;width:auto!important;margin-top:-34px!important}.pauseOv:not([hidden]){padding-top:calc(env(safe-area-inset-top,0px) + 44px)!important}#ovPause .pVol .pvRow{height:26px!important}}
+/* V322: CANCEL beim Platzieren */
+#buildCancel{position:fixed;left:50%;transform:translateX(-50%);z-index:60;font:400 18px/1 var(--f-display,"Bangers",sans-serif);letter-spacing:.05em;color:#fff;background:#d9483b;border:3px solid #3a2414;border-radius:14px;box-shadow:0 4px 0 #3a2414;padding:8px 16px 6px}
 </style><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#2b3a22"></head><body>
 <script>try{if(localStorage.getItem("capy-reset")!=="276"){var rk=[];for(var ri=0;ri<localStorage.length;ri++){var rkk=localStorage.key(ri);if(rkk&&/^(tarnturm|capy)/.test(rkk)&&rkk!=="tarnturm-dev"&&rkk!=="capy-cloud")rk.push(rkk);}rk.forEach(function(k){localStorage.removeItem(k);});localStorage.setItem("capy-reset","276");}}catch(e){}
 try{["img/d328f1a428.webp","img/b6f38631c6.webp","img/2510465d7d.webp","img/e24cf5d037.webp"].forEach(function(u){var i=new Image();i.src=u;if(i.decode)i.decode().catch(function(){});(window.__PRE0=window.__PRE0||[]).push(i);});}catch(e){}</script><link rel="preload" as="image" href="img/d328f1a428.webp"><link rel="preload" as="image" href="img/b6f38631c6.webp"><link rel="preload" as="image" href="img/2510465d7d.webp"><link rel="preload" as="image" href="img/logo_main.webp?v=227"><link rel="preload" as="image" href="img/mixer_big.webp"><link rel="preload" as="image" href="img/worldmap.webp"><link rel="preload" as="image" href="img/arrive_samerica.webp"><title>Capybara Squad</title><link rel="apple-touch-icon" href="icons/icon-192.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
@@ -2677,7 +2690,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V321";
+const GAME_VER = "V322";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -5983,7 +5996,7 @@ function snipe(x, y) {
 // Betonmischwagen: füllt alle Löcher einer Spalte bis zur Oberkante des höchsten Steins
 // Regel: eingeschlossene Höhle → ganz voll; nach oben offen → alles bis zur Höhe des höchsten Steins
 function mixCells(x, y = GH - 1) {
-  let top = GH; for (let c = 0; c < NN; c++) if (S.grid[c]) { top = (c / GW) | 0; break; }
+  let top = GH; for (let cx = Math.max(0, x - 1); cx <= Math.min(GW - 1, x + 1); cx++) for (let r = 0; r < GH; r++) if (S.grid[r * GW + cx]) { top = Math.min(top, r); break; }   /* V322: nur bis zum Block, auf den man tippt */
   if (top === GH) top = GH - 1;
   const p = S.piece, pc = new Set(p ? p.cells.filter(([a, b]) => p.y + b >= 0).map(([a, b]) => vIdx(p.x + a, p.y + b)) : []);
   const free = c => !S.grid[c] && !pc.has(c);
@@ -7502,7 +7515,7 @@ function renderPNuts() {
   q.hidden = !(S && S.nuts);
   if (!S || !S.started || S.over || S.nuts) { box.innerHTML = ""; return; }
   const cs = [0, 1, 2, 3].filter(nzAvailable); if (!cs.length) { box.innerHTML = ""; return; }
-  box.innerHTML = `<small>NUTS DETOURS</small>` + cs.map(c => `<button data-nz="${c}">☠ ${nzName(c)}<em>${nzFirstOpen(c) ? "first try · +1 % main score per level" : "replay · best L" + nzBest(c) + " · board & medals only"}</em></button>`).join("") + `<div class="nBonus">Nuts bonus this run: +${S.nutsBonus || 0} % main score</div>`;
+  box.innerHTML = `<small>NUTS DETOURS</small>` + cs.map(c => `<button data-nz="${c}">☠ ${nzName(c)}<em>${nzFirstOpen(c) ? "+1 % per level" : "best L" + nzBest(c)}</em></button>`).join("") + `<div class="nBonus">Nuts bonus this run: +${S.nutsBonus || 0} % main score</div>`;
 }
 new MutationObserver(() => { if (!$("ovPause").hidden) renderPNuts(); }).observe($("ovPause"), { attributes: true, attributeFilter: ["hidden"] });
 $("pNuts").addEventListener("click", e => { const b = e.target.closest("[data-nz]"); if (!b) return; SFX.init(); snd("uiTap"); $("ovPause").hidden = true; S.paused = false; startDetour(+b.dataset.nz); });
@@ -8631,6 +8644,13 @@ try { (() => { const key = () => "tarnturm-cp-" + (window.ONE_MODE ? "pro" : MOD
 try { (() => { setInterval(() => { const ov = document.getElementById("ovMap"); if (!ov || ov.hidden) return; const top = ov.querySelector(".mapTop"); if (!top) return; const tb = top.getBoundingClientRect().bottom + 6;
     ov.querySelectorAll(".mPin").forEach(p => { const em = p.querySelector("em"); if (!em) { p.classList.remove("lblDown"); return; } const pr = p.getBoundingClientRect(); const down = p.classList.contains("lblDown");
       const need = down ? pr.top - (p.classList.contains("cur") ? 70 : 14) - em.offsetHeight < tb : em.getBoundingClientRect().top < tb; if (need !== down) p.classList.toggle("lblDown", need); }); }, 200); })(); } catch (e) { console.error("v321 lbl", e); }
+
+/* V322: sichtbarer CANCEL-Knopf beim Platzieren eines Turms */
+try { (() => { const b = document.createElement("button"); b.id = "buildCancel"; b.type = "button"; b.textContent = "✕ CANCEL"; b.hidden = true; document.body.appendChild(b);
+  b.addEventListener("click", e => { e.stopPropagation(); try { if (S && S.mode === "build") { S.mode = null; S.aim = null; snd("uiTap"); } } catch (er) {} b.hidden = true; });
+  setInterval(() => { const on = !!(S && S.started && !S.over && S.mode === "build" && !S.paused); if (on) { const bd = document.getElementById("board"); if (bd) { const r = bd.getBoundingClientRect(); b.style.top = Math.max(8, r.top + 8) + "px"; } } if (b.hidden === on) b.hidden = !on; }, 150); })(); } catch (e) { console.error("v322 cancel", e); }
+/* V322: Pause-Menü – Sound-Bereich scrollt nie aus dem Bild */
+try { (() => { const ov = document.getElementById("ovPause"); if (!ov) return; new MutationObserver(() => { if (!ov.hidden) setTimeout(() => { try { ov.scrollTop = 0; } catch (e) {} }, 0); }).observe(ov, { attributes: true, attributeFilter: ["hidden"] }); })(); } catch (e) {}
 })();
 </script>
 
