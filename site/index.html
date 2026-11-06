@@ -2736,7 +2736,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V329";
+const GAME_VER = "V330";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -4167,7 +4167,7 @@ function airDrop(title, loot) { const _t0 = title, _l0 = loot;
   if (med) { S.medDone = S.wave; title = "MEDKIT · VISION RESTORED"; loot = [["med", "Medic", "Sharp"], ...(loot || []).slice(0, 2)]; $("board").classList.remove("wounded"); $("board").classList.remove("sharpen"); void $("board").offsetWidth; $("board").classList.add("sharpen"); setTimeout(() => $("board").classList.remove("sharpen"), 1600); setTimeout(() => SFX.say("healed"), 1500); }
   const rp = !med && ROT_BASES.includes(specBase()) && !S.inWave && /CLEARED/.test(title) && S.rotDone !== S.wave;
   const rpBack = S.rotMode === 2 ? "−90°" : "+90°";
-  if (rp) { S.rotDone = S.wave; title = `${rpBack} PACKAGE · WORLD RESTORED`; loot = [[rpBack === "+90°" ? "rotp" : "rot", "Tilt", rpBack], ...(loot || []).slice(0, 2)]; setRotMode(0); syncRotView(); setTimeout(() => SFX.say("Unbelievable!"), 1300); }
+  if (rp) { S.rotDone = S.wave; title = `${rpBack} PACKAGE · WORLD RESTORED`; loot = [[rpBack === "+90°" ? "rotp" : "rot", "Tilt", rpBack], ...(loot || []).slice(0, 2)]; setRotMode(0); syncRotView(); setTimeout(() => SFX.say("Well done!"), 1300); }
   if ((med || rp || title === "CLEAN SWEEP") && window.__dropAd && !S.nuts) { if (med || rp) genWaveMsg(_t0, _l0); window.__dropAd(med ? "med" : rp ? "rot" : "sweep", { loot, rp: rpBack }); return; }   /* V299 */
   if (!med && !rp) { genWaveMsg(title, loot); return; }   // V177u: Wellen-Ende spricht der General oben links
   el.classList.toggle("medkit", !!med); el.classList.toggle("rotpack", !!rp); el.querySelector(".tag").textContent = med ? "MEDKIT" : rp ? `${rpBack} PACKAGE` : `FROM ${buddyKey().toUpperCase()} ♥`; const gi = $("giftImg"); el.classList.toggle("gift", !med && !rp); if (!med && !rp) { $("giftFrom").src = GEN_HEAD; gi.removeAttribute("src"); $("giftTag").textContent = "FROM GENERAL BRISTLE"; let q = $("crate").querySelector(".fpQuote"); if (!q) { q = document.createElement("i"); q.className = "fpQuote"; $("giftPic") ? 0 : 0; const pic = $("crate").querySelector(".giftPic"); pic.appendChild(q); } q.textContent = "«" + FP_SAY[(S.fpI = ((S.fpI || 0) + 1 + Math.floor(Math.random() * 9)) % FP_SAY.length)] + "»"; }
@@ -4618,7 +4618,7 @@ function killMilestones(m) {
   else if (K === 10) praise("TEN DOWN", 1, false);
   else if (K === 25) praise("SPLAT SPREE", 2, false);
   else if (K === 50) praise("SUPER SQUISH!", 3, false);
-  else if (K === 100) praise("SPLATASTIC!", 4, "Splatastic!");
+  else if (K === 100) praise("100 SPLATS", 2, false);
   else if (K % 50 === 0) praise(`${K} SPLATS`, 3, false);
   else killCallout(m);
 }
@@ -4653,7 +4653,7 @@ function hurt(m, dmg) {
     if (S.streak === 3) praise("TRIPLE SPLAT", 1, false);
     else if (S.streak === 6) praise("MULTI SPLAT!", 2, false);
     else if (S.streak === 10) praise("RAMPAGE!", 3, false);
-    else if (S.streak === 15) praise("UNSTOPPABLE!", 4, false);
+    else if (S.streak === 15) praise("MEGA SPLAT!", 3, false);
     fxText(m.x, m.y, "+" + m.reward, "#f2cf5b");
     S.fx.push({ type: "boom", x: m.x, y: m.y, r: 0.7, col: "#ee7a2c", t: 0, life: 0.3 });
   }
@@ -4759,7 +4759,7 @@ function update(dt) {
         if (tg) { S.tonGift = S.tonGift || {}; S.tonGift[S.wave] = 1; S.tons = (S.tons || 0) + 1; S.introQ = S.introQ || []; S.seen = S.seen || {}; if (!S.seen["g:ton"]) S.introQ.push({ t: "gear", k: "ton" }); else if (window.__dropAd) window.__dropAd("ton"); }
         airDrop(`WAVE ${S.wave} CLEARED`, [["gold", "Gold", "+" + b], ...(tg ? [["ton", "Ten-ton drop", "+1 · in your Pocket"]] : []), ["level", "Level", campTotal() + 1], ["score", "Score", calcScore().toLocaleString("en-US")]]); }
       if (hkOfferWave(S.wave) && S.wave < 150) S.hackPending = S.hackPending || S.wave;   // Boss-Banner kommt, sobald Air Drop / Orders vorbei sind
-      if (S.wave % 5 === 0) praise(`WAVE ${S.wave}!`, 4, S.wave >= 10 ? "Legendary!" : "Dominating!");
+      if (S.wave % 5 === 0) praise(`WAVE ${S.wave}!`, S.waveLeaks === 0 ? 3 : 2, S.waveLeaks === 0 ? "Flawless!" : "Keep going!");
       else if (S.waveLeaks === 0 && S.lives <= 2) praise("COMEBACK!", 3, "Comeback!");
       else if (S.waveLeaks === 0) { if (S.wave % 2) praise("FLAWLESS!", 2, "Flawless!"); else praise("CLEAN SWEEP", 2, "Clean sweep!"); }
       else { snd("jingle"); setTimeout(() => SFX.say(["Wave cleared!", "Well done!", "Keep going!", "Excellent!", "Good job!", "Outstanding!"][S.wave % 6], 1.15, 1.05), 700); } }
@@ -5489,7 +5489,7 @@ function stepChomp(dt) {
   C0.x = px; C0.y = py; C0.dir = Math.atan2(a[1] - b2[1], a[0] - b2[0]);
   for (const m of S.monsters) { if (m.dead) continue; if (Math.hypot(m.x - px, m.y - py) < 0.9) { m.dead = true; S.kills++; C0.eaten++; const g = m.reward; C0.gold += g; S.gold += g; killMilestones(m); addScore((SCORE_KILL[m.kind] || 10) * 2); S.fx.push({ type: "splat", x: m.x, y: m.y, t: 0, life: 0.8, col: "#6b7a3f" }); fxText(m.x, m.y, "CHOMP!", "#f2cf5b"); if (m.kind === "bomber") setTimeout(() => detonate([m.cy * GW + m.cx]), 60); } }
   S.monsters = S.monsters.filter(m => !m.dead);
-  if (PL - C0.p >= PL) { S.chomp = null; snd("chompRev"); toast(`CHOMPER · ${C0.eaten} eaten · +${C0.gold} gold`, "POCKET", 1800); if (C0.eaten >= 5) praise("FEAST!", 3, "Splatastic!"); }
+  if (PL - C0.p >= PL) { S.chomp = null; snd("chompRev"); toast(`CHOMPER · ${C0.eaten} eaten · +${C0.gold} gold`, "POCKET", 1800); if (C0.eaten >= 5) praise("FEAST!", 2, "Splat!"); }
 }
 function drawChomp(s) {
   const C0 = S.chomp; if (!C0 || C0.x == null) return;
@@ -6149,7 +6149,7 @@ function finishMix() {
   const c = clearLines();
   if (c) { S.lines += c; const bonus = Math.round(G.lineBonus[Math.min(4, c)] * (G.goldMul || 1) * ordv("lineMul") * goldTaper()); S.gold += bonus; toast(`${c} LINE${c > 1 ? "S" : ""} SEALED · +${bonus} gold`, "CONCRETE"); snd("lines", c); }
   gridChanged();
-  if (c >= 2) praise("SEALED TIGHT!", 3, "Amazing!"); else if (c) praise("SEALED!", 2, "Great!"); else if (M.kills) praise("BURIED!", 2, "Splat!"); else praise("CONCRETE!", 1, "Sweet!");
+  if (c >= 2) praise("SEALED TIGHT!", 2, "Sweet!"); else if (c) praise("SEALED!", 2, "Great!"); else if (M.kills) praise("BURIED!", 2, "Splat!"); else praise("CONCRETE!", 1, "Sweet!");
 }
 // ALL IN: Turm auf einen Klick voll ausbauen – MG, Kanone, Frost + zweites MG, alles auf Maximalstufe, +10 % Aufpreis
 function allInPlan(t) {
@@ -6519,16 +6519,16 @@ $("btnInfo").addEventListener("click", () => { $("ovStart").hidden = true; $("ov
   const apply = () => document.querySelectorAll(".devOnly").forEach(el => el.hidden = !devOn); apply();
   document.querySelector(".logo").addEventListener("pointerdown", () => { const now = performance.now(); taps = taps.filter(t => now - t < 3000); taps.push(now); if (taps.length >= 7) { taps = []; devOn = !devOn; LS.set("tarnturm-dev", devOn ? "1" : "0"); apply(); SFX.init(); snd("uiTap"); toast(devOn ? "DEV TOOLS ON" : "DEV TOOLS OFF", "HQ", 1500); } }); }
 // V178z15: Wellen nach dem neuen Ablauf (Zyklus 100); Radio silence = Siberia II / Deep Desert II mit Funkabbruch
-const SPECIALS = [["Sonar", "WAVE 15", 15], ["Wild Cards", "AFTER WAVE 20", 20], ["Wounded", "WAVE 23", 23], ["Siberia", "WAVE 35 · BLIZZARD", 35], ["Hailstorm", "WAVE 37", 37], ["Sidewinder", "WAVE 41", 41], ["Sidewinder II", "WAVE 45", 45], ["Sandstorm", "WAVE 47", 47], ["Siberia II", "WAVE 51 · RADIO SILENCE", 51], ["Radio silence", "WAVE 35 · FORCED", 35, "radio"], ["Sandstorm II", "WAVE 65 · RADIO SILENCE", 65], ["Lockdown", "IN POCKET · WAVE 25", 25, "lock"], ["Hack duel", "BOSS · GOLD BET", 6, "hack"], ["Chomper", "IN POCKET · WAVE 17", 17, "chomp"], ["Ten-ton drop", "IN POCKET · WAVE 5", 5, "ton"], ["Lucky Supply", "BANDIT · ONE FREE SPIN", 3, "bandit"]];
+const SPECIALS = [["Sonar", "WAVE 15", 15], ["Wild Cards", "AFTER WAVE 20", 20], ["Wounded", "WAVE 23", 23], ["Siberia", "WAVE 35 · BLIZZARD", 35], ["Hailstorm", "WAVE 37", 37], ["Sidewinder", "WAVE 41", 41], ["Sidewinder II", "WAVE 45", 45], ["Sandstorm", "WAVE 47", 47], ["Siberia II", "WAVE 51 · RADIO SILENCE", 51], ["Radio silence", "WAVE 35 · FORCED", 35, "radio"], ["Sandstorm II", "WAVE 65 · RADIO SILENCE", 65], ["Lockdown", "IN POCKET · WAVE 25", 25, "lock"], ["Hack duel", "BOSS · GOLD BET", 6, "hack"], ["Chomper", "IN POCKET · WAVE 17", 17, "chomp"], ["Ten-ton drop", "IN POCKET · WAVE 5", 5, "ton"], ["Lucky Supply", "BANDIT · ONE FREE SPIN", 3, "bandit"], ["Signal lost", "WAVE 65 · NO SIGNAL", 65, "blk"], ["Magnet", "WAVE 80", 80, "mag"], ["Weeds", "WAVE 90", 90, "weed"], ["Thief", "WAVE 100", 100, "thief"], ["Egg · S. America", "WAVE 2 · PUSH 3× INTO WALL", 2, "egg"], ["Egg · Africa", "WAVE 32", 32, "egg"], ["Egg · Asia", "WAVE 62", 62, "egg"], ["Egg · N. America", "WAVE 92", 92, "egg"], ["Egg · Antarctica", "WAVE 122", 122, "egg"]];
 function devJump(w, kind) { SFX.init(); const m = MODES[MODE] ? MODE : "chill"; startGame(m); S.wave = w - 1; S.gold += 300 + 60 * w; S.ff = false; S.waveCD = 6; S.testRun = true; S.medDone = 0; S.rotDone = 0; S.rotMode = 0; S.rotT = 0; if (kind === "lock") S.locks = (S.locks || 0) + 1; if (kind === "chomp") S.chomps = (S.chomps || 0) + 2; if (kind === "ton") S.tons = (S.tons || 0) + 2; if (kind === "radio") S.radioForce = true; if (kind === "hack") { S.wave = w; S.gold += 500; S.waveCD = 60; setTimeout(() => openHack(true), 300); } closeIntro(); $("ovSpec").hidden = true; $("ovStart").hidden = true; toast(`TEST · ${kind === "lock" ? "LOCKDOWN IN POCKET" : "wave " + w + " in 6 s"} · build towers`, "HQ", 2500); }
 // Runden: jede Sonderwelle kommt alle 30 Wellen wieder (+150: 25 % härter, +180: 50 % härter)
 let specOff = 0;
 function renderSpecials() {
   $("specList").innerHTML = `<div class="specRounds">${[0, 100].map(o => `<button data-off="${o}" class="${o === specOff ? "on" : ""}">+${o}${o ? " · round 2" : ""}</button>`).join("")}</div>` +
-    SPECIALS.map(([n, t, w, k], i) => { const o = ["lock", "hack", "chomp", "ton", "radio"].includes(k) ? 0 : specOff; return `<button data-i="${i}">${n}<small>${o ? t.replace(/\d+/, x => +x + o) : t}</small></button>`; }).join("");
+    SPECIALS.map(([n, t, w, k], i) => { const o = ["lock", "hack", "chomp", "ton", "radio", "blk", "mag", "weed", "thief", "egg"].includes(k) ? 0 : specOff; return `<button data-i="${i}">${n}<small>${o ? t.replace(/\d+/, x => +x + o) : t}</small></button>`; }).join("");
 }
 renderSpecials();
-$("specList").addEventListener("click", e => { const bt = e.target.closest("button"); if (!bt) return; if (bt.dataset.off != null) { specOff = +bt.dataset.off; renderSpecials(); return; } const [, , w, k] = SPECIALS[+bt.dataset.i]; devJump(["lock", "hack", "chomp", "ton", "radio"].includes(k) ? w : w + specOff, k); });
+$("specList").addEventListener("click", e => { const bt = e.target.closest("button"); if (!bt) return; if (bt.dataset.off != null) { specOff = +bt.dataset.off; renderSpecials(); return; } const [, , w, k] = SPECIALS[+bt.dataset.i]; devJump(["lock", "hack", "chomp", "ton", "radio", "blk", "mag", "weed", "thief", "egg"].includes(k) ? w : w + specOff, k); });
 $("btnSpecials").addEventListener("click", () => { $("ovSpec").hidden = false; });
 $("specClose").addEventListener("click", () => { $("ovSpec").hidden = true; });
 $("inOk").addEventListener("click", closeIntro);
@@ -8917,6 +8917,20 @@ try { (() => {
   }
   window.__egg = c => openEgg(c == null ? wherePos(S.wave).c : c);
 })(); } catch (e) { console.error("v328", e); }
+
+/* V330: Test-Zugang Störungen + Easter Egg (Dev-Liste und ?test=…) */
+try { (() => {
+  const DK = ["blk", "mag", "weed", "thief", "egg"];
+  const _dj = devJump; devJump = function (w, kind) { const r = _dj.apply(this, arguments);
+    if (DK.includes(kind)) { S.snipes = (S.snipes || 0) + 2; S.teslas = (S.teslas || 0) + 2; S.waveCD = 3;
+      if (kind === "egg") toast("TEST · EASTER EGG: push a block 3× into the left or right wall", "HQ", 3500);
+      else toast(`TEST · ${kind.toUpperCase()} starts a few seconds into wave ${w} · 2 Sniper + 2 Tesla in Pocket`, "HQ", 3000); }
+    return r; };
+  let q = null; try { q = new URLSearchParams(location.search).get("test"); } catch (e) {}
+  const map = { blk: 65, mag: 80, weed: 90, thief: 100, egg1: 2, egg2: 32, egg3: 62, egg4: 92, egg5: 122 };
+  if (q && map[q]) { const go = () => { setTimeout(() => { try { history.replaceState(null, "", location.pathname); } catch (e) {} devJump(map[q], q.replace(/\d$/, "")); }, 700); };
+    const sp = document.getElementById("splash"); if (sp) sp.addEventListener("click", go, { once: true }); else go(); }
+})(); } catch (e) { console.error("v330", e); }
 })();
 </script>
 
