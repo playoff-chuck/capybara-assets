@@ -2384,7 +2384,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
       <div class="mayday sandBand" id="sandBand" hidden><span>SANDSTORM</span><i>NO SIGHT · 52°C</i><span>SANDSTORM</span></div>
       <div class="mayday snowBand" id="snowBand" hidden><span>SIBERIA</span><i>BLIZZARD · −40°</i><span>SIBERIA</span></div>
       <div class="mayday radioBand" id="radioBand" hidden><span>RADIO</span><i>NO SIGNAL · HOLD ON</i><span>RADIO</span></div>
-      <div id="ovEgg" hidden><div class="eggIn"><canvas id="eggCv" width="400" height="480"></canvas><div class="eggTxt"><b>YOU FOUND AN EASTER EGG!</b><span>+5000</span></div><small class="eggTap">tap to continue</small></div></div>
+      <div id="ovEgg" hidden><div class="eggIn"><canvas id="eggCv" width="400" height="480"></canvas><div class="eggTxt"><b>YOU FOUND AN EASTER EGG!</b><span>+1000 GOLD</span></div><small class="eggTap">tap to continue</small></div></div>
       <div id="ovTilt" hidden><div class="tcard"><div class="tin"><small>SIDEWINDER</small><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 8a16 16 0 1 1-15.2 11" fill="none" stroke="#17150c" stroke-width="5" stroke-linecap="round"/><path d="M2 14l7 9 8-8z" fill="#17150c"/></svg><b id="tiltDeg">+90°</b><i>Field turns · blocks still fall down</i></div></div></div>
       <div class="mayday tiltBand" id="tiltBand" hidden><span>SIDEWINDER</span><i>WORLD TILT −90°</i><span>SIDEWINDER</span></div>
       <div class="mayday" id="mayday" hidden><span>OUCH</span><i>CAPY BONKED · SEEING DOUBLE</i><span>OUCHY</span></div>
@@ -2743,7 +2743,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V351";
+const GAME_VER = "V352";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -8958,7 +8958,7 @@ try { (() => {
         const sh = ((t / 6) % 700) - 150; const gr = g.createLinearGradient(sh, 0, sh + 120, EH); gr.addColorStop(0, "rgba(255,255,255,0)"); gr.addColorStop(0.5, "rgba(255,255,255,.18)"); gr.addColorStop(1, "rgba(255,255,255,0)"); g.fillStyle = gr; g.fillRect(0, 0, EW, EH); }
       raf = requestAnimationFrame(frame); }
     let closed = false;
-    function close() { if (closed) return; closed = true; cancelAnimationFrame(raf); S.eggBonus = (S.eggBonus || 0) + 5000; ov.classList.remove("on"); setTimeout(() => { ov.hidden = true; S.eggOpen = false; }, 450); try { checkScore(); } catch (e) {} toast("EASTER EGG · +5000 points", "HQ", 1800); }
+    function close() { if (closed) return; closed = true; cancelAnimationFrame(raf); S.gold += 1000; snd("sell"); ov.classList.remove("on"); setTimeout(() => { ov.hidden = true; S.eggOpen = false; }, 450); try { checkScore(); } catch (e) {} toast("EASTER EGG · +1000 gold", "HQ", 1800); }
     ov.onclick = () => { if (closeOK) close(); };
     raf = requestAnimationFrame(frame);
   }
