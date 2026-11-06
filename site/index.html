@@ -2743,7 +2743,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V339";
+const GAME_VER = "V340";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -9402,6 +9402,8 @@ body:has(#ovStart:not([hidden])) #btnGear,body:has(#ovStart:not([hidden])) .gear
 #buddy.l .say{align-self:flex-start}
 #buddy{align-items:stretch!important}
 #buddy.l .say::after{left:30%}
+#buddy:not(.on) .say{opacity:0;visibility:hidden;transition:opacity .2s,visibility 0s .2s}
+#buddy.on .say{opacity:1;visibility:visible;transition:opacity .15s .1s}
 #buddy.r .say::after{left:60%}
 #buddy .say small{font-family:"Baloo 2",sans-serif!important;font-weight:800!important;font-size:10px!important;letter-spacing:.1em!important;color:#d94c8c!important;margin-top:2px}
 @media (prefers-reduced-motion:reduce){#buddy.on.l,#buddy.on.r{animation:none}}
