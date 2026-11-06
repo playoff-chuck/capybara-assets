@@ -2743,7 +2743,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V332";
+const GAME_VER = "V333";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -8815,7 +8815,7 @@ try { (() => {
     if (S.rotMode) { D.mag = null; D.blk = null; }
     const p = S.piece;
     if (D.blk) { const b = D.blk; b.t += dt; let inside = false; if (p) for (const [x, y] of p.cells) { const gy = p.y + y; if (gy >= b.r0 && gy < b.r0 + b.n) inside = true; }
-      noiseLevel(inside ? 0.05 : 0); if (b.t >= b.life) { D.blk = null; noiseLevel(0); toast("SIGNAL BACK", "HQ", 1200); } } else noiseLevel(0);
+      noiseLevel(inside ? 0.035 : 0); if (b.t >= b.life) { D.blk = null; noiseLevel(0); toast("SIGNAL BACK", "HQ", 1200); } } else noiseLevel(0);
     if (D.mag) { const m = D.mag; m.t += dt; m.pullT += dt;
       if (p && m.t > 1 && m.pullT >= 0.8) { m.pullT = 0; const dx = m.side ? 1 : -1; if (!collide(p.cells, p.x + dx, p.y)) { p.x += dx; snd("move"); } }
       if (p) { let touch = false; for (const [x, y] of p.cells) { const gx = p.x + x, gy = p.y + y; if (m.xs.includes(gx) && gy >= m.y && gy < m.y + 3) touch = true; }
@@ -8862,9 +8862,9 @@ try { (() => {
       if (D.weed) drawWeed(D.weed, s);
       if (D.mag) drawMag(D.mag, s);
       if (D.thief) drawThief(D.thief, s);
-      if (D.blk) { const b = D.blk, now = performance.now(); if (now - nT > 60) { nT = now; const id = nx.createImageData(nc.width, nc.height); for (let i = 0; i < id.data.length; i += 4) { const v = Math.random() * 255 | 0; id.data[i] = id.data[i + 1] = id.data[i + 2] = v; id.data[i + 3] = 255; } nx.putImageData(id, 0, 0); }
+      if (D.blk) { const b = D.blk, now = performance.now(); if (now - nT > 50) { nT = now; const fw = Math.max(64, Math.round(cv.width / 2)), fh = Math.max(16, Math.round(b.n * CELL / 2)); if (nc.width !== fw || nc.height !== fh) { nc.width = fw; nc.height = fh; } const id = nx.createImageData(nc.width, nc.height); for (let i = 0; i < id.data.length; i += 4) { const v = Math.random() * 255 | 0; id.data[i] = v; id.data[i + 1] = v; id.data[i + 2] = Math.min(255, v + 18); id.data[i + 3] = 255; } nx.putImageData(id, 0, 0); }
         const fade = Math.min(1, b.t / 0.6, (b.life - b.t) / 0.6); ctx.globalAlpha = Math.max(0, fade); ctx.imageSmoothingEnabled = false; ctx.drawImage(nc, 0, b.r0 * CELL, cv.width, b.n * CELL);
-        ctx.fillStyle = "rgba(0,0,0,.18)"; for (let y = b.r0 * CELL; y < (b.r0 + b.n) * CELL; y += 4) ctx.fillRect(0, y, cv.width, 2);
+        ctx.fillStyle = "rgba(0,0,0,.14)"; for (let y = b.r0 * CELL; y < (b.r0 + b.n) * CELL; y += 3) ctx.fillRect(0, y, cv.width, 1);
         ctx.globalAlpha = Math.max(0, fade) * (0.6 + 0.4 * Math.sin(now / 180)); ctx.fillStyle = "#fff"; ctx.font = `bold ${Math.round(CELL * 0.42)}px sans-serif`; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText("NO SIGNAL", cv.width / 2, (b.r0 + b.n / 2) * CELL); }
       ctx.restore(); } catch (e) { console.error("v327d", e); } return r; };
   const st = document.createElement("style"); st.textContent = "#sGold.thiefHit{animation:thiefHit .9s ease-out}@keyframes thiefHit{0%,40%{color:#ff3b2f;transform:scale(1.35)}100%{transform:none}}"; document.head.appendChild(st);
