@@ -39,6 +39,7 @@ const core = require(path.join(process.env.GL, '@bubblewrap/cli/node_modules/@bu
 EOF
 rm -rf /srv/twa/app; mkdir -p /srv/twa/app
 GL=$GL node gen.js
+python3 /srv/capy-assets/tools/make_splash.py /srv/capy-assets/site /srv/twa/app/app/src/main/res   # V326: Startbild = Titelbild statt Icon
 # 3) Bauen
 cd /srv/twa/app
 cp /srv/twa/twa-manifest.json .
