@@ -2669,7 +2669,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V318";
+const GAME_VER = "V319";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -6828,6 +6828,7 @@ const ALB = (() => { let a = {}; try { a = JSON.parse(localStorage.getItem("tarn
 function albSave() { try { localStorage.setItem("tarnturm-album", JSON.stringify(ALB)); } catch (e) {} }
 const albQ = [];
 function albLive() { return typeof S !== "undefined" && S && S.started && !S.testRun; }
+window.__albGrant = (...a) => albGrant(...a);   /* V319: Test-Hook */
 function albGrant(id, img, name, line, tint) {
   if (ALB.got[id]) return; ALB.got[id] = Date.now(); albSave(); albQ.push({ id, img, name, line, tint }); clearTimeout(window.__albT); window.__albT = setTimeout(albTry, 350);
 }
@@ -6854,6 +6855,7 @@ function albTry() {
       const lt = $("crateLoot"); for (const m of albTake()) { const d = document.createElement("div"); d.className = "fpMedal " + (m.tint || ""); d.innerHTML = `<img src="${MED_IMG[m.img]}" alt=""><span>${m.name}</span>`; lt.appendChild(d); } try { medalHello(); } catch (e) {} return; }
     if (cr && !cr.hidden) return; }
   if (typeof S !== "undefined" && S && S.started && !S.over && (S.inWave || S.intro || S.duel || S.joinOpen)) return;   // erst in der Wellenpause
+  try { if (uiWinOpen() || (S && (S.mapShow || S.mapFly || S.ordersOpen || S.drop)) || performance.now() - (window.__evtLast || -1e9) < 5000) { clearTimeout(window.__albT); window.__albT = setTimeout(albTry, 1000); return; } } catch (e) {}   /* V319: 5 s Ruhe */
   const ms = albTake(), m = ms[0], h = heroKey(), b = buddyKey(), bn = b === "rosie" ? "Rosie" : "Blue";
   $("gPic").src = MED_IMG[`give_${b}_to_${h}`];
   const box = $("gMedImg").closest(".giveBox"); let mw = box.querySelector(".gMeds"); if (!mw) { mw = document.createElement("div"); mw.className = "gMeds"; $("gMedImg").parentNode.after(mw); }

@@ -24,7 +24,7 @@ BOT = r"""
     const S = window.__TT && window.__TT.S; if (!S) return {};
     const b = document.body.classList;
     return {
-      intro: vis('ovIntro') || b.contains('introWin'), ad: vis('ovAd'), bandit: vis('ovBandit') || !!S.banditOpen,
+      intro: vis('ovIntro') || b.contains('introWin'), give: vis('ovGive'), ad: vis('ovAd'), bandit: vis('ovBandit') || !!S.banditOpen,
       hackAd: vis('ovHackAd') || !!S.hackAdOpen, duel: vis('ovHack') || !!S.duel, join: vis('ovJoin') || !!S.joinOpen, sign: vis('ovSign') || !!S.signOpen,
       orders: vis('ovOrders') || !!S.ordersOpen, map: b.contains('mapUp') || !!S.mapShow || !!S.mapFly, drop: !!S.drop,
       pause: vis('ovPause') || !!S.paused, sheet: vis('sheet'), over: vis('ovOver') || !!S.over, cloud: vis('ovCloud'),
@@ -73,6 +73,7 @@ BOT = r"""
     if (w.orders && age('orders') > 2500) click(pick(document.getElementById('ovOrders'), ['ACCEPT', 'GO', 'OK', 'SKIP']) || btns(document.getElementById('ovOrders'))[0], 'orders');
     if (w.join && age('join') > 2500) click(pick(document.getElementById('ovJoin'), ['LATER', 'SKIP', 'NO THANKS', 'NOT NOW']) || btns(document.getElementById('ovJoin')).slice(-1)[0], 'join');
     if (w.sign && age('sign') > 3000) click(document.getElementById('signNext'), 'sign');
+    if (w.give && age('give') > 2500) click(document.getElementById('gOk'), 'give');   /* Orden-Geschenk */
     if (w.drop && age('drop') > 2500) click(pick(document, ['COLLECT', 'GRAB', 'TAKE', 'GOT IT', 'OPEN', "IT'S FREE"]), 'drop');
     if (w.map && age('map') > 4000 && (Math.floor(age('map') / 1500) % 2 === 0)) {
       const b = pick(document, ['CONTINUE', "LET'S GO", 'GO', 'NEXT']); if (b) click(b, 'map');

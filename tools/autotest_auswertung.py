@@ -7,7 +7,7 @@ Aufruf: python3 tools/autotest_auswertung.py lauf.json [weitere.json ...]
 import json, sys
 
 # Fenster-Arten: Pflicht (5 s), Angebot (30 s / 2 min), Übergang (zählt nur als «letztes Fenster»)
-PFLICHT = {"intro", "orders", "drop"}
+PFLICHT = {"intro", "orders", "drop", "give"}   # give = Orden-Geschenk (V319)
 ANGEBOT = {"ad", "bandit", "hackAd", "join"}
 UEBERGANG = {"map", "sign", "pause", "duel"}   # map wird in art() als Pflicht geprüft
 ALLE = PFLICHT | ANGEBOT | UEBERGANG
