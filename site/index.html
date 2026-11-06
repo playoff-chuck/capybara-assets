@@ -19,6 +19,18 @@
 @media (max-height:780px){#ovPause .pauseBtns{gap:5px!important}#ovPause .pauseBtns>button{padding-top:7px!important;padding-bottom:6px!important}#ovPause h2{margin:0!important;font-size:28px!important}#ovPause .btn-big{padding-top:8px!important;padding-bottom:7px!important}#ovPause .pSpeed{margin-top:4px!important}#ovPause .pCapy{height:54px!important;width:auto!important;margin-top:-34px!important}.pauseOv:not([hidden]){padding-top:calc(env(safe-area-inset-top,0px) + 44px)!important}#ovPause .pVol .pvRow{height:26px!important}}
 /* V322: CANCEL beim Platzieren */
 #buildCancel{position:fixed;left:50%;transform:translateX(-50%);z-index:60;font:400 18px/1 var(--f-display,"Bangers",sans-serif);letter-spacing:.05em;color:#fff;background:#d9483b;border:3px solid #3a2414;border-radius:14px;box-shadow:0 4px 0 #3a2414;padding:8px 16px 6px}
+
+/* V323: Tipps mit Glühbirnen-Capybara */
+#tipBulb{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 190px);transform:translate(-50%,20px) scale(.9);opacity:0;transition:opacity .3s,transform .3s cubic-bezier(.2,1.5,.4,1);z-index:70;width:min(92vw,380px);display:grid;grid-template-columns:78px 1fr;gap:8px;align-items:center;background:#fff7e8;border:3px solid #3a2414;border-radius:18px;box-shadow:0 5px 0 #3a2414,0 10px 24px rgba(0,0,0,.35);padding:8px 12px 10px 6px}
+#tipBulb.on{opacity:1;transform:translate(-50%,0) scale(1)}
+#tipBulb img{width:78px;height:auto;align-self:end;margin-top:-34px}
+#tipBulb b{display:block;font:400 20px/1 var(--f-display,"Bangers",sans-serif);letter-spacing:.04em;color:#3a2414}
+#tipBulb small{display:block;font:700 10px/1 var(--f-body,"Baloo 2",sans-serif);letter-spacing:.18em;color:#c0782a;margin-bottom:3px}
+#tipBulb p{margin:4px 0 8px;font:600 14px/1.3 var(--f-body,"Baloo 2",sans-serif);color:#3a2414}
+#tipBulb button{font:400 16px/1 var(--f-display,"Bangers",sans-serif);letter-spacing:.05em;background:#ffd84d;color:#3a2414;border:2.5px solid #3a2414;border-radius:12px;box-shadow:0 3px 0 #3a2414;padding:6px 14px 4px}
+#tipBulb button:disabled{opacity:.45}
+#tipArrow{position:fixed;z-index:71;width:46px;height:60px;pointer-events:none;animation:tipBob .7s ease-in-out infinite}
+@keyframes tipBob{50%{transform:translateY(-8px)}}
 </style><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#2b3a22"></head><body>
 <script>try{if(localStorage.getItem("capy-reset")!=="276"){var rk=[];for(var ri=0;ri<localStorage.length;ri++){var rkk=localStorage.key(ri);if(rkk&&/^(tarnturm|capy)/.test(rkk)&&rkk!=="tarnturm-dev"&&rkk!=="capy-cloud")rk.push(rkk);}rk.forEach(function(k){localStorage.removeItem(k);});localStorage.setItem("capy-reset","276");}}catch(e){}
 try{["img/d328f1a428.webp","img/b6f38631c6.webp","img/2510465d7d.webp","img/e24cf5d037.webp"].forEach(function(u){var i=new Image();i.src=u;if(i.decode)i.decode().catch(function(){});(window.__PRE0=window.__PRE0||[]).push(i);});}catch(e){}</script><link rel="preload" as="image" href="img/d328f1a428.webp"><link rel="preload" as="image" href="img/b6f38631c6.webp"><link rel="preload" as="image" href="img/2510465d7d.webp"><link rel="preload" as="image" href="img/logo_main.webp?v=227"><link rel="preload" as="image" href="img/mixer_big.webp"><link rel="preload" as="image" href="img/worldmap.webp"><link rel="preload" as="image" href="img/arrive_samerica.webp"><title>Capybara Squad</title><link rel="apple-touch-icon" href="icons/icon-192.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
@@ -2690,7 +2702,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V322";
+const GAME_VER = "V323";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -4083,7 +4095,7 @@ window.__whenCalm = (fn, gap = 5000) => { const t0 = performance.now(); const ti
     if (busy || performance.now() - (window.__evtLast || -1e9) < gap) { if (performance.now() - t0 < 600000) setTimeout(tick, 300); return; }
     fn(); } catch (e) { console.error("whenCalm", e); } }; setTimeout(tick, 300); };
 function uiWinOpen() { try { const v = id => { const e = document.getElementById(id); return e && !e.hidden && getComputedStyle(e).display !== "none"; }; if (v("ovHackAd")) return true;
-  return v("ovIntro") || v("ovHack") || !!(S && (S.duel || S.hackAdOpen)) || document.body.classList.contains("introWin") || v("ovAd") || v("ovBandit") || v("ovJoin") || document.body.classList.contains("mapUp") || !!(S && (S.joinOpen || S.signOpen || S.banditOpen)); } catch (e) { return false; } }
+  return !!(window.__tipBulb && window.__tipBulb.open) || v("ovIntro") || v("ovHack") || !!(S && (S.duel || S.hackAdOpen)) || document.body.classList.contains("introWin") || v("ovAd") || v("ovBandit") || v("ovJoin") || document.body.classList.contains("mapUp") || !!(S && (S.joinOpen || S.signOpen || S.banditOpen)); } catch (e) { return false; } }
 window.__msgDbg = () => ({ q: MSGQ.map(x => x.title), busy: Math.round(msgBusy - performance.now()), win: uiWinOpen() });
 function msgPush(m) {
   const last = MSGQ[MSGQ.length - 1]; if (last && last.title === m.title && last.sub === m.sub) return;   // gleiche Meldung nicht doppelt
@@ -8651,6 +8663,35 @@ try { (() => { const b = document.createElement("button"); b.id = "buildCancel";
   setInterval(() => { const on = !!(S && S.started && !S.over && S.mode === "build" && !S.paused); if (on) { const bd = document.getElementById("board"); if (bd) { const r = bd.getBoundingClientRect(); b.style.top = Math.max(8, r.top + 8) + "px"; } } if (b.hidden === on) b.hidden = !on; }, 150); })(); } catch (e) { console.error("v322 cancel", e); }
 /* V322: Pause-Menü – Sound-Bereich scrollt nie aus dem Bild */
 try { (() => { const ov = document.getElementById("ovPause"); if (!ov) return; new MutationObserver(() => { if (!ov.hidden) setTimeout(() => { try { ov.scrollTop = 0; } catch (e) {} }, 0); }).observe(ov, { attributes: true, attributeFilter: ["hidden"] }); })(); } catch (e) {}
+
+/* V323: drei Tipps in den ersten Runden */
+try { (() => {
+  const TIPS = [
+    { w: 2, t: "SPLAT THEM WITH BLOCKS!", p: "Blocks squash monsters. Speed a block down onto them – tap DROP.", at: "bDrop" },
+    { w: 4, t: "CANNON ON THE RIGHT EDGE", p: "Mount a cannon on a block at the right edge – it gets you through the first waves with ease." },
+    { w: 5, t: "EDGES DON'T COUNT", p: "The outer squares on the left and right don't need blocks – a row clears without them." }];
+  const card = document.createElement("div"); card.id = "tipBulb"; card.hidden = true;
+  card.innerHTML = '<img src="img/tip_bulb.webp" alt=""><div><small>TIP</small><b></b><p></p><button type="button" disabled>GOT IT</button></div>'; document.body.appendChild(card);
+  const arr = document.createElement("div"); arr.id = "tipArrow"; arr.hidden = true;
+  arr.innerHTML = '<svg viewBox="0 0 64 84" width="46" height="60"><path d="M20 4 Q32 1 44 4 L45 44 L60 44 Q63 46 61 49 L34 81 Q32 83 30 81 L3 49 Q1 46 4 44 L19 44 Z" fill="#ffd23a" stroke="#17150c" stroke-width="4.5" stroke-linejoin="round"/></svg>'; document.body.appendChild(arr);
+  const btn = card.querySelector("button"); let cur = null, armT = 0;
+  const seen = i => { try { return LS.get("tarnturm-tipb-" + i) === "1"; } catch (e) { return true; } };
+  function place() { if (!cur || !cur.at) { arr.hidden = true; return; } const el = document.getElementById(cur.at); if (!el || !el.offsetParent) { arr.hidden = true; return; } const r = el.getBoundingClientRect(); arr.hidden = false; arr.style.left = (r.left + r.width / 2 - 23) + "px"; arr.style.top = (r.top - 64) + "px"; }
+  function close() { if (!cur) return; card.classList.remove("on"); arr.hidden = true; setTimeout(() => { card.hidden = true; }, 300); cur = null; window.__evtLast = performance.now(); }
+  btn.addEventListener("click", e => { e.stopPropagation(); if (performance.now() < armT) return; try { snd("uiTap"); } catch (er) {} close(); });
+  function show(i) { const T = TIPS[i]; cur = T; try { LS.set("tarnturm-tipb-" + i, "1"); } catch (e) {}
+    card.querySelector("b").textContent = T.t; card.querySelector("p").textContent = T.p; btn.disabled = true; armT = performance.now() + 3000;
+    card.hidden = false; requestAnimationFrame(() => card.classList.add("on")); place(); try { snd("radio"); } catch (e) {}
+    setTimeout(() => { if (cur === T) btn.disabled = false; }, 3000); }
+  window.__tipBulb = { show, close, get open() { return !!cur; } };
+  setInterval(() => { try {
+    if (cur) { place(); if (!S || !S.started || S.over) close(); return; }
+    if (!S || !S.started || S.over || S.nuts || S.testRun || (typeof TUT !== "undefined" && TUT.on) || !S.inWave) return;
+    const i = TIPS.findIndex((T, k) => !seen(k) && S.wave >= T.w && S.wave <= T.w + 3); if (i < 0) return;
+    if (performance.now() - (window.__waveStartAt || 0) < 3000) return;
+    if (uiWinOpen() || S.paused || S.mapShow || S.ordersOpen || S.drop || S.mode || S.sel || S.shop || performance.now() - (window.__evtLast || -1e9) < 5000) return;
+    show(i); } catch (e) {} }, 400);
+})(); } catch (e) { console.error("v323 tips", e); }
 })();
 </script>
 
