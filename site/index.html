@@ -2669,7 +2669,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V313";
+const GAME_VER = "V314";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -5124,7 +5124,7 @@ function hkOfferTick() {
   if (!S || !S.started || S.over) { hkLastT = 0; return; }
   { const now = performance.now(), dt = hkLastT ? now - hkLastT : 0; hkLastT = now;
     if (S.hackOfferUntil > 0 && !S.duel) { if (hkHold()) { S.hackOfferUntil += dt; hkHeldMs += dt; } else { if (hkHeldMs > 1500) S.hackOfferUntil = Math.max(S.hackOfferUntil, now + 8000); hkHeldMs = 0; } } else hkHeldMs = 0; }
-  if (S.hackPending && !S.drop && !S.ordersOpen && !S.duel && !S.paused && !S.intro && !S.mapShow && !S.ordDue && !hkSignFirst() && !(!S.inWave && S.waveCD < 0.6) && inPlay() && !(S.hackOfferUntil > performance.now()) && window.__offerOK((S.wave || 0) >= S.hackPending + 2)) { window.__offerLast = performance.now(); S.hackOfferWave = S.hackPending; S.hackPending = 0; S.hackOfferUntil = performance.now() + HK_OFFER_S * 1000; try { window.__hackAd && window.__hackAd(); } catch (e) {} snd("radio"); setTimeout(() => snd("hkTick", 1), 250); const p = $("hackPill"); p.classList.remove("fly"); }
+  if (S.hackPending && !S.drop && !S.ordersOpen && !S.duel && !S.paused && !S.intro && !S.mapShow && !S.ordDue && !hkSignFirst() && !(!S.inWave && S.waveCD < 0.6) && inPlay() && !(S.hackOfferUntil > performance.now()) && window.__offerOK((S.wave || 0) >= S.hackPending + 2) && ((S.wave || 0) >= S.hackPending + 2 || !(window.__prioDue && window.__prioDue()))) {   /* V314: Boss-Hack lässt Lucky/Rufzeichen vor */ window.__offerLast = performance.now(); S.hackOfferWave = S.hackPending; S.hackPending = 0; S.hackOfferUntil = performance.now() + HK_OFFER_S * 1000; try { window.__hackAd && window.__hackAd(); } catch (e) {} snd("radio"); setTimeout(() => snd("hkTick", 1), 250); const p = $("hackPill"); p.classList.remove("fly"); }
   const p = $("hackPill"), on = hkOfferOn();
   if (on) { const left = Math.ceil((S.hackOfferUntil - performance.now()) / 1000), el = $("hpT"); if (el.textContent !== String(left)) { el.textContent = left; if (left <= 3) snd("hkTick", 1); } p.classList.toggle("hot", left <= 3); if (p.hidden) p.hidden = false; }
   else if (!p.hidden && !p.classList.contains("fly")) {
@@ -8158,7 +8158,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     const calm = () => S && S.started && !S.over && !S.nuts && !S.testRun0 && !S.intro && !S.drop && !S.alert && !S.ordersOpen && !S.duel && !S.mapShow && !S.mapFly && !S.signOpen && !S.joinOpen
       && !S.mode && !S.sel && !S.shop && !S.paused && !S.mix && !S.banditOpen && !(typeof TUT !== "undefined" && TUT.on) && !(typeof hkOfferOn === "function" && hkOfferOn()) && (typeof inPlay !== "function" || inPlay()) && !document.hidden && ov.hidden;
     setInterval(() => { try { if (!S || !S.adDue || !calm() || !window.__offerOK()) return;
-      if (window.__prioDue && window.__prioDue()) { if (S.prioW == null) S.prioW = S.wave || 0; if ((S.wave || 0) <= S.prioW + 1) return; } else S.prioW = null;   /* V311: Vorrang Lucky/Rufzeichen */
+      if (window.__prioDue && window.__prioDue()) { if (S.prioW == null) S.prioW = S.wave || 0; if ((S.wave || 0) <= S.prioW + 4) return;   /* V314: bis zu 4 Wellen */ } else S.prioW = null;   /* V311: Vorrang Lucky/Rufzeichen */
       for (const k of ["kan", "frost", "mix", "snipe", "ton", "chomp", "tesla", "lock"]) if (S.adDue[k] && !why(k)) { delete S.adDue[k]; late = true; S.intro = true; S.adOpen = true; show(k, true); break; } } catch (e) {} }, 700);
     /* V299: Gratis-Air-Drops als Anzeige */
     let dropBtn = "AWESOME! · IT'S FREE ▶";
