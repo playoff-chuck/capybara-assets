@@ -2743,7 +2743,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V341";
+const GAME_VER = "V342";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -8838,7 +8838,7 @@ try { (() => {
         if (S.inWave) w.growT += dt; if (w.growT >= 8.85 && w.h < 12) { const ny = w.root - w.h; if (ny >= 1 && weedPush(w.x, ny, p)) { w.h++; w.growT = 0; } else w.growT = 8.85; } } }
     if (D.thief) { const T = D.thief; T.t += dt; if (window.__thiefPos) window.__thiefPos(T);
       if (!T.stolen && T.t >= 10) { T.stolen = Math.floor(S.gold / 2); S.gold -= T.stolen; snd("sell"); setTimeout(() => snd("sell"), 140); setTimeout(() => { try { SFX.say("thief_laugh", 1.0, 1.0, 0, 0); } catch (e) {} }, 750); toast(`THIEF GRABBED ${T.stolen} GOLD!`, "ALERT", 1800); const g = $("sGold"); if (g) { g.classList.remove("thiefHit"); void g.offsetWidth; g.classList.add("thiefHit"); } }
-      if (T.t >= 20) { if (T.stolen) toast(`THIEF GOT AWAY · −${T.stolen} gold`, "HQ", 1800); D.thief = null; } }
+      if (T.t >= 30) { if (T.stolen) toast(`THIEF GOT AWAY · −${T.stolen} gold`, "HQ", 1800); D.thief = null; } }
     if (!D.thief && window.__thiefPos) window.__thiefPos(null);
   }
   const _up = update; update = function (dt) { const r = _up.apply(this, arguments); try { if (!frozen()) step(dt); else { noiseLevel(0); if (window.__magHum) window.__magHum(0); } } catch (e) { console.error("v327", e); } return r; };
@@ -9048,7 +9048,7 @@ try { (() => {
     g.restore(); }
   window.__thiefPos = T => { if (!T) { el.style.display = "none"; return; }
     const ge = document.getElementById("sGold"), r = ge ? ge.getBoundingClientRect() : { left: innerWidth / 2, width: 0, top: 40, height: 0 };
-    const gx = r.left + r.width / 2, gy = r.top + r.height / 2, x = T.t < 10 ? -SZ + (gx + SZ) * (T.t / 10) : gx + (innerWidth + SZ - gx) * Math.min(1, (T.t - 10) / 10);
+    const gx = r.left + r.width / 2, gy = r.top + r.height / 2, x = T.t < 10 ? -SZ + (gx + SZ) * (T.t / 10) : gx + (innerWidth + SZ - gx) * Math.min(1, (T.t - 10) / 20);
     el.style.display = "block"; el.style.transform = `translate(${Math.round(x - SZ / 2)}px,${Math.round(gy - SZ / 2 - 4)}px)`; sprite(T); };
   el.addEventListener("pointerdown", ev => { ev.preventDefault(); ev.stopPropagation(); const D = window.__dist && window.__dist.D, T = D && D.thief; if (!T) return;
     let used = null;
