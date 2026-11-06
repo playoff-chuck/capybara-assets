@@ -2,7 +2,7 @@
    index.html: erst Netz (damit Updates sofort ankommen), sonst Speicher.
    Alles andere: erst Speicher, sonst Netz (und dann speichern). /api/ nie speichern.
    Liste aller Dateien: offline.json (tools/make_offline.py). Musik/Audio mit Range-Antworten (206). */
-const CACHE = "capy-offline-v1";   /* V356 */
+const CACHE = "capy-offline-v2";   /* V357: neuer Name → alter Speicher (V332 u. a.) wird beim Aktivieren gelöscht */
 const CORE = ["/", "/index.html", "/manifest.webmanifest", "/offline.json"];
 self.addEventListener("install", e => { self.skipWaiting(); e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE)).then(() => fillAll(false)).catch(() => {})); });
 self.addEventListener("activate", e => { e.waitUntil((async () => { for (const k of await caches.keys()) if (k !== CACHE) await caches.delete(k); await self.clients.claim(); })()); });
