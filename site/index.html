@@ -1,4 +1,12 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#2b3a22"></head><body>
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}
+/* V321 */
+#ovMap .mapDest{position:absolute;z-index:6;transform:translate(-50%,-50%);pointer-events:none}
+#ovMap .mapDest b{display:block;white-space:nowrap;font:400 17px/1 var(--f-display,"Bangers",sans-serif);letter-spacing:.04em;color:#3a2414;background:#ffd84d;border:3px solid #3a2414;border-radius:12px;padding:6px 10px 4px;box-shadow:0 3px 0 #3a2414;animation:mdPulse 1s ease-in-out infinite}
+@keyframes mdPulse{50%{transform:scale(1.08)}}
+.mPin.lblDown em{top:16px!important;transform:translate(-50%,0)!important}
+.mPin.cur.lblDown em{top:30px!important}
+.newRun{display:block;margin:10px auto 0;background:none;border:0;color:#fff7e8;font:700 14px/1.2 var(--f-body,"Baloo 2",sans-serif);text-decoration:underline;text-underline-offset:3px;opacity:.85;text-shadow:0 1px 2px rgba(0,0,0,.6);padding:6px 10px}
+</style><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#2b3a22"></head><body>
 <script>try{if(localStorage.getItem("capy-reset")!=="276"){var rk=[];for(var ri=0;ri<localStorage.length;ri++){var rkk=localStorage.key(ri);if(rkk&&/^(tarnturm|capy)/.test(rkk)&&rkk!=="tarnturm-dev"&&rkk!=="capy-cloud")rk.push(rkk);}rk.forEach(function(k){localStorage.removeItem(k);});localStorage.setItem("capy-reset","276");}}catch(e){}
 try{["img/d328f1a428.webp","img/b6f38631c6.webp","img/2510465d7d.webp","img/e24cf5d037.webp"].forEach(function(u){var i=new Image();i.src=u;if(i.decode)i.decode().catch(function(){});(window.__PRE0=window.__PRE0||[]).push(i);});}catch(e){}</script><link rel="preload" as="image" href="img/d328f1a428.webp"><link rel="preload" as="image" href="img/b6f38631c6.webp"><link rel="preload" as="image" href="img/2510465d7d.webp"><link rel="preload" as="image" href="img/logo_main.webp?v=227"><link rel="preload" as="image" href="img/mixer_big.webp"><link rel="preload" as="image" href="img/worldmap.webp"><link rel="preload" as="image" href="img/arrive_samerica.webp"><title>Capybara Squad</title><link rel="apple-touch-icon" href="icons/icon-192.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -2669,7 +2677,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V320";
+const GAME_VER = "V321";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -4981,7 +4989,8 @@ function stepRot(dt) {
 // ---------- Welle 18 «SIBERIA»: Schneesturm, Eiszapfen, Frost, Whiteout ----------
 const SNOW_BASES = [18];
 window.__sandy = () => { try { return !!(S && !S.nuts && wherePos(S.wave).cont[0] === "africa"); } catch (e) { return false; } };   /* V292 */
-function snowOn() { return S && S.started && !S.over && SNOW_BASES.includes(specBase()) && S.inWave && !S.paused && inPlay(); }
+const stormCont = () => { try { return S && !S.nuts ? wherePos(S.wave).cont[0] : ""; } catch (e) { return ""; } };   /* V321 */
+function snowOn() { if (!(S && S.started && !S.over && S.inWave && !S.paused && inPlay())) return false; const b = specBase(), c = stormCont(); return (SNOW_BASES.includes(b) && c !== "africa") || (DESERT_BASES.includes(b) && c === "asia"); }
 let SNOW = [], snowLast = 0, ICICLES = null;
 function stepSnow(dt) {
   const on = snowOn();
@@ -5053,7 +5062,7 @@ function stepRadio(dt) {
 }
 // ---------- Welle 28 «DEEP DESERT»: Sandsturm, dunkle Hitze, Beben ----------
 const DESERT_BASES = [28];
-function desertOn() { return S && S.started && !S.over && DESERT_BASES.includes(specBase()) && S.inWave && !S.paused && inPlay(); }
+function desertOn() { if (!(S && S.started && !S.over && S.inWave && !S.paused && inPlay())) return false; const b = specBase(), c = stormCont(); return (DESERT_BASES.includes(b) && c !== "asia") || (SNOW_BASES.includes(b) && c === "africa"); }   /* V321 */
 let SAND = [], sandLast = 0;
 function stepDesert(dt) {
   const on = desertOn();
@@ -6311,7 +6320,9 @@ function renderModes() {
   $("terms").hidden = accepted; $("startMain").hidden = !accepted;
   let sv = null; try { sv = JSON.parse(LS.get("tarnturm-save") || "null"); } catch (e) {}
   $("btnResume").hidden = !(sv && sv.grid); if (sv && sv.grid) $("btnResume").innerHTML = `CONTINUE<span class="lbl">WORLD TOUR · WAVE ${sv.wave} · ${(sv.score || 0).toLocaleString("en-US")} PTS</span>`;
-  if (window.ONE_MODE) { const b = getBest("pro"); $("modeList").innerHTML = `<button class="modeBtn playBtn" data-mode="pro"><span class="mName">PLAY ▶</span><span class="mSub">${b ? `Best · wave ${b}` : "South America · River Bank"}</span></button>`; return; }
+  if (window.ONE_MODE) { const b = getBest("pro"); { const cp = window.__cpGet ? window.__cpGet() : 0; if (cp >= 10) { const P = wherePos(cp + 1), nm = t => t.toLowerCase().replace(/\b\w/g, m => m.toUpperCase());   /* V321 */
+      $("modeList").innerHTML = `<button class="modeBtn playBtn" data-mode="pro" data-cont="1"><span class="mName">CONTINUE ▶</span><span class="mSub">Wave ${cp + 1} · ${nm(P.cont[1])} · ${nm(P.place)}</span></button><button class="newRun" data-mode="pro" data-new="1">Start over · wave 1</button>`; return; } }
+    $("modeList").innerHTML = `<button class="modeBtn playBtn" data-mode="pro"><span class="mName">PLAY ▶</span><span class="mSub">${b ? `Best · wave ${b}` : "South America · River Bank"}</span></button>`; return; }
   $("modeList").innerHTML = Object.entries(MODES).map(([k, m]) => {
     const b = getBest(k), locked = k === "nuts" && !nutsUnlocked();
     return `<button class="modeBtn m-${k}${k === "pro" ? " rec" : ""}${locked ? " locked" : ""}" data-mode="${k}">${MODE_BADGE[k]}${k === "pro" ? `<span class="mRec">RECOMMENDED</span>` : ""}${SOLDIER[k]}<span class="mName">${m.label.toUpperCase()}</span><span class="mSub">${MODE_LINE[k]}</span><span class="mLives">♥ ${m.lives} lives</span>${k === "chill" && (+LS.get("tarnturm-cp-chill") || 0) >= 10 ? `<span class="mCp" data-cp="1">▶ FROM WAVE ${+LS.get("tarnturm-cp-chill")}</span>` : ""}<span class="mBest">${locked ? `🔒 PRO WAVE ${NUTS_NEED}` : b ? `BEST · WAVE ${b}` : "NEW PLAYER"}</span></button>`;
@@ -6390,7 +6401,7 @@ function showCamp(action, label) { tutAbort();
   $("ovStart").hidden = true; $("ovOver").hidden = true; $("ovCamp").hidden = true;
   setTimeout(() => { const f = pendingStart; pendingStart = null; if (f) f(); }, 0);   // V176: kein Zwischenscreen mehr – direkt los
 }
-$("modeList").addEventListener("click", e => { const b = e.target.closest("[data-mode]"); if (b && e.target.closest("[data-cp]")) { SFX.init(); snd("confirm"); const cp = +LS.get("tarnturm-cp-chill") || 0; $("modeTag").textContent = "CHILL"; $("modeTag").style.color = MODES.chill.color; showCamp(() => startGame("chill", cp), `CHILL · CHECKPOINT WAVE ${cp}`); return; } if (b && b.classList.contains("locked")) { SFX.init(); snd("nope"); toast(`NUTS LOCKED · reach wave ${NUTS_NEED} in Pro`, "DENIED", 1800); b.classList.add("shake"); setTimeout(() => b.classList.remove("shake"), 500); return; } if (b) { SFX.init(); snd("confirm"); const k = b.dataset.mode; $("modeTag").textContent = "WORLD TOUR"; $("modeTag").style.color = ""; if (window.ONE_MODE) { startGame(k); return; } showCamp(() => startGame(k), `${MODES[k].label.toUpperCase()} · GET READY`); } });
+$("modeList").addEventListener("click", e => { const b = e.target.closest("[data-mode]"); if (b && e.target.closest("[data-cp]")) { SFX.init(); snd("confirm"); const cp = +LS.get("tarnturm-cp-chill") || 0; $("modeTag").textContent = "CHILL"; $("modeTag").style.color = MODES.chill.color; showCamp(() => startGame("chill", cp), `CHILL · CHECKPOINT WAVE ${cp}`); return; } if (b && b.classList.contains("locked")) { SFX.init(); snd("nope"); toast(`NUTS LOCKED · reach wave ${NUTS_NEED} in Pro`, "DENIED", 1800); b.classList.add("shake"); setTimeout(() => b.classList.remove("shake"), 500); return; } if (b) { SFX.init(); snd("confirm"); const k = b.dataset.mode; $("modeTag").textContent = "WORLD TOUR"; $("modeTag").style.color = ""; if (window.ONE_MODE) { const cp = window.__cpGet ? window.__cpGet() : 0; if (b.dataset.cont && cp >= 10) { startGame(k, cp); return; } startGame(k); return; }   /* V321 */ showCamp(() => startGame(k), `${MODES[k].label.toUpperCase()} · GET READY`); } });
 $("btnDeploy").addEventListener("click", () => { $("ovCamp").hidden = true; const a = pendingStart; pendingStart = null; if (a) a(); });
 let introDone = false;
 document.addEventListener("pointerdown", () => { if (introDone || S.started) return; introDone = true; SFX.init(); setTimeout(() => { if (!S.started) snd("intro"); }, 50); }, { capture: true });
@@ -7776,7 +7787,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     ov.innerHTML = `<div class="mapVp"><div class="mapWorld"><img class="mapImg" src="img/worldmap.webp" alt="World map" draggable="false"><svg class="mapPath" viewBox="0 0 1000 ${Math.round(1000 * MAP_AR)}" preserveAspectRatio="none"></svg><div class="mapPins"></div><div class="mapPlane"><div class="biPlane"><img class="bpCap" src="img/biplane_cap2.webp" alt=""><img class="bpBody" src="img/biplane_body.webp" alt=""><i class="bpDisc"></i><i class="bpProp"></i><i class="bpHub"></i></div></div><div class="mapMe"><img alt=""></div></div></div>
       <div class="mapTop"><small class="mapCont"></small><b class="mapPlace"></b><span class="mapSub"></span></div>
       <div class="mapBar"><button type="button" class="mapWorldBtn">WORLD</button><button type="button" class="mapPlay">PLAY ▶</button><button type="button" class="mapClose">CLOSE</button></div>
-      <div class="mapSkip">tap to skip</div>`;
+      <div class="mapSkip">tap to skip</div><div class="mapDest" hidden><b></b></div>`;
     document.body.appendChild(ov);
     const vp = ov.querySelector(".mapVp"), world = ov.querySelector(".mapWorld"), pinsEl = ov.querySelector(".mapPins"), pathEl = ov.querySelector(".mapPath"), plane = ov.querySelector(".mapPlane"), me = ov.querySelector(".mapMe");
     let cam = { x: .5, y: .5, k: 1 }, BW = 400, mode = null, seqT = [], seqDone = null;
@@ -7830,14 +7841,22 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     /* automatische Szenen */
     let mapShownAt = 0, skipT = null;
     ov.addEventListener("click", () => { if (mode === "auto" && performance.now() - mapShownAt >= 3000) hide(); });
-    function flyPlane(a, b, ms) { const t0 = performance.now(), ang = Math.atan2((b[1] - a[1]) * MAP_AR, b[0] - a[0]) * 180 / Math.PI;
-      const step = now => { if (mode !== "auto") return; const t = Math.min(1, (now - t0) / ms), e = 0.5 - Math.cos(Math.PI * t) / 2, x = a[0] + (b[0] - a[0]) * e, y = a[1] + (b[1] - a[1]) * e - Math.sin(Math.PI * e) * .12;
+    function destPtr(b, px, py) {   /* V321: Pfeil am Rand zeigt das Flugziel mit Namen */
+      const el = ov.querySelector(".mapDest"); if (!el) return; if (px < 0) { el.hidden = true; return; }
+      let nm = ""; MAP_PTS.forEach((pts, c) => pts.forEach((p, i) => { if (Math.abs(p[0] - b[0]) < 1e-6 && Math.abs(p[1] - b[1]) < 1e-6) nm = nice(CONTS[c][2][i]); }));
+      const r = world.getBoundingClientRect(), W = vp.clientWidth, H = vp.clientHeight, bx = r.left + b[0] * r.width, by = r.top + b[1] * r.height;
+      const top = 110, bot = H - 70, inside = bx > 20 && bx < W - 20 && by > top && by < bot; if (inside) { el.hidden = true; return; }
+      const cx = W / 2, cy = (top + bot) / 2, dx = bx - cx, dy = by - cy, f = Math.min((W / 2 - 70) / Math.max(1e-6, Math.abs(dx)), ((bot - top) / 2 - 24) / Math.max(1e-6, Math.abs(dy)));
+      el.hidden = false; el.style.left = (cx + dx * f) + "px"; el.style.top = (cy + dy * f) + "px";
+      const ang = Math.atan2(dy, dx) * 180 / Math.PI; el.style.setProperty("--ang", ang + "deg"); el.querySelector("b").textContent = (dx < 0 ? "◀ " : "") + nm + (dx >= 0 ? " ▶" : ""); }
+    function flyPlane(a, b, ms) { const arc = Math.min(a[1], b[1]) < 0.3 ? -.05 : .12, t0 = performance.now(), ang = Math.atan2((b[1] - a[1]) * MAP_AR, b[0] - a[0]) * 180 / Math.PI;
+      const step = now => { if (mode !== "auto") return; const t = Math.min(1, (now - t0) / ms), e = 0.5 - Math.cos(Math.PI * t) / 2, x = a[0] + (b[0] - a[0]) * e, y = a[1] + (b[1] - a[1]) * e - Math.sin(Math.PI * e) * arc;
         plane.style.setProperty("--px", (x) * BW + "px"); plane.style.setProperty("--py", (y) * BW * MAP_AR + "px");
-        if (x >= 0 && x <= 1 && (performance.now() - (window.__camHold || 0)) > 0) { const f = t < 0.15 ? t / 0.15 * 0.12 : 0.12; cam = { ...cam, x: cam.x + (x - cam.x) * f, y: cam.y + (y - cam.y) * f }; apply(0); }   /* V317: Kamera folgt dem Flugzeug */
+        if (x >= 0 && x <= 1 && (performance.now() - (window.__camHold || 0)) > 0) { const f = t < 0.15 ? t / 0.15 * 0.12 : 0.12; const lx = x + (b[0] - x) * 0.25, ly = y + (b[1] - y) * 0.25; cam = { ...cam, x: cam.x + (lx - cam.x) * f, y: cam.y + (ly - cam.y) * f }; apply(0); }   /* V317/V321: Kamera folgt dem Flugzeug und schaut voraus */
         { let kc = 1; try { const m = getComputedStyle(world).transform; if (m && m !== "none") kc = parseFloat(m.slice(m.indexOf("(") + 1)) || 1; } catch (er) {}
           const big = (a[0] > 1 || a[0] < 0) ? 0.8 : 0, sc = 1 + big * (1 - e) * (1 - e * 0.35); plane.style.setProperty("--ik", sc / kc); if (t >= 1) plane.style.removeProperty("--ik"); }
-        { const dx = b[0] - a[0], dy = (b[1] - a[1]) * MAP_AR - Math.cos(Math.PI * e) * 0.12 * Math.PI * MAP_AR, right = dx >= 0, tilt = Math.max(-25, Math.min(25, Math.atan2(dy, Math.abs(dx) + 1e-6) * 180 / Math.PI));
-          plane.style.setProperty("--a", (right ? tilt : -tilt) + "deg"); plane.style.setProperty("--fx", right ? -1 : 1); } plane.classList.add("on"); if (t < 1) requestAnimationFrame(step); else plane.classList.remove("on"); };
+        { const dx = b[0] - a[0], dy = (b[1] - a[1]) * MAP_AR - Math.cos(Math.PI * e) * arc * Math.PI * MAP_AR, right = dx >= 0, tilt = Math.max(-25, Math.min(25, Math.atan2(dy, Math.abs(dx) + 1e-6) * 180 / Math.PI));
+          plane.style.setProperty("--a", (right ? tilt : -tilt) + "deg"); plane.style.setProperty("--fx", right ? -1 : 1); } plane.classList.add("on"); destPtr(b, t < 1 ? x : -1, y); if (t < 1) requestAnimationFrame(step); else plane.classList.remove("on"); };
       step(t0); try { window.__planeSnd && window.__planeSnd(ms, a[0] > 1 || a[0] < 0); } catch (e) {} }
     const cen = c => { const P = MAP_PTS[c]; return [P.reduce((a, p) => a + p[0], 0) / 6, P.reduce((a, p) => a + p[1], 0) / 6]; };
     function hopMe(a, b, ms) { const t0 = performance.now(); me.classList.add("on", "hop");
@@ -8097,7 +8116,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
       window.__vib = buzz;
       let pl = null, pv = null, pHack = 0, pOver = false;
       setInterval(() => { if (!S || !S.started) { pl = pv = null; pOver = false; return; }
-        if (pl != null && S.lines > pl && !S.over) { const d = S.lines - pl; buzz(d >= 3 ? [20, 40, 20] : [d === 2 ? 22 : 14], false); }
+        if (pl != null && S.lines > pl && !S.over) { const d = S.lines - pl; buzz(d >= 3 ? [60, 50, 60] : [d === 2 ? 55 : 40], false);   /* V321: spürbar */ }
         if (pv != null && S.lives < pv && !S.over) buzz([45, 60, 45], true);
         if ((S.hackOfferUntil || 0) > performance.now() && S.hackOfferUntil !== pHack) { pHack = S.hackOfferUntil; buzz([35, 50, 35], true); }
         if (S.over && !pOver) buzz([60, 80, 60], true);
@@ -8595,6 +8614,23 @@ try { let was = false; setInterval(() => { try { const on = !!(S && S.started &&
 try { (() => { const IM = ["img/7c778ff891.webp", "img/bb86ad3a1c.webp", "img/895e22e110.webp"], ov = document.getElementById("ovHack"); if (!ov) return; let was = false;
   new MutationObserver(() => { const on = !ov.hidden; if (on && !was) { let i = 0; try { i = (+localStorage.getItem("capy-betpic") || 0) % IM.length; localStorage.setItem("capy-betpic", String(i + 1)); } catch (e) {}
       const p = ov.querySelector(".hkBetPic"); if (p) p.style.backgroundImage = `url(${IM[i]})`; } was = on; }).observe(ov, { attributes: true, attributeFilter: ["hidden"] }); })(); } catch (e) { console.error("v318 bet", e); }
+
+/* V321: doppeltes «Let's» vermeiden */
+try { (() => { const sy = SFX.say; let letT = -1e9; SFX.say = function (k) { try { const t = String((typeof VOICE_TEXT !== "undefined" && VOICE_TEXT[k]) || k || ""); if (/^let'?s\b/i.test(t)) { const now = performance.now(); if (now - letT < 8000) return; letT = now; } } catch (e) {} return sy.apply(SFX, arguments); }; })(); } catch (e) { console.error("v321 lets", e); }
+/* V321: Checkpoint = letzte runde Welle vor dem Tod (125 → 120), Game over zeigt CONTINUE */
+try { (() => { const key = () => "tarnturm-cp-" + (window.ONE_MODE ? "pro" : MODE);
+  window.__cpGet = () => +LS.get(key()) || 0;
+  const bump = w => { const c = Math.floor(((w | 0) - 1) / 10) * 10; if (c >= 10 && c > window.__cpGet()) LS.set(key(), c); };
+  window.__cpBump = bump;
+  const _go = gameOver; gameOver = function () { try { if (S && !S.nuts && !S.testRun) bump(S.wave); } catch (e) {} const r = _go.apply(this, arguments);
+    try { const cp = window.__cpGet(), bc = $("btnCp"); if (bc && cp >= 10 && !(S && S.nuts)) { bc.hidden = false; bc.innerHTML = `CONTINUE · WAVE ${cp + 1}`; bc.classList.add("btn-big"); const p = bc.parentNode; if (p && p.firstElementChild !== bc) p.insertBefore(bc, p.firstElementChild); const rs = $("btnRestart"); if (rs) { rs.classList.remove("btn-big"); rs.textContent = "Start over · wave 1"; } } } catch (e) {}
+    return r; };
+  try { if (typeof renderModes === "function") renderModes(); } catch (e) {}
+})(); } catch (e) { console.error("v321 cp", e); }
+/* V321: Ortsnamen auf der Karte nie unter der Titelkarte */
+try { (() => { setInterval(() => { const ov = document.getElementById("ovMap"); if (!ov || ov.hidden) return; const top = ov.querySelector(".mapTop"); if (!top) return; const tb = top.getBoundingClientRect().bottom + 6;
+    ov.querySelectorAll(".mPin").forEach(p => { const em = p.querySelector("em"); if (!em) { p.classList.remove("lblDown"); return; } const pr = p.getBoundingClientRect(); const down = p.classList.contains("lblDown");
+      const need = down ? pr.top - (p.classList.contains("cur") ? 70 : 14) - em.offsetHeight < tb : em.getBoundingClientRect().top < tb; if (need !== down) p.classList.toggle("lblDown", need); }); }, 200); })(); } catch (e) { console.error("v321 lbl", e); }
 })();
 </script>
 
