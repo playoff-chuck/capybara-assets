@@ -2743,7 +2743,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V358";
+const GAME_VER = "V359";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -9063,8 +9063,9 @@ try { (() => {
     if (T.fi !== P.fi) { T.prevFi = T.fi == null ? P.fi : T.fi; T.fi = P.fi; T.fadeT = t; }
     const k = ease(Math.min(1, (t - (T.fadeT || 0)) / 0.16));
     g.fillStyle = "rgba(0,0,0,.22)"; g.beginPath(); g.ellipse(SZ / 2, SZ - 5, 22 * (1 - P.bob / 18), 3.5, 0, 0, 6.29); g.fill();
-    if (k < 1 && T.prevFi != null && T.prevFi !== P.fi) drawFrame(T.prevFi, 1 - k, P, h);
-    drawFrame(P.fi, k < 1 ? Math.max(k, 0.35) : 1, P, h);
+    const walkSwap = T.prevFi != null && T.prevFi <= 1 && P.fi <= 1;   /* V359: kein Durchscheinen */
+    if (k < 1 && !walkSwap && T.prevFi != null && T.prevFi !== P.fi) drawFrame(T.prevFi, 1, P, h);
+    drawFrame(P.fi, k < 1 && !walkSwap ? k : 1, P, h);
     const mark = "";
     if (mark) { const pop = ease(Math.min(1, (t - (P.ph === "back" ? 6.3 : 7.3)) / 0.2)); g.save(); g.translate(SZ / 2 + 22, 12); g.scale(pop, pop); g.fillStyle = "#fff"; g.strokeStyle = "#16161c"; g.lineWidth = 1.5; g.beginPath(); g.arc(0, 0, 8, 0, 6.29); g.fill(); g.stroke();
       g.fillStyle = mark === "!" ? "#e0412f" : "#16161c"; g.font = "bold 12px sans-serif"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(mark, 0, 1); g.restore(); }
