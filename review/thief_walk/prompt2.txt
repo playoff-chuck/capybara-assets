@@ -1,0 +1,14 @@
+The reference image shows three poses of my game character: a cartoon raccoon burglar rendered in a soft 3D CGI style (like a modern animated movie), with a black knitted sweater, black flat cap, black eye mask, grey fur, grey pants, black feet and a striped tail.
+
+Make a sprite sheet of this EXACT character, in the EXACT same 3D CGI render style, lighting and colors as the reference (NOT flat 2D, NOT outlines). Side view, facing RIGHT.
+Animation: a smooth, bouncy WALK CYCLE in 8 frames, arranged as 4 columns x 2 rows (left to right, top row first). Each frame is a different phase of the cycle:
+1 right foot forward heel touching ground, left foot back on toes
+2 weight on right foot, body lowest, knees bent
+3 left foot lifted and passing under the body
+4 body highest, left foot swinging forward
+5 left foot forward heel touching ground, right foot back on toes
+6 weight on left foot, body lowest
+7 right foot lifted and passing under the body
+8 body highest, right foot swinging forward
+The legs must be in clearly different positions in every frame; arms swing opposite to the legs; tail sways a little. Same size, same scale, feet on the same ground line in every cell, full body visible, empty space around.
+The ENTIRE background of the whole image must be one flat solid pure green color #00FF00 (no white, no gradient, no floor, no shadow, no text, no numbers, no grid lines).
