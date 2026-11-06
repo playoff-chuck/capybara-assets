@@ -2743,7 +2743,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V350";
+const GAME_VER = "V351";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -8910,11 +8910,11 @@ try { (() => {
   /* V349: Palette – a Himmelblau, b Blau, c Eisblau, g Grün, G Dunkelgrün, y Gelb, o Orange, r Rot, p Rosa, n Braun, N Dunkelbraun,
      t Capybara, T Capybara dunkel, s Sand, w Weiß, k Schwarz */
   const EGG = [
-    { k: "samerica", m: ["gggggggggg", "ggrrggrrgg", "grrrrrrrrg", "grrprrrrrg", "grrrrrrrrg", "ggrrrrrrgg", "gggrrrrggg", "ggggrrgggg", "gggggggggg", "ggyggggygg", "gGgggGgggG", "GGGGGGGGGG"], gap: [[4, 2], [4, 3], [4, 4], [4, 5]] },
+    { k: "samerica", m: ["GgggpppgGg", "gTTgpypTTg", "ggttttttgg", "gtkttttktg", "gttttttttg", "gttTTTTttg", "gttTkkTttg", "ggttttttgg", "GGGttttGGG", "GGttttttGG", "GgttttttgG", "GGGGGGGGGG"], gap: [[3, 4], [4, 4], [5, 4], [6, 4]] },
     { k: "africa", m: ["yyyyyyyyyy", "yTTyyyyTTy", "oottttttoo", "otkttttkto", "otttttttto", "ottTTTTtto", "ottTkkTtto", "oottttttoo", "sssttttsss", "ssttttttss", "GsttttttsG", "GGGGGGGGGG"], gap: [[3, 4], [4, 4], [5, 4], [6, 4]] },
-    { k: "asia", m: ["apaaaaaapa", "aaaGGGGaap", "aaGggggGaa", "aGgggyggGa", "GGGGGGGGGG", "aTttttttTa", "atkttttkta", "attTTTTtta", "attTkkTtta", "aattttttaa", "abbbbbbbba", "bbbbbbbbbb"], gap: [[3, 4], [4, 4], [5, 4], [6, 4]] },
-    { k: "namerica", m: ["aaaaGaaaaa", "aaaGgGaaya", "aaGgGgGaaa", "aaaGgGaaaa", "aaGgGgGaaa", "aGgGgGgGaa", "aaaGnGaaaa", "aaGgnGGaaa", "aGgGngGGaa", "aaaanaaaaa", "ggggnggggg", "GGGGNGGGGG"], gap: [[4, 7], [4, 8], [4, 9], [4, 10]] },
-    { k: "antarctica", m: ["cccccccccc", "cccckkcccc", "ccckkkkccc", "cckwkkwkcc", "cckkookkcc", "ckkwwwwkkc", "kkwwwwwwkk", "kkwwwwwwkk", "ckwwwwwwkc", "cckwwwwkcc", "cccoocoocc", "wwwwwwwwww"], gap: [[4, 5], [4, 6], [4, 7], [4, 8]] } ];
+    { k: "asia", m: ["aaaasaaapa", "apasssaaaa", "assssssssa", "annnnnnnna", "aattttttaa", "atkttttkta", "atttttttta", "attTTTTtta", "attTkkTtta", "aattttttaa", "arrrrrrrra", "rrrrrrrrrr"], gap: [[3, 6], [4, 6], [5, 6], [6, 6]] },
+    { k: "namerica", m: ["aaaaaaaaya", "aaaNNNNaaa", "aaNyyyyNaa", "nnnnnnnnnn", "aTttttttTa", "atkttttkta", "atttttttta", "attTTTTtta", "attTkkTtta", "aattttttaa", "arrrrrrrra", "gggggggggg"], gap: [[3, 6], [4, 6], [5, 6], [6, 6]] },
+    { k: "antarctica", m: ["ccccwwcccc", "cccbbbbccc", "ccbbbbbbcc", "cwwwwwwwwc", "cTttttttTc", "ctkttttktc", "cttttttttc", "cttTTTTttc", "cttTkkTttc", "ccrrrrrrcc", "wwttrrttww", "wwwwwwwwww"], gap: [[3, 6], [4, 6], [5, 6], [6, 6]] } ];
   const EGG_COL = { a: "#7ec8f0", b: "#2f62a8", c: "#c4ecfa", g: "#6cc04a", G: "#2f7a35", y: "#ffd23f", o: "#f39a2e", r: "#e2473a", p: "#f59ac2", n: "#8a5a2b", N: "#5a3a1c", t: "#c07f45", T: "#7d4a22", s: "#e9c98a", w: "#f6f3ec", k: "#22222a" };
   SAVE_KEYS.push("eggBonus", "eggDone");
   const _cs = calcScore; calcScore = function () { return _cs.apply(this, arguments) + (S && S.eggBonus || 0); };
