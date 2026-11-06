@@ -2743,7 +2743,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V360";
+const GAME_VER = "V361";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -9077,13 +9077,17 @@ try { (() => {
     const gw = (window.__gdim && window.__gdim()[0]) || 12, cell = cr.width / gw, feet = cr.top + cell * 0.92, gx = r.left + r.width / 2;
     const t = T.t, reach = Math.max(cr.left + SZ / 2, gx - 18), stop = reach - 30, end = innerWidth + SZ;
     const sc = Math.max(0.62, Math.min(1, (feet - 26) / (SZ - 5))), ga = (document.getElementById("genAv") || { getBoundingClientRect: () => null }).getBoundingClientRect();
-    let x0 = cr.left - SZ / 2, fade = 1; if (ga && ga.width && feet - (SZ - 5) * sc < ga.bottom) { x0 = Math.max(x0, ga.right + SZ * sc / 2 + 6); fade = Math.min(1, t / 0.6); }
+    let x0 = Math.min(cr.left, 0) - SZ * sc / 2 - 4, fade = 1;   /* V361: immer von links herein */
     const x = t < 8 ? x0 + (stop - x0) * (1 - Math.pow(1 - t / 8, 1.5))                       /* läuft heran und bremst sanft */
       : t < 9.4 ? stop
       : t < 10 ? stop + (reach - stop) * ease((t - 9.4) / 0.6)                                    /* schleicht hin */
       : t < 10.6 ? reach
       : reach + (end - reach) * Math.pow(Math.min(1, (t - 10.6) / 19.4), 1.35);                  /* rennt weg, wird schneller */
-    el.style.display = "block"; el.style.transformOrigin = "50% 100%"; el.style.opacity = fade.toFixed(2); el.style.transform = `translate(${(x - SZ / 2).toFixed(1)}px,${Math.round(feet - SZ + 5)}px) scale(${sc.toFixed(3)})`; sprite(T); };
+    el.style.display = "block"; el.style.transformOrigin = "50% 100%"; el.style.opacity = fade.toFixed(2);
+    { const tx = x - SZ / 2, ty = Math.round(feet - SZ + 5); let mk = "none";   /* V361: hinter dem General-Kreis durch */
+      if (ga && ga.width) { const ax = ga.left + ga.width / 2, ay = ga.top + ga.height / 2, ar = ga.width / 2 + 3, lx = SZ / 2 + (ax - tx - SZ / 2) / sc, ly = SZ + (ay - ty - SZ) / sc, lr = ar / sc;
+        if (lx + lr > 0 && lx - lr < SZ && ly + lr > 0 && ly - lr < SZ) mk = `radial-gradient(circle ${lr.toFixed(1)}px at ${lx.toFixed(1)}px ${ly.toFixed(1)}px, transparent ${(lr - 0.5).toFixed(1)}px, #000 ${(lr + 0.5).toFixed(1)}px)`; }
+      if (el.__mk !== mk) { el.__mk = mk; el.style.webkitMaskImage = mk; el.style.maskImage = mk; } } el.style.transform = `translate(${(x - SZ / 2).toFixed(1)}px,${Math.round(feet - SZ + 5)}px) scale(${sc.toFixed(3)})`; sprite(T); };
   el.addEventListener("pointerdown", ev => { ev.preventDefault(); ev.stopPropagation(); const D = window.__dist && window.__dist.D, T = D && D.thief; if (!T) return;
     let used = null;
     if (S.mode === "snipe" && S.snipes > 0) { S.snipes--; used = "snipe"; } else if (S.mode === "tesla" && S.teslas > 0) { S.teslas--; used = "tesla"; }
