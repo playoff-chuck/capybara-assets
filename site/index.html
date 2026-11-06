@@ -2669,7 +2669,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V319";
+const GAME_VER = "V320";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -6357,7 +6357,7 @@ function tutPlace() {
 function tutTick(dt) {
   if (!TUT.on) return;
   const st = TUT_STEPS[TUT.step]; TUT.t += dt;
-  if (TUT.step < 4) { S.waveCD = Math.max(S.waveCD, 6); S.inWave = false; }   // Welle wartet, bis die Grundlagen sitzen
+  if (TUT.step < 4) { S.waveCD = Math.max(S.waveCD, 6); S.inWave = false; S.gravT = 0; }   /* V320: Block wartet im Tutorial */   // Welle wartet, bis die Grundlagen sitzen
   if (st.done()) { TUT.step++; if (TUT.step >= TUT_STEPS.length) { tutEnd(false); return; } TUT.t = 0; if (TUT.step === 4) S.waveCD = 2; tutShow(); }
   else tutPlace();
 }
@@ -8293,7 +8293,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
         if (k === 0) return vis(document.getElementById("bDrop"));
         if (k === 1) { if (sheetUp() && S.shop) { const b = btnTxt(/PLACE/); if (b) return vis(b); } return vis(document.getElementById("bBuild")); }
         if (k === 2) { if (S.mode === "build") return block(); if (sheetUp() && S.shop) { const b = btnTxt(/PLACE/); if (b) return vis(b); } return vis(document.getElementById("bBuild")); }
-        if (k === 3) { if (sheetUp() && S.sel) { const armed = S.sel.w && S.sel.w.length; const b = armed ? document.getElementById("sClose") : document.querySelector('#sheet [data-buy="mg"]'); return vis(b); } return towerR(); }
+        if (k === 3) { if (sheetUp() && S.sel) { const armed = S.sel.w && S.sel.w.length; const b = armed ? document.getElementById("sClose") : [...document.querySelectorAll('#sheet [data-buy="mg"]')].find(x => !x.disabled && vis(x)) || document.querySelector('#sheet [data-buy="mg"]'); return vis(b);   /* V320 */ } return towerR(); }
         return null;
       }
       const a = null; if (a && a.style.display === "block") { const r = a.getBoundingClientRect(); return { hint: true, up: a.textContent === "▲", x: r.left + r.width / 2, y: a.textContent === "▲" ? r.top : r.bottom }; }
