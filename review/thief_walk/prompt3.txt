@@ -1,0 +1,7 @@
+The reference image shows my game character: a cartoon raccoon burglar in a soft 3D CGI style (like a modern animated movie), black knitted sweater, black flat cap, black eye mask, grey fur, grey pants, black feet, striped tail. The first pose shows him running away holding a brown money bag with a gold dollar sign.
+
+Make a sprite sheet of this EXACT character in the EXACT same 3D CGI style, lighting and colors (NOT flat 2D, no outlines). Side view, facing RIGHT.
+Animation: a happy, bouncy RUN CYCLE while he holds the brown money bag (gold dollar sign) against his chest with one arm, the other arm swinging. 8 frames, arranged as 4 columns x 2 rows (left to right, top row first):
+1 right foot forward touching ground, 2 body lowest, 3 left leg passing under the body, 4 both feet off the ground (flight), 5 left foot forward touching ground, 6 body lowest, 7 right leg passing, 8 both feet off the ground.
+The legs must be in clearly different positions in every frame (long running strides). The money bag stays in his arm in every frame. Same size and scale, full body visible, empty space around, character centered in each cell.
+The ENTIRE background of the whole image must be one flat solid pure green color #00FF00 (no white, no gradient, no floor, no shadow, no text, no numbers, no grid lines).
