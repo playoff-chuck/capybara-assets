@@ -755,6 +755,21 @@ canvas#cv.rotR{transform:rotate(90deg) scale(.6667)}
 .specList button small{font-weight:600;font-size:10px;letter-spacing:.08em;color:#f0d78a}
 .specBox #specClose{align-self:flex-end}
 @media (prefers-reduced-motion: reduce){canvas#cv{transition:none}.board.tilting{animation:none}}
+#ovTilt{position:fixed;inset:0;z-index:70;display:flex;align-items:center;justify-content:center;background:rgba(10,12,8,.6);padding:16px;cursor:pointer}
+#ovTilt[hidden]{display:none}
+#ovTilt .tcard{width:min(300px,86vw);display:flex;flex-direction:column;align-items:center;gap:6px;padding:16px 14px 14px;border:3px solid #17150c;border-radius:12px;box-shadow:0 8px 0 #17150c;
+  background:repeating-linear-gradient(-45deg,#f0b323 0 14px,#17150c 14px 28px);animation:tcIn .35s cubic-bezier(.3,1.6,.5,1)}
+#ovTilt .tin{width:100%;display:flex;flex-direction:column;align-items:center;gap:2px;background:#fff4cf;border:3px solid #17150c;border-radius:8px;padding:10px 8px 8px;color:#17150c}
+#ovTilt small{font-family:var(--f-ui);font-weight:800;font-size:12px;letter-spacing:.16em}
+#ovTilt b{font-family:var(--f-display);font-weight:400;font-size:64px;line-height:1;letter-spacing:.02em}
+#ovTilt svg{width:72px;height:72px;animation:tcSpin 1.4s ease-in-out infinite}
+#ovTilt.neg svg{transform:scaleX(-1)}
+#ovTilt i{font-style:normal;font-family:var(--f-ui);font-weight:700;font-size:12px;opacity:.75}
+@keyframes tcIn{from{transform:scale(.6);opacity:0}to{transform:none;opacity:1}}
+@keyframes tcSpin{0%,20%{rotate:0deg}70%,100%{rotate:90deg}}
+#ovTilt.neg svg{animation-name:tcSpinN}
+@keyframes tcSpinN{0%,20%{rotate:0deg}70%,100%{rotate:-90deg}}
+@media (prefers-reduced-motion: reduce){#ovTilt svg,#ovTilt .tcard{animation:none}}
 
 /* Welle 18 «Siberia» */
 .board.blizzard{border-color:#cfe6f7!important;box-shadow:0 0 0 2px rgba(220,240,255,.6),0 0 26px rgba(200,230,255,.45) inset}
@@ -1021,6 +1036,12 @@ body.introBig #ovIntro{background:rgba(14,19,11,.28)!important}
 #splash .spT span{display:block;color:#ffcf3d}
 #splash .spGo{position:absolute;bottom:calc(env(safe-area-inset-bottom,0px) + 6vh);font-family:"Bangers",var(--f-display);font-size:clamp(20px,6vw,28px);letter-spacing:.08em;color:#fff6e6;-webkit-text-stroke:2px #3a1d10;paint-order:stroke fill;animation:spPulse 1.1s ease-in-out infinite alternate}
 #splash.out{opacity:0;pointer-events:none}
+#splash .spDots{position:absolute;bottom:calc(env(safe-area-inset-bottom,0px) + 6vh + 6px);display:flex;gap:12px}
+#splash .spDots i{width:14px;height:14px;border-radius:50%;background:#fff6e6;border:2px solid #3a1d10;animation:spDot 1s ease-in-out infinite}
+#splash .spDots i:nth-child(2){animation-delay:.15s}#splash .spDots i:nth-child(3){animation-delay:.3s}
+@keyframes spDot{0%,60%,100%{transform:translateY(0);opacity:.55}30%{transform:translateY(-12px);opacity:1}}
+#splash.loading .spGo{display:none}#splash:not(.loading) .spDots{display:none}
+#splash.twa .spT{animation:none!important}
 @keyframes spIn{from{transform:rotate(-3deg) scale(.4);opacity:0}to{transform:rotate(-3deg) scale(1);opacity:1}}
 @keyframes spPulse{from{transform:scale(1);opacity:.85}to{transform:scale(1.08);opacity:1}}
 @media (prefers-reduced-motion: reduce){#splash .spT,#splash .spGo{animation:none}}
@@ -2265,7 +2286,7 @@ body.inNuts #btnPRestart{display:none!important}
   <symbol id="i-mute" viewBox="0 0 24 24"><path d="M3 9h4l5-4v14l-5-4H3zM15 9.4l1.4-1.4 2.1 2.1 2.1-2.1 1.4 1.4-2.1 2.1 2.1 2.1-1.4 1.4-2.1-2.1-2.1 2.1-1.4-1.4 2.1-2.1z"/></symbol>
 </svg>
 
-<div id="splash" role="button" aria-label="Tap to start"><img alt="Capybara Squad: Rosie and Blue defend a tower of camo blocks against funny monsters" src="img/b6f38631c6.webp"><div class="spT">CAPYBARA<span>SQUAD</span></div><div class="spGo">TAP TO START</div></div>
+<div id="splash" class="loading" role="button" aria-label="Tap to start"><img alt="Capybara Squad: Rosie and Blue defend a tower of camo blocks against funny monsters" src="img/b6f38631c6.webp"><div class="spT">CAPYBARA<span>SQUAD</span></div><div class="spGo">TAP TO START</div><div class="spDots" aria-hidden="true"><i></i><i></i><i></i></div></div>
 <div id="sky" aria-hidden="true"><div class="sl day"></div><div class="sl night"></div><div class="tint"></div><div class="scene"><img class="full" alt=""><img class="hero" alt=""><img class="foe" alt=""></div><div class="dim"></div></div>
 <div id="buddy" class="l" aria-hidden="true"><div class="say"></div><img alt=""></div>
 <div class="app">
@@ -2345,6 +2366,7 @@ body.inNuts #btnPRestart{display:none!important}
       <div class="mayday sandBand" id="sandBand" hidden><span>SANDSTORM</span><i>NO SIGHT · 52°C</i><span>SANDSTORM</span></div>
       <div class="mayday snowBand" id="snowBand" hidden><span>SIBERIA</span><i>BLIZZARD · −40°</i><span>SIBERIA</span></div>
       <div class="mayday radioBand" id="radioBand" hidden><span>RADIO</span><i>NO SIGNAL · HOLD ON</i><span>RADIO</span></div>
+      <div id="ovTilt" hidden><div class="tcard"><div class="tin"><small>SIDEWINDER</small><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 8a16 16 0 1 1-15.2 11" fill="none" stroke="#17150c" stroke-width="5" stroke-linecap="round"/><path d="M2 14l7 9 8-8z" fill="#17150c"/></svg><b id="tiltDeg">+90°</b><i>Field turns · blocks still fall down</i></div></div></div>
       <div class="mayday tiltBand" id="tiltBand" hidden><span>SIDEWINDER</span><i>WORLD TILT −90°</i><span>SIDEWINDER</span></div>
       <div class="mayday" id="mayday" hidden><span>OUCH</span><i>CAPY BONKED · SEEING DOUBLE</i><span>OUCHY</span></div>
       <div class="crate" id="crate" hidden><img class="giftImg" id="giftImg" alt="">
@@ -2702,7 +2724,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V325";
+const GAME_VER = "V326";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -4095,7 +4117,7 @@ window.__whenCalm = (fn, gap = 5000) => { const t0 = performance.now(); const ti
     if (busy || performance.now() - (window.__evtLast || -1e9) < gap) { if (performance.now() - t0 < 600000) setTimeout(tick, 300); return; }
     fn(); } catch (e) { console.error("whenCalm", e); } }; setTimeout(tick, 300); };
 function uiWinOpen() { try { const v = id => { const e = document.getElementById(id); return e && !e.hidden && getComputedStyle(e).display !== "none"; }; if (v("ovHackAd")) return true;
-  return !!(window.__tipBulb && window.__tipBulb.open) || v("ovIntro") || v("ovHack") || !!(S && (S.duel || S.hackAdOpen)) || document.body.classList.contains("introWin") || v("ovAd") || v("ovBandit") || v("ovJoin") || document.body.classList.contains("mapUp") || !!(S && (S.joinOpen || S.signOpen || S.banditOpen)); } catch (e) { return false; } }
+  return !!(window.__tipBulb && window.__tipBulb.open) || v("ovTilt") || v("ovIntro") || v("ovHack") || !!(S && (S.duel || S.hackAdOpen)) || document.body.classList.contains("introWin") || v("ovAd") || v("ovBandit") || v("ovJoin") || document.body.classList.contains("mapUp") || !!(S && (S.joinOpen || S.signOpen || S.banditOpen)); } catch (e) { return false; } }
 window.__msgDbg = () => ({ q: MSGQ.map(x => x.title), busy: Math.round(msgBusy - performance.now()), win: uiWinOpen() });
 function msgPush(m) {
   const last = MSGQ[MSGQ.length - 1]; if (last && last.title === m.title && last.sub === m.sub) return;   // gleiche Meldung nicht doppelt
@@ -4668,7 +4690,7 @@ function stepShots(dt) {
 
 // ---------- Ablauf ----------
 function canAct() { return S.started && !S.over && !S.paused && !S.intro && !(performance.now() < (window.__holdUntil || 0)) && !S.duel && !S.mode && !S.sel && !S.shop && !S.drop && !S.ordersOpen && S.piece; }   // Funksprüche halten das Spiel nicht an
-function frozen() { return !S.started || S.over || S.paused || S.intro || S.duel || S.mode || S.sel || S.shop || S.drop || S.ordersOpen || S.mix; }
+function frozen() { return !S.started || S.over || S.paused || S.intro || S.duel || S.mode || S.sel || S.shop || S.drop || S.ordersOpen || S.mix || S.tiltCard; }
 function startWave() {
   if (S.nuts) { S.wave = S.nuts.base - 1; S.nuts.lvl++; }   // V180: Nuts-Abstecher bleibt auf der Kontinent-Welle, Härte kommt über das Level
   S.wave++; queueIntros(S.wave);
@@ -4704,7 +4726,7 @@ function update(dt) {
     else if (f.type === "spark") { f.vy += 9 * dt; f.vx *= (1 - 2.5 * dt); f.x += f.vx * dt; f.y += f.vy * dt; }
     else if (f.type === "smoke") { f.vy *= (1 - 0.35 * dt); f.x += (f.vx + Math.sin(f.t * 1.7 + f.ph) * 0.6) * dt; f.y += f.vy * dt; f.r += f.grow * dt; }
   }
-  SFX.music.setPaused(SFX.music.playing !== 0 && !!frozen() && !S.drop && !S.alert && !S.mix && !S.duel && !S.mapShow);
+  SFX.music.setPaused(SFX.music.playing !== 0 && !!frozen() && !S.drop && !S.alert && !S.mix && !S.duel && !S.mapShow && !S.tiltCard);
   if (S.mix) stepMix(dt);
   stepTon(dt); stepChomp(dt);
   if (frozen() || S.ton) return;   // während das Gewicht fällt, steht alles
@@ -4993,12 +5015,21 @@ function syncRotView() {
   const show = !!m && inPlay(); if ($("tiltBand").hidden === show) $("tiltBand").hidden = !show;
   if (show) { const t = m === 1 ? "WORLD TILT −90°" : "WORLD TILT +90°"; const el = $("tiltBand").querySelector("i"); if (el.textContent !== t) el.textContent = t; }
 }
+// V326: Ankündigungs-Karte «+90° / −90°»; erst wenn sie zu ist, dreht sich das Feld (rotMode 1 = −90°, 2 = +90°)
+function tiltCard(m) {
+  const ov = $("ovTilt"); S.tiltCard = { m }; $("tiltDeg").textContent = m === 2 ? "+90°" : "−90°"; ov.classList.toggle("neg", m === 1); ov.hidden = false;
+  snd("siren"); try { if (navigator.vibrate) navigator.vibrate(50); } catch (e) {}
+  let done = false; const go = () => { if (done) return; done = true; clearTimeout(t); ov.hidden = true; ov.onclick = null; const c = S.tiltCard; S.tiltCard = null;
+    if (!c || !S.started || S.over) return; setRotMode(c.m); syncRotView();
+    setTimeout(() => { if (rotOn()) announce("SIDEWINDER!", "Blocks still fall down", "ALERT", 2400); }, 1200); setTimeout(() => SFX.say("Hold the line!"), 600); };
+  const t = setTimeout(go, 2200); setTimeout(() => { ov.onclick = go; }, 400);
+}
+window.__tiltCard = () => S && S.tiltCard ? S.tiltCard.m : 0;
 function stepRot(dt) {
   const on = rotOn();
   if (on && !S.rotWas) {
-    S.rotT = S.rotT || 0; if (!S.rotMode) { if (S.rotNW !== S.wave) { S.rotNW = S.wave; S.rotN = (S.rotN || 0) + 1; } setRotMode(S.rotN % 2 === 0 ? 2 : 1); }   /* V293: abwechselnd −90° / +90° */
-    snd("siren"); setTimeout(() => { if (rotOn()) announce("SIDEWINDER!", "Field tilts 90° · blocks still fall down", "ALERT", 2800); }, 250);
-    setTimeout(() => SFX.say("Hold the line!"), 900);
+    S.rotT = S.rotT || 0; if (!S.rotMode) { if (S.rotNW !== S.wave) { S.rotNW = S.wave; S.rotN = (S.rotN || 0) + 1; } tiltCard(S.rotN % 2 === 0 ? 2 : 1); }   /* V293: abwechselnd −90° / +90° · V326: erst Karte */
+    else { snd("siren"); setTimeout(() => { if (rotOn()) announce("SIDEWINDER!", "Field tilts 90° · blocks still fall down", "ALERT", 2800); }, 250); setTimeout(() => SFX.say("Hold the line!"), 900); }
   }
   if (on && !S.paused) {
     S.rotT = (S.rotT || 0) + dt;
@@ -7071,6 +7102,10 @@ $("setX").addEventListener("click", async () => { const n = cleanNick($("setNick
 
 /* V144 – Startbild: antippen (oder nach 6 s) → Titelmenü */
 (function () { const sp = document.getElementById("splash"); if (!sp) return; let done = false;
+  /* V326: in der Android-App (TWA) kommt das Titelbild schon als Startbild – Titel nicht nochmal einfliegen lassen; Punkte laufen bis geladen (mind. 1,2 s) */
+  try { if (/^android-app:/.test(document.referrer || "")) sp.classList.add("twa"); } catch (e) {}
+  { const t0 = performance.now(), ready = () => setTimeout(() => sp.classList.remove("loading"), Math.max(0, 1200 - (performance.now() - t0)));
+    if (document.readyState === "complete") ready(); else window.addEventListener("load", ready, { once: true }); setTimeout(() => sp.classList.remove("loading"), 5000); }
   const go = () => { if (done) return; done = true; try { LS.set("tarnturm-terms", "1"); renderModes(); SFX.init(); SFX.music.menu(); } catch (e) {} sp.classList.add("out"); setTimeout(() => sp.remove(), 650); };
   sp.addEventListener("click", go); setTimeout(go, 6000); })();
 $("btnHQ").addEventListener("click", tutAbort);
