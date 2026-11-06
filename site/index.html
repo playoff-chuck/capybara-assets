@@ -2743,7 +2743,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V337";
+const GAME_VER = "V338";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -6526,7 +6526,7 @@ $("btnInfo").addEventListener("click", () => { $("ovStart").hidden = true; $("ov
   const apply = () => document.querySelectorAll(".devOnly").forEach(el => el.hidden = !devOn); apply();
   document.querySelector(".logo").addEventListener("pointerdown", () => { const now = performance.now(); taps = taps.filter(t => now - t < 3000); taps.push(now); if (taps.length >= 7) { taps = []; devOn = !devOn; LS.set("tarnturm-dev", devOn ? "1" : "0"); apply(); SFX.init(); snd("uiTap"); toast(devOn ? "DEV TOOLS ON" : "DEV TOOLS OFF", "HQ", 1500); } }); }
 // V178z15: Wellen nach dem neuen Ablauf (Zyklus 100); Radio silence = Siberia II / Deep Desert II mit Funkabbruch
-const SPECIALS = [["Sonar", "WAVE 15", 15], ["Wild Cards", "AFTER WAVE 20", 20], ["Wounded", "WAVE 23", 23], ["Siberia", "WAVE 35 · BLIZZARD", 35], ["Hailstorm", "WAVE 37", 37], ["Sidewinder", "WAVE 41", 41], ["Sidewinder II", "WAVE 45", 45], ["Sandstorm", "WAVE 47", 47], ["Siberia II", "WAVE 51 · RADIO SILENCE", 51], ["Radio silence", "WAVE 35 · FORCED", 35, "radio"], ["Sandstorm II", "WAVE 65 · RADIO SILENCE", 65], ["Lockdown", "IN POCKET · WAVE 25", 25, "lock"], ["Hack duel", "BOSS · GOLD BET", 6, "hack"], ["Chomper", "IN POCKET · WAVE 17", 17, "chomp"], ["Ten-ton drop", "IN POCKET · WAVE 5", 5, "ton"], ["Lucky Supply", "BANDIT · ONE FREE SPIN", 3, "bandit"], ["Signal lost", "WAVE 65 · NO SIGNAL", 65, "blk"], ["Magnet", "WAVE 80", 80, "mag"], ["Weeds", "WAVE 90", 90, "weed"], ["Thief", "WAVE 100", 100, "thief"], ["Egg · S. America", "WAVE 2 · PUSH 3× INTO WALL", 2, "egg"], ["Egg · Africa", "WAVE 32", 32, "egg"], ["Egg · Asia", "WAVE 62", 62, "egg"], ["Egg · N. America", "WAVE 92", 92, "egg"], ["Egg · Antarctica", "WAVE 122", 122, "egg"]];
+const SPECIALS = [["Sonar", "WAVE 15", 15], ["Wild Cards", "AFTER WAVE 20", 20], ["Wounded", "WAVE 23", 23], ["Siberia", "WAVE 35 · BLIZZARD", 35], ["Hailstorm", "WAVE 37", 37], ["Sidewinder", "WAVE 41", 41], ["Sidewinder II", "WAVE 45", 45], ["Sandstorm", "WAVE 47", 47], ["Siberia II", "WAVE 51 · RADIO SILENCE", 51], ["Radio silence", "WAVE 35 · FORCED", 35, "radio"], ["Sandstorm II", "WAVE 65 · RADIO SILENCE", 65], ["Lockdown", "IN POCKET · WAVE 25", 25, "lock"], ["Hack duel", "BOSS · GOLD BET", 6, "hack"], ["Chomper", "IN POCKET · WAVE 17", 17, "chomp"], ["Ten-ton drop", "IN POCKET · WAVE 5", 5, "ton"], ["Lucky Supply", "BANDIT · ONE FREE SPIN", 3, "bandit"], ["Signal lost", "WAVE 65 · NO SIGNAL", 65, "blk"], ["Magnet", "WAVE 80", 80, "mag"], ["Weeds", "WAVE 90", 90, "weed"], ["Thief", "WAVE 100", 100, "thief"], ["Egg · S. America", "WAVE 2 · PUSH 5× INTO WALL", 2, "egg"], ["Egg · Africa", "WAVE 32", 32, "egg"], ["Egg · Asia", "WAVE 62", 62, "egg"], ["Egg · N. America", "WAVE 92", 92, "egg"], ["Egg · Antarctica", "WAVE 122", 122, "egg"]];
 function devJump(w, kind) { SFX.init(); const m = MODES[MODE] ? MODE : "chill"; startGame(m); S.wave = w - 1; S.gold += 300 + 60 * w; S.ff = false; S.waveCD = 6; S.testRun = true; S.medDone = 0; S.rotDone = 0; S.rotMode = 0; S.rotT = 0; if (kind === "lock") S.locks = (S.locks || 0) + 1; if (kind === "chomp") S.chomps = (S.chomps || 0) + 2; if (kind === "ton") S.tons = (S.tons || 0) + 2; if (kind === "radio") S.radioForce = true; if (kind === "hack") { S.wave = w; S.gold += 500; S.waveCD = 60; setTimeout(() => openHack(true), 300); } closeIntro(); $("ovSpec").hidden = true; $("ovStart").hidden = true; toast(`TEST · ${kind === "lock" ? "LOCKDOWN IN POCKET" : "wave " + w + " in 6 s"} · build towers`, "HQ", 2500); }
 // Runden: jede Sonderwelle kommt alle 30 Wellen wieder (+150: 25 % härter, +180: 50 % härter)
 let specOff = 0;
@@ -8765,7 +8765,7 @@ try { (() => {
     return false; };
   const D = { blk: null, mag: null, weed: null, thief: null, done: {} };
   window.__dist = { state: () => ({ blk: !!D.blk, mag: D.mag && { side: D.mag.side, y: D.mag.y }, weed: D.weed && { x: D.weed.x, root: D.weed.root, h: D.weed.h }, thief: D.thief && { x: +D.thief.x.toFixed(2), stolen: D.thief.stolen } }), start: k => start(k), fire: (k, x, y) => (k === "snipe" ? snipe : tesla)(x, y), D };
-  const NAMES = { blk: ["SIGNAL LOST!", "Part of the field goes dark"], mag: ["MAGNET!", "It pulls the blocks – steer against it"], weed: ["WEEDS!", "Blocks get stuck on it · Tesla or Sniper cut it"], thief: ["THIEF!", "Stop him with Tesla or Sniper"] };
+  const NAMES = { blk: ["SIGNAL LOST!", "Part of the field goes dark"], mag: ["MAGNET!", "It pulls the blocks – steer against it · Tesla fries it"], weed: ["WEEDS!", "Blocks get stuck on it · Tesla or Sniper cut it"], thief: ["THIEF!", "Stop him with Tesla or Sniper"] };
   function start(k) {
     const GT = GH;
     if (k === "blk") { const n = Math.random() < 0.5 ? 3 : 4; D.blk = { r0: Math.floor(GT * 0.45) - n + 1, n, t: 0, life: 25 + Math.random() * 5 }; }
@@ -8806,6 +8806,8 @@ try { (() => {
     const r = _cl.apply(this, arguments); if (r && below && D.weed) D.weed.root += below; return r; };
   function hitArea(x0, y0, w, h, label) {
     let hit = false;
+    if (label === "tesla" && D.mag) { const m = D.mag, mx0 = m.side ? GW - 2 : 0, my0 = Math.round(m.fy != null ? m.fy : m.y);   /* V338: Tesla zerstört den Magneten */
+      if (mx0 < x0 + w && mx0 + 2 > x0 && my0 < y0 + h && my0 + 3 > y0) { D.mag = null; if (window.__magHum) window.__magHum(0); fxText(mx0 + 1, my0 + 1, "MAGNET FRIED!", "#ffb3a8"); toast("MAGNET FRIED!", "HQ", 1600); hit = true; } }
     const W2 = D.weed; if (W2 && W2.root != null) { const cs = weedCells(); let low = null; cs.forEach(([x, y], i) => { if (x >= x0 && x < x0 + w && y >= y0 && y < y0 + h && low == null) low = i; });
       if (low === 0) { D.weed = null; fxText(W2.x, W2.root, "WEED PULLED!", "#9be36b"); hit = true; } else if (low != null) { W2.h = low; fxText(W2.x, W2.root - low, "WEED CUT", "#9be36b"); hit = true; } }
     const T = null; if (T) { const tx = Math.round(T.x); if (tx >= x0 - (label === "snipe" ? 1 : 0) && tx < x0 + w + (label === "snipe" ? 1 : 0) && y0 <= (label === "snipe" ? 1 : 0)) {
@@ -8922,32 +8924,35 @@ try { (() => {
     try { const p = S && S.piece; if (p && canAct() && !S.rotMode && !S.nuts && !S.duel) {
         const W = VW(), wall = p.cells.some(([x]) => p.x + x + dx < 0 || p.x + x + dx >= W);
         if (wall) { if (push.dir !== dx || push.piece !== S.pieceNo) push = { n: 0, dir: dx, piece: S.pieceNo }; push.n++;
-          if (push.n >= 3) { push.n = 0; const c = wherePos(S.wave).c; S.eggDone = S.eggDone || {}; if (!S.eggDone[c] && S.inWave !== undefined && inPlay()) { S.eggDone[c] = 1; openEgg(c); return; } } }
+          if (push.n >= 5) { push.n = 0; const c = wherePos(S.wave).c; S.eggDone = S.eggDone || {}; if (!S.eggDone[c] && S.inWave !== undefined && inPlay()) { S.eggDone[c] = 1; openEgg(c); return; } } }
         else push.n = 0; } } catch (e) {}
     return _mv.apply(this, arguments); };
   function tileCol(v) { if (v === 8) return ["#d8d2c0", "#b9b2a0"]; const set = CAMO[v - 1]; return [set[0], set[2] || set[1]]; }
   function openEgg(ci) {
     const E = EGG[Math.max(0, Math.min(EGG.length - 1, ci))], ov = $("ovEgg"), cvE = $("eggCv"), g = cvE.getContext("2d");
+    { const cr = cv.getBoundingClientRect(), cc = Math.max(14, Math.min(cr.width, cr.height * GW / GH) / GW || 30); cvE.style.width = Math.round(cc * 10) + "px"; cvE.style.height = Math.round(cc * 12) + "px"; }   /* V338: Steine so groß wie im Spielfeld */
     S.eggOpen = true; ov.classList.remove("on", "done", "tap"); ov.hidden = false; requestAnimationFrame(() => ov.classList.add("on"));
     snd("siren");
-    const CW = 40, gapSet = new Set(E.gap.map(([x, y]) => y * 10 + x)), order = [...Array(120).keys()].filter(i => !gapSet.has(i)).sort(() => Math.random() - 0.5);
+    const CW = Math.max(12, Math.round(CELL)), EW = CW * 10, EH = CW * 12, gapSet = new Set(E.gap.map(([x, y]) => y * 10 + x)), o0 = (cvE.width = EW, cvE.height = EH), order = [...Array(120).keys()].filter(i => !gapSet.has(i)).sort(() => Math.random() - 0.5);
     const gx = E.gap[0][0], gy = E.gap[0][1], vert = E.gap[1][0] === gx, gv = +E.m[gy][gx];
     const t0 = performance.now(), T_TILES = 1100, T_FALL0 = 1500, T_FALL = 650; let landed = false, closeOK = false, raf = 0;
-    function tile(x, y, v, a = 1, sc = 1) { const [c1, c2] = tileCol(v), px = x * CW, py = y * CW, pad = 2 + (1 - sc) * CW / 2;
-      g.globalAlpha = a; g.fillStyle = c2; g.fillRect(px + pad, py + pad, CW - 2 * pad, CW - 2 * pad);
-      g.fillStyle = c1; g.fillRect(px + pad + 3, py + pad + 3, CW - 2 * pad - 6, CW - 2 * pad - 7);
-      g.fillStyle = "rgba(255,255,255,.22)"; g.fillRect(px + pad + 3, py + pad + 3, CW - 2 * pad - 6, 4); g.globalAlpha = 1; }
+    function tile(x, y, v, a = 1, sc = 1) { const s2 = CW * sc, px = x * CW + (CW - s2) / 2, py = y * CW + (CW - s2) / 2, e = Math.max(1, s2 * 0.12);
+      g.globalAlpha = a; let fill = null; try { fill = v === 8 ? "#d8d2c0" : (patterns[v - 1] || tileCol(v)[0]); } catch (er) { fill = tileCol(v)[0]; }
+      g.fillStyle = fill; g.fillRect(px, py, s2, s2);
+      g.fillStyle = "rgba(255,248,220,.22)"; g.fillRect(px, py, s2, e); g.fillRect(px, py, e, s2);
+      g.fillStyle = "rgba(0,0,0,.38)"; g.fillRect(px, py + s2 - e, s2, e); g.fillRect(px + s2 - e, py, e, s2);
+      g.strokeStyle = "rgba(10,14,8,.8)"; g.lineWidth = Math.max(1, s2 * 0.04); g.strokeRect(px + 0.5, py + 0.5, s2 - 1, s2 - 1); g.globalAlpha = 1; }
     function frame(now) {
-      const t = now - t0; g.clearRect(0, 0, 400, 480); g.fillStyle = "#17121f"; g.fillRect(0, 0, 400, 480);
-      g.strokeStyle = "rgba(255,255,255,.05)"; for (let i = 1; i < 10; i++) { g.beginPath(); g.moveTo(i * CW, 0); g.lineTo(i * CW, 480); g.stroke(); } for (let i = 1; i < 12; i++) { g.beginPath(); g.moveTo(0, i * CW); g.lineTo(400, i * CW); g.stroke(); }
+      const t = now - t0; g.clearRect(0, 0, EW, EH); g.fillStyle = "#17121f"; g.fillRect(0, 0, EW, EH);
+      g.strokeStyle = "rgba(255,255,255,.05)"; for (let i = 1; i < 10; i++) { g.beginPath(); g.moveTo(i * CW, 0); g.lineTo(i * CW, EH); g.stroke(); } for (let i = 1; i < 12; i++) { g.beginPath(); g.moveTo(0, i * CW); g.lineTo(EW, i * CW); g.stroke(); }
       const shown = Math.min(order.length, Math.floor(order.length * t / T_TILES));
       for (let i = 0; i < shown; i++) { const c = order[i], x = c % 10, y = (c / 10) | 0, age = (t - i / order.length * T_TILES) / 180; tile(x, y, +E.m[y][x], Math.min(1, age), Math.min(1, 0.4 + age * 0.6)); }
       if (t < T_FALL0 + T_FALL) { for (const [x, y] of E.gap) { g.strokeStyle = `rgba(255,214,120,${0.35 + 0.35 * Math.sin(t / 120)})`; g.lineWidth = 2; g.strokeRect(x * CW + 3, y * CW + 3, CW - 6, CW - 6); } }
       if (t >= T_FALL0) { const k = Math.min(1, (t - T_FALL0) / T_FALL), e = k * k, dy = (1 - e) * (vert ? (gy + 4) * CW : (gy + 1) * CW);
         g.save(); g.translate(0, -dy); for (const [x, y] of E.gap) tile(x, y, gv); g.restore();
         if (k >= 1 && !landed) { landed = true; snd("drop"); setTimeout(() => snd("lines", 4), 120); ov.classList.add("done"); try { SFX.say("Unbelievable!"); } catch (e) {} setTimeout(() => { closeOK = true; ov.classList.add("tap"); }, 1400); setTimeout(close, 7000); } }
-      if (landed) { const k = Math.min(1, (t - T_FALL0 - T_FALL) / 900); g.fillStyle = `rgba(255,240,190,${0.55 * (1 - k)})`; g.fillRect(0, 0, 400, 480);
-        const sh = ((t / 6) % 700) - 150; const gr = g.createLinearGradient(sh, 0, sh + 120, 480); gr.addColorStop(0, "rgba(255,255,255,0)"); gr.addColorStop(0.5, "rgba(255,255,255,.18)"); gr.addColorStop(1, "rgba(255,255,255,0)"); g.fillStyle = gr; g.fillRect(0, 0, 400, 480); }
+      if (landed) { const k = Math.min(1, (t - T_FALL0 - T_FALL) / 900); g.fillStyle = `rgba(255,240,190,${0.55 * (1 - k)})`; g.fillRect(0, 0, EW, EH);
+        const sh = ((t / 6) % 700) - 150; const gr = g.createLinearGradient(sh, 0, sh + 120, EH); gr.addColorStop(0, "rgba(255,255,255,0)"); gr.addColorStop(0.5, "rgba(255,255,255,.18)"); gr.addColorStop(1, "rgba(255,255,255,0)"); g.fillStyle = gr; g.fillRect(0, 0, EW, EH); }
       raf = requestAnimationFrame(frame); }
     let closed = false;
     function close() { if (closed) return; closed = true; cancelAnimationFrame(raf); S.eggBonus = (S.eggBonus || 0) + 5000; ov.classList.remove("on"); setTimeout(() => { ov.hidden = true; S.eggOpen = false; }, 450); try { checkScore(); } catch (e) {} toast("EASTER EGG · +5000 points", "HQ", 1800); }
@@ -8962,7 +8967,7 @@ try { (() => {
   const DK = ["blk", "mag", "weed", "thief", "egg"];
   const _dj = devJump; devJump = function (w, kind) { const r = _dj.apply(this, arguments);
     if (DK.includes(kind)) { S.snipes = (S.snipes || 0) + 2; S.teslas = (S.teslas || 0) + 2; S.waveCD = 3;
-      if (kind === "egg") toast("TEST · EASTER EGG: push a block 3× into the left or right wall", "HQ", 3500);
+      if (kind === "egg") toast("TEST · EASTER EGG: push a block 5× into the left or right wall", "HQ", 3500);
       else toast(`TEST · ${kind.toUpperCase()} starts a few seconds into wave ${w} · 2 Sniper + 2 Tesla in Pocket`, "HQ", 3000); }
     return r; };
   let q = null; try { q = new URLSearchParams(location.search).get("test"); } catch (e) {}
@@ -9057,9 +9062,9 @@ try { (() => {
   window.__magHum = on => { try { const ac = AU.ac(), out = AU.out(); if (!ac || !out) return;
       if (!hum) { const g2 = ac.createGain(); g2.gain.value = 0; const lfo = ac.createOscillator(), lg = ac.createGain(); lfo.frequency.value = 3.2; lg.gain.value = 0.25; lfo.connect(lg);
         const mix = ac.createGain(); mix.gain.value = 0.75; lg.connect(mix.gain); mix.connect(g2); g2.connect(out);
-        [[50, 1], [100, 0.5], [150, 0.33], [250, 0.2], [350, 0.14]].forEach(([f, a]) => { const o = ac.createOscillator(), og = ac.createGain(); o.type = "sine"; o.frequency.value = f; og.gain.value = a; o.connect(og); og.connect(mix); o.start(); });
+        [[100, 1], [200, 0.7], [300, 0.5], [400, 0.3], [500, 0.22], [700, 0.12]].forEach(([f, a]) => { const o = ac.createOscillator(), og = ac.createGain(); o.type = "sine"; o.frequency.value = f; og.gain.value = a; o.connect(og); og.connect(mix); o.start(); });
         lfo.start(); hum = { g: g2, ac, on: 0 }; }
-      if (hum.on !== on) { hum.on = on; hum.g.gain.setTargetAtTime(on ? 0.05 : 0, hum.ac.currentTime, on ? 0.25 : 0.12); } } catch (e) {} };
+      if (hum.on !== on) { hum.on = on; hum.g.gain.setTargetAtTime(on ? 0.14 : 0, hum.ac.currentTime, on ? 0.25 : 0.12); } } catch (e) {} };
 })(); } catch (e) { console.error("v336", e); }
 })();
 </script>
