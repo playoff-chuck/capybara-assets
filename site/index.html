@@ -2669,7 +2669,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V307";
+const GAME_VER = "V308";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -7909,22 +7909,29 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     let prompt = null, state = LS.get("capy-offline") === "1" ? "ready" : "idle";
     const b = document.createElement("button"); b.type = "button"; b.id = "btnOffline"; b.className = "btn-small"; b.setAttribute("aria-label", "Play offline");
     const PLANE = '<svg class="pl" viewBox="-1 -1 26 26" width="40" height="40" aria-hidden="true"><g transform="rotate(45 12 12)"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" transform="translate(.5 0)" fill="#ff6fb5" stroke="#3a2414" stroke-width="1.35" stroke-linejoin="round"/><path d="M11.3 4v4.2" stroke="#fff" stroke-width="1.1" stroke-linecap="round" opacity=".9"/></g></svg>';
-    const draw = (pct) => { b.classList.toggle("ok", state === "ready"); b.innerHTML = state === "busy" ? `<b>${pct || 0}%</b>` + PLANE.replace('class="pl"', 'class="pl fly"') : PLANE + (state === "ready" ? '<i class="okDot"></i>' : ''); };
+    const andr = /Android/i.test(navigator.userAgent), isInst = () => LS.get("capy-installed") === "1" || matchMedia("(display-mode: standalone)").matches || !!navigator.standalone;
+    const draw = (pct) => { b.classList.toggle("ok", state === "ready"); const ic = state === "ready" && prompt && !isInst();
+      b.innerHTML = state === "busy" ? `<b>${pct || 0}%</b>` + PLANE.replace('class="pl"', 'class="pl fly"') : PLANE + (state === "ready" ? (ic ? '<i class="icDot">📲</i>' : '<i class="okDot"></i>') : ''); };
     draw(); document.body.appendChild(b);
     const place = () => { const h = document.getElementById("btnMap") || document.getElementById("btnHs"); if (!h) return; const r = h.getBoundingClientRect(); if (!r.width) return; b.style.left = Math.round(r.left - 60) + "px"; b.style.top = Math.round(r.top) + "px"; };
     setInterval(place, 400); addEventListener("resize", place); place();
-    addEventListener("beforeinstallprompt", e => { e.preventDefault(); prompt = e; });
+    addEventListener("beforeinstallprompt", e => { e.preventDefault(); prompt = e; if (state !== "busy") draw(); });
+    addEventListener("appinstalled", () => { LS.set("capy-installed", "1"); prompt = null; if (state !== "busy") draw(); toast("Icon added to your home screen!", "OFFLINE", 2600); });
+    const askIcon = () => { if (isInst()) return false;
+      if (prompt) { const p = prompt; prompt = null; try { p.prompt(); p.userChoice.then(c => { if (c && c.outcome === "accepted") LS.set("capy-installed", "1"); draw(); }).catch(() => {}); } catch (e) {} return true; }
+      if (andr) { toast("Home-screen icon: browser menu ⋮ → Add to Home screen", "OFFLINE", 3600); return true; }
+      return false; };
     const ios = /iP(hone|ad|od)/.test(navigator.userAgent), standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone;
     navigator.serviceWorker.register("sw.js").then(reg => { navigator.serviceWorker.ready.then(r => { try { r.active && r.active.postMessage({ t: "sync" }); } catch (e) {} }); }).catch(() => {});
     navigator.serviceWorker.addEventListener("message", e => { const d = e.data || {}; if (d.t !== "offline" || state !== "busy") return; const pct = d.total ? Math.min(100, Math.floor(d.done / d.total * 100)) : 0; draw(pct);
       if (d.n >= d.of) { state = "ready"; LS.set("capy-offline", "1"); draw(); try { snd("coin"); } catch (er) {}
-        toast(ios && !standalone ? "Saved! Tip: Share → Add to Home Screen" : "Saved! Works in flight mode now.", "OFFLINE", 3200); } });
+        toast(ios && !standalone ? "Saved! Tip: Share → Add to Home Screen" : prompt && !isInst() ? "Saved! Tap ✈ again for the home-screen icon" : "Saved! Works in flight mode now.", "OFFLINE", 3200); } });
     b.addEventListener("click", async () => { try { SFX.init(); } catch (e) {}
-      if (state === "ready") { toast(navigator.onLine ? "All saved · plays in flight mode" : "Offline mode · leaderboard waits for signal", "OFFLINE", 2400); if (prompt) { prompt.prompt(); prompt = null; } return; }
+      if (state === "ready") { if (!askIcon()) toast(navigator.onLine ? "All saved · plays in flight mode" : "Offline mode · leaderboard waits for signal", "OFFLINE", 2400); return; }
       if (state === "busy") return;
       if (!navigator.onLine) { toast("Needs internet once to save the game", "OFFLINE", 2400); return; }
       state = "busy"; draw(0); try { snd("uiTap"); } catch (e) {}
-      if (prompt) { try { prompt.prompt(); } catch (e) {} prompt = null; }
+      if (prompt && !isInst()) askIcon();
       const r = await navigator.serviceWorker.ready; (r.active || navigator.serviceWorker.controller).postMessage({ t: "fill" }); });
   } } catch (e) { console.warn("offline", e); }
 
@@ -8986,6 +8993,8 @@ body:has(#ovStart:not([hidden])):has(.overlay.win:not([hidden])) #btnOffline,bod
 #btnOffline .pl.fly{position:absolute;inset:0;margin:auto;opacity:.28;animation:plFly 1.2s ease-in-out infinite alternate}
 @keyframes plFly{to{transform:translate(3px,-3px) rotate(-4deg)}}
 #btnOffline b{position:relative;z-index:1;font:800 15px/1 "Baloo 2",sans-serif;color:#d94c8c}
+#btnOffline .icDot{position:absolute;right:-4px;bottom:-4px;width:24px;height:24px;border-radius:50%;background:#ff6fb5;border:2px solid #3a2414;box-sizing:border-box;font:normal 13px/20px sans-serif;text-align:center;font-style:normal;animation:icPulse 1.6s ease-in-out infinite}
+@keyframes icPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
 #btnOffline .okDot{position:absolute;right:3px;bottom:3px;width:17px;height:17px;border-radius:50%;background:#5cbf4a;border:2px solid #3a2414;box-sizing:border-box}
 #btnOffline .okDot::after{content:"";position:absolute;left:3.5px;top:1.5px;width:4px;height:7px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(40deg)}
 #btnOffline small{display:none!important}
