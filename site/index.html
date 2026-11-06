@@ -2362,7 +2362,7 @@ body.inNuts #btnPRestart{display:none!important}
   <div class="alHead"><span class="alTag">SETTINGS</span><span class="alTime"></span></div>
   <div class="heroPick" id="heroPickSet"><div class="hpHead">YOUR HERO</div><div class="hpRow"><button class="hpAv" data-hero="blue" aria-label="Play as Blue"><img alt=""><b>BLUE</b></button><button class="hpAv" data-hero="rosie" aria-label="Play as Rosie"><img alt=""><b>ROSIE</b></button></div><div class="hpSub"></div></div>
   <label for="setNick">YOUR PLAYER NAME · made up, never your real name</label>
-  <input id="setNick" type="text" maxlength="14" autocomplete="off" spellcheck="false" placeholder="e.g. CapyKing">
+  <input id="setNick" type="text" maxlength="14" autocomplete="off" spellcheck="false" placeholder="e.g. CapyKing"><div class="setRow"><button id="setCloud" class="btn-small" type="button">☁ Cloud save</button><button id="setGuide" class="btn-small" type="button">Guide</button></div>
 </div></div>
       <div class="overlay ordOv" id="ovOrders" hidden>
         <div class="ordHead"><span class="alTag">WILD CARDS</span><h2 id="ordTitle">PICK A WILD CARD</h2><p>Pick one · it stays until the next wild cards.</p></div>
@@ -2590,7 +2590,7 @@ body.inNuts #btnPRestart{display:none!important}
           <button id="btnInfo" class="btn-small btn-ico infoTR" aria-label="Guide" title="Guide"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2.4"/><circle cx="12" cy="7.5" r="1.6"/><rect x="10.6" y="10.5" width="2.8" height="7.5" rx="1"/></svg></button>
           <div class="heroBox heroStart"><img class="heroImg" alt="Rosie and Blue at their tower of camo blocks" src="img/b6f38631c6.webp"><div class="tagline claim"><span>Stack 'em.</span><span class="hot">Splat 'em.</span></div></div>
           <button class="btn-small btn-ico gearTR" id="btnGear" aria-label="Settings" title="Settings"><svg viewBox="0 0 24 24"><path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7zm8.6 4.9l1.9 1.5-1.9 3.3-2.3-.8a7.6 7.6 0 0 1-2 1.2l-.4 2.4h-3.8l-.4-2.4a7.6 7.6 0 0 1-2-1.2l-2.3.8-1.9-3.3 1.9-1.5a7.7 7.7 0 0 1 0-2.4L1.5 9.4l1.9-3.3 2.3.8a7.6 7.6 0 0 1 2-1.2L8.1 3.3h3.8l.4 2.4a7.6 7.6 0 0 1 2 1.2l2.3-.8 1.9 3.3-1.9 1.5a7.7 7.7 0 0 1 0 2.5z" fill="currentColor"/></svg></button><div class="squad"><div class="modes" id="modeList"></div></div>
-          <div class="startFoot"><button id="btn711Test" class="btn-small devOnly" hidden title="Test: fresh run from wave 0, no veteran bonus, not sent to the world list">Test from 0</button><button id="btnSpecials" class="btn-small devOnly" hidden title="Test: jump straight to any special wave">Specials</button><button id="btnFb" class="btn-small">Feedback</button><button id="btnHs" class="btn-small">Hall of fame</button><button id="btnCloud" class="btn-small">☁ Cloud save</button><button id="btnAlbum" class="btn-small">Medals</button></div>
+          <div class="startFoot"><button id="btn711Test" class="btn-small devOnly" hidden title="Test: fresh run from wave 0, no veteran bonus, not sent to the world list">Test from 0</button><button id="btnSpecials" class="btn-small devOnly" hidden title="Test: jump straight to any special wave">Specials</button><button id="btnFb" class="btn-small">Feedback</button><button id="btnHs" class="btn-small">Hall of fame</button><button id="btnSetM" class="btn-small">Settings</button><button id="btnCloud" class="btn-small">☁ Cloud save</button><button id="btnAlbum" class="btn-small">Medals</button></div>
           <button class="btn-accent btn-big" id="btnResume" hidden>Continue</button>
         </div>
       </div>
@@ -2669,7 +2669,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V312";
+const GAME_VER = "V313";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -8561,6 +8561,18 @@ try { (() => {
     setTimeout(() => { host.hidden = true; host.innerHTML = ""; try { then && then(); } catch (e) { console.error("contCel", e); } }, 3300);
   };
 })(); } catch (e) { console.error("contCel", e); }
+
+/* V313: Zahnrad-Menü im Hauptmenü (Cloud save, Held, Name, Guide) */
+try { (() => {
+  const b = document.getElementById("btnSetM"); if (!b) return;
+  b.innerHTML = `<img src="img/1a683e890c.webp" alt="">`; b.classList.add("icoBtn"); b.setAttribute("aria-label", "Settings"); b.title = "Settings";
+  b.addEventListener("click", e => { e.stopPropagation(); try { SFX.init(); snd("uiTap"); } catch (er) {} document.getElementById("btnGear").click(); });
+  const ov = document.getElementById("ovSettings"), gd = document.getElementById("setGuide");
+  new MutationObserver(() => { if (!ov.hidden) gd.hidden = !!document.getElementById("ovStart").hidden; }).observe(ov, { attributes: true, attributeFilter: ["hidden"] });
+  document.getElementById("setCloud").addEventListener("click", e => { e.stopPropagation(); try { window.__cloud && window.__cloud.open(); } catch (er) { console.error("setCloud", er); } });
+  gd.addEventListener("click", e => { e.stopPropagation(); document.getElementById("setX").click(); const t0 = Date.now();
+    const iv = setInterval(() => { if (ov.hidden || Date.now() - t0 > 3500) { clearInterval(iv); if (ov.hidden) document.getElementById("btnInfo").click(); } }, 100); });
+})(); } catch (e) { console.error("v313", e); }
 })();
 </script>
 
@@ -9487,5 +9499,11 @@ body.duelOn #ovHack{overflow-y:auto!important;align-items:center}
 #gameCel .celRays{animation:none!important}
 #gameCel{position:fixed;inset:0;z-index:80;pointer-events:none}
 #gameCel .mapCel{position:absolute}
+</style>
+<style>
+#btnCloud,#btnInfo{display:none!important}
+#ovSettings .setRow{display:flex;gap:8px;margin-top:6px}
+#ovSettings .setRow button{flex:1;min-height:40px}
+#ovSettings .setRow button[hidden]{display:none}
 </style>
 </body></html>
