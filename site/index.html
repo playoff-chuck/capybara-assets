@@ -2669,7 +2669,7 @@ body.inNuts #btnPRestart{display:none!important}
 </div>
 
 <script>
-const GAME_VER = "V310";
+const GAME_VER = "V312";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -5115,7 +5115,7 @@ function hkOfferOn() { return S && S.started && !S.over && (S.hackOfferUntil || 
 window.__playScreen = () => { try { const v = id => { const e = document.getElementById(id); return e && !e.hidden && getComputedStyle(e).display !== "none"; };
     return !!(S && S.started && !S.over && !S.paused && !S.shop && !S.sel && !S.mode && !S.duel && !S.intro && !S.mapShow && !S.ordersOpen && !S.joinOpen && !S.banditOpen && !S.signOpen && !S.hackAdOpen
       && !v("sheet") && !v("ovStart") && !v("ovPause") && !uiWinOpen() && !document.body.classList.contains("mapUp") && !(typeof TUT !== "undefined" && TUT.on) && !document.hidden); } catch (e) { return false; } };
-window.__offerOK = (force) => !window.__playScreen() ? false : force ? performance.now() - Math.max(window.__evtLast || -1e9, window.__offerLast || -1e9) >= 30000 : (performance.now() - (window.__evtLast || -1e9) >= 30000 && performance.now() - (window.__offerLast || -1e9) >= 120000);
+window.__offerOK = (force) => !window.__playScreen() ? false : force ? performance.now() - Math.max(window.__evtLast || -1e9, window.__offerLast || -1e9) >= 30000 : (performance.now() - (window.__evtLast || -1e9) >= 30000 && performance.now() - (window.__offerLast || -1e9) >= 95000);   /* V311: Takt 95 s */
 const HK_OFFER_S = 20;   // V178z6: 20 s
 let hkLastT = 0, hkHeldMs = 0;   // V242: Uhr steht während Szenen/Fenstern
 function hkHold() { return !!(S.mapShow || S.intro || S.hackAdOpen || S.drop || S.ordersOpen || S.paused || !inPlay()); }
@@ -6989,6 +6989,10 @@ const HK_AV = { _h: {}, _b: {}, _s: {},
 
 /* V146 – Onboarding: Held + Name (optional) in der ersten Welle ab 2 ohne Neuheiten-Fenster; X = überspringen mit Nummer */
 function joined() { return LS.get("tarnturm-join") === "1"; }
+/* V311: Lucky Supply oder Rufzeichen fällig → Sale-Anzeigen warten */
+window.__prioDue = () => { try { if (!S || !S.started || S.over || S.nuts || S.testRun) return false;
+  const lucky = (S.banditNext ? (S.wave || 0) >= S.banditNext : !S.banditDone) && (S.playT || 0) >= 60;
+  const join = !joined() && (S.wave || 0) >= 7; return lucky || join; } catch (e) { return false; } };
 function heroName() { return heroKey() === "rosie" ? "Rosie" : "Blue"; }
 async function autoNick() {
   let n = 0;
@@ -7399,13 +7403,15 @@ setInterval(nzBadgeSync, 300);
 function nzSignInfo() { return `Left: a Nuts detour – empty field, ${NZ_KIT.gold} gold, ${NZ_KIT.lives} lives, ${NZ_MAX} levels, each harder. Your run waits here.`; }
 function nzSignRule(first) { return first ? `<b>First try counts: +1 % main score per Nuts level (max +30 %).</b> Replays count for the Nuts board and medals only.` : `Replay: counts for the Nuts board and medals only.`; }
 function showSign(c) {
+  if (window.__contCel && window.__celFor !== S.wave) { window.__celFor = S.wave; S.intro = true; S.signOpen = c + 1;   /* V312: erst Feier am Spielscreen, dann Wegweiser */
+    window.__contCel(nzName(c), c, () => { S.signOpen = 0; showSign(c); }); return; }
   S.intro = true; S.signOpen = c + 1; $("signBox").style.backgroundImage = `url(sign/sign_${c + 1}.webp)`;
   $("signTitle").textContent = `${nzName(c)} CLEARED!`; $("signInfo").innerHTML = nzSignInfo(); $("signRule").innerHTML = nzSignRule(nzFirstOpen(c));
   $("signNext").innerHTML = `NEXT: ${NZ_NEXT[c]} →<small>continue the tour</small>`; ovSign.hidden = false; snd("radio");
   { const u = nzUnl(); if (!u.includes(c)) { u.push(c); LS.set("tarnturm-nuts-unl", JSON.stringify(u)); } }
 }
 function closeSign() { ovSign.hidden = true; if (S) { S.intro = false; S.signOpen = 0; } }
-$("signNext").addEventListener("click", () => { SFX.init(); snd("uiTap"); const c = (S.signOpen || 1) - 1; S.nutsAsk = { ...(S.nutsAsk || {}), [c]: 1 }; closeSign(); toast(`NUTS DETOUR · any time later from the pause menu`, "HQ", 2400); if (S && !S.inWave) S.waveCD = Math.min(S.waveCD || 0, 0.3); });
+$("signNext").addEventListener("click", () => { SFX.init(); snd("uiTap"); const c = (S.signOpen || 1) - 1; S.nutsAsk = { ...(S.nutsAsk || {}), [c]: 1 }; closeSign(); window.__fromSign = true; toast(`NUTS DETOUR · any time later from the pause menu`, "HQ", 2400); if (S && !S.inWave) S.waveCD = Math.min(S.waveCD || 0, 0.02); });   /* V312: Karte sofort */
 $("signNuts").addEventListener("click", () => { SFX.init(); const c = (S.signOpen || 1) - 1; S.nutsAsk = { ...(S.nutsAsk || {}), [c]: 1 }; closeSign(); startDetour(c); });
 setInterval(() => {
   if (typeof S === "undefined" || !S || !S.started || S.over || S.nuts || S.won || S.paused || S.intro || S.drop || S.ordersOpen || S.duel || S.inWave || !ovRes.hidden) return;
@@ -7851,17 +7857,18 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
       at(8600, hide); }
     function playCont(w, done) { const P = posOf(w), oc = Math.max(0, P.c - 1); let arrC = null; seqDone = () => { try { arrC && arrC.remove(); } catch (e) {} if (done) done(); }; show("auto"); drawPins(P.g); setMe(MAP_PTS[oc][5], true);
       label(contName(oc), "Continent cleared!", `Next: ${contName(P.c)}`); go(contCam(oc), 0);
-      const end = celebrate(`${contName(oc)} CLEARED!`, `Continent ${P.c} of 5 · the world tour goes on`);
-      at(2400, end);
-      at(3300, () => { me.classList.remove("on"); go(worldCam(), 1300); });
-      at(4400, () => { label("", "Flying to " + nice(contName(P.c)), ""); flyPlane(MAP_PTS[oc][5], MAP_PTS[P.c][0], 3000); });
-      at(7420, () => { setMe(MAP_PTS[P.c][0], true); });
-      at(7200, () => { go(contCam(P.c), 1300); });
-      at(8600, () => { setMe(MAP_PTS[P.c][0], true); label(contName(P.c), `Welcome to ${nice(contName(P.c))}!`, `First stop: ${nice(CONTS[P.c][2][0])}`); fx("tonHit");
+      const sk = window.__fromSign ? 2200 : 0; window.__fromSign = false;   /* V312: Feier lief schon am Spielscreen */
+      const end = sk ? (() => {}) : celebrate(`${contName(oc)} CLEARED!`, `Continent ${P.c} of 5 · the world tour goes on`);
+      at(2400 - sk, end);
+      at(3300 - sk, () => { me.classList.remove("on"); go(worldCam(), 1300); });
+      at(4400 - sk, () => { label("", "Flying to " + nice(contName(P.c)), ""); flyPlane(MAP_PTS[oc][5], MAP_PTS[P.c][0], 3000); });
+      at(7420 - sk, () => { setMe(MAP_PTS[P.c][0], true); });
+      at(7200 - sk, () => { go(contCam(P.c), 1300); });
+      at(8600 - sk, () => { setMe(MAP_PTS[P.c][0], true); label(contName(P.c), `Welcome to ${nice(contName(P.c))}!`, `First stop: ${nice(CONTS[P.c][2][0])}`); fx("tonHit");
         const ak = ["samerica", "africa", "asia", "namerica", "antarctica"][P.c];
         if (ak && P.c > 0) setTimeout(() => { try { if (!seqDone) return; arrC = document.createElement("div"); arrC.className = "mapArrive"; arrC.innerHTML = `<img src="img/arrive_${ak}.webp" alt=""><div class="maTxt"><small>WORLD TOUR · CONTINENT ${P.c + 1} OF 5</small><b>${contName(P.c)}</b><span>${nice(CONTS[P.c][2][0])} · wave ${w}</span></div>`; arrOrigin(arrC); ov.appendChild(arrC); requestAnimationFrame(() => requestAnimationFrame(() => arrC.classList.add("on"))); setTimeout(() => { try { if (!seqDone) return; const vk = { africa: "welcome_africa", asia: "welcome_asia", namerica: "welcome_namerica" }[ak] || "newcont"; window.__contSaid = w; SFX.say(vk, 1, 1, SFX.reserveVoice(SFX.voiceDur(vk) * 1000 + 400)); } catch (e) {} }, 900); } catch (e) {} }, 700); setTimeout(() => fx("powerup"), 120); setTimeout(() => fx("coin"), 420); });
-      at(11000, () => { try { arrC && arrC.classList.remove("on"); } catch (e) {} });
-      at(12600, hide); }
+      at(11000 - sk, () => { try { arrC && arrC.classList.remove("on"); } catch (e) {} });
+      at(12600 - sk, hide); }
     function playIntro(done) { let arr = null;
       seqDone = () => { try { arr && arr.remove(); } catch (e) {} try { if (SFX.music.playing < 1) SFX.music.start(1); } catch (e) {} if (done) done(); };
       show("auto"); drawPins(-1); setMe(MAP_PTS[0][0], false); label("", "Welcome to Capybara World!", "5 continents · 30 places · 150 waves"); window.__introAt = performance.now();
@@ -7882,7 +7889,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     const _sw2 = startWave; startWave = function () { const a = arguments, self = this;
       try { if (!busy && S && S.started && !S.over && !S.nuts && S.mapDoneFor !== (S.wave || 0) + 1) { const nw = (S.wave || 0) + 1, P = wherePos(nw);
           let play = null; if (nw > 1 && nw <= 150 && P.d === 0) play = P.p === 0 ? (d => playCont(nw, d)) : (d => playPlace(nw, d));
-          if (play) { const calm = performance.now() - (window.__evtLast || -1e9); if (calm < 5000) { S.waveCD = Math.max(S.waveCD || 0, (5000 - calm) / 1000 + 0.1); return; }   /* V309: 5 s Ruhe vor der Karte */
+          if (play) { const calm = performance.now() - (window.__evtLast || -1e9); if (calm < 5000 && !window.__fromSign) { S.waveCD = Math.max(S.waveCD || 0, (5000 - calm) / 1000 + 0.1); return; }   /* V309: 5 s Ruhe vor der Karte */
             busy = true; const was = S.paused; S.paused = true; S.mapShow = true;
             play(() => { S.paused = was; S.mapShow = false; busy = false; if (P.p === 0) { S.mapDoneFor = nw; S.waveCD = 6; return; } _sw2.apply(self, a); }); return; } } } catch (e) { busy = false; }
       if (busy) { pendSW = [this, a]; return; } return _sw2.apply(this, a); };
@@ -8150,7 +8157,9 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
         } } catch (e) { console.error("ad", e); } return r; };
     const calm = () => S && S.started && !S.over && !S.nuts && !S.testRun0 && !S.intro && !S.drop && !S.alert && !S.ordersOpen && !S.duel && !S.mapShow && !S.mapFly && !S.signOpen && !S.joinOpen
       && !S.mode && !S.sel && !S.shop && !S.paused && !S.mix && !S.banditOpen && !(typeof TUT !== "undefined" && TUT.on) && !(typeof hkOfferOn === "function" && hkOfferOn()) && (typeof inPlay !== "function" || inPlay()) && !document.hidden && ov.hidden;
-    setInterval(() => { try { if (!S || !S.adDue || !calm() || !window.__offerOK()) return; for (const k of ["kan", "frost", "mix", "snipe", "ton", "chomp", "tesla", "lock"]) if (S.adDue[k] && !why(k)) { delete S.adDue[k]; late = true; S.intro = true; S.adOpen = true; show(k, true); break; } } catch (e) {} }, 700);
+    setInterval(() => { try { if (!S || !S.adDue || !calm() || !window.__offerOK()) return;
+      if (window.__prioDue && window.__prioDue()) { if (S.prioW == null) S.prioW = S.wave || 0; if ((S.wave || 0) <= S.prioW + 1) return; } else S.prioW = null;   /* V311: Vorrang Lucky/Rufzeichen */
+      for (const k of ["kan", "frost", "mix", "snipe", "ton", "chomp", "tesla", "lock"]) if (S.adDue[k] && !why(k)) { delete S.adDue[k]; late = true; S.intro = true; S.adOpen = true; show(k, true); break; } } catch (e) {} }, 700);
     /* V299: Gratis-Air-Drops als Anzeige */
     let dropBtn = "AWESOME! · IT'S FREE ▶";
     function showDrop(kind, o) { o = o || {}; const tc = typeof TON_COST !== "undefined" ? TON_COST : 300;
@@ -8537,6 +8546,21 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
 
   /* V306: Boss-Hack-Fenster nie an das (wackelnde) Spielfeld binden */
   try { const ov = document.getElementById("ovHack"); if (ov && ov.parentElement !== document.body) document.body.appendChild(ov); } catch (e) {}
+
+/* V312: Kontinent-Feier am Spielscreen (vor dem Wegweiser) */
+try { (() => {
+  const host = document.createElement("div"); host.id = "gameCel"; host.hidden = true; document.body.appendChild(host);
+  const fx = k => { try { snd(k); } catch (e) {} };
+  window.__contCel = (name, c, then) => {
+    let conf = ""; for (let i = 0; i < 46; i++) conf += `<i style="--x:${(Math.random() * 2 - 1).toFixed(2)};--y:${(-.4 - Math.random() * .9).toFixed(2)};--r:${Math.floor(Math.random() * 720 - 360)}deg;--d:${(Math.random() * .25).toFixed(2)}s;--c:${["#ffd84d", "#ff6fb5", "#5cbf4a", "#4aa8ff", "#ff9a2a", "#fff"][i % 6]}"></i>`;
+    const el = document.createElement("div"); el.className = "mapCel";
+    el.innerHTML = `<div class="celRays"></div><div class="celConf">${conf}</div><div class="celTxt"><b>${name} CLEARED!</b><span>Continent ${c + 1} of 5 · the world tour goes on</span><em>★ ★ ★</em></div>`;
+    host.innerHTML = ""; host.appendChild(el); host.hidden = false; requestAnimationFrame(() => el.classList.add("on"));
+    fx("boom"); setTimeout(() => fx("jingle"), 180); setTimeout(() => fx("hkWin"), 650);
+    setTimeout(() => el.classList.add("out"), 2600);
+    setTimeout(() => { host.hidden = true; host.innerHTML = ""; try { then && then(); } catch (e) { console.error("contCel", e); } }, 3300);
+  };
+})(); } catch (e) { console.error("contCel", e); }
 })();
 </script>
 
@@ -9437,5 +9461,31 @@ body.duelOn #ovHack{overflow-y:auto!important;align-items:center}
 #ovHack .hackBet{gap:6px}
 @media (max-height:760px){#ovHack .hackBet .hkBetPic{aspect-ratio:auto!important;height:clamp(80px,calc(100vh - 470px),200px);background-position:center 35%!important}}
 @media (max-height:600px){#ovHack .hackBet p{font-size:13px;margin:0}#ovHack .hkStake b{font-size:32px!important}}
+</style>
+<style>
+#gameCel .mapCel{position:absolute;inset:0;z-index:6;display:grid;place-items:center;background:radial-gradient(circle at 50% 45%,rgba(255,216,77,.35),rgba(20,28,16,.55) 70%);opacity:0;transition:opacity .35s ease;overflow:hidden;pointer-events:none}
+#gameCel .mapCel.on{opacity:1}
+#gameCel .mapCel.out{opacity:0;transition:opacity .7s ease}
+#gameCel .celRays{position:absolute;left:50%;top:45%;width:200vmax;height:200vmax;margin:-100vmax 0 0 -100vmax;background:repeating-conic-gradient(rgba(255,240,180,.28) 0 9deg,transparent 9deg 22deg);animation:celSpin 9s linear infinite}
+#gameCel .celTxt{position:relative;display:grid;gap:8px;justify-items:center;text-align:center;transform:scale(.2);opacity:0;padding:0 14px}
+#gameCel .mapCel.on .celTxt{animation:celPop .7s cubic-bezier(.2,1.7,.4,1) forwards}
+#gameCel .celTxt b{font:400 clamp(38px,11vw,60px)/1 var(--f-display,"Bangers",sans-serif);letter-spacing:.03em;color:#ffd84d;-webkit-text-stroke:3px #3a2414;paint-order:stroke fill;text-shadow:0 5px 0 #3a2414,0 0 24px rgba(255,200,60,.6)}
+#gameCel .celTxt span{font:800 14px/1.2 "Baloo 2",sans-serif;color:#3a2414;background:#fff7e8;border:2.5px solid #3a2414;border-radius:999px;padding:7px 14px 6px;box-shadow:0 3px 0 #3a2414}
+#gameCel .celTxt em{font-style:normal;font-size:34px;color:#ffd84d;-webkit-text-stroke:1.5px #3a2414;letter-spacing:.2em;animation:celStar 1s ease-in-out infinite alternate}
+#gameCel .celConf{position:absolute;left:50%;top:45%;width:0;height:0}
+#gameCel .celConf i{position:absolute;width:10px;height:14px;border-radius:2px;background:var(--c);border:1.5px solid rgba(58,36,20,.6);opacity:0}
+#gameCel .mapCel.on .celConf i{animation:celConf 1.9s cubic-bezier(.15,.7,.3,1) var(--d) forwards}
+#gameCel .celRays{animation:none}
+#gameCel .mapCel{transition:opacity .6s ease!important}
+#gameCel .mapCel.out{opacity:0!important;transition:opacity .7s ease!important}
+#gameCel .celRays{opacity:0;transition:opacity .9s ease}
+#gameCel .mapCel.on .celRays{opacity:1}
+#gameCel .celTxt{transform:scale(.97);opacity:0}
+#gameCel .mapCel.on .celTxt{animation:celFade .8s ease-out forwards!important}
+#gameCel .celTxt em{animation:none!important;opacity:0;transition:opacity .8s ease .5s}
+#gameCel .mapCel.on .celTxt em{opacity:1}
+#gameCel .celRays{animation:none!important}
+#gameCel{position:fixed;inset:0;z-index:80;pointer-events:none}
+#gameCel .mapCel{position:absolute}
 </style>
 </body></html>
