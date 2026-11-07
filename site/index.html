@@ -2744,7 +2744,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V379";
+const GAME_VER = "V380";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -7948,20 +7948,21 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     const contName = c => ["SOUTH AMERICA", "AFRICA", "ASIA", "NORTH AMERICA", "ANTARCTICA"][c];
     const nice = t => t.toLowerCase().replace(/\b\w/g, m => m.toUpperCase());
     const ov = document.createElement("div"); ov.id = "ovMap"; ov.hidden = true;
-    ov.innerHTML = `<div class="mapVp"><div class="mapWorld"><img class="mapImg" src="img/worldmap.webp" alt="World map" draggable="false"><svg class="mapPath" viewBox="0 0 1000 ${Math.round(1000 * MAP_AR)}" preserveAspectRatio="none"></svg><div class="mapPins"></div><div class="mapPlane"><div class="biPlane"><img class="bpCap" src="img/biplane_cap2.webp" alt=""><img class="bpBody" src="img/biplane_body.webp" alt=""><i class="bpDisc"></i><i class="bpProp"></i><i class="bpHub"></i></div></div><div class="mapMe"><img alt=""></div></div></div>
+    ov.innerHTML = `<div class="mapVp"><div class="mapWorld"><img class="mapImg" src="img/worldmap.webp" alt="World map" draggable="false"><img class="mapImg mapWrap wL" src="img/worldmap.webp" alt="" draggable="false"><img class="mapImg mapWrap wR" src="img/worldmap.webp" alt="" draggable="false"><svg class="mapPath" viewBox="0 0 1000 ${Math.round(1000 * MAP_AR)}" preserveAspectRatio="none"></svg><div class="mapPins"></div><div class="mapPlane"><div class="biPlane"><img class="bpCap" src="img/biplane_cap2.webp" alt=""><img class="bpBody" src="img/biplane_body.webp" alt=""><i class="bpDisc"></i><i class="bpProp"></i><i class="bpHub"></i></div></div><div class="mapMe"><img alt=""></div></div></div>
       <div class="mapTop"><small class="mapCont"></small><b class="mapPlace"></b><span class="mapSub"></span></div>
       <div class="mapBar"><button type="button" class="mapWorldBtn">WORLD</button><button type="button" class="mapPlay">PLAY ▶</button><button type="button" class="mapClose">CLOSE</button></div>
       <div class="mapSkip">tap to skip</div><div class="mapDest" hidden><b></b></div>`;
     document.body.appendChild(ov);
     const vp = ov.querySelector(".mapVp"), world = ov.querySelector(".mapWorld"), pinsEl = ov.querySelector(".mapPins"), pathEl = ov.querySelector(".mapPath"), plane = ov.querySelector(".mapPlane"), me = ov.querySelector(".mapMe");
-    let cam = { x: .5, y: .5, k: 1 }, BW = 400, mode = null, seqT = [], seqDone = null;
+    let cam = { x: .5, y: .5, k: 1 }, BW = 400, mode = null, seqT = [], seqDone = null; const WRAP_P = 0.95;
     const curWave = () => { try { if (typeof S !== "undefined" && S && S.started && !S.over && !S.nuts) return Math.max(1, S.wave || 1); } catch (e) {} try { const d = JSON.parse(LS.get("tarnturm-save") || "null"); if (d && d.wave && !d.nuts) return Math.max(1, d.wave); } catch (e) {} return 1; };
     const posOf = w => { const P = wherePos(w); return { c: P.c, p: P.p, g: P.c * 6 + P.p }; };
     function layout() { const W = vp.clientWidth || innerWidth; BW = W; world.style.width = BW + "px"; world.style.height = BW * MAP_AR + "px"; }
     function apply(anim) {
       const W = vp.clientWidth, H = vp.clientHeight, kk = Math.max(cam.k, W / BW, H / (BW * MAP_AR)), mw = BW * kk, mh = BW * MAP_AR * kk;   /* V317: Karte deckt immer den ganzen Bildschirm */
       let tx = W / 2 - cam.x * mw, ty = H / 2 - cam.y * mh;
-      if (mw >= W) tx = Math.min(0, Math.max(W - mw, tx)); else tx = (W - mw) / 2;
+      if (mode === "browse" && !cam.free) { const P = WRAP_P; cam.x = ((cam.x % P) + P) % P; tx = W / 2 - cam.x * mw; }   /* V380: im Kreis */
+      else if (mw >= W) tx = Math.min(0, Math.max(W - mw, tx)); else tx = (W - mw) / 2;
       if (cam.free) ty = Math.max(H - mh, Math.min(0, H * .80 - mh)); else if (mh >= H) ty = Math.min(0, Math.max(H - mh, ty)); else ty = (H - mh) / 2;
       world.style.transition = anim ? `transform ${anim}ms cubic-bezier(.45,0,.25,1)` : "none";
       world.style.transform = `translate(${tx}px,${ty}px) scale(${kk})`; world.style.setProperty("--ik", 1 / kk);
@@ -8018,12 +8019,12 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
         const r = vp.getBoundingClientRect(), fx = start.cx - r.left - vp.clientWidth / 2, fy = start.cy - r.top - vp.clientHeight / 2;
         const wx = start.cam.x + fx / (BW * kk0), wy = start.cam.y + fy / (BW * MAP_AR * kk0);   /* Weltpunkt unter den Fingern bleibt dort */
         cam = { x: wx - (fx + dx) / (BW * kk), y: wy - (fy + dy) / (BW * MAP_AR * kk), k };
-        cam.x = Math.max(0, Math.min(1, cam.x)); cam.y = Math.max(0, Math.min(1, cam.y)); window.__camHold = 0; apply(0); });
+        cam.y = Math.max(0, Math.min(1, cam.y)); window.__camHold = 0; apply(0); });
       const up = e => { if (!pts.has(e.pointerId)) return; pts.delete(e.pointerId); start = pts.size ? snap() : null; if (moved) window.__mapDragT = performance.now(); };
       vp.addEventListener("pointerup", up); vp.addEventListener("pointercancel", up);
       vp.addEventListener("wheel", e => { if (mode !== "browse") return; e.preventDefault(); cam = { ...cam, k: clampK(kNow() * (e.deltaY < 0 ? 1.15 : 1 / 1.15)) }; apply(120); }, { passive: false });
     }
-    vp.addEventListener("click", e => { if (mode !== "browse") return; if (performance.now() - (window.__mapDragT || 0) < 300) return;   /* V377: nach Ziehen kein Antippen */ const r = world.getBoundingClientRect(), nx = (e.clientX - r.left) / r.width, ny = (e.clientY - r.top) / r.height;
+    vp.addEventListener("click", e => { if (mode !== "browse") return; if (performance.now() - (window.__mapDragT || 0) < 300) return;   /* V377: nach Ziehen kein Antippen */ const r = world.getBoundingClientRect(), ny = (e.clientY - r.top) / r.height; let nx = (e.clientX - r.left) / r.width; nx = ((nx % WRAP_P) + WRAP_P) % WRAP_P;
       let best = -1, bd = 9; MAP_PTS.forEach((P, c) => P.forEach(p => { const d = Math.hypot(p[0] - nx, (p[1] - ny) * MAP_AR); if (d < bd) { bd = d; best = c; } }));
       if (best >= 0 && bd < .12) { ov.classList.remove("wv"); ov.querySelector(".mapWorldBtn").textContent = "WORLD"; go(contCam(best), 800); const g = posOf(curWave()).g; const done = Math.max(0, Math.min(6, g - best * 6));
         label(contName(best), best * 6 > g ? "Not yet reached" : nice(CONTS[best][2][Math.min(5, Math.max(0, g - best * 6))]), best * 6 > g ? `Arrive at wave ${best * 30 + 1}` : `${done} of 6 places cleared`); try { snd("uiTap"); } catch (er) {} } });
@@ -9612,6 +9613,10 @@ header .brand .logoFull{height:54px!important;width:auto!important}
 #ovMap .mapVp{position:absolute;inset:0;overflow:hidden}
 #ovMap .mapWorld{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform}
 #ovMap .mapImg{position:absolute;inset:0;width:100%;height:100%;max-width:none!important;display:block;pointer-events:none}
+#ovMap .mapWrap{display:none}
+#ovMap.browse .mapWrap{display:block}
+#ovMap .mapWrap.wR{left:95%;right:auto;-webkit-mask-image:linear-gradient(to right,transparent 0,#000 5%);mask-image:linear-gradient(to right,transparent 0,#000 5%)}
+#ovMap .mapWrap.wL{left:-95%;right:auto;-webkit-mask-image:linear-gradient(to right,#000 95%,transparent 100%);mask-image:linear-gradient(to right,#000 95%,transparent 100%)}
 #ovMap .mapPath{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
 #ovMap .mapPath polyline{fill:none;stroke:#3a2414;stroke-width:2.4;stroke-dasharray:2 6;stroke-linecap:round;opacity:.55;vector-effect:non-scaling-stroke}
 #ovMap .mapPath polyline.done{stroke:#c98a12;opacity:.8}
