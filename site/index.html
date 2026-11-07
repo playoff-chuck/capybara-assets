@@ -2744,7 +2744,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V375";
+const GAME_VER = "V376";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -4161,7 +4161,9 @@ function msgTick() {
   setTimeout(msgTick, m.hold + 330);
 }
 function garble(t) { return String(t || "").replace(/[A-Za-z0-9]/g, (c, i) => (((i * 7) % 5) < 2 ? "▒" : c)); }   // V178z15: jeder 2.–3. Buchstabe weg
+function overShown() { const o = document.getElementById("ovOver"); return !!(o && !o.hidden); }   /* V376: Game-over-Karte offen */
 function announce(title, sub, tag = "RADIO", hold = 1800) {
+  if (overShown()) return;
   if (S && S.radioOut && !["SYSTEM", "HQ", "HACK"].includes(tag)) { title = garble(title); sub = "▒▒ no signal ▒▒"; hold = Math.min(hold, 1400); }   // V178z15
   msgPush({ kind: "alert", title, sub, tag, hold }); }
 function showAlert(title, sub, tag, hold) {
@@ -4188,6 +4190,7 @@ function airDrop(title, loot) { const _t0 = title, _l0 = loot;
 }
 let stampT = null, lastPraise = 0, lastPraiseTier = 0;
 function praise(text, tier, speech) {
+  if (overShown()) return;
   const now = performance.now();
   if (now - lastPraise < 1500 || SFX.voiceBusy) return;
   if (uiWinOpen() || now - (window.__msgShowT || -1e9) < 400) return;   // V270   // läuft schon ein Lob, fällt das neue komplett weg
@@ -4718,6 +4721,12 @@ function canAct() { return S.started && !S.over && !S.paused && !S.intro && !(pe
 function frozen() { return !S.started || S.over || S.paused || S.coachHold || S.intro || S.duel || S.mode || S.sel || S.shop || S.drop || S.ordersOpen || S.mix || S.tiltCard; }
 function starsAll() { try { return JSON.parse(LS.get("capy-stars") || "{}") || {}; } catch (e) { return {}; } }   /* V374: Bestwert je Ort 0..29 */
 function starStr(n) { return "★".repeat(n) + "☆".repeat(5 - n); }
+function showCredits() {   /* V376: Abspann nach dem Finale */
+  if (document.getElementById("credits")) return; const d = document.createElement("div"); d.id = "credits";
+  const L = ["CAPYBARA SQUAD", "", "WORLD TOUR COMPLETE", "150 waves · 5 continents · 30 places", "", "THE SQUAD", "Rosie · Blue", "The General", "Doc Hazel", "The Paymaster", "", "THE VILLAINS", "Scouts · Brutes · Munchers", "Sprinters · Bombers · Sparky", "Jaguars · Mummies · Tigers · Bears", "The Jaw · the raccoon thief", "", "Made with love for capybaras", "", "THANKS FOR PLAYING!", "See you on the next tour"];
+  d.innerHTML = `<div class="crRoll">${L.map(t => t ? `<p>${t}</p>` : "<br>").join("")}</div>`;
+  const close = () => { d.classList.add("out"); setTimeout(() => d.remove(), 600); };
+  d.addEventListener("click", close); document.body.appendChild(d); setTimeout(close, 14000); try { snd("jingle"); } catch (e) {} }
 function startWave() {
   if (S.nuts) { S.wave = S.nuts.base - 1; S.nuts.lvl++; }   // V180: Nuts-Abstecher bleibt auf der Kontinent-Welle, Härte kommt über das Level
   S.wave++; queueIntros(S.wave);
@@ -5899,6 +5908,7 @@ function ticker(txt, tag, hold = 1400) {
   clearTimeout(tickerT); tickerT = setTimeout(() => { t.classList.remove("go"); setTimeout(() => { if (!t.classList.contains("go")) t.hidden = true; }, 220); }, hold);
 }
 function toast(msg, tag = "REPORT", hold = 1700) {
+  if (overShown()) return;
   const parts = String(msg).split(" · ");
   if (QUICK_TAGS.has(tag)) { ticker(parts.join(" · "), tag, Math.min(hold, 1600)); return; }   // Reaktion: sofort, schmal, unten
   msgPush({ kind: "toast", title: parts[0], sub: parts.slice(1).join(" · "), tag, hold });
@@ -7468,7 +7478,7 @@ try { for (const m of ["pro", "nuts"]) { if (!LS.get("tarnturm-cp-" + m)) { cons
       const c = ov.querySelector(".comfort b"), s = ov.querySelector(".comfort small"); if (c) c.textContent = "We did it! Around the whole world – you are my hero!"; if (s) s.textContent = "BLUE SAYS";
       try { SFX.say("godlike"); snd("hkWin"); } catch (e) {} } } catch (e) {} return r; };
   try { window.__TT.v178.gameOver = gameOver; } catch (e) {}
-  setInterval(() => { if (typeof S === "undefined" || !S || !S.started || S.over || S.won) return; if (S.wave >= 150 && !S.inWave && S.toSpawn === 0 && S.monsters.length === 0) { S.won = true; S.paused = true; setTimeout(() => gameOver("World tour complete"), 1800); announce("WORLD TOUR COMPLETE!", "All 150 waves · you beat the world", "HQ", 3000); } }, 400);
+  setInterval(() => { if (typeof S === "undefined" || !S || !S.started || S.over || S.won) return; if (S.wave >= 150 && !S.inWave && S.toSpawn === 0 && S.monsters.length === 0) { S.won = true; S.paused = true; setTimeout(() => gameOver("World tour complete"), 1800); setTimeout(showCredits, 5200); announce("WORLD TOUR COMPLETE!", "All 150 waves · you beat the world", "HQ", 3000); } }, 400);
 })();
 
 // ===== V180: Nuts-Abstecher nach Welle 30/60/90/120, Join nach Welle 3, Einstiegs-Hilfen =====
@@ -9530,6 +9540,13 @@ header .brand .logoFull{height:54px!important;width:auto!important}
 #ovMap .mPin{position:absolute;width:0;height:0}
 #ovMap .mPin i{position:absolute;left:-9px;top:-9px;width:18px;height:18px;border-radius:50%;border:2.5px solid #3a2414;background:#e9e2d2;box-sizing:border-box;transform:scale(var(--ik,1));box-shadow:0 2px 0 rgba(58,36,20,.6)}
 #ovMap .mPin.done i{background:#ffc93c}
+#credits{position:fixed;inset:0;z-index:2147483100;background:rgba(16,21,13,.94);overflow:hidden;display:flex;justify-content:center;transition:opacity .6s}
+#credits.out{opacity:0}
+#credits .crRoll{position:absolute;top:100%;width:100%;max-width:420px;padding:0 16px;box-sizing:border-box;text-align:center;animation:crUp 14s linear forwards}
+#credits p{margin:0 0 10px;font:400 22px/1.15 var(--f-display,"Bangers",sans-serif);letter-spacing:.05em;color:#fff7e8}
+#credits p:first-child{font-size:38px;color:#ffd84d}
+@keyframes crUp{to{transform:translateY(calc(-100% - 100vh))}}
+@media (prefers-reduced-motion:reduce){#credits .crRoll{animation:none;top:10%}}
 .mPin .pStars{position:absolute;left:50%;top:9px;transform:translateX(-50%);font-size:9px;line-height:1;letter-spacing:-1px;color:#ffc93c;text-shadow:0 0 2px #3a2414,0 0 2px #3a2414;white-space:nowrap;pointer-events:none}
 .mapRose{position:absolute;right:max(10px,env(safe-area-inset-right,0px));bottom:calc(env(safe-area-inset-bottom,0px) + 70px);z-index:5;display:flex;flex-direction:column;align-items:center;gap:2px;pointer-events:none;font:700 11px/1.1 system-ui,sans-serif;color:#fff;text-shadow:0 1px 2px #000}
 .mapRose svg{width:54px;height:54px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.5))}
