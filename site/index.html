@@ -2774,7 +2774,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V431";
+const GAME_VER = "V432";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -5612,7 +5612,7 @@ function drawChomp(s) {
 /* V379: Wow-Momente fürs erste Spiel */
 const WOW = { slowUntil: 0, wt: 0, pt: 0, tonT: -1e9, lastWave: -1 };
 try { if (new URLSearchParams(location.search).get("wow") === "1") ["ton", "splat", "elite"].forEach(k => LS.del("capy-wow-" + k)); } catch (e) {}
-window.__wow = { W: WOW, done: k => wowDone(k), drop: () => hardDrop(), frozen: () => frozen(), tut: () => TUT.on };   /* Test-Haken */
+window.__wow = { W: WOW, done: k => wowDone(k), drop: () => hardDrop(), frozen: () => frozen(), tut: () => TUT.on, elite: t => wowElite(t || { x: 4, y: 10 }) };   /* Test-Haken */
 function wowDone(k) { return LS.get("capy-wow-" + k) === "1"; }
 function wowSet(k) { LS.set("capy-wow-" + k, "1"); }
 function wowSlowK() { return performance.now() < WOW.slowUntil ? 0.28 : 1; }
@@ -5642,9 +5642,12 @@ function wowElite(t) {
   const pt = (() => { try { return cvPt(t.x + 0.5, t.y + 0.5); } catch (e) { return { x: innerWidth / 2, y: innerHeight / 2 }; } })();
   const d = document.createElement("div"); d.className = "wowPlane"; d.setAttribute("aria-hidden", "true");
   const h = heroKey(), b = buddyKey();
-  d.innerHTML = `<img class="wpPlane" src="img/biplane.webp" alt=""><div class="wpChute" style="--tx:${pt.x}px;--ty:${pt.y}px"><span class="cA"></span><img src="${HERO_IMG[h]}" alt=""></div><div class="wpChute b2" style="--tx:${pt.x + 26}px;--ty:${pt.y}px"><span class="cA"></span><img src="${HERO_IMG[b]}" alt=""></div>`;
+  /* V432: Absprung aus dem Cockpit – Position des Flugzeugs zur Sprungzeit (1 s / 1,25 s von 3,4 s Flug) */
+  const px = tt => -160 + (innerWidth + 330) * tt / 3.4 + 72, py = innerHeight * 0.09 + 52;
+  const ch = (k, tt, dx, cls) => `<div class="wpChute${cls}" style="--sx:${Math.round(px(tt))}px;--sy:${Math.round(py)}px;--tx:${pt.x + dx}px;--ty:${pt.y}px"><div class="wpSw"><span class="cA"></span><img src="${HERO_IMG[k]}" alt=""></div></div>`;
+  d.innerHTML = `<img class="wpPlane" src="img/biplane.webp" alt="">` + ch(h, 1.0, 0, "") + ch(b, 1.25, 26, " b2");
   document.body.appendChild(d); snd("engine");
-  setTimeout(() => { if (S.over) return; t.eliteT = 60; snd("powerup"); wowBuzz([40, 40, 90]); announce("ELITE TOWER", "Rosie & Blue on board · 2× fire rate for 60 s", "SQUAD", 2400); }, 3300);
+  setTimeout(() => { if (S.over) return; t.eliteT = 60; snd("powerup"); wowBuzz([40, 40, 90]); announce("ELITE TOWER", "Rosie & Blue on board · 2× fire rate for 60 s", "SQUAD", 2400); }, 3600);
   setTimeout(() => d.remove(), 4200);
 }
 function stackTopRow() { for (let y = 0; y < GH; y++) for (let x = 0; x < GW; x++) if (S.grid[y * GW + x]) return y; return GH; }
@@ -10076,14 +10079,14 @@ header .brand .logoFull{height:54px!important;width:auto!important}
 @keyframes wowBan{0%{opacity:0;transform:translate(-50%,-50%) scale(.3)}12%{opacity:1;transform:translate(-50%,-50%) scale(1.12)}20%{transform:translate(-50%,-50%) scale(1)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-60%) scale(1)}}
 body.wowSlow #board{filter:saturate(1.35) contrast(1.06)}
 .wowPlane{position:fixed;inset:0;pointer-events:none;z-index:2147482000;overflow:hidden}
-.wowPlane .wpPlane{position:absolute;top:9%;left:-160px;width:150px;max-width:none;animation:wowFly 3.4s linear forwards}
-@keyframes wowFly{to{transform:translateX(calc(100vw + 330px))}}
-.wowPlane .wpChute{position:absolute;left:0;top:0;width:0;height:0;opacity:0;animation:wowChute 2.3s ease-in 1s forwards}
+.wowPlane .wpPlane{position:absolute;top:9%;left:-160px;width:150px;max-width:none;transform:scaleX(-1);animation:wowFly 3.4s linear forwards}   /* V432: Bild schaut nach links → gespiegelt */
+@keyframes wowFly{from{transform:scaleX(-1)}to{transform:translateX(calc(100vw + 330px)) scaleX(-1)}}
+.wowPlane .wpChute{position:absolute;left:0;top:0;width:0;height:0;opacity:0;animation:wowChute 2.3s cubic-bezier(.3,.6,.5,1) 1s forwards}.wowPlane .wpSw{position:absolute;left:0;top:0;transform-origin:0 -70px;animation:wowSway .85s ease-in-out infinite alternate}.wowPlane .wpChute .cA{transform:scale(0);transform-origin:50% 100%;animation:wowOpen .3s ease-out 1.4s forwards}.wowPlane .wpChute.b2 .cA{animation-delay:1.65s}
 .wowPlane .wpChute.b2{animation-delay:1.25s}
 .wowPlane .wpChute img{position:absolute;left:-17px;top:-34px;width:34px;height:34px;max-width:none;border-radius:50%;border:2px solid #3a2414;background:#fff7e8;object-fit:cover;object-position:50% 18%}
 .wowPlane .cA{position:absolute;left:-24px;top:-70px;width:48px;height:26px;border-radius:24px 24px 4px 4px;background:repeating-linear-gradient(90deg,#ff6fb5 0 12px,#fff7e8 12px 24px);border:2px solid #3a2414}
 .wowPlane .cA::after{content:"";position:absolute;left:8px;right:8px;top:24px;height:12px;border-left:1.5px solid #3a2414;border-right:1.5px solid #3a2414}
-@keyframes wowChute{0%{opacity:1;transform:translate(42vw,13vh) scale(.6)}100%{opacity:1;transform:translate(var(--tx),var(--ty)) scale(1)}}
+@keyframes wowChute{0%{opacity:1;transform:translate(var(--sx),var(--sy)) scale(.45)}14%{opacity:1;transform:translate(calc(var(--sx) + 22px),calc(var(--sy) - 46px)) scale(.6)}100%{opacity:1;transform:translate(var(--tx),var(--ty)) scale(1)}}@keyframes wowSway{from{transform:rotate(-13deg)}to{transform:rotate(13deg)}}@keyframes wowOpen{to{transform:scale(1)}}
 @media (prefers-reduced-motion:reduce){.wowCoins,.wowPlane .wpPlane{display:none}.wowBan{animation-duration:2.3s}}
 .mNuts span{position:absolute;left:0;top:0;transform:translate(-50%,-50%) scale(var(--ik,1));width:80px!important;height:64px!important;min-width:0!important;padding:0!important;background:none!important;border:0!important;display:block;filter:grayscale(.7) brightness(.85)}
 .mNuts span svg{width:80px;height:64px;display:block;overflow:visible}
