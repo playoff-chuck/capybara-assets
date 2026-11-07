@@ -2744,7 +2744,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V376";
+const GAME_VER = "V377";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -7945,7 +7945,25 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
       go(worldCam(), 0); requestAnimationFrame(() => requestAnimationFrame(() => go(contCam(P.c), 900))); try { snd("open"); } catch (e) {} }
     ov.querySelector(".mapClose").addEventListener("click", e => { e.stopPropagation(); try { snd("close"); } catch (er) {} hide(); });
     ov.querySelector(".mapWorldBtn").addEventListener("click", e => { e.stopPropagation(); const wv = ov.classList.toggle("wv"); const P = posOf(curWave()); go(wv ? worldCam() : contCam(P.c), 800); ov.querySelector(".mapWorldBtn").textContent = wv ? "MY CONTINENT" : "WORLD"; try { snd("uiTap"); } catch (er) {} });
-    vp.addEventListener("click", e => { if (mode !== "browse") return; const r = world.getBoundingClientRect(), nx = (e.clientX - r.left) / r.width, ny = (e.clientY - r.top) / r.height;
+    { /* V377: ziehen + Pinch-Zoom + Mausrad */
+      const pts = new Map(); let start = null, moved = false;
+      const kNow = () => { const W = vp.clientWidth, H = vp.clientHeight; return Math.max(cam.k, W / BW, H / (BW * MAP_AR)); };
+      const clampK = k => Math.max(1, Math.min(6, k));
+      const snap = () => { const a = [...pts.values()]; return { a, cx: a.reduce((s, p) => s + p.x, 0) / a.length, cy: a.reduce((s, p) => s + p.y, 0) / a.length, d: a.length > 1 ? Math.hypot(a[0].x - a[1].x, a[0].y - a[1].y) : 0, cam: { ...cam } }; };
+      vp.addEventListener("pointerdown", e => { if (mode !== "browse") return; pts.set(e.pointerId, { x: e.clientX, y: e.clientY }); try { vp.setPointerCapture(e.pointerId); } catch (er) {} start = snap(); if (pts.size === 1) moved = false; });
+      vp.addEventListener("pointermove", e => { if (mode !== "browse" || !pts.has(e.pointerId) || !start) return; pts.get(e.pointerId).x = e.clientX; pts.get(e.pointerId).y = e.clientY;
+        const n = snap(), dx = n.cx - start.cx, dy = n.cy - start.cy; if (Math.hypot(dx, dy) > 8 || (n.d && Math.abs(n.d - start.d) > 8)) moved = true; if (!moved) return;
+        let k = start.cam.k; if (pts.size > 1 && start.d > 10) k = clampK(Math.max(start.cam.k, vp.clientWidth / BW) * n.d / start.d);
+        const kk0 = Math.max(start.cam.k, vp.clientWidth / BW, vp.clientHeight / (BW * MAP_AR)), kk = Math.max(k, vp.clientWidth / BW, vp.clientHeight / (BW * MAP_AR));
+        const r = vp.getBoundingClientRect(), fx = start.cx - r.left - vp.clientWidth / 2, fy = start.cy - r.top - vp.clientHeight / 2;
+        const wx = start.cam.x + fx / (BW * kk0), wy = start.cam.y + fy / (BW * MAP_AR * kk0);   /* Weltpunkt unter den Fingern bleibt dort */
+        cam = { x: wx - (fx + dx) / (BW * kk), y: wy - (fy + dy) / (BW * MAP_AR * kk), k };
+        cam.x = Math.max(0, Math.min(1, cam.x)); cam.y = Math.max(0, Math.min(1, cam.y)); window.__camHold = 0; apply(0); });
+      const up = e => { if (!pts.has(e.pointerId)) return; pts.delete(e.pointerId); start = pts.size ? snap() : null; if (moved) window.__mapDragT = performance.now(); };
+      vp.addEventListener("pointerup", up); vp.addEventListener("pointercancel", up);
+      vp.addEventListener("wheel", e => { if (mode !== "browse") return; e.preventDefault(); cam = { ...cam, k: clampK(kNow() * (e.deltaY < 0 ? 1.15 : 1 / 1.15)) }; apply(120); }, { passive: false });
+    }
+    vp.addEventListener("click", e => { if (mode !== "browse") return; if (performance.now() - (window.__mapDragT || 0) < 300) return;   /* V377: nach Ziehen kein Antippen */ const r = world.getBoundingClientRect(), nx = (e.clientX - r.left) / r.width, ny = (e.clientY - r.top) / r.height;
       let best = -1, bd = 9; MAP_PTS.forEach((P, c) => P.forEach(p => { const d = Math.hypot(p[0] - nx, (p[1] - ny) * MAP_AR); if (d < bd) { bd = d; best = c; } }));
       if (best >= 0 && bd < .12) { ov.classList.remove("wv"); ov.querySelector(".mapWorldBtn").textContent = "WORLD"; go(contCam(best), 800); const g = posOf(curWave()).g; const done = Math.max(0, Math.min(6, g - best * 6));
         label(contName(best), best * 6 > g ? "Not yet reached" : nice(CONTS[best][2][Math.min(5, Math.max(0, g - best * 6))]), best * 6 > g ? `Arrive at wave ${best * 30 + 1}` : `${done} of 6 places cleared`); try { snd("uiTap"); } catch (er) {} } });
@@ -9646,6 +9664,7 @@ body.ovUp #waveNum,body:has(#ovHack:not([hidden])) #waveNum{visibility:hidden!im
 #ovMap.cel{background:transparent!important}
 body.mapUp #bWave,body.mapUp #waveNum,body.mapUp #bPauseTop{visibility:hidden!important}
 #ovMap .mapVp,#ovMap .mapTop{transition:opacity .7s ease}
+#ovMap.browse .mapVp{touch-action:none;cursor:grab}
 #ovMap.cel .mapVp,#ovMap.cel .mapTop,#ovMap.cel .mapSkip{opacity:0}
 #ovMap .mapCel{position:absolute;inset:0;z-index:6;display:grid;place-items:center;background:radial-gradient(circle at 50% 45%,rgba(255,216,77,.35),rgba(20,28,16,.55) 70%);opacity:0;transition:opacity .35s ease;overflow:hidden;pointer-events:none}
 #ovMap .mapCel.on{opacity:1}#ovMap .mapCel.out{opacity:0;transition:opacity .7s ease}
