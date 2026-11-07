@@ -2774,7 +2774,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V425";
+const GAME_VER = "V426";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -4305,7 +4305,7 @@ function helpfulKey() {
 }
 // Sonderwellen wiederholen sich alle 30 Wellen (Runde 1 = Welle 1–30, Runde 2 = 31–60 …); ab +150 alles 25 % härter, ab +180 50 %
 // V178: feste Sonderwellen (nur ungerade Wellen), Zyklus 100. Wert = alter Basis-Code, Stufe = II, III …
-const SPEC_AT = { 15: [4, 1], 55: [4, 2], 69: [4, 3], 81: [4, 4], 95: [4, 5],
+const SPEC_AT = { 15: [4, 1], 55: [4, 2], 69: [4, 3], 86: [4, 4], 95: [4, 5],
   23: [8, 1], 57: [8, 2], 71: [8, 3], 83: [8, 4], 97: [8, 5],
   37: [12, 1], 59: [12, 2], 73: [12, 3], 85: [12, 4],
   41: [16, 1], 45: [16, 2], 61: [16, 3], 75: [16, 4], 89: [16, 5], 99: [16, 6],
@@ -9180,12 +9180,12 @@ try { (() => {
   const sched = k => { const w = S.wave | 0; if (S.testRun && S.testKind === k && w === S.testLongW) return true;   /* V347: Test-Welle */
     if (k === "blk") return w >= 65 && (w - 65) % 18 === 0;
     if (k === "mag") return [80, 92, 105, 117].includes(w);
-    if (k === "weed") return [86, 110, 124, 130].includes(w) && !ROT_BASES.includes(specBase(w)) && (w - 1) % 30 < 27;
+    if (k === "weed") return [81, 106, 126, 131].includes(w) && !ROT_BASES.includes(specBase(w)) && (w - 1) % 30 < 27;
     if (k === "thief") { let x = 100, i = 0; const st = [10, 9, 11]; while (x < w) x += st[i++ % 3]; return x === w; }
     return false; };
   const D = { blk: null, mag: null, weeds: [], thief: null, done: {} };
   Object.defineProperty(D, "weed", { get() { return D.weeds[0] || null; }, set(v) { D.weeds = v ? [v] : []; } });   /* V423: mehrere Unkräuter */
-  const WEEDN = { 110: 3, 124: 4, 130: 5 };   /* V425 */
+  const WEEDN = { 106: 3, 126: 4, 131: 5 };   /* V426: am Ortsanfang */
   window.__dist = { state: () => ({ blk: !!D.blk, mag: D.mag && { side: D.mag.side, y: D.mag.y }, weed: D.weed && { x: D.weed.x, root: D.weed.root, h: D.weed.h }, thief: D.thief && { x: +D.thief.x.toFixed(2), stolen: D.thief.stolen } }), start: k => start(k), fire: (k, x, y) => (k === "snipe" ? snipe : tesla)(x, y), D };
   const NAMES = { blk: ["SIGNAL LOST!", "Part of the field goes dark"], mag: ["MAGNET!", "It pulls the blocks – steer against it · Tesla fries it"], weed: ["WEEDS!", "Blocks get stuck on it · Tesla or Sniper cut it"], weed5: ["WEED FIELD!", "Seeds after the drop · Tesla or Sniper cut them"], thief: ["THIEF!", "A WOLF CALL scares him off · shop → Wolf call"] };
   function start(k) {
@@ -9245,7 +9245,7 @@ try { (() => {
   let lastWave = 0, inWaveT = 0;
   function step(dt) {
     if (!S || !S.started || S.over) { if (S && S.over) { D.blk = D.mag = D.thief = null; D.weed = null; if (window.__thiefPos) window.__thiefPos(null); } noiseLevel(0); if (window.__magHum) window.__magHum(0); return; }
-    if (S.wave !== lastWave) { lastWave = S.wave; inWaveT = 0; if (D.weed && (++D.weed.waves > 2 || (S.wave - 1) % 30 === 0 || ROT_BASES.includes(specBase()))) { D.weed = null; toast("WEEDS WITHERED", "HQ", 1400); } }
+    if (S.wave !== lastWave) { lastWave = S.wave; inWaveT = 0; if (D.weed && ((S.wave - 1) % 5 === 0 || ROT_BASES.includes(specBase())))   /* V426: lebt bis zum nächsten Ort */ { D.weed = null; toast("WEEDS WITHERED", "HQ", 1400); } }
     if (S.inWave) inWaveT += dt;
     if (S.inWave && inner()) for (const k of ["blk", "mag", "weed", "thief"]) { const key = k + ":" + S.wave; if (!D.done[key] && sched(k) && inWaveT > (k === "thief" ? 12 : k === "weed" ? 9 : 6)) { D.done[key] = 1; start(k); } }
     if (S.rotMode) { D.mag = null; D.blk = null; if (D.weed) { D.weed = null; toast("WEEDS WITHERED", "HQ", 1400); } }
@@ -9402,7 +9402,7 @@ try { (() => {
       toast("TEST · Wolf ad comes in wave 99 · the thief follows in wave 100", "HQ", 3000); }
     return r; };
   let q = null; try { q = new URLSearchParams(location.search).get("test"); } catch (e) {}
-  const map = { blk: 65, mag: 80, weed: 86, weed3: 110, weed4: 124, weed5: 130, thief: 100, wolfad: 99, egg1: 2, egg2: 32, egg3: 62, egg4: 92, egg5: 122 };
+  const map = { blk: 65, mag: 80, weed: 81, weed3: 106, weed4: 126, weed5: 131, thief: 100, wolfad: 99, egg1: 2, egg2: 32, egg3: 62, egg4: 92, egg5: 122 };
   if (q && map[q]) { const go = () => { setTimeout(() => { try { history.replaceState(null, "", location.pathname); } catch (e) {} devJump(map[q], q.replace(/\d$/, "")); }, 700); };
     const sp = document.getElementById("splash"); if (sp) sp.addEventListener("click", go, { once: true }); else go(); }
 })(); } catch (e) { console.error("v330", e); }
