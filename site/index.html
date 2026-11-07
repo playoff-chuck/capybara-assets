@@ -2774,7 +2774,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V426";
+const GAME_VER = "V427";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -8239,7 +8239,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     const contName = c => ["SOUTH AMERICA", "AFRICA", "ASIA", "NORTH AMERICA", "ANTARCTICA"][c];
     const nice = t => t.toLowerCase().replace(/\b\w/g, m => m.toUpperCase());
     const ov = document.createElement("div"); ov.id = "ovMap"; ov.hidden = true;
-    ov.innerHTML = `<div class="mapVp"><div class="mapWorld"><img class="mapImg" src="img/worldmap.webp" alt="World map" draggable="false"><img class="mapImg mapWrap wL" src="img/worldmap.webp" alt="" draggable="false"><img class="mapImg mapWrap wR" src="img/worldmap.webp" alt="" draggable="false"><svg class="mapPath" viewBox="0 0 1000 ${Math.round(1000 * MAP_AR)}" preserveAspectRatio="none"></svg><div class="mapPins"></div><div class="mapPlane"><div class="biPlane"><img class="bpCap" src="img/biplane_cap2.webp" alt=""><img class="bpBody" src="img/biplane_body.webp" alt=""><i class="bpDisc"></i><i class="bpProp"></i><i class="bpHub"></i></div></div><div class="mapMe"><img alt=""></div></div></div>
+    ov.innerHTML = `<div class="mapVp"><div class="mapWorld"><img class="mapImg" src="img/worldmap.webp" alt="World map" draggable="false"><img class="mapImg mapFlip fT" src="img/worldmap.webp" alt="" draggable="false"><img class="mapImg mapFlip fB" src="img/worldmap.webp" alt="" draggable="false"><img class="mapImg mapWrap wL" src="img/worldmap.webp" alt="" draggable="false"><img class="mapImg mapWrap wR" src="img/worldmap.webp" alt="" draggable="false"><svg class="mapPath" viewBox="0 0 1000 ${Math.round(1000 * MAP_AR)}" preserveAspectRatio="none"></svg><div class="mapPins"></div><div class="mapPlane"><div class="biPlane"><img class="bpCap" src="img/biplane_cap2.webp" alt=""><img class="bpBody" src="img/biplane_body.webp" alt=""><i class="bpDisc"></i><i class="bpProp"></i><i class="bpHub"></i></div></div><div class="mapMe"><img alt=""></div></div></div>
       <div class="mapTop"><small class="mapCont"></small><b class="mapPlace"></b><span class="mapSub"></span></div>
       <div class="mapBar"><button type="button" class="mapWorldBtn">WORLD</button><button type="button" class="mapPlay">PLAY ▶</button><button type="button" class="mapClose">CLOSE</button></div>
       <button type="button" class="mapReplay" hidden></button><div class="mapSkip">tap to skip</div><div class="mapDest" hidden><b></b></div>`;
@@ -8250,25 +8250,41 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     const posOf = w => { const P = wherePos(w); return { c: P.c, p: P.p, g: P.c * 6 + P.p }; };
     function layout() { const W = vp.clientWidth || innerWidth; BW = W; world.style.width = BW + "px"; world.style.height = BW * MAP_AR + "px"; }
     function apply(anim) {
-      const W = vp.clientWidth, H = vp.clientHeight, kk = Math.max(cam.k, W / BW, H / (BW * MAP_AR)), mw = BW * kk, mh = BW * MAP_AR * kk;   /* V317: Karte deckt immer den ganzen Bildschirm */
-      let tx = W / 2 - cam.x * mw, ty = H / 2 - cam.y * mh;
+      const W = vp.clientWidth, H = vp.clientHeight, kk = kOf(cam), mw = BW * kk, mh = BW * MAP_AR * kk;   /* V317: Karte deckt den Bildschirm · V427: außer im Einpass-Modus (fit) */
+      let tx = W / 2 - cam.x * mw, ty = (cam.fit && cam.sy != null ? cam.sy : H / 2) - cam.y * mh;
       if (mode === "browse" && !cam.free) { const P = WRAP_P; cam.x = ((cam.x % P) + P) % P; tx = W / 2 - cam.x * mw; }   /* V380: im Kreis */
       else if (mw >= W) tx = Math.min(0, Math.max(W - mw, tx)); else tx = (W - mw) / 2;
-      if (cam.free) ty = Math.max(H - mh, Math.min(0, H * .80 - mh)); else if (mh >= H) ty = Math.min(0, Math.max(H - mh, ty)); else ty = (H - mh) / 2;
+      if (cam.fit) { /* V427: frei, oben/unten gespiegelt fortgesetzt */ } else if (cam.free) ty = Math.max(H - mh, Math.min(0, H * .80 - mh)); else if (mh >= H) ty = Math.min(0, Math.max(H - mh, ty)); else ty = (H - mh) / 2;
       world.style.transition = anim ? `transform ${anim}ms cubic-bezier(.45,0,.25,1)` : "none";
       world.style.transform = `translate(${tx}px,${ty}px) scale(${kk})`; world.style.setProperty("--ik", 1 / kk);
     }
-    function contCam(c) { if (c === 4) { const g = posOf(curWave()).g, i = Math.max(0, Math.min(5, g - 24)), P4 = MAP_PTS[4], nx = P4[Math.min(5, i + 1)][0], x = (P4[i][0] + nx) / 2;
-        return { x, y: .90, k: Math.max(2, Math.min(3.2, vp.clientWidth / (.30 * BW))), free: 1 }; }
-      const P = MAP_PTS[c], xs = P.map(p => p[0]), ys = P.map(p => p[1]), pad = .07;
-      const x0 = Math.min(...xs) - pad, x1 = Math.max(...xs) + pad, y0 = Math.min(...ys) - pad * 1.6, y1 = Math.max(...ys) + pad * 1.6;
-      const W = vp.clientWidth, H = vp.clientHeight * .78, k = Math.max(1, Math.min(5, W / ((x1 - x0) * BW), H / ((y1 - y0) * BW * MAP_AR)));
-      return { x: (x0 + x1) / 2, y: (y0 + y1) / 2 + .02, k }; }
+    function kOf(c) { const W = vp.clientWidth || innerWidth, H = vp.clientHeight || innerHeight; return c.fit ? Math.max(c.k, W / BW) : Math.max(c.k, W / BW, H / (BW * MAP_AR)); }
+    function safeBox() { const H = vp.clientHeight || innerHeight; let top = 10, bot = H - 10;
+      try { const r = ov.querySelector(".mapTop").getBoundingClientRect(); if (r.height) top = r.bottom + 6; } catch (e) {}
+      try { const bar = ov.querySelector(".mapBar"); if (bar && bar.getClientRects().length) { const r = bar.getBoundingClientRect(); if (r.height) bot = r.top - 6; } } catch (e) {}
+      if (bot - top < 160) { top = 10; bot = H - 10; } return { top, bot }; }
+    function curPins(c) { let P = MAP_PTS[c]; if (c === 4) { const g = posOf(curWave()).g, i = Math.max(0, Math.min(5, g - 24)); P = P.slice(Math.max(0, i - 1), Math.min(6, i + 2)); } return P; }
+    function contCam(c) {   /* V427: alle Schilder des Kontinents (Antarktis: Ort ± 1) zwischen Kopf- und Knopfleiste */
+      const W = vp.clientWidth || innerWidth, H = vp.clientHeight || innerHeight, B = safeBox(), P = curPins(c);
+      const xs = P.map(p => p[0]), ys = P.map(p => p[1]), x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
+      const mX = 66, mT = 48, mB = 26, hh = Math.max(80, B.bot - B.top - mT - mB);
+      const kW = (W - 2 * mX) / Math.max(.004, (x1 - x0) * BW), kH = hh / Math.max(.004, (y1 - y0) * BW * MAP_AR), kMin = Math.max(1.6, H / (2 * BW * MAP_AR) + .1);
+      const k = Math.max(kMin, Math.min(4.2, kW, kH));
+      return { x: (x0 + x1) / 2, y: (y0 + y1) / 2, k, fit: 1, sy: B.top + mT + hh / 2 }; }
+    function declutter() { try { const ems = [...pinsEl.querySelectorAll(".mPin em")]; ems.forEach(e => e.classList.remove("dn", "hid"));
+        const cur = pinsEl.querySelector(".mPin.cur em"), obs = [];
+        for (const sel of [".mapTop", ".mapBar", ".mapRose"]) { const el = ov.querySelector(sel); if (el && el.getClientRects().length) obs.push(el.getBoundingClientRect()); }
+        const W = vp.clientWidth, H = vp.clientHeight, placed = [];
+        const bad = r => r.left < 2 || r.right > W - 2 || r.top < 2 || r.bottom > H - 2 || obs.some(q => r.left < q.right && r.right > q.left && r.top < q.bottom && r.bottom > q.top) || placed.some(q => r.left < q.right + 4 && r.right > q.left - 4 && r.top < q.bottom + 2 && r.bottom > q.top - 2);
+        for (const e of [cur, ...ems.filter(x => x !== cur)]) { if (!e) continue; let r = e.getBoundingClientRect();
+          if (e !== cur && bad(r)) { e.classList.add("dn"); r = e.getBoundingClientRect(); if (bad(r)) { e.classList.add("hid"); continue; } }
+          placed.push(r); } } catch (e) {} }
+    window.__mapDeclutter = declutter;
     function worldCam() { const W = vp.clientWidth, H = vp.clientHeight; return { x: .5, y: .5, k: Math.max(1, Math.min(H / (BW * MAP_AR) * .62, 2.2)) }; }
-    function go(c, ms) { cam = c; window.__camHold = ms ? performance.now() + ms : 0; apply(ms); }   /* V370: Verfolgung pausiert, solange der Schwenk läuft */
+    function go(c, ms) { cam = c; window.__camHold = ms ? performance.now() + ms : 0; apply(ms); clearTimeout(go._t); go._t = setTimeout(declutter, (ms || 0) + 80); }   /* V370: Verfolgung pausiert, solange der Schwenk läuft */
     function drawPins(g) {   // g = globaler Index des aktuellen Ortes (0..29)
       let h = ""; MAP_PTS.forEach((P, c) => P.forEach((p, i) => { const gi = c * 6 + i, st = gi < g ? "done" : gi === g ? "cur" : "open";
-        h += `<div class="mPin ${st}${i === 5 ? " star" : ""}" data-g="${gi}" style="left:${p[0] * 100}%;top:${p[1] * 100}%"><i></i>${gi === g ? `<em>${nice(CONTS[c][2][i])}</em>` : ""}</div>`; }));
+        h += `<div class="mPin ${st}${i === 5 ? " star" : ""}" data-g="${gi}" style="left:${p[0] * 100}%;top:${p[1] * 100}%"><i></i>${gi === g ? `<em>${nice(CONTS[c][2][i])}</em>` : (c === Math.floor(Math.max(0, Math.min(29, g)) / 6) && (c !== 4 || Math.abs(i - (Math.max(0, Math.min(29, g)) - 24)) <= 1)) ? `<em class="sub">${nice(CONTS[c][2][i])}</em>` : ""}</div>`; }));
       { const all = starsAll(); h = h.replace(/data-g="(\d+)" style="([^"]*)"><i><\/i>/g, (m0, gi, sty) => all[gi] ? `data-g="${gi}" style="${sty}"><i></i><b class="pStars">${"★".repeat(all[gi])}</b>` : m0); }   /* V374 */
       pinsEl.innerHTML = h;
       try { const all = starsAll(), v = Object.values(all), tot = v.reduce((a, b) => a + b, 0), cnt = [1, 2, 3, 4, 5].map(k => v.filter(x => x === k).length); let r = ov.querySelector(".mapRose");
@@ -8300,19 +8316,19 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     ov.querySelector(".mapWorldBtn").addEventListener("click", e => { e.stopPropagation(); const wv = ov.classList.toggle("wv"); const P = posOf(curWave()); go(wv ? worldCam() : contCam(P.c), 800); ov.querySelector(".mapWorldBtn").textContent = wv ? "MY CONTINENT" : "WORLD"; try { snd("uiTap"); } catch (er) {} });
     { /* V377: ziehen + Pinch-Zoom + Mausrad */
       const pts = new Map(); let start = null, moved = false;
-      const kNow = () => { const W = vp.clientWidth, H = vp.clientHeight; return Math.max(cam.k, W / BW, H / (BW * MAP_AR)); };
+      const kNow = () => kOf(cam);
       const clampK = k => Math.max(1, Math.min(6, k));
       const snap = () => { const a = [...pts.values()]; return { a, cx: a.reduce((s, p) => s + p.x, 0) / a.length, cy: a.reduce((s, p) => s + p.y, 0) / a.length, d: a.length > 1 ? Math.hypot(a[0].x - a[1].x, a[0].y - a[1].y) : 0, cam: { ...cam } }; };
       vp.addEventListener("pointerdown", e => { if (mode !== "browse") return; pts.set(e.pointerId, { x: e.clientX, y: e.clientY }); try { vp.setPointerCapture(e.pointerId); } catch (er) {} start = snap(); if (pts.size === 1) moved = false; });
       vp.addEventListener("pointermove", e => { if (mode !== "browse" || !pts.has(e.pointerId) || !start) return; pts.get(e.pointerId).x = e.clientX; pts.get(e.pointerId).y = e.clientY;
         const n = snap(), dx = n.cx - start.cx, dy = n.cy - start.cy; if (Math.hypot(dx, dy) > 8 || (n.d && Math.abs(n.d - start.d) > 8)) moved = true; if (!moved) return;
         let k = start.cam.k; if (pts.size > 1 && start.d > 10) k = clampK(Math.max(start.cam.k, vp.clientWidth / BW) * n.d / start.d);
-        const kk0 = Math.max(start.cam.k, vp.clientWidth / BW, vp.clientHeight / (BW * MAP_AR)), kk = Math.max(k, vp.clientWidth / BW, vp.clientHeight / (BW * MAP_AR));
-        const r = vp.getBoundingClientRect(), fx = start.cx - r.left - vp.clientWidth / 2, fy = start.cy - r.top - vp.clientHeight / 2;
+        const kk0 = kOf(start.cam), kk = kOf({ k, fit: start.cam.fit });
+        const r = vp.getBoundingClientRect(), fx = start.cx - r.left - vp.clientWidth / 2, fy = start.cy - r.top - (start.cam.fit && start.cam.sy != null ? start.cam.sy : vp.clientHeight / 2);
         const wx = start.cam.x + fx / (BW * kk0), wy = start.cam.y + fy / (BW * MAP_AR * kk0);   /* Weltpunkt unter den Fingern bleibt dort */
-        cam = { x: wx - (fx + dx) / (BW * kk), y: wy - (fy + dy) / (BW * MAP_AR * kk), k };
+        cam = { x: wx - (fx + dx) / (BW * kk), y: wy - (fy + dy) / (BW * MAP_AR * kk), k, fit: start.cam.fit, sy: start.cam.sy };
         cam.y = Math.max(0, Math.min(1, cam.y)); window.__camHold = 0; apply(0); });
-      const up = e => { if (!pts.has(e.pointerId)) return; pts.delete(e.pointerId); start = pts.size ? snap() : null; if (moved) window.__mapDragT = performance.now(); };
+      const up = e => { if (!pts.has(e.pointerId)) return; pts.delete(e.pointerId); start = pts.size ? snap() : null; if (moved) { window.__mapDragT = performance.now(); setTimeout(declutter, 60); } };
       vp.addEventListener("pointerup", up); vp.addEventListener("pointercancel", up);
       vp.addEventListener("wheel", e => { if (mode !== "browse") return; e.preventDefault(); cam = { ...cam, k: clampK(kNow() * (e.deltaY < 0 ? 1.15 : 1 / 1.15)) }; apply(120); }, { passive: false });
     }
@@ -10564,6 +10580,16 @@ body.awOn #ovHs .hsBox,body.awOn #ovAlbum .albBox,body.awOn #ovSquad .albBox{wid
 body.awOn #ovHs .hsBox{padding:14px 12px 16px!important}
 body.awOn #ovHs[hidden],body.awOn #ovAlbum[hidden],body.awOn #ovSquad[hidden]{display:none!important}
 #ovMap .mapBar .mapWorldBtn{display:none!important}   /* V416 */
+/* V427: Karte – Schilder & Einpassen */
+#ovMap .mapFlip{top:auto;bottom:auto;transform:scaleY(-1)}
+#ovMap .mapFlip.fT{top:-100%;-webkit-mask-image:linear-gradient(to bottom,#000 0,#000 6%,transparent 20%);mask-image:linear-gradient(to bottom,#000 0,#000 6%,transparent 20%)}
+#ovMap .mapFlip.fB{top:100%;-webkit-mask-image:linear-gradient(to top,#000 0,#000 6%,transparent 20%);mask-image:linear-gradient(to top,#000 0,#000 6%,transparent 20%)}
+#ovMap{background:#7fb9b6!important}
+#ovMap .mPin em.sub{font-size:12px!important;padding:3px 6px 2px!important;border-width:2px!important;box-shadow:0 1px 0 #3a2414!important;background:#fff7e8!important;opacity:.95}
+#ovMap .mPin.done em.sub{color:#4f7a2a}
+#ovMap .mPin.open em.sub{color:#7a6a52}
+#ovMap .mPin em.dn{top:24px!important;transform:translate(-50%,0)!important}
+#ovMap .mPin em.hid{visibility:hidden}
 /* V418: SHARE */
 .shareBtn{align-self:center!important;margin:0 0 0 10px!important;min-height:0!important;height:30px!important;width:auto!important;padding:0 14px!important;border-radius:999px!important;border:2px solid #3a2414!important;background:#ff5fa2!important;color:#fff!important;font-family:Bangers,system-ui!important;font-size:16px!important;letter-spacing:.06em!important;line-height:1!important;box-shadow:0 3px 0 #3a2414!important;display:inline-flex!important;flex-direction:row!important;align-items:center!important;justify-content:center!important;flex:0 0 auto!important;gap:0!important}
 .shareBtn::before{content:"";width:14px;height:14px;margin-right:6px;background:no-repeat center/contain url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='18' cy='5' r='3' fill='white'/%3E%3Ccircle cx='6' cy='12' r='3' fill='white'/%3E%3Ccircle cx='18' cy='19' r='3' fill='white'/%3E%3Cpath d='M8.6 13.5l6.8 4M15.4 6.5l-6.8 4' stroke='white' stroke-width='2.2'/%3E%3C/svg%3E")}
