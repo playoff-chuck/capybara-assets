@@ -2774,7 +2774,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V421";
+const GAME_VER = "V422";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -4847,7 +4847,7 @@ function update(dt) {
     if (S.toSpawn > 0 && S.spawnT <= 0 && S.monsters.length < L.monsters) { spawnMonster(); S.toSpawn--; S.spawnT = Math.max(G.spawnMin, G.spawnBase - S.wave * 0.03) * (ffOn() ? 0.5 : 1); }
     if (S.toSpawn === 0 && S.monsters.length === 0) {
       S.inWave = false; if (S.nuts) nutsLevelDone(); else { S.waveCD = ffOn() ? 3 : G.waveCD; const b = Math.round((20 + 5 * S.wave) * (G.goldMul || 1) * goldTaper() * ordv("waveGoldMul")); S.gold += b; if (ORD_W.includes(S.wave)) { S.ordDue = S.wave; S.ordDueT = performance.now(); }   /* V242: kommt nach dem Air Drop, vor Wegweiser und Flug */ LS.set("tarnturm-waves-" + MODE, campTotal() + 1); lvLabel();
-      if (S.wave % 10 === 0 && !S.nuts && !S.testRun && S.wave > (+LS.get("tarnturm-cp-" + MODE) || 0)) { LS.set("tarnturm-cp-" + MODE, S.wave); setTimeout(() => toast(`CHECKPOINT · wave ${S.wave} saved`, "HQ", 1800), 5200); } setTimeout(maybeJoin, 5600); { const tg = [8, 14, 22].includes(S.wave) && !(S.tonGift || {})[S.wave];   // V178q: geschenkter Ten-ton drop als Rettungsanker
+      if (S.wave % 10 === 0 && !S.nuts && !S.testRun && S.wave > (+LS.get("tarnturm-cp-" + MODE) || 0)) { LS.set("tarnturm-cp-" + MODE, S.wave); setTimeout(() => toast(`CHECKPOINT · wave ${S.wave} saved`, "HQ", 1800), 5200); } setTimeout(maybeJoin, 5600); { const tg = [8, 22].includes(S.wave) && !(S.tonGift || {})[S.wave];   // V178q: geschenkter Ten-ton drop als Rettungsanker
         if (tg) { S.tonGift = S.tonGift || {}; S.tonGift[S.wave] = 1; S.tons = (S.tons || 0) + 1; S.introQ = S.introQ || []; S.seen = S.seen || {}; if (!S.seen["g:ton"]) { if (!S.introQ.some(x => x && x.k === "ton")) S.introQ.push({ t: "gear", k: "ton" }); } else if (window.__dropAd && S.introWave !== S.wave) window.__dropAd("ton"); }   /* V405: kein Doppelfenster in W8 */
         airDrop(`WAVE ${S.wave} CLEARED`, [["gold", "Gold", "+" + b], ...(tg ? [["ton", "Ten-ton drop", "+1 · in your Pocket"]] : []), ["level", "Level", campTotal() + 1], ["score", "Score", calcScore().toLocaleString("en-US")]]); }
       if (hkOfferWave(S.wave) && S.wave < 150) S.hackPending = S.hackPending || S.wave;   // Boss-Banner kommt, sobald Air Drop / Orders vorbei sind
@@ -8538,7 +8538,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
       $b("bdResT").innerHTML = "&nbsp;"; $b("bdResS").innerHTML = "&nbsp;"; $b("bdSub").textContent = rescue ? "Mayday! The stack is high – HQ sends heavy help!" : "One spin on the house, squad!";
       $b("bdGo").textContent = "SPIN ▶"; $b("bdGo").disabled = false; $b("bdLever").classList.remove("pull");
       ov.classList.remove("spin", "win", "on"); ov.querySelectorAll(".bdConf").forEach(e => e.remove());
-      if (S) { window.__offerLast = performance.now(); if (rescue) S.rescueW = S.wave || 0; else { S.banditDone = true; S.banditNext = (S.wave || 1) + ((S.wave || 1) < 60 ? 7 + Math.floor(Math.random() * 4) : 5 + Math.floor(Math.random() * 3));   /* V363: bis Welle 60 30 % seltener */ } wasPaused = !!S.intro; S.intro = true; S.banditOpen = true; }
+      if (S) { window.__offerLast = performance.now(); if (rescue) S.rescueW = S.wave || 0; else { S.banditDone = true; S.banditNext = (S.wave || 1) + ((S.wave || 1) < 60 ? 9 + Math.floor(Math.random() * 5) : 7 + Math.floor(Math.random() * 3));   /* V422: ein Drittel seltener */   /* V363: bis Welle 60 30 % seltener */ } wasPaused = !!S.intro; S.intro = true; S.banditOpen = true; }
       ov.hidden = false; [0, 1, 2].forEach(i => $b("bdS" + i).style.setProperty("--rh", rh(i) + "px")); requestAnimationFrame(() => ov.classList.add("on"));
       try { SFX.init(); snd("radio"); } catch (e) {}
     }
@@ -8583,7 +8583,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     if (db) db.addEventListener("click", e => { e.stopPropagation(); if (S && S.started && !S.over) open(true); else { try { devJump(3); } catch (er) {} setTimeout(() => open(true), 2500); } });
     /* V316: Rettungs-Lucky-Supply ab Welle 30, wenn der Stapel 5 Felder unter die Decke reicht */
     setInterval(() => { try { if (!ov.hidden || !S || !S.started || S.over || S.nuts || S.won || (S.wave || 0) < 30 || S.ton) return;
-        if ((S.wave || 0) < (S.rescueW || -99) + 8) return; if (stackTopRow() > 5) return;
+        if ((S.wave || 0) < (S.rescueW || -99) + 12) return;   /* V422 */ if (stackTopRow() > 5) return;
         if (!window.__playScreen() || performance.now() - (window.__evtLast || -1e9) < 5000) return;
         if (S.adOpen || S.intro || S.drop || S.ordersOpen || S.duel || S.mapShow || S.mapFly || S.signOpen || S.joinOpen || (typeof uiWinOpen === "function" && uiWinOpen())) return;   /* V409: nie über ein offenes Fenster (Wolf-Werbung) */
         open(true, true); } catch (e) {} }, 400);
@@ -8682,7 +8682,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
       && !S.mode && !S.sel && !S.shop && !S.paused && !S.mix && !S.banditOpen && !(typeof TUT !== "undefined" && TUT.on) && !(typeof hkOfferOn === "function" && hkOfferOn()) && (typeof inPlay !== "function" || inPlay()) && !document.hidden && ov.hidden;
     setInterval(() => { try { if (!S || !S.adDue || !calm() || !window.__offerOK()) return;
       if (window.__prioDue && window.__prioDue()) { if (S.prioW == null) S.prioW = S.wave || 0; if ((S.wave || 0) <= S.prioW + 4) return;   /* V314: bis zu 4 Wellen */ } else S.prioW = null;   /* V311: Vorrang Lucky/Rufzeichen */
-      for (const k of ["kan", "frost", "mix", "snipe", "ton", "chomp", "tesla", "lock"]) if (S.adDue[k] && !why(k) && !(k === "ton" && [8, 14, 22].some(w => w >= (S.wave || 0) && w <= (S.wave || 0) + 3 && !(S.tonGift || {})[w]))) { delete S.adDue[k]; late = true; S.intro = true; S.adOpen = true; show(k, true); break; } } catch (e) {} }, 700);
+      for (const k of ["kan", "frost", "mix", "snipe", "ton", "chomp", "tesla", "lock"]) if (S.adDue[k] && !why(k) && !(k === "ton" && [8, 22].some(w => w >= (S.wave || 0) && w <= (S.wave || 0) + 3 && !(S.tonGift || {})[w]))) { delete S.adDue[k]; late = true; S.intro = true; S.adOpen = true; show(k, true); break; } } catch (e) {} }, 700);
     /* V397: Wolf-Werbung in der Welle vor dem Dieb */
     const thiefW = w => { let x = 100, i = 0; const st = [10, 9, 11]; while (x < w) x += st[i++ % 3]; return x === w; };
     setInterval(() => { try { const w = S && (S.wave || 0); if (!S || !S.started || S.over || S.nuts || S.testRun || !S.inWave || w < 99 || !thiefW(w + 1) || S.wolfAdW === w || S.wolves > 0) return;
