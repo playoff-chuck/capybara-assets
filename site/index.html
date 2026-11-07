@@ -2305,6 +2305,9 @@ body.inNuts #btnPRestart{display:none!important}
 #hsNuts:empty{display:none}#hsPlaces:empty{display:none}#hsPlaces .prCont{margin:6px 0 1px;font:700 11px/1.2 var(--f-display),sans-serif;letter-spacing:.08em;text-transform:uppercase;opacity:.75}#hsPlaces .prSt{color:#e8a915;letter-spacing:-1px;white-space:nowrap}#hsPlaces .prKey{margin-top:5px;font-size:11px;opacity:.7}
 .signRule{position:absolute;left:10px;right:10px;bottom:86px;background:rgba(42,13,11,.82);color:#ffe3dc;border-radius:10px;padding:5px 8px;font-size:11px;line-height:1.3;text-align:center}
 .signRule b{color:#ffd36a}
+.sqLvl{position:fixed;left:max(12px,env(safe-area-inset-left,0px));bottom:calc(env(safe-area-inset-bottom,0px) + 18px);z-index:5;pointer-events:none;font-family:var(--f-display);font-size:clamp(10px,3vw,12px);letter-spacing:.08em;color:var(--sand);text-shadow:0 2px 0 #0b0e07,0 0 8px rgba(0,0,0,.7);line-height:1.25;max-width:52vw}.sqLvl b{color:#ffd36a}.sqLvl:empty{display:none}
+.sqLv{background:rgba(0,0,0,.25);border:2px solid var(--ink);border-radius:12px;padding:8px 10px;margin:0 0 8px;text-align:center}.sqLv b{display:block;font-family:var(--f-display);font-size:22px;letter-spacing:.06em;color:#ffd36a}.sqLv i{display:block;font-style:normal;font-family:var(--f-display);font-size:13px;letter-spacing:.1em;color:var(--sand)}
+.sqBar{height:10px;border-radius:6px;background:rgba(0,0,0,.4);border:1.5px solid var(--ink);overflow:hidden;margin:6px 0 4px}.sqBar span{display:block;height:100%;background:linear-gradient(90deg,#9cf0ff,#ffd36a);border-radius:6px}.sqLv small{display:block;font-size:11px;opacity:.85}
 </style>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -2687,7 +2690,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
         </div>
         <div id="startMain" hidden>
           <button id="btnInfo" class="btn-small btn-ico infoTR" aria-label="Guide" title="Guide"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2.4"/><circle cx="12" cy="7.5" r="1.6"/><rect x="10.6" y="10.5" width="2.8" height="7.5" rx="1"/></svg></button>
-          <div class="heroBox heroStart"><img class="heroImg" alt="Rosie and Blue at their tower of camo blocks" src="img/b6f38631c6.webp"><div class="tagline claim"><span>Stack 'em.</span><span class="hot">Splat 'em.</span></div></div>
+          <div class="heroBox heroStart"><img class="heroImg" alt="Rosie and Blue at their tower of camo blocks" src="img/b6f38631c6.webp"><div class="tagline claim"><span>Stack 'em.</span><span class="hot">Splat 'em.</span></div><div class="sqLvl" id="sqLvl"></div></div>
           <button class="btn-small btn-ico gearTR" id="btnGear" aria-label="Settings" title="Settings"><svg viewBox="0 0 24 24"><path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7zm8.6 4.9l1.9 1.5-1.9 3.3-2.3-.8a7.6 7.6 0 0 1-2 1.2l-.4 2.4h-3.8l-.4-2.4a7.6 7.6 0 0 1-2-1.2l-2.3.8-1.9-3.3 1.9-1.5a7.7 7.7 0 0 1 0-2.4L1.5 9.4l1.9-3.3 2.3.8a7.6 7.6 0 0 1 2-1.2L8.1 3.3h3.8l.4 2.4a7.6 7.6 0 0 1 2 1.2l2.3-.8 1.9 3.3-1.9 1.5a7.7 7.7 0 0 1 0 2.5z" fill="currentColor"/></svg></button><div class="squad"><div class="modes" id="modeList"></div></div>
           <div class="startFoot"><button id="btn711Test" class="btn-small devOnly" hidden title="Test: fresh run from wave 0, no veteran bonus, not sent to the world list">Test from 0</button><button id="btnSpecials" class="btn-small devOnly" hidden title="Test: jump straight to any special wave">Specials</button><button id="btnFb" class="btn-small">Feedback</button><button id="btnHs" class="btn-small">Hall of fame</button><button id="btnSetM" class="btn-small">Settings</button><button id="btnCloud" class="btn-small">☁ Cloud save</button><button id="btnAlbum" class="btn-small">Medals</button><button id="btnSquad" class="btn-small">Squad</button></div>
           <button class="btn-accent btn-big" id="btnResume" hidden>Continue</button>
@@ -2769,7 +2772,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V406";
+const GAME_VER = "V407";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -7124,7 +7127,7 @@ function openSquad() {
   const st = starsAll(), stars = Object.values(st).reduce((a, b) => a + (+b || 0), 0), places = Object.keys(st).length, med = Object.keys(ALB.got || {}).length;
   const f = n => (n || 0).toLocaleString("en-US"), mins = Math.round((L.t || 0) / 60), tm = mins >= 60 ? `${Math.floor(mins / 60)} h ${mins % 60} min` : `${mins} min`;
   const box = (v, l) => `<div><b>${v}</b><small>${l}</small></div>`;
-  let h = `<div class="albSec">CAREER</div><div class="sqStats">` + box(f(L.k), "monsters splatted") + box(f(L.l), "lines cleared") + box(f(L.w), "waves cleared") + box(f(L.r), "runs") + box(tm, "time on duty") + box(`${stars} ★`, "stars · " + places + " of 30 places") + box(`${med} / 81`, "medals") + box(f(Math.max(0, ...Object.keys(st).map(Number)) * 5 + (places ? 5 : 0)), "best wave reached") + `</div>`;
+  let h = sqHtml() + `<div class="albSec">CAREER</div><div class="sqStats">` + box(f(L.k), "monsters splatted") + box(f(L.l), "lines cleared") + box(f(L.w), "waves cleared") + box(f(L.r), "runs") + box(tm, "time on duty") + box(`${stars} ★`, "stars · " + places + " of 30 places") + box(`${med} / 81`, "medals") + box(f(Math.max(0, ...Object.keys(st).map(Number)) * 5 + (places ? 5 : 0)), "best wave reached") + `</div>`;
   const kinds = Object.keys(MC_NAME).filter(k => MON_SPR_SRC[k]); let got = 0;
   const cards = kinds.map(k => { const n = MC.n[k] || 0, t = MC_TIER.filter(x => n >= x).length; if (t) got += t; const next = MC_TIER[t];
     return `<div class="mcCard ${n ? "t" + t : "off"}">${t ? `<em>${MC_TN[t - 1]}</em>` : ""}<img src="${MON_SPR_SRC[k]}" alt=""><i>${n ? MC_NAME[k] : "???"}</i><small>${f(n)}${next ? " / " + f(next) : " · max"}</small></div>`; }).join("");
@@ -7132,6 +7135,24 @@ function openSquad() {
   $("sqBody").innerHTML = h; $("ovSquad").hidden = false; try { snd("uiTap"); } catch (e) {}
 }
 $("btnSquad").addEventListener("click", () => { SFX.init(); openSquad(); });
+
+/* V407: Squad Level + Titel (t12 Nr. 1 + 8) – XP aus der Karriere, keine Belohnungen */
+const SQ_TITLE = [[35, "World Squad"], [20, "Ring Keeper"], [10, "Splat Pro"], [1, "Rookie"]];
+function sqLife() { try { return JSON.parse(localStorage.getItem("capy-life") || "{}") || {}; } catch (e) { return {}; } }
+function sqXP(L) { L = L || sqLife(); return (L.k || 0) + 10 * (L.l || 0) + 50 * (L.w || 0); }
+function sqNeed(n) { return 40 * (n - 1) * (n - 1); }   /* XP gesamt für Level n (2 → 40, 10 → 3 240, 50 → 96 040) */
+function sqLevel(xp) { if (xp == null) xp = sqXP(); let n = 1; while (n < 50 && xp >= sqNeed(n + 1)) n++; return n; }
+function sqTitle(n) { return (SQ_TITLE.find(t => n >= t[0]) || SQ_TITLE[3])[1]; }
+function sqNextTitle(n) { const t = SQ_TITLE.slice().reverse().find(t => t[0] > n); return t ? { at: t[0], name: t[1] } : null; }
+function sqHtml() { const xp = sqXP(), n = sqLevel(xp), f = v => v.toLocaleString("en-US");
+  const a = sqNeed(n), b = n < 50 ? sqNeed(n + 1) : a, p = n < 50 ? Math.round(100 * (xp - a) / Math.max(1, b - a)) : 100, nt = sqNextTitle(n);
+  return `<div class="sqLv"><b>SQUAD LEVEL ${n}</b><i>${sqTitle(n).toUpperCase()}</i><div class="sqBar"><span style="width:${Math.max(2, Math.min(100, p))}%"></span></div><small>${n < 50 ? `${f(xp)} / ${f(b)} XP${nt ? ` · ${nt.name} at level ${nt.at}` : ""}` : `${f(xp)} XP · max level`}</small></div>`; }
+function sqMenu() { try { const el = $("sqLvl"); if (!el) return; const n = sqLevel(), nick = LS.get("tarnturm-nick") || ""; el.innerHTML = `${nick ? nick.toUpperCase() + "<br>" : ""}<b>LVL ${n}</b> · ${sqTitle(n).toUpperCase()}`; } catch (e) {} }
+window.__sq = { xp: () => sqXP(), lv: () => sqLevel(), open: () => openSquad() };   /* Test-Haken */
+sqMenu(); setInterval(() => { try { if (!$("startMain").hidden) sqMenu(); } catch (e) {} }, 1500);
+setInterval(() => { try { if (!S || !S.started || S.over || S.testRun) return; const n = sqLevel(), was = +LS.get("capy-sqlvl") || 0;
+  if (!was) { LS.set("capy-sqlvl", n); return; } if (n <= was) return; if (S.inWave || uiWinOpen() || frozen()) return;
+  LS.set("capy-sqlvl", n); toast(`SQUAD LEVEL ${n}!${n === 10 || n === 20 || n === 35 ? " · " + sqTitle(n).toUpperCase() : ""}`, "SQUAD", 2400); snd("powerup"); } catch (e) {} }, 3000);
 /* V395: ein Auszeichnungs-Icon – Pokal öffnet Medaillen, Reiter zu Hall of fame und Squad */
 { let hsOk = false; const OV = { medals: "ovAlbum", hof: "ovHs", squad: "ovSquad" }, BOX = { medals: "#ovAlbum .albBox", hof: "#ovHs .hsBox", squad: "#ovSquad .albBox" };
   const bar = document.createElement("div"); bar.id = "awBar"; bar.className = "awTabs"; bar.innerHTML = `<button data-aw="medals">MEDALS</button><button data-aw="hof">HALL OF FAME</button><button data-aw="squad">SQUAD</button>`; document.body.appendChild(bar);
