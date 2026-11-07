@@ -2308,6 +2308,7 @@ body.inNuts #btnPRestart{display:none!important}
 .sqLvl{position:fixed;left:max(12px,env(safe-area-inset-left,0px));bottom:calc(env(safe-area-inset-bottom,0px) + 18px);z-index:5;pointer-events:none;font-family:var(--f-display);font-size:clamp(10px,3vw,12px);letter-spacing:.08em;color:var(--sand);text-shadow:0 2px 0 #0b0e07,0 0 8px rgba(0,0,0,.7);line-height:1.25;max-width:52vw}.sqLvl b{color:#ffd36a}.sqLvl:empty{display:none}
 .sqLv{background:rgba(0,0,0,.25);border:2px solid var(--ink);border-radius:12px;padding:8px 10px;margin:0 0 8px;text-align:center}.sqLv b{display:block;font-family:var(--f-display);font-size:22px;letter-spacing:.06em;color:#ffd36a}.sqLv i{display:block;font-style:normal;font-family:var(--f-display);font-size:13px;letter-spacing:.1em;color:var(--sand)}
 .sqBar{height:10px;border-radius:6px;background:rgba(0,0,0,.4);border:1.5px solid var(--ink);overflow:hidden;margin:6px 0 4px}.sqBar span{display:block;height:100%;background:linear-gradient(90deg,#9cf0ff,#ffd36a);border-radius:6px}.sqLv small{display:block;font-size:11px;opacity:.85}
+.trGrid{display:grid;grid-template-columns:repeat(5,1fr);gap:5px}.trCup{text-align:center}.trCup i{display:block;aspect-ratio:1;border-radius:50%;border:3px solid #d9a93a;box-shadow:0 0 0 2px #7a4b12,0 3px 0 #7a4b12,inset 0 0 0 2px rgba(255,240,180,.5);background:#9ab 50% 10%/170% auto no-repeat}.trCup small{display:block;font:700 8.5px/1.1 var(--f-ui);letter-spacing:.02em;margin-top:4px;color:#3a2a14;text-transform:uppercase}.trCup.off i{filter:grayscale(1) brightness(.45);border-color:#8a8a80;box-shadow:0 0 0 2px #55554c,0 3px 0 #55554c}.trCup.off small{color:#7a7a70}
 </style>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -2772,7 +2773,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V407";
+const GAME_VER = "V408";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -7127,7 +7128,7 @@ function openSquad() {
   const st = starsAll(), stars = Object.values(st).reduce((a, b) => a + (+b || 0), 0), places = Object.keys(st).length, med = Object.keys(ALB.got || {}).length;
   const f = n => (n || 0).toLocaleString("en-US"), mins = Math.round((L.t || 0) / 60), tm = mins >= 60 ? `${Math.floor(mins / 60)} h ${mins % 60} min` : `${mins} min`;
   const box = (v, l) => `<div><b>${v}</b><small>${l}</small></div>`;
-  let h = sqHtml() + `<div class="albSec">CAREER</div><div class="sqStats">` + box(f(L.k), "monsters splatted") + box(f(L.l), "lines cleared") + box(f(L.w), "waves cleared") + box(f(L.r), "runs") + box(tm, "time on duty") + box(`${stars} ★`, "stars · " + places + " of 30 places") + box(`${med} / 81`, "medals") + box(f(Math.max(0, ...Object.keys(st).map(Number)) * 5 + (places ? 5 : 0)), "best wave reached") + `</div>`;
+  let h = sqHtml() + trophyHtml() + `<div class="albSec">CAREER</div><div class="sqStats">` + box(f(L.k), "monsters splatted") + box(f(L.l), "lines cleared") + box(f(L.w), "waves cleared") + box(f(L.r), "runs") + box(tm, "time on duty") + box(`${stars} ★`, "stars · " + places + " of 30 places") + box(`${med} / 81`, "medals") + box(f(Math.max(0, ...Object.keys(st).map(Number)) * 5 + (places ? 5 : 0)), "best wave reached") + `</div>`;
   const kinds = Object.keys(MC_NAME).filter(k => MON_SPR_SRC[k]); let got = 0;
   const cards = kinds.map(k => { const n = MC.n[k] || 0, t = MC_TIER.filter(x => n >= x).length; if (t) got += t; const next = MC_TIER[t];
     return `<div class="mcCard ${n ? "t" + t : "off"}">${t ? `<em>${MC_TN[t - 1]}</em>` : ""}<img src="${MON_SPR_SRC[k]}" alt=""><i>${n ? MC_NAME[k] : "???"}</i><small>${f(n)}${next ? " / " + f(next) : " · max"}</small></div>`; }).join("");
@@ -7153,6 +7154,13 @@ sqMenu(); setInterval(() => { try { if (!$("startMain").hidden) sqMenu(); } catc
 setInterval(() => { try { if (!S || !S.started || S.over || S.testRun) return; const n = sqLevel(), was = +LS.get("capy-sqlvl") || 0;
   if (!was) { LS.set("capy-sqlvl", n); return; } if (n <= was) return; if (S.inWave || uiWinOpen() || frozen()) return;
   LS.set("capy-sqlvl", n); toast(`SQUAD LEVEL ${n}!${n === 10 || n === 20 || n === 35 ? " · " + sqTitle(n).toUpperCase() : ""}`, "SQUAD", 2400); snd("powerup"); } catch (e) {} }, 3000);
+
+/* V408: Trophäenregal – Wahrzeichen aus den Boss-Hintergründen (t12 Nr. 9) */
+const TROPHY = [["samerica", "Jungle Temple", "40% 5%"], ["africa", "The Pyramid", "36% 7%"], ["asia", "Ice Palace", "50% 2%"], ["namerica", "Bear Cave", "48% 9%"], ["antarctica", "Ice Fortress", "52% 5%"]];
+function trophyHtml() { const st = starsAll(); let got = 0;
+  const cups = TROPHY.map((t, i) => { const on = (+st[i * 6 + 5] || 0) > 0; if (on) got++;
+    return `<div class="trCup ${on ? "" : "off"}"><i style="background-image:url(bg/pl_${t[0]}_5.webp);background-position:${t[2]}"></i><small>${on ? t[1] : "???"}</small></div>`; }).join("");
+  return `<div class="albSec">TROPHIES<span>${got} / ${TROPHY.length}</span></div><div class="trGrid">${cups}</div>`; }
 /* V395: ein Auszeichnungs-Icon – Pokal öffnet Medaillen, Reiter zu Hall of fame und Squad */
 { let hsOk = false; const OV = { medals: "ovAlbum", hof: "ovHs", squad: "ovSquad" }, BOX = { medals: "#ovAlbum .albBox", hof: "#ovHs .hsBox", squad: "#ovSquad .albBox" };
   const bar = document.createElement("div"); bar.id = "awBar"; bar.className = "awTabs"; bar.innerHTML = `<button data-aw="medals">MEDALS</button><button data-aw="hof">HALL OF FAME</button><button data-aw="squad">SQUAD</button>`; document.body.appendChild(bar);
