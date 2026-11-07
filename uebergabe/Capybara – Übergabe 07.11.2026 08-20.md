@@ -1,10 +1,11 @@
 # Capybara – Übergabe 07.11.2026 08:20 (MVT)
 
 ## Status
-Live V363. Seite 200, caddy/capy-api/splatmcp aktiv.
+Live V364. Seite 200, caddy/capy-api/splatmcp aktiv.
 Link: https://playcapybarasquad.com
 
 ## Fertig seit letzter Übergabe
+- V364 (08:20): Standard-Lautstärke für neue Spieler Musik 80 %, Stimme 60 %, Effekte 50 % (vorher je 100 %). Wer die Regler schon verstellt hat, behält seine Werte (tarnturm-ch). Achtung beim Musik-Fehler: Musik-Lautstärke wirkt quadratisch (vol² · ch(m)²), Gesamt-Regler unter ~20 % macht die Musik praktisch unhörbar – beim Fix mit prüfen.
 - V363: Lucky Supply bis Welle 60 um 30 % seltener (Abstand 7–10 statt 5–7 Wellen; ab Welle 60 unverändert; erster Lucky und Rettungs-Lucky unverändert). tools/patch363.py.
 - Hinweis: beim ersten V363-Commit auf dem Server waren ungetrackte Dateien (gen_loop/, pro/night_v178.log, review/thief_walk/…, voice/…) mitcommittet → sofort per force-with-lease durch sauberen Commit 04b231c ersetzt. Dateien liegen weiter ungetrackt in /srv/capy-assets. Künftig NICHT `git add -A`, sondern nur `git add site tools/patchNNN.py`.
 
