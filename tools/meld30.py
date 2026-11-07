@@ -28,7 +28,7 @@ BOT = r"""
       intro: vis('ovIntro') || b.contains('introWin'), give: vis('ovGive'), ad: vis('ovAd'), bandit: vis('ovBandit') || !!S.banditOpen,
       hackAd: vis('ovHackAd') || !!S.hackAdOpen, duel: vis('ovHack') || !!S.duel, join: vis('ovJoin') || !!S.joinOpen, sign: vis('ovSign') || !!S.signOpen,
       orders: vis('ovOrders') || !!S.ordersOpen, map: b.contains('mapUp') || !!S.mapShow || !!S.mapFly, drop: !!S.drop,
-      pause: vis('ovPause') || !!S.paused, sheet: vis('sheet'), over: vis('ovOver') || !!S.over, cloud: vis('ovCloud'),
+      pause: vis('ovPause') || !!S.paused, tip: !!(window.__tipBulb && window.__tipBulb.open), sheet: vis('sheet'), over: vis('ovOver') || !!S.over, cloud: vis('ovCloud'),
     };
   };
   const title = k => { const id = {intro:'ovIntro',ad:'ovAd',bandit:'ovBandit',hackAd:'ovHackAd',orders:'ovOrders',join:'ovJoin',duel:'ovHack',sign:'ovSign'}[k];
@@ -43,6 +43,7 @@ BOT = r"""
   let chPrev = {}, medPrev = 0;
   try { const op = HTMLMediaElement.prototype.play; HTMLMediaElement.prototype.play = function () { try { const src = String(this.currentSrc || this.src || ''); if (/voice\//.test(src)) { const S = window.__TT && window.__TT.S; LOG.ch.push({ t: performance.now(), k: 'voice', e: 'on', wave: S ? S.wave : 0, txt: src.split('/').pop().slice(0, 30) }); } } catch (e) {} return op.apply(this, arguments); }; } catch (e) {}
   setInterval(() => { const S = window.__TT && window.__TT.S; if (!S || !S.started) return; const t = performance.now();
+    try { const SFX = window.__TT && window.__TT.SFX; if (!window.__sayHook && SFX && SFX.say) { window.__sayHook = 1; const sy = SFX.say; SFX.say = function (k) { try { const S2 = window.__TT && window.__TT.S; LOG.ch.push({ t: performance.now(), k: 'voice', e: 'on', wave: S2 ? S2.wave : 0, txt: String(k).slice(0, 30) }); } catch (e) {} return sy.apply(this, arguments); }; } } catch (e) {}   /* V385: Stimme läuft über WebAudio */
     for (const [k, id] of Object.entries(CH)) { const v = shown(id); if (v && !chPrev[k]) LOG.ch.push({ t, k, e: 'on', wave: S.wave, txt: (document.getElementById(id).innerText || '').replace(/\s+/g, ' ').slice(0, 50) }); if (!v && chPrev[k]) LOG.ch.push({ t, k, e: 'off', wave: S.wave }); chPrev[k] = v; }
     const mg = S.medGot || 0; if (mg > medPrev) { LOG.med.push({ t, wave: S.wave, n: mg }); medPrev = mg; } }, 250);
   window.addEventListener('error', e => LOG.err.push({ t: now(), m: String(e.message).slice(0, 120) }));
@@ -90,6 +91,7 @@ BOT = r"""
       const b = pick(document, ['CONTINUE', "LET'S GO", 'GO', 'NEXT']); if (b) click(b, 'map');
       else { const c = document.elementFromPoint(206, 600); if (c) { c.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, clientX: 206, clientY: 600 })); c.dispatchEvent(new PointerEvent('pointerup', { bubbles: true, clientX: 206, clientY: 600 })); c.click(); } }
     }
+    if (w.tip && age('tip') > 3300) click(document.querySelector('#tipBulb button'), 'tip');   /* V381: Tipp-Karte hält das Spiel an */
     if (w.pause && age('pause') > 1500) click(pick(document.getElementById('ovPause'), ['RESUME', 'CONTINUE', 'PLAY']), 'pause');
   }, 250);
 })();
@@ -105,6 +107,10 @@ def main():
             br = p.chromium.launch(executable_path="/usr/bin/google-chrome", args=["--autoplay-policy=no-user-gesture-required", "--mute-audio"])
             ctx = br.new_context(viewport={"width": 412, "height": 915}, device_scale_factor=1)
             ctx.route("**/api/**", lambda r: r.fulfill(status=200, content_type="application/json", body="{}"))
+            def _idx(r):   # SFX für den Stimm-Zähler sichtbar machen (nur im Test, Spiel unverändert)
+                resp = r.fetch(); b = resp.text().replace("window.__TT = { get S() { return S; },", "window.__TT = { get SFX() { return SFX; }, get S() { return S; },", 1)
+                r.fulfill(response=resp, body=b)
+            ctx.route("**/index.html*", _idx)
             ctx.add_init_script("""try{localStorage.setItem('capy-reset','276');localStorage.setItem('tarnturm-tut','1');localStorage.setItem('tarnturm-terms','1');}catch(e){}""")
             pg = ctx.new_page()
             cons = []

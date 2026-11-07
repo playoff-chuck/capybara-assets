@@ -4,10 +4,10 @@ import json, sys, itertools
 from collections import Counter, defaultdict
 out, files = sys.argv[1], sys.argv[2:]
 VOICE_MS = 2200   # Sprachclip gilt ~2,2 s als «läuft»
-WIN = {"intro", "ad", "bandit", "hackAd", "duel", "join", "sign", "orders", "drop", "give", "map"}
+WIN = {"intro", "ad", "bandit", "hackAd", "duel", "join", "sign", "orders", "drop", "give", "map", "tip"}
 runs = []
 for f in files:
-    try: runs.append(json.load(open(f)))
+    try: r = json.load(open(f)); (runs.append(r) if not r.get("end", {}).get("stall") else None)   # hängengebliebene Läufe nicht mitzählen
     except Exception: pass
 pairs, multi, perK, perWave, medW, medMin, dur = Counter(), Counter(), Counter(), defaultdict(Counter), [], [], []
 for R in runs:
@@ -32,7 +32,8 @@ for R in runs:
                 multi[len(on)] += 1
                 for p in itertools.combinations(sorted(on), 2): pairs[p] += 1
             prevSet = on; t += 250
-    for m in R.get("med", []): medW.append(m["wave"]); medMin.append(round(m["t"] / 60000, 1))
+    meds = R.get("med", []) or [e for e in R.get("ch", []) if e.get("k") == "alert" and e.get("e") == "on" and "\U0001f396" in e.get("txt", "")]   # Medaillen aus Funk-Texten, falls S.medGot fehlt
+    for m in meds: medW.append(m["wave"]); medMin.append(round(m["t"] / 60000, 1))
     dur.append(R.get("end", {}).get("t", 0) / 60000)
 n = max(1, len(runs))
 res = dict(runs=len(runs), minutesAvg=round(sum(dur) / n, 1),
