@@ -2268,7 +2268,7 @@ body:has(.bar:not(.off)) #genAv.isGen{transform:scaleX(-1)!important;animation:g
 .signTxt p{margin:2px 0 0;font-size:11.5px;line-height:1.25}
 .signTxt p b{color:#c23f3f}
 .signBtns{position:absolute;left:8px;right:8px;bottom:10px;display:flex;gap:8px}
-.signBtns button{flex:1;min-height:64px;border-radius:14px;border:3px solid #3a1d10;box-shadow:0 4px 0 #3a1d10;font-family:Bangers,var(--f-display),sans-serif;font-size:20px;letter-spacing:.03em;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px;cursor:pointer;text-shadow:0 2px 0 rgba(0,0,0,.35)}
+.signBtns button{flex:1;min-height:64px;line-height:1.05;gap:2px;border-radius:14px;border:3px solid #3a1d10;box-shadow:0 4px 0 #3a1d10;font-family:Bangers,var(--f-display),sans-serif;font-size:20px;letter-spacing:.03em;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px;cursor:pointer;text-shadow:0 2px 0 rgba(0,0,0,.35)}
 .signBtns button small{font-family:"Baloo 2",system-ui,sans-serif;font-size:11px;letter-spacing:0;font-weight:700;opacity:.95;text-shadow:none}
 #signNuts{background:linear-gradient(#e2473f,#a8221d)!important;color:#fff!important}
 #signNext{background:linear-gradient(#5fbf4a,#2f8a2a)!important;color:#fff!important}
@@ -2773,7 +2773,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V411";
+const GAME_VER = "V412";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -7713,7 +7713,7 @@ $("joinDice").addEventListener("click", e => { e.preventDefault(); SFX.init(); s
 // --- Oberflächen ---
 const nzBadge = document.createElement("div"); nzBadge.id = "nutsBadge"; nzBadge.hidden = true; document.body.appendChild(nzBadge);
 const ovSign = document.createElement("div"); ovSign.className = "signOv"; ovSign.id = "ovSign"; ovSign.hidden = true;
-ovSign.innerHTML = `<div class="signBox" id="signBox"><div class="signTxt"><h2 id="signTitle">CONTINENT CLEARED!</h2><p id="signInfo"></p></div><div class="signRule" id="signRule"></div><div class="signBtns"><button id="signNuts">☠ NUTS DETOUR<small>30 crazy levels</small></button><button id="signNext">NEXT →<small>continue the tour</small></button></div></div>`;
+ovSign.innerHTML = `<div class="signBox" id="signBox"><div class="signTxt"><h2 id="signTitle">CONTINENT CLEARED!</h2><p id="signInfo"></p></div><div class="signRule" id="signRule"></div><div class="signBtns"><button id="signNuts">☠ NUTS DETOUR<small>30 crazy levels</small></button><button id="signNext">NEXT<small>continue the tour</small></button></div></div>`;
 document.body.appendChild(ovSign);
 const ovRes = document.createElement("div"); ovRes.className = "nutsRes"; ovRes.id = "ovNutsRes"; ovRes.hidden = true;
 ovRes.innerHTML = `<div class="nutsResBox"><div class="nrPic"></div><span class="alTag" id="nrTag">NUTS DETOUR</span><h2 id="nrTitle"></h2><div class="big" id="nrBig"></div><p id="nrSub"></p><p class="bonus" id="nrBonus"></p><div class="hs" id="nrHs"></div><button class="btn-accent btn-big" id="nrBack">BACK TO THE MAIN ROAD ▶</button></div>`;
@@ -7734,7 +7734,7 @@ function showSign(c) {
     window.__contCel(nzName(c), c, () => { S.signOpen = 0; if (!(S.nutsAsk || {})[c]) showSign(c); }); return; }
   S.intro = true; S.signOpen = c + 1; $("signBox").style.backgroundImage = `url(sign/sign_${c + 1}.webp)`;
   $("signTitle").textContent = `${nzName(c)} CLEARED!`; $("signInfo").innerHTML = nzSignInfo(); $("signRule").innerHTML = nzSignRule(nzFirstOpen(c));
-  $("signNext").innerHTML = `NEXT: ${NZ_NEXT[c]} →<small>continue the tour</small>`; ovSign.hidden = false; snd("radio");
+  $("signNext").innerHTML = `NEXT: ${NZ_NEXT[c]}<small>continue the tour</small>`; ovSign.hidden = false; snd("radio");
   { const u = nzUnl(); if (!u.includes(c)) { u.push(c); LS.set("tarnturm-nuts-unl", JSON.stringify(u)); } }
 }
 function closeSign() { ovSign.hidden = true; window.__celFor = null; if (S) { S.intro = false; S.signOpen = 0; } }
