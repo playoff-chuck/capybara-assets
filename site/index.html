@@ -2744,7 +2744,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V385";
+const GAME_VER = "V386";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -4161,9 +4161,22 @@ function msgTick() {
   if (m.low && (age > 8000 || (S && S.radioOut))) { msgTick(); return; }   // V270: Lob/Statistik veraltet
   window.__msgShowT = performance.now();
   msgBusy = performance.now() + m.hold + 320;
+  window.__msgCur = { m, until: performance.now() + m.hold };   /* V386 */
   if (m.kind === "book") bookShow(m.score, m.mark); else if (m.kind === "alert") showAlert(m.title, m.sub, m.tag, m.hold); else showToast(m.title, m.sub, m.tag, m.hold);
   setTimeout(msgTick, m.hold + 330);
 }
+/* V386: Fenster geht auf, während eine Meldung steht → Meldung sofort weg; wichtige kommen nach dem Fenster wieder */
+setInterval(() => { try {
+  const c = window.__msgCur; if (!c || !S) return; const now = performance.now();
+  if (now >= c.until) { window.__msgCur = null; return; }
+  if (!uiWinOpen()) return;
+  window.__msgCur = null; const m = c.m, rest = c.until - now;
+  if (m.kind === "alert") { const el = $("alert"); clearTimeout(alertT); ++alertSeq; el.classList.remove("go", "out"); el.hidden = true; S.alert = false; }
+  else if (m.kind === "toast") hideToastNow(); else return;
+  window.__msgCut = (window.__msgCut || 0) + 1;
+  if (!m._re && rest > 700 && (m.kind === "alert" || KEEP_TAGS.has(m.tag) || /MEDAL|STARS|CHECKPOINT/.test(m.title))) MSGQ.unshift(Object.assign({}, m, { hold: Math.max(1600, Math.round(rest)), at: now, _re: 1 }));
+  msgBusy = 0; clearTimeout(window.__msgWT); window.__msgWT = setTimeout(msgTick, 500);
+} catch (e) {} }, 150);
 function garble(t) { return String(t || "").replace(/[A-Za-z0-9]/g, (c, i) => (((i * 7) % 5) < 2 ? "▒" : c)); }   // V178z15: jeder 2.–3. Buchstabe weg
 function overShown() { const o = document.getElementById("ovOver"); return !!(o && !o.hidden); }   /* V376: Game-over-Karte offen */
 function announce(title, sub, tag = "RADIO", hold = 1800) {
