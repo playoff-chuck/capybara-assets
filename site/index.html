@@ -2769,7 +2769,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V405";
+const GAME_VER = "V406";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -4847,7 +4847,7 @@ function update(dt) {
         if (p.kills != null) { const rr = placeRecAll(), o = rr[p.g] || {}, k = Math.max(0, (S.kills || 0) - p.kills), l = Math.max(0, (S.lines || 0) - p.lines); rr[p.g] = { k: Math.max(o.k || 0, k), l: Math.max(o.l || 0, l) }; try { LS.set("capy-place-rec", JSON.stringify(rr)); } catch (e) {} }   /* V402 */
         setTimeout(() => toast(`PLACE STARS ${"★".repeat(n)}${"☆".repeat(5 - n)}`, "HQ", 2600), 2400); }
       if (S.replay && S.wave >= S.replay.end) { S.replay.fin = true; setTimeout(() => replayEnd("done"), 2900); }   /* V384 */
-      if (S.wave % 5 === 0) praise(`WAVE ${S.wave}!`, S.waveLeaks === 0 ? 3 : 2, S.waveLeaks === 0 ? "Flawless!" : "Keep going!");
+      if (S.wave % 5 === 0) { if (S.waveLeaks === 0) { const w = lobWord(5); praise(w.toUpperCase(), 4, w); } else praise(`WAVE ${S.wave}!`, 2, "Keep going!"); }   /* V406: Spitzenlob ohne Durchbruch */
       else if (S.waveLeaks === 0 && S.lives <= 2) praise("COMEBACK!", 3, "Comeback!");
       else if (S.waveLeaks === 0) { if (S.wave % 2) praise("FLAWLESS!", 2, "Flawless!"); else praise("CLEAN SWEEP", 2, "Clean sweep!"); }
       else { snd("jingle"); setTimeout(() => SFX.say(["Wave cleared!", "Well done!", "Keep going!", "Excellent!", "Good job!", "Outstanding!"][S.wave % 6], 1.15, 1.05), 700); } }
