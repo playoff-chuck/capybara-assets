@@ -2769,7 +2769,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V399";
+const GAME_VER = "V400";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -4235,7 +4235,7 @@ let stampT = null, lastPraise = 0, lastPraiseTier = 0;
 function praise(text, tier, speech) {
   if (overShown()) return;
   const now = performance.now();
-  if (now - lastPraise < 1500 || SFX.voiceBusy) return;
+  if (now - lastPraise < 15000 || SFX.voiceBusy) return;   /* V400: max. ein Lob je 15 s */
   if (uiWinOpen() || now - (window.__msgShowT || -1e9) < 400) return;   // V270   // läuft schon ein Lob, fällt das neue komplett weg
   lastPraise = now; lastPraiseTier = tier;
   if (speech !== false && now - (window.__praiseVoiceT || -1e9) < (tier >= 4 ? 8000 : 16000)) speech = false; else if (speech !== false) window.__praiseVoiceT = now;   // V178v: Sprüche 4× seltener
@@ -6918,12 +6918,13 @@ const STATIC = { n: null, t: null,
   }; }
 
 /* --- Musik: Suno-Stücke (Südamerika + Menü), Rotation je Ort, DJ-Tipp = nächster Song --- */
-const TRK = { airport: ["Airport Bossa", 100], copacabana: ["Copacabana Sunset", 102], andes: ["Andes Lounge", 96], jungle: ["Jungle Downtempo", 98], rumba: ["Rumba Lounge", 104], samba: ["Samba Lounge", 108], chilldisco: ["Chill Disco Rio", 110], loungedisco: ["Lounge Disco", 110], oasis: ["Oasis Blues", 98], savanna: ["Savanna Groove", 104], dune: ["Dune Dub", 96], dune2: ["Dune Dub II", 96], pyramid: ["Pyramid Disco", 116], taiga: ["Taiga Lounge", 100], frozen: ["Frozen Lake", 96], steppe: ["Steppe Ride", 108], iceport: ["Ice Port Disco", 110], icepalace: ["Ice Palace", 120] };
-const TRK_FILE = { airport: "airport_bossa", copacabana: "copacabana_sunset", andes: "andes_lounge", jungle: "jungle_downtempo", rumba: "rumba_lounge", samba: "samba_lounge", chilldisco: "chill_disco_rio", loungedisco: "lounge_disco", oasis: "af_oasis", savanna: "af_savanna", dune: "af_dune", dune2: "af_dune2", pyramid: "af_pyramid", taiga: "as_taiga", frozen: "as_frozen", steppe: "as_steppe", iceport: "as_iceport", icepalace: "as_icepalace" };
+const TRK = { airport: ["Airport Bossa", 100], copacabana: ["Copacabana Sunset", 102], andes: ["Andes Lounge", 96], jungle: ["Jungle Downtempo", 98], rumba: ["Rumba Lounge", 104], samba: ["Samba Lounge", 108], chilldisco: ["Chill Disco Rio", 110], loungedisco: ["Lounge Disco", 110], oasis: ["Oasis Blues", 98], savanna: ["Savanna Groove", 104], dune: ["Dune Dub", 96], dune2: ["Dune Dub II", 96], pyramid: ["Pyramid Disco", 116], taiga: ["Taiga Lounge", 100], frozen: ["Frozen Lake", 96], steppe: ["Steppe Ride", 108], iceport: ["Ice Port Disco", 110], icepalace: ["Ice Palace", 120], dorian: ["Dorian Dust", 84], oddphased: ["Odd-Phased", 96], gameloop: ["Prairie Loop", 100], cartoon: ["Cartoon Trail", 110], icea: ["Polar Night", 90], iceb: ["Ice Shelf", 90] };
+const TRK_FILE = { airport: "airport_bossa", copacabana: "copacabana_sunset", andes: "andes_lounge", jungle: "jungle_downtempo", rumba: "rumba_lounge", samba: "samba_lounge", chilldisco: "chill_disco_rio", loungedisco: "lounge_disco", oasis: "af_oasis", savanna: "af_savanna", dune: "af_dune", dune2: "af_dune2", pyramid: "af_pyramid", taiga: "as_taiga", frozen: "as_frozen", steppe: "as_steppe", iceport: "as_iceport", icepalace: "as_icepalace", dorian: "na_dorian_dust", oddphased: "na_odd_phased", gameloop: "na_game_loop", cartoon: "na_cartoon_loop", icea: "an_ice_a", iceb: "an_ice_b" };
 const TRK_ORDER = ["andes", "jungle", "copacabana", "rumba", "samba", "loungedisco", "chilldisco", "airport"];
-const TRK_AF = ["oasis", "savanna", "dune", "dune2", "pyramid"], TRK_AS = ["taiga", "frozen", "steppe", "iceport", "icepalace"];
+const TRK_AF = ["oasis", "savanna", "dune", "dune2", "pyramid"], TRK_AS = ["taiga", "frozen", "steppe", "iceport", "icepalace"], TRK_NA = ["dorian", "oddphased", "gameloop", "cartoon"], TRK_AN = ["icea", "iceb"];   /* V400 */
 function trkPool(wave) { if (!wave) return ["airport"]; const p = Math.floor(((wave - 1) % 30) / 5);
   if (wave >= 31 && wave <= 60) return [0, 1, 2].map(i => TRK_AF[(p + i) % 5]); if (wave >= 61 && wave <= 90) return [0, 1, 2].map(i => TRK_AS[(p + i) % 5]);
+  if (wave >= 91 && wave <= 120) return [0, 1, 2].map(i => TRK_NA[(p + i) % 4]); if (wave >= 121) return TRK_AN.slice();
   return TRK_ORDER.slice(p, p + 3); }   // je Ort 3 Stücke, eines wechselt pro Ort
 window.__tpDbg = () => TP; const TP = { el: null, src: null, g: null, key: null, pool: [], wave: -1, paused: false, synthOn: false, gen: 0, pend: false, errT: 0, stuck: 0 };
 function tpEl() {
@@ -6944,7 +6945,7 @@ function tpPlay(key) {
 function tpNext() { const pool = TP.pool.length ? TP.pool : ["airport"]; const i = pool.indexOf(TP.key); tpPlay(pool[(i + 1) % pool.length]); }
 function tpStop(f = 0.5) { if (!TP.el) return; tpFade(0.0001, f); const a = TP.el, g = ++TP.gen; TP.pend = false; setTimeout(() => { if (g === TP.gen) { a.pause(); TP.stopping = false; } }, f * 1000 + 60); TP.stopping = true; TP.key = null; }   // V365: pausiert nur, wenn seitdem kein neues Stück gestartet wurde
 { const M = SFX.music, o = { start: M.start, stop: M.stop, menu: M.menu, switchTo: M.switchTo, next: M.next, setPaused: M.setPaused, toggle: M.toggle, duck: M.duck };
-  const useTrk = w => w === 0 || (w >= 1 && w <= 90);
+  const useTrk = w => w === 0 || (w >= 1 && w <= 150);
   const begin = w => { if (!M.on) return; TP.wave = w; const pool = trkPool(w); TP.pool = pool;
     if (TP.synthOn) { o.stop.call(M, 0.3); TP.synthOn = false; }
     if (TP.key && pool.includes(TP.key) && TP.el && !TP.el.paused) { if (TP.paused) M.setPaused(false); return; }   // läuft schon ein passendes Stück → weiterlaufen lassen
