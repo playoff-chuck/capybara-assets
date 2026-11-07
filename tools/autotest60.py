@@ -58,7 +58,7 @@ BOT = r"""
     if (w.intro && age('intro') > 2500) click(pick(document.getElementById('ovIntro'), ['GOT IT', "LET'S GO", 'OK']), 'intro');
     const BUY = !!window.__AT_BUYER;
     if (w.ad && age('ad') > 3600) { const r = document.getElementById('ovAd'); click(pick(r, BUY ? ['I WANT IT', 'BUY', "IT'S FREE", 'THANKS', 'GOT IT', "LET'S GO", 'NO THANKS', 'LATER'] : ['NO THANKS', 'LATER', 'THANKS', "IT'S FREE", 'GOT IT', "LET'S GO"]) , 'ad'); }
-    if (w.bandit && age('bandit') > 3600 && Math.floor(age('bandit') / 1000) % 2 === 0) click(pick(document.getElementById('ovBandit'), ['SPIN', 'COLLECT', 'TAKE', 'GRAB', 'GOT IT', 'OK', 'NO THANKS', 'LATER', 'CLOSE']), 'bandit');
+    if (w.bandit && age('bandit') > 3600 && Math.floor(age('bandit') / 1000) % 2 === 0) click(pick(document.getElementById('ovBandit'), ['SPIN', 'DROP IT', 'COLLECT', 'TAKE', 'GRAB', 'GOT IT', 'OK', 'NO THANKS', 'LATER', 'CLOSE']), 'bandit');
     /* Notbremse: Fenster hängt > 15 s → ersten sichtbaren Knopf darin drücken und protokollieren */
     { const IDS = { intro: 'ovIntro', ad: 'ovAd', bandit: 'ovBandit', hackAd: 'ovHackAd', orders: 'ovOrders', join: 'ovJoin', duel: 'ovHack', sign: 'ovSign' };
       for (const k of Object.keys(IDS)) if (w[k] && age(k) > 15000 && Math.floor(age(k) / 1000) % 3 === 0) {
