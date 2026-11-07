@@ -2774,7 +2774,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V427";
+const GAME_VER = "V428";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -8256,9 +8256,9 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
       else if (mw >= W) tx = Math.min(0, Math.max(W - mw, tx)); else tx = (W - mw) / 2;
       if (cam.fit) { /* V427: frei, oben/unten gespiegelt fortgesetzt */ } else if (cam.free) ty = Math.max(H - mh, Math.min(0, H * .80 - mh)); else if (mh >= H) ty = Math.min(0, Math.max(H - mh, ty)); else ty = (H - mh) / 2;
       world.style.transition = anim ? `transform ${anim}ms cubic-bezier(.45,0,.25,1)` : "none";
-      world.style.transform = `translate(${tx}px,${ty}px) scale(${kk})`; world.style.setProperty("--ik", 1 / kk);
+      world.style.transform = `translate(${tx}px,${ty}px) scale(${kk})`; ov.classList.toggle("mapSmall", mh < H - 1); world.style.setProperty("--ik", 1 / kk);
     }
-    function kOf(c) { const W = vp.clientWidth || innerWidth, H = vp.clientHeight || innerHeight; return c.fit ? Math.max(c.k, W / BW) : Math.max(c.k, W / BW, H / (BW * MAP_AR)); }
+    function kOf(c) { const W = vp.clientWidth || innerWidth, H = vp.clientHeight || innerHeight; return c.fit ? Math.max(c.k, W / BW, c.kmin || 0) : Math.max(c.k, W / BW, H / (BW * MAP_AR)); }
     function safeBox() { const H = vp.clientHeight || innerHeight; let top = 10, bot = H - 10;
       try { const r = ov.querySelector(".mapTop").getBoundingClientRect(); if (r.height) top = r.bottom + 6; } catch (e) {}
       try { const bar = ov.querySelector(".mapBar"); if (bar && bar.getClientRects().length) { const r = bar.getBoundingClientRect(); if (r.height) bot = r.top - 6; } } catch (e) {}
@@ -8270,7 +8270,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
       const mX = 66, mT = 48, mB = 26, hh = Math.max(80, B.bot - B.top - mT - mB);
       const kW = (W - 2 * mX) / Math.max(.004, (x1 - x0) * BW), kH = hh / Math.max(.004, (y1 - y0) * BW * MAP_AR), kMin = Math.max(1.6, H / (2 * BW * MAP_AR) + .1);
       const k = Math.max(kMin, Math.min(4.2, kW, kH));
-      return { x: (x0 + x1) / 2, y: (y0 + y1) / 2, k, fit: 1, sy: B.top + mT + hh / 2 }; }
+      return { x: (x0 + x1) / 2, y: (y0 + y1) / 2, k, fit: 1, sy: B.top + mT + hh / 2, kmin: Math.min(k, Math.max(W / BW, H / (BW * MAP_AR))) }; }
     function declutter() { try { const ems = [...pinsEl.querySelectorAll(".mPin em")]; ems.forEach(e => e.classList.remove("dn", "hid"));
         const cur = pinsEl.querySelector(".mPin.cur em"), obs = [];
         for (const sel of [".mapTop", ".mapBar", ".mapRose"]) { const el = ov.querySelector(sel); if (el && el.getClientRects().length) obs.push(el.getBoundingClientRect()); }
@@ -8323,10 +8323,10 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
       vp.addEventListener("pointermove", e => { if (mode !== "browse" || !pts.has(e.pointerId) || !start) return; pts.get(e.pointerId).x = e.clientX; pts.get(e.pointerId).y = e.clientY;
         const n = snap(), dx = n.cx - start.cx, dy = n.cy - start.cy; if (Math.hypot(dx, dy) > 8 || (n.d && Math.abs(n.d - start.d) > 8)) moved = true; if (!moved) return;
         let k = start.cam.k; if (pts.size > 1 && start.d > 10) k = clampK(Math.max(start.cam.k, vp.clientWidth / BW) * n.d / start.d);
-        const kk0 = kOf(start.cam), kk = kOf({ k, fit: start.cam.fit });
+        const kk0 = kOf(start.cam), kk = kOf({ k, fit: start.cam.fit, kmin: start.cam.kmin });
         const r = vp.getBoundingClientRect(), fx = start.cx - r.left - vp.clientWidth / 2, fy = start.cy - r.top - (start.cam.fit && start.cam.sy != null ? start.cam.sy : vp.clientHeight / 2);
         const wx = start.cam.x + fx / (BW * kk0), wy = start.cam.y + fy / (BW * MAP_AR * kk0);   /* Weltpunkt unter den Fingern bleibt dort */
-        cam = { x: wx - (fx + dx) / (BW * kk), y: wy - (fy + dy) / (BW * MAP_AR * kk), k, fit: start.cam.fit, sy: start.cam.sy };
+        cam = { x: wx - (fx + dx) / (BW * kk), y: wy - (fy + dy) / (BW * MAP_AR * kk), k, fit: start.cam.fit, sy: start.cam.sy, kmin: start.cam.kmin };
         cam.y = Math.max(0, Math.min(1, cam.y)); window.__camHold = 0; apply(0); });
       const up = e => { if (!pts.has(e.pointerId)) return; pts.delete(e.pointerId); start = pts.size ? snap() : null; if (moved) { window.__mapDragT = performance.now(); setTimeout(declutter, 60); } };
       vp.addEventListener("pointerup", up); vp.addEventListener("pointercancel", up);
@@ -10585,6 +10585,10 @@ body.awOn #ovHs[hidden],body.awOn #ovAlbum[hidden],body.awOn #ovSquad[hidden]{di
 #ovMap .mapFlip.fT{top:-100%;-webkit-mask-image:linear-gradient(to bottom,#000 0,#000 6%,transparent 20%);mask-image:linear-gradient(to bottom,#000 0,#000 6%,transparent 20%)}
 #ovMap .mapFlip.fB{top:100%;-webkit-mask-image:linear-gradient(to top,#000 0,#000 6%,transparent 20%);mask-image:linear-gradient(to top,#000 0,#000 6%,transparent 20%)}
 #ovMap{background:#7fb9b6!important}
+#ovMap .mapFlip{display:none!important}
+#ovMap.mapSmall .mapImg{-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 7%,#000 97%,transparent 100%);mask-image:linear-gradient(to bottom,transparent 0,#000 7%,#000 97%,transparent 100%)}
+#ovMap.mapSmall .mapWrap.wR{-webkit-mask-image:linear-gradient(to right,transparent 0,#000 5%),linear-gradient(to bottom,transparent 0,#000 7%,#000 97%,transparent 100%);mask-image:linear-gradient(to right,transparent 0,#000 5%),linear-gradient(to bottom,transparent 0,#000 7%,#000 97%,transparent 100%);-webkit-mask-composite:source-in;mask-composite:intersect}
+#ovMap.mapSmall .mapWrap.wL{-webkit-mask-image:linear-gradient(to right,#000 95%,transparent 100%),linear-gradient(to bottom,transparent 0,#000 7%,#000 97%,transparent 100%);mask-image:linear-gradient(to right,#000 95%,transparent 100%),linear-gradient(to bottom,transparent 0,#000 7%,#000 97%,transparent 100%);-webkit-mask-composite:source-in;mask-composite:intersect}
 #ovMap .mPin em.sub{font-size:12px!important;padding:3px 6px 2px!important;border-width:2px!important;box-shadow:0 1px 0 #3a2414!important;background:#fff7e8!important;opacity:.95}
 #ovMap .mPin.done em.sub{color:#4f7a2a}
 #ovMap .mPin.open em.sub{color:#7a6a52}
