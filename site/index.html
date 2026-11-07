@@ -1405,6 +1405,12 @@ body.introFull #ovIntro .introBox{gap:4px;padding:8px 12px 10px}
 body.introFull #ovIntro .introBox{position:relative;overflow:visible}
 body.introFull #ovIntro .introBox::after{content:"";position:absolute;bottom:-15px;right:26%;border:14px solid transparent;border-bottom:0;border-top:15px solid var(--ink,#3a2a1a)}
 body.introFull #ovIntro .inArt{display:none}
+#btnAlbum,#btnSquad{display:none!important}
+.awTabs{display:flex;gap:4px;margin:0 34px 8px 0}
+.awTabs button{flex:1;min-width:0;padding:6px 2px;border-radius:10px;border:2px solid #3a2a1a;background:#ece0c8;color:#3a2a1a;font:400 15px/1 Bangers,system-ui;letter-spacing:.5px;box-shadow:0 2px 0 #3a2a1a}
+.awTabs button.on{background:#ffd84d}
+#ovHs .awTabs{margin:0 30px 8px 0}
+body:has(#ovAlbum:not([hidden])):has(#albBody):has(#albX) #btnOffline,body:has(#ovAlbum:not([hidden])):has(#albBody):has(#albX) #btnMap,body:has(#ovHs:not([hidden])):has(#hsList):has(#btnHsClose) #btnOffline,body:has(#ovHs:not([hidden])):has(#hsList):has(#btnHsClose) #btnMap{display:none!important}
 #ovSquad{position:fixed;inset:0;z-index:90;display:flex;align-items:center;justify-content:center;padding:12px;background:rgba(40,28,16,.55)}
 #ovSquad[hidden]{display:none}
 .sqStats{display:grid;grid-template-columns:1fr 1fr;gap:5px}
@@ -2761,7 +2767,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V394";
+const GAME_VER = "V395";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -7111,6 +7117,16 @@ function openSquad() {
   $("sqBody").innerHTML = h; $("ovSquad").hidden = false; try { snd("uiTap"); } catch (e) {}
 }
 $("btnSquad").addEventListener("click", () => { SFX.init(); openSquad(); });
+/* V395: ein Auszeichnungs-Icon – Pokal öffnet Medaillen, Reiter zu Hall of fame und Squad */
+{ let hsOk = false; const OV = { medals: "ovAlbum", hof: "ovHs", squad: "ovSquad" }, BOX = { medals: "#ovAlbum .albBox", hof: "#ovHs .hsBox", squad: "#ovSquad .albBox" };
+  const tabs = act => { for (const k in BOX) { const box = document.querySelector(BOX[k]); if (!box) continue; let t = box.querySelector(".awTabs");
+      if (!t) { t = document.createElement("div"); t.className = "awTabs"; t.innerHTML = `<button data-aw="medals">MEDALS</button><button data-aw="hof">HALL OF FAME</button><button data-aw="squad">SQUAD</button>`; box.insertBefore(t, box.firstChild); }
+      t.querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.aw === act)); } };
+  const go = k => { for (const o of Object.values(OV)) { const e = $(o); if (e) e.hidden = true; } tabs(k);
+    if (k === "medals") openAlbum(); else if (k === "squad") openSquad(); else { hsOk = true; $("btnHs").click(); } };
+  $("btnHs").addEventListener("click", e => { if (hsOk) { hsOk = false; return; } e.stopImmediatePropagation(); SFX.init(); go("medals"); }, true);
+  document.addEventListener("click", e => { const b = e.target.closest && e.target.closest(".awTabs button"); if (!b) return; e.stopPropagation(); try { snd("uiTap"); } catch (er) {} go(b.dataset.aw); }, true);
+  try { $("btnHs").setAttribute("aria-label", "Awards"); $("btnHs").title = "Awards"; } catch (e) {} }
 $("sqX").addEventListener("click", () => { $("ovSquad").hidden = true; });
 $("ovSquad").addEventListener("click", e => { if (e.target.id === "ovSquad") $("ovSquad").hidden = true; });
 $("albX").addEventListener("click", () => { $("ovAlbum").hidden = true; });
