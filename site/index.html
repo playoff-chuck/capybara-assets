@@ -2744,7 +2744,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V380";
+const GAME_VER = "V381";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -4726,7 +4726,7 @@ function stepShots(dt) {
 
 // ---------- Ablauf ----------
 function canAct() { return S.started && !S.over && !S.paused && !S.intro && !(performance.now() < (window.__holdUntil || 0)) && !S.duel && !S.mode && !S.sel && !S.shop && !S.drop && !S.ordersOpen && S.piece; }   // Funksprüche halten das Spiel nicht an
-function frozen() { return !S.started || S.over || S.paused || S.coachHold || S.intro || S.duel || S.mode || S.sel || S.shop || S.drop || S.ordersOpen || S.mix || S.tiltCard; }
+function frozen() { return !S.started || S.over || S.paused || S.coachHold || S.intro || S.duel || S.mode || S.sel || S.shop || S.drop || S.ordersOpen || S.mix || S.tiltCard || !!(window.__tipBulb && window.__tipBulb.open); }   /* V381: Tipp-Karte hält das Spiel an */
 function starsAll() { try { return JSON.parse(LS.get("capy-stars") || "{}") || {}; } catch (e) { return {}; } }   /* V374: Bestwert je Ort 0..29 */
 function starStr(n) { return "★".repeat(n) + "☆".repeat(5 - n); }
 function showCredits() {   /* V376: Abspann nach dem Finale */
