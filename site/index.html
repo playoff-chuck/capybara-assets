@@ -2744,7 +2744,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V368";
+const GAME_VER = "V369";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -8719,7 +8719,9 @@ try { (() => { const key = () => "tarnturm-cp-" + (window.ONE_MODE ? "pro" : MOD
 /* V321: Ortsnamen auf der Karte nie unter der Titelkarte */
 try { (() => { setInterval(() => { const ov = document.getElementById("ovMap"); if (!ov || ov.hidden) return; const top = ov.querySelector(".mapTop"); if (!top) return; const tb = top.getBoundingClientRect().bottom + 6;
     ov.querySelectorAll(".mPin").forEach(p => { const em = p.querySelector("em"); if (!em) { p.classList.remove("lblDown"); return; } const pr = p.getBoundingClientRect(); const down = p.classList.contains("lblDown");
-      const need = down ? pr.top - (p.classList.contains("cur") ? 70 : 14) - em.offsetHeight < tb : em.getBoundingClientRect().top < tb; if (need !== down) p.classList.toggle("lblDown", need); }); }, 200); })(); } catch (e) { console.error("v321 lbl", e); }
+      const off = p.classList.contains("cur") && ov.classList.contains("auto") ? 70 : 14, ew = em.offsetWidth, eh = em.offsetHeight, up = { l: pr.left - ew / 2 - 4, r: pr.left + ew / 2 + 4, t: pr.top - off - eh - 4, b: pr.top - off + 12 };
+      const hit = [...ov.querySelectorAll(".mPin")].some(q => { if (q === p) return false; const r = q.getBoundingClientRect(); return r.left > up.l && r.left < up.r && r.top > up.t && r.top < up.b; });   /* V369: Schild nie auf einem fremden Ortspunkt */
+      const need = up.t < tb || hit; if (need !== down) p.classList.toggle("lblDown", need); }); }, 200); })(); } catch (e) { console.error("v321 lbl", e); }
 
 /* V322: sichtbarer CANCEL-Knopf beim Platzieren eines Turms */
 try { (() => { const b = document.createElement("button"); b.id = "buildCancel"; b.type = "button"; b.textContent = "✕ CANCEL"; b.hidden = true; document.body.appendChild(b);
@@ -9554,7 +9556,7 @@ body:has(#ovStart:not([hidden])):has(.overlay.win:not([hidden])) #btnMap,body:ha
 #ovMap .mapMe img{left:-23px;top:-60px;transform-origin:50% 100%}
 #ovMap .mapMe.hop img{animation:mHop2 .3s ease-in-out infinite alternate}
 @keyframes mHop2{to{transform:rotate(8deg) translateY(-4px)}}
-#ovMap.auto .mPin.cur em{top:-70px}
+#ovMap.auto .mPin.cur em{top:-70px}#ovMap .mPin.cur em::before{content:"";position:absolute;left:50%;bottom:-9px;margin-left:-7px;border:7px solid transparent;border-top-color:#3a2414;border-bottom:0}#ovMap .mPin.cur.lblDown em::before{bottom:auto;top:-9px;border-top:0;border-bottom:7px solid #3a2414}
 </style>
 <style id="v226">
 #btnOffline{display:none;position:fixed!important;width:52px!important;height:52px!important;min-width:0!important;min-height:0!important;padding:0!important;z-index:60;flex-direction:column!important;align-items:center;justify-content:center;gap:0;line-height:1}
