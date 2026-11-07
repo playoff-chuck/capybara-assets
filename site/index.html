@@ -2744,7 +2744,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V371";
+const GAME_VER = "V372";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -5042,7 +5042,7 @@ function syncRotView() {
 // V326: Ankündigungs-Karte «+90° / −90°»; erst wenn sie zu ist, dreht sich das Feld (rotMode 1 = −90°, 2 = +90°)
 function tiltCard(m) {
   const ov = $("ovTilt"); S.tiltCard = { m }; $("tiltDeg").textContent = m === 2 ? "+90°" : "−90°"; ov.classList.toggle("neg", m === 1); ov.hidden = false;
-  snd("siren"); try { if (navigator.vibrate) navigator.vibrate(50); } catch (e) {}
+  snd("siren"); try { window.__vib && window.__vib([50], true); } catch (e) {}
   let done = false; const go = () => { if (done) return; done = true; clearTimeout(t); ov.hidden = true; ov.onclick = null; const c = S.tiltCard; S.tiltCard = null;
     if (!c || !S.started || S.over) return; setRotMode(c.m); syncRotView();
     setTimeout(() => { if (rotOn()) announce("SIDEWINDER!", "Blocks still fall down", "ALERT", 2400); }, 1200); setTimeout(() => SFX.say("Hold the line!"), 600); };
@@ -8162,7 +8162,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
       $b("bdSub").textContent = "JACKPOT!"; $b("bdResT").textContent = prize[1].toUpperCase();
       $b("bdResS").textContent = rescue ? "Drops right now – flattens your stack!" : `+1 in your Pocket · now ×${S ? S[prize[2]] : 1}`; $b("bdGo").disabled = false; $b("bdGo").textContent = rescue ? "DROP IT ▶" : "COLLECT ▶";
       try { window.__bdSnd.win(); setTimeout(() => SFX.say("Jackpot!", 1.0, 1.0), 650); } catch (e) {}
-      try { if (navigator.vibrate) navigator.vibrate([30, 60, 30]); } catch (e) {}
+      try { window.__vib && window.__vib([30, 60, 30], true); } catch (e) {}
       const box = ov.querySelector(".bdBox"), cols = ["#e86fa3", "#6f9a3a", "#4f86c9", "#e6b93a", "#ee7a2c"];
       for (let k = 0; k < 26; k++) { const c = document.createElement("i"); c.className = "bdConf"; c.style.background = cols[k % 5]; box.appendChild(c);
         const a = Math.random() * Math.PI * 2, d = 90 + Math.random() * 120;
@@ -8196,19 +8196,19 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
   /* sanfte Vibration */
   try { (() => { const can = typeof navigator.vibrate === "function"; const vb = document.getElementById("pvVib");
       let on = LS.get("tarnturm-vib") !== "0"; const paint = () => { if (vb) { vb.hidden = !can; vb.textContent = "Vibration: " + (on ? "on" : "off"); } }; paint();
-      const hist = []; let lastAny = 0, lastLight = 0;
-      function buzz(pat, strong) { if (!can || !on || document.hidden) return; const now = performance.now(); if (now - lastAny < 300) return;
+      const hist = []; let lastAny = -1e9, lastLight = -1e9;
+      function buzz(pat, strong, must) { if (!can || !on || document.hidden) return; const now = performance.now();
+        if (!must && (typeof S === "undefined" || !S || !S.started || S.over || (S.playT || 0) < 60 || now - lastAny < 20000)) return;   /* V372: nur gelegentlich, nie beim Start */
         while (hist.length && now - hist[0] > 60000) hist.shift();
-        if (!strong && (hist.length >= 7 || now - lastLight < 4000)) return;
         try { navigator.vibrate(pat); } catch (e) { return; } hist.push(now); lastAny = now; if (!strong) lastLight = now; }
-      if (vb) vb.addEventListener("click", e => { e.stopPropagation(); on = !on; LS.set("tarnturm-vib", on ? "1" : "0"); paint(); if (on) buzz([25], true); });
+      if (vb) vb.addEventListener("click", e => { e.stopPropagation(); on = !on; LS.set("tarnturm-vib", on ? "1" : "0"); paint(); if (on) buzz([25], true, true); });
       window.__vib = buzz;
       let pl = null, pv = null, pHack = 0, pOver = false;
       setInterval(() => { if (!S || !S.started) { pl = pv = null; pOver = false; return; }
-        if (pl != null && S.lines > pl && !S.over) { const d = S.lines - pl; buzz(d >= 3 ? [60, 50, 60] : [d === 2 ? 55 : 40], false);   /* V321: spürbar */ }
+        if (pl != null && S.lines - pl >= 3 && !S.over) buzz([60, 50, 60], true);   /* V372: nur große Reihen */
         if (pv != null && S.lives < pv && !S.over) buzz([45, 60, 45], true);
         if ((S.hackOfferUntil || 0) > performance.now() && S.hackOfferUntil !== pHack) { pHack = S.hackOfferUntil; buzz([35, 50, 35], true); }
-        if (S.over && !pOver) buzz([60, 80, 60], true);
+        if (S.over && !pOver) buzz([60, 80, 60], true, true);
         pl = S.lines; pv = S.lives; pOver = !!S.over; }, 120);
       window.__TT && (window.__TT.vib = { buzz, get hist() { return hist.slice(); } });
     })(); } catch (e) { console.error("vib", e); }
@@ -8255,7 +8255,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     function buy() { const k = cur; if (window.__newsPrev) { close(false); return; } if (!k || why(k)) { paint(); return; } const p = price(k);
       if (TOWERW[k]) { const t = slotTower(); if (!t) { paint(); return; } t.w.push({ type: k, lvl: 1, cd: 0 }); }
       else if (k === "mix") S.mixers = (S.mixers || 0) + 1; else if (k === "snipe") S.snipes = (S.snipes || 0) + 1; else if (k === "chomp") S.chomps = (S.chomps || 0) + 1; else if (k === "tesla") S.teslas = (S.teslas || 0) + 1; else if (k === "lock") S.locks = (S.locks || 0) + 1; else S.tons = (S.tons || 0) + 1;
-      S.gold -= p; try { snd("shopBuy"); setTimeout(() => SFX.say("Nice!", 1.0, 1.0), 200); } catch (e) {} try { window.__vib && window.__vib([20], true); } catch (e) {} close(true); }
+      S.gold -= p; try { snd("shopBuy"); setTimeout(() => SFX.say("Nice!", 1.0, 1.0), 200); } catch (e) {} close(true); }
     ov.addEventListener("click", e => { e.stopPropagation(); if (e.target.closest("#adFree")) { try { snd("uiTap"); } catch (er) {} isFree = false; close(true); } else if (e.target.closest("#adBuy")) buy(); else if (e.target.closest("#adLater")) { try { snd("uiTap"); } catch (er) {} close(false); } });
     let lastW = null; setInterval(() => { if (!ov.hidden && cur && !isFree) { const w = why(cur); if (w !== lastW) { lastW = w; paint(); } } }, 400);
     const _si = showIntro;
@@ -8295,7 +8295,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
       $a("adName").textContent = D.name; $a("adLine").textContent = D.line; $a("adMet").innerHTML = D.met.map(x => `<span>${x}</span>`).join("");
       paint(); window.__adLast = performance.now(); $("ovIntro").hidden = true; ov.hidden = false; requestAnimationFrame(() => ov.classList.add("on"));
       try { const vl = { ton: "ad_drop", sweep: "ad_sweep", med: "ad_med", rot: "ad_upright" }[kind]; if (vl) setTimeout(() => { try { if (!ov.hidden) SFX.say(vl, 1.0, 1.0, 0, 0); } catch (e) {} }, 700); } catch (e) {}
-      try { snd("crate"); if (kind === "sweep" || kind === "ton") [0.5, 0.8].forEach(d => setTimeout(() => snd("coin"), d * 1000)); } catch (e) {} try { window.__vib && window.__vib([20, 40, 20], true); } catch (e) {} }
+      try { snd("crate"); if (kind === "sweep" || kind === "ton") [0.5, 0.8].forEach(d => setTimeout(() => snd("coin"), d * 1000)); } catch (e) {} }
     const dropQ = []; let dropWait = false;
     function pumpDrop() { if (dropWait || !dropQ.length) return; dropWait = true;
       window.__whenCalm(() => { if (!ov.hidden || (window.__playScreen && !window.__playScreen()) || S.nuts) { dropWait = false; setTimeout(pumpDrop, 1000); return; }
