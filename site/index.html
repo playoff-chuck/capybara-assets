@@ -2774,7 +2774,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V419";
+const GAME_VER = "V420";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -9345,7 +9345,7 @@ try { (() => {
     try { const p = S && S.piece; if (p && canAct() && !S.rotMode && !S.nuts && !S.duel) {
         const W = VW(), wall = p.cells.some(([x]) => p.x + x + dx < 0 || p.x + x + dx >= W);
         if (wall) { const nowP = performance.now(); if (push.dir !== dx || push.piece !== S.pieceNo || nowP - (push.t || 0) > 450) push = { n: 0, dir: dx, piece: S.pieceNo }; push.t = nowP; push.n++;
-          if (push.n >= 5) { push.n = 0; const c = wherePos(S.wave).c; S.eggDone = S.eggDone || {}; if (!S.eggDone[c] && S.inWave !== undefined && inPlay()) { S.eggDone[c] = 1; openEgg(c); return; } } }
+          if (push.n >= 5 + wherePos(S.wave).c) { push.n = 0; const c = wherePos(S.wave).c;   /* V420: 5 + Kontinent */ S.eggDone = S.eggDone || {}; if (!S.eggDone[c] && S.inWave !== undefined && inPlay()) { S.eggDone[c] = 1; openEgg(c); return; } } }
         else push.n = 0; } } catch (e) {}
     return _mv.apply(this, arguments); };
   function tileCol(v) { if (v === 8) return ["#d8d2c0", "#b9b2a0"]; const set = CAMO[v - 1]; return [set[0], set[2] || set[1]]; }
@@ -9388,7 +9388,7 @@ try { (() => {
   const DK = ["blk", "mag", "weed", "thief", "egg"];
   const _dj = devJump; devJump = function (w, kind) { const r = _dj.apply(this, arguments);
     if (DK.includes(kind)) { S.snipes = (S.snipes || 0) + 2; S.teslas = (S.teslas || 0) + 2; S.waveCD = 3; S.testLongW = w; S.testKind = kind; S.testLongUntil = performance.now() + 300000;
-      if (kind === "egg") toast("TEST · EASTER EGG: push a block 5× into the left or right wall", "HQ", 3500);
+      if (kind === "egg") toast(`TEST · EASTER EGG: push a block ${5 + wherePos(S.wave).c}× into the left or right wall`, "HQ", 3500);
       else if (kind === "thief") toast(`TEST · THIEF comes a few seconds into wave ${w} · buy a WOLF CALL in the shop`, "HQ", 3000);
       else toast(`TEST · ${kind.toUpperCase()} starts a few seconds into wave ${w} · 2 Sniper + 2 Tesla in Pocket`, "HQ", 3000); }
     if (kind === "wolfad") { S.gold = Math.max(S.gold, 900); S.wolves = 0; let n = 0; const tick = () => { if (++n > 120) return; if (S.inWave && window.__wolfAd && window.__wolfAd()) return; setTimeout(tick, 500); }; setTimeout(tick, 1500);
