@@ -2744,7 +2744,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V383";
+const GAME_VER = "V384";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -4792,6 +4792,7 @@ function update(dt) {
       if (S.wave % 5 === 0 && !S.nuts && !S.testRun && S.pl && S.pl.g === Math.floor((S.wave - 1) / 5)) { const p = S.pl, st = [true, S.lives >= p.lives, (S.lines || 0) - p.lines >= 5, (S.splatN || 0) - p.splat >= 5, (S.medGot || 0) - p.med >= 1], n = st.filter(Boolean).length;   /* V374 */
         S.lastStars = { g: p.g, n, st }; const all = starsAll(); if (n > (all[p.g] || 0)) { all[p.g] = n; try { LS.set("capy-stars", JSON.stringify(all)); } catch (e) {} }
         setTimeout(() => toast(`PLACE STARS ${"★".repeat(n)}${"☆".repeat(5 - n)}`, "HQ", 2600), 2400); }
+      if (S.replay && S.wave >= S.replay.end) { S.replay.fin = true; setTimeout(() => replayEnd("done"), 2900); }   /* V384 */
       if (S.wave % 5 === 0) praise(`WAVE ${S.wave}!`, S.waveLeaks === 0 ? 3 : 2, S.waveLeaks === 0 ? "Flawless!" : "Keep going!");
       else if (S.waveLeaks === 0 && S.lives <= 2) praise("COMEBACK!", 3, "Comeback!");
       else if (S.waveLeaks === 0) { if (S.wave % 2) praise("FLAWLESS!", 2, "Flawless!"); else praise("CLEAN SWEEP", 2, "Clean sweep!"); }
@@ -4808,7 +4809,7 @@ function update(dt) {
   stepTowers(dt); stepShots(dt);
   S.monsters = S.monsters.filter(m => !m.dead);
 }
-function gameOver(why) { tutAbort();
+function gameOver(why) { tutAbort(); if (S && S.replay && !S.over) { replayEnd("fail"); return; }   /* V384 */
   if (S.over) return; S.over = true; SFX.music.stop(0.5); snd("over"); setTimeout(() => SFX.say(S.wave >= 10 ? "Game over. What a run!" : "Game over.", 0.8, 0.9, SFX.reserveVoice(3000)), 1200);
   const best = getBest(MODE), rec = !S.cpRun && S.wave > best;
   if (rec) setBest(MODE, S.wave);
@@ -6384,7 +6385,7 @@ function buildSave() {
   for (const k of SAVE_KEYS) d[k] = S[k];
   return d;
 }
-function saveGame() { if (S && S.nuts) { if (window.__NZF) LS.set("tarnturm-save", JSON.stringify(window.__NZF)); return; } const d = buildSave(); if (d) LS.set("tarnturm-save", JSON.stringify(d)); }
+function saveGame() { if (S && S.replay) { if (window.__RPF) LS.set("tarnturm-save", JSON.stringify(window.__RPF)); return; } if (S && S.nuts) { if (window.__NZF) LS.set("tarnturm-save", JSON.stringify(window.__NZF)); return; } const d = buildSave(); if (d) LS.set("tarnturm-save", JSON.stringify(d)); }
 function loadGame(given) {
   let d = given; if (!d) { try { d = JSON.parse(LS.get("tarnturm-save") || "null"); } catch (e) { d = null; } }
   if (!d || !d.grid) return false; d.mode = "pro";   // V180: alte Spielstände anderer Modi laufen als World tour weiter
@@ -7526,7 +7527,7 @@ try { for (const m of ["pro", "nuts"]) { if (!LS.get("tarnturm-cp-" + m)) { cons
       const c = ov.querySelector(".comfort b"), s = ov.querySelector(".comfort small"); if (c) c.textContent = "We did it! Around the whole world – you are my hero!"; if (s) s.textContent = "BLUE SAYS";
       try { SFX.say("godlike"); snd("hkWin"); } catch (e) {} } } catch (e) {} return r; };
   try { window.__TT.v178.gameOver = gameOver; } catch (e) {}
-  setInterval(() => { if (typeof S === "undefined" || !S || !S.started || S.over || S.won) return; if (S.wave >= 150 && !S.inWave && S.toSpawn === 0 && S.monsters.length === 0) { S.won = true; S.paused = true; setTimeout(() => gameOver("World tour complete"), 1800); setTimeout(showCredits, 5200); announce("WORLD TOUR COMPLETE!", "All 150 waves · you beat the world", "HQ", 3000); } }, 400);
+  setInterval(() => { if (typeof S === "undefined" || !S || !S.started || S.over || S.won || S.replay) return; if (S.wave >= 150 && !S.inWave && S.toSpawn === 0 && S.monsters.length === 0) { S.won = true; S.paused = true; setTimeout(() => gameOver("World tour complete"), 1800); setTimeout(showCredits, 5200); announce("WORLD TOUR COMPLETE!", "All 150 waves · you beat the world", "HQ", 3000); } }, 400);
 })();
 
 // ===== V180: Nuts-Abstecher nach Welle 30/60/90/120, Join nach Welle 3, Einstiegs-Hilfen =====
@@ -7595,13 +7596,47 @@ $("signNext").addEventListener("click", () => { SFX.init(); snd("uiTap"); const 
   { const t0 = performance.now(), keep = () => { if (document.body.classList.contains("mapUp") || (S && S.mapShow) || performance.now() - t0 > 2500) { setTimeout(() => { ovSign.hidden = true; }, 120); return; } requestAnimationFrame(keep); }; requestAnimationFrame(keep); } });   /* V316: Wegweiser bis zur Karte stehen lassen */   /* V312: Karte sofort */
 $("signNuts").addEventListener("click", () => { SFX.init(); const c = (S.signOpen || 1) - 1; S.nutsAsk = { ...(S.nutsAsk || {}), [c]: 1 }; closeSign(); startDetour(c); });
 setInterval(() => {
-  if (typeof S === "undefined" || !S || !S.started || S.over || S.nuts || S.won || S.paused || S.intro || S.drop || S.ordersOpen || S.duel || S.inWave || !ovRes.hidden) return;
+  if (typeof S === "undefined" || !S || !S.started || S.over || S.nuts || S.replay || S.won || S.paused || S.intro || S.drop || S.ordersOpen || S.duel || S.inWave || !ovRes.hidden) return;
   const c = NZ_BASES.indexOf(S.wave); if (c < 0 || (S.nutsAsk || {})[c]) return;
   if (S.toSpawn > 0 || S.monsters.length || S.ordDue || hkOfferOn() || !inPlay() || performance.now() - (window.__evtLast || -1e9) < 5000) return;
   showSign(c);
 }, 500);
 
 // --- Abstecher starten / Level / Ende ---
+/* V384: Ort nochmal spielen – Hauptspielstand bleibt unberuehrt */
+function startReplay(g) {
+  g = Math.max(0, Math.min(29, g | 0));
+  if (S && S.nuts && !S.over) { toast("FINISH THE NUTS DETOUR FIRST", "HQ", 2000); return; }
+  let main = null;
+  if (S && S.replay && !S.over) main = window.__RPF || null;
+  else if (S && S.started && !S.over) main = buildSave();
+  else { try { main = JSON.parse(LS.get("tarnturm-save") || "null"); } catch (e) { main = null; } }
+  window.__RPF = main; if (main) LS.set("tarnturm-save", JSON.stringify(main));
+  const from = g * 5; window.__rpStart = true;
+  try { startGame(MODES.pro ? "pro" : MODE, from); } finally { window.__rpStart = false; }
+  S.cpRun = true; S.replay = { g, end: from + 5, best: starsAll()[g] || 0 }; S.mapDoneFor = from + 1;
+  for (const id of ["ovStart", "ovOver", "ovPause"]) $(id).hidden = true;
+  const P = wherePos(from + 1);
+  setTimeout(() => { if (S && S.replay && !S.over) toast(`REPLAY · ${P.place} · waves ${from + 1}–${from + 5} · world tour save is safe`, "HQ", 3000); }, 3000);
+}
+function replayEnd(why) {
+  if (!S || !S.replay || S.replay.ended) return; const R = S.replay; R.ended = true;
+  S.over = true; S.paused = false; try { tutAbort(); } catch (e) {} try { SFX.music.stop(0.5); } catch (e) {}
+  const main = window.__RPF; window.__RPF = null;
+  if (main) LS.set("tarnturm-save", JSON.stringify(main)); else LS.del("tarnturm-save");
+  try { endAlert(); if (S.drop) endDrop(); S.mix = null; $("mixer").hidden = true; S.mode = null; closeSheet(); } catch (e) {}
+  for (const id of ["ovPause", "ovOver", "ovOrders", "ovHack", "ovSpec", "ovTilt", "ovGive", "ovJoin"]) { const el = $(id); if (el) el.hidden = true; }
+  S.ordersOpen = false; S.duel = null;
+  const toMenu = () => { try { $("btnHQ").click(); } catch (e) { renderModes(); $("ovStart").hidden = false; } };
+  if (why === "quit") { toMenu(); return; }
+  const P = wherePos(R.end), ok = why === "done", n = ok && S.lastStars && S.lastStars.g === R.g ? S.lastStars.n : 0, best = Math.max(R.best, starsAll()[R.g] || 0);
+  const d = document.createElement("div"); d.id = "rpRes";
+  d.innerHTML = `<div class="rpBox"><small>REPLAY · PLACE ${R.g + 1} OF 30</small><b>${ok ? P.place + " CLEARED!" : "REPLAY OVER"}</b>`
+    + `<p class="rpSt">${starStr(n)}</p><span>${n > R.best ? "NEW BEST! " : ""}Best: ${starStr(best)}</span><em>Your world tour save is untouched.</em><button type="button" class="btn-accent">OK</button></div>`;
+  document.body.appendChild(d); try { snd(ok ? "hkWin" : "nope"); } catch (e) {}
+  d.querySelector("button").addEventListener("click", () => { try { SFX.init(); snd("uiTap"); } catch (e) {} d.remove(); toMenu(); });
+}
+try { window.__TT && Object.assign(window.__TT, { startReplay: g => startReplay(g), replayEnd: w => replayEnd(w), saveGame: () => saveGame(), gameOver: w => gameOver(w) }); } catch (e) {}
 function startDetour(c) {
   const fr = buildSave(); if (!fr) return; NZ.frozen = fr; window.__NZF = fr; NZ.first = nzFirstOpen(c); NZ.ending = false;
   const seen = { ...(S.seen || {}) };
@@ -7670,6 +7705,7 @@ function renderPNuts() {
 }
 new MutationObserver(() => { if (!$("ovPause").hidden) renderPNuts(); }).observe($("ovPause"), { attributes: true, attributeFilter: ["hidden"] });
 $("pNuts").addEventListener("click", e => { const b = e.target.closest("[data-nz]"); if (!b) return; SFX.init(); snd("uiTap"); $("ovPause").hidden = true; S.paused = false; startDetour(+b.dataset.nz); });
+$("btnPRestart").addEventListener("click", e => { if (S && S.replay && !S.over) { e.stopImmediatePropagation(); $("ovPause").hidden = true; replayEnd("quit"); } }, true);   /* V384 */
 $("btnPNutsQuit").addEventListener("click", () => { SFX.init(); if (S && S.nuts) nutsEnd("quit"); });
 for (const id of ["btnPMenu", "btnHQ"]) $(id).addEventListener("click", e => { if (S && S.nuts && !S.over) { e.stopImmediatePropagation(); e.preventDefault(); nutsEnd("quit"); } }, true);
 $("btnPSquad").addEventListener("click", () => { SFX.init(); $("setNick").value = LS.get("tarnturm-nick") || ""; renderThemeBtn(); $("ovSettings").hidden = false; });
@@ -7951,11 +7987,11 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     ov.innerHTML = `<div class="mapVp"><div class="mapWorld"><img class="mapImg" src="img/worldmap.webp" alt="World map" draggable="false"><img class="mapImg mapWrap wL" src="img/worldmap.webp" alt="" draggable="false"><img class="mapImg mapWrap wR" src="img/worldmap.webp" alt="" draggable="false"><svg class="mapPath" viewBox="0 0 1000 ${Math.round(1000 * MAP_AR)}" preserveAspectRatio="none"></svg><div class="mapPins"></div><div class="mapPlane"><div class="biPlane"><img class="bpCap" src="img/biplane_cap2.webp" alt=""><img class="bpBody" src="img/biplane_body.webp" alt=""><i class="bpDisc"></i><i class="bpProp"></i><i class="bpHub"></i></div></div><div class="mapMe"><img alt=""></div></div></div>
       <div class="mapTop"><small class="mapCont"></small><b class="mapPlace"></b><span class="mapSub"></span></div>
       <div class="mapBar"><button type="button" class="mapWorldBtn">WORLD</button><button type="button" class="mapPlay">PLAY ▶</button><button type="button" class="mapClose">CLOSE</button></div>
-      <div class="mapSkip">tap to skip</div><div class="mapDest" hidden><b></b></div>`;
+      <button type="button" class="mapReplay" hidden></button><div class="mapSkip">tap to skip</div><div class="mapDest" hidden><b></b></div>`;
     document.body.appendChild(ov);
     const vp = ov.querySelector(".mapVp"), world = ov.querySelector(".mapWorld"), pinsEl = ov.querySelector(".mapPins"), pathEl = ov.querySelector(".mapPath"), plane = ov.querySelector(".mapPlane"), me = ov.querySelector(".mapMe");
     let cam = { x: .5, y: .5, k: 1 }, BW = 400, mode = null, seqT = [], seqDone = null; const WRAP_P = 0.95;
-    const curWave = () => { try { if (typeof S !== "undefined" && S && S.started && !S.over && !S.nuts) return Math.max(1, S.wave || 1); } catch (e) {} try { const d = JSON.parse(LS.get("tarnturm-save") || "null"); if (d && d.wave && !d.nuts) return Math.max(1, d.wave); } catch (e) {} return 1; };
+    const curWave = () => { try { if (typeof S !== "undefined" && S && S.started && !S.over && !S.nuts && !S.replay) return Math.max(1, S.wave || 1); } catch (e) {} try { const d = JSON.parse(LS.get("tarnturm-save") || "null"); if (d && d.wave && !d.nuts) return Math.max(1, d.wave); } catch (e) {} return 1; };
     const posOf = w => { const P = wherePos(w); return { c: P.c, p: P.p, g: P.c * 6 + P.p }; };
     function layout() { const W = vp.clientWidth || innerWidth; BW = W; world.style.width = BW + "px"; world.style.height = BW * MAP_AR + "px"; }
     function apply(anim) {
@@ -7997,13 +8033,14 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     function clearSeq() { seqT.forEach(clearTimeout); seqT = []; }
     function at(ms, f) { seqT.push(setTimeout(f, ms)); }
     function show(m) { mode = m; mapShownAt = performance.now(); ov.classList.remove("skipOk"); clearTimeout(skipT); skipT = setTimeout(() => ov.classList.add("skipOk"), 3000); layout(); ov.hidden = false; ov.className = m === "browse" ? "browse" : "auto"; document.body.classList.add("mapUp"); }
-    function hide() { clearSeq(); ov.hidden = true; mode = null; document.body.classList.remove("mapUp"); plane.classList.remove("on"); const f = seqDone; seqDone = null; if (f) f(); }
+    function hide() { clearSeq(); try { ov.querySelector(".mapReplay").hidden = true; } catch (e) {} ov.hidden = true; mode = null; document.body.classList.remove("mapUp"); plane.classList.remove("on"); const f = seqDone; seqDone = null; if (f) f(); }
     /* frei ansehen */
     function openMap(w, why) { clearSeq(); w = w || curWave(); const P = posOf(w); show("browse");
       { const st = document.getElementById("ovStart"), fs = !!(st && !st.hidden && !why); ov.classList.toggle("fromStart", fs);
         const rs = document.getElementById("btnResume"), hasSave = !!(rs && rs.getClientRects().length); ov.querySelector(".mapPlay").textContent = hasSave ? "CONTINUE ▶" : "PLAY ▶"; } drawPins(P.g); setMe(MAP_PTS[P.c][P.p], false);
       label(contName(P.c), why === "over" ? `You reached ${nice(CONTS[P.c][2][P.p])}` : nice(CONTS[P.c][2][P.p]), placeSub(w));
       go(worldCam(), 0); requestAnimationFrame(() => requestAnimationFrame(() => go(contCam(P.c), 900))); try { snd("open"); } catch (e) {} }
+    ov.querySelector(".mapReplay").addEventListener("click", e => { e.stopPropagation(); const g = +e.currentTarget.dataset.g; try { SFX.init(); snd("start"); } catch (er) {} hide(); startReplay(g); });
     ov.querySelector(".mapClose").addEventListener("click", e => { e.stopPropagation(); try { snd("close"); } catch (er) {} hide(); });
     ov.querySelector(".mapWorldBtn").addEventListener("click", e => { e.stopPropagation(); const wv = ov.classList.toggle("wv"); const P = posOf(curWave()); go(wv ? worldCam() : contCam(P.c), 800); ov.querySelector(".mapWorldBtn").textContent = wv ? "MY CONTINENT" : "WORLD"; try { snd("uiTap"); } catch (er) {} });
     { /* V377: ziehen + Pinch-Zoom + Mausrad */
@@ -8024,7 +8061,12 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
       vp.addEventListener("pointerup", up); vp.addEventListener("pointercancel", up);
       vp.addEventListener("wheel", e => { if (mode !== "browse") return; e.preventDefault(); cam = { ...cam, k: clampK(kNow() * (e.deltaY < 0 ? 1.15 : 1 / 1.15)) }; apply(120); }, { passive: false });
     }
-    vp.addEventListener("click", e => { if (mode !== "browse") return; if (performance.now() - (window.__mapDragT || 0) < 300) return;   /* V377: nach Ziehen kein Antippen */ const r = world.getBoundingClientRect(), ny = (e.clientY - r.top) / r.height; let nx = (e.clientX - r.left) / r.width; nx = ((nx % WRAP_P) + WRAP_P) % WRAP_P;
+    vp.addEventListener("click", e => { if (mode !== "browse") return; if (performance.now() - (window.__mapDragT || 0) < 300) return;
+      { const rb = ov.querySelector(".mapReplay"); rb.hidden = true; let hit = null, hd = 30;   /* V384: geschafften Ort antippen -> nochmal spielen */
+        ov.querySelectorAll(".mPin.done").forEach(el => { const r = el.querySelector("i").getBoundingClientRect(); if (!r.width) return; const dd = Math.hypot(e.clientX - (r.left + r.width / 2), e.clientY - (r.top + r.height / 2)); if (dd < hd) { hd = dd; hit = el; } });
+        if (hit && !(S && S.nuts && !S.over)) { const g = +hit.dataset.g, c = Math.floor(g / 6), i = g % 6, st = starsAll()[g] || 0;
+          rb.dataset.g = g; rb.innerHTML = `▶ REPLAY ${nice(CONTS[c][2][i])}<small>waves ${g * 5 + 1}–${g * 5 + 5} · ${starStr(st)}</small>`; rb.hidden = false;
+          label(contName(c), nice(CONTS[c][2][i]), `Cleared · best ${starStr(st)} · replay for more stars`); try { snd("uiTap"); } catch (er) {} return; } }   /* V377: nach Ziehen kein Antippen */ const r = world.getBoundingClientRect(), ny = (e.clientY - r.top) / r.height; let nx = (e.clientX - r.left) / r.width; nx = ((nx % WRAP_P) + WRAP_P) % WRAP_P;
       let best = -1, bd = 9; MAP_PTS.forEach((P, c) => P.forEach(p => { const d = Math.hypot(p[0] - nx, (p[1] - ny) * MAP_AR); if (d < bd) { bd = d; best = c; } }));
       if (best >= 0 && bd < .12) { ov.classList.remove("wv"); ov.querySelector(".mapWorldBtn").textContent = "WORLD"; go(contCam(best), 800); const g = posOf(curWave()).g; const done = Math.max(0, Math.min(6, g - best * 6));
         label(contName(best), best * 6 > g ? "Not yet reached" : nice(CONTS[best][2][Math.min(5, Math.max(0, g - best * 6))]), best * 6 > g ? `Arrive at wave ${best * 30 + 1}` : `${done} of 6 places cleared`); try { snd("uiTap"); } catch (er) {} } });
@@ -8103,14 +8145,14 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     /* Einhängen vor dem Wellenstart */
     let busy = false, pendSW = null;
     const _sw2 = startWave; startWave = function () { const a = arguments, self = this;
-      try { if (!busy && S && S.started && !S.over && !S.nuts && S.mapDoneFor !== (S.wave || 0) + 1) { const nw = (S.wave || 0) + 1, P = wherePos(nw);
+      try { if (!busy && S && S.started && !S.over && !S.nuts && !S.replay && S.mapDoneFor !== (S.wave || 0) + 1) { const nw = (S.wave || 0) + 1, P = wherePos(nw);
           let play = null; if (nw > 1 && nw <= 150 && P.d === 0) play = P.p === 0 ? (d => playCont(nw, d)) : (d => playPlace(nw, d));
           if (play) { const calm = performance.now() - (window.__evtLast || -1e9); if (calm < 5000 && !window.__fromSign) { S.waveCD = Math.max(S.waveCD || 0, (5000 - calm) / 1000 + 0.1); return; }   /* V309: 5 s Ruhe vor der Karte */
             busy = true; const was = S.paused; S.paused = true; S.mapShow = true;
             play(() => { S.paused = was; S.mapShow = false; busy = false; if (P.p === 0) { S.mapDoneFor = nw; S.waveCD = 6; return; } _sw2.apply(self, a); }); return; } } } catch (e) { busy = false; }
       if (busy) { pendSW = [this, a]; return; } return _sw2.apply(this, a); };
     const _sg = startGame; startGame = function (m, fromWave) { const r = _sg.apply(this, arguments);
-      try { if (!fromWave && S && S.started && !S.over && !S.nuts) { busy = true; const was = S.paused; S.paused = true; S.mapShow = true;
+      try { if (!fromWave && !window.__rpStart && S && S.started && !S.over && !S.nuts) { busy = true; const was = S.paused; S.paused = true; S.mapShow = true;
           playIntro(() => { S.paused = was; S.mapShow = false; busy = false; if (pendSW) { const [t, aa] = pendSW; pendSW = null; _sw2.apply(t, aa); } });
           setTimeout(() => { try { if (S.wave > 0 || S.nuts) hide(); } catch (e) {} }, 0); } } catch (e) { busy = false; }
       return r; };
@@ -9801,6 +9843,12 @@ body.mapUp #bWave,body.mapUp #waveNum,body.mapUp #bPauseTop{visibility:hidden!im
 #ovMap.browse.fromStart .mapPlay{display:block;min-width:150px!important;background:linear-gradient(180deg,#ffb347,#ff8a1f)!important;color:#fff!important;-webkit-text-stroke:1.5px #3a2414;paint-order:stroke fill;font-size:21px!important;white-space:nowrap;padding:0 14px!important}
 #ovMap.browse.fromStart .mapBar .mapClose,#ovMap.browse.fromStart .mapBar .mapWorldBtn{min-width:0!important;padding:0 14px!important;font-size:17px!important}
 #ovMap.browse.fromStart .mPin.cur i{cursor:pointer}
+#ovMap .mapReplay{position:absolute;left:50%;bottom:calc(84px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:6;min-width:220px;max-width:calc(100% - 32px);padding:10px 18px;border:3px solid #3a2414;border-radius:16px;background:linear-gradient(180deg,#ffb347,#ff8a1f);color:#fff;font:inherit;font-size:19px;font-weight:900;-webkit-text-stroke:1.2px #3a2414;paint-order:stroke fill;box-shadow:0 4px 0 #3a2414;cursor:pointer;line-height:1.15}
+#ovMap .mapReplay small{display:block;font-size:13px;-webkit-text-stroke:0;color:#3a2414;font-weight:800;margin-top:2px}
+#ovMap .mapReplay[hidden]{display:none}
+#rpRes{position:fixed;inset:0;z-index:2147483002;display:flex;align-items:center;justify-content:center;background:rgba(20,12,6,.62);padding:16px}
+#rpRes .rpBox{background:#f3ead6;border:3px solid #3a2414;border-radius:18px;box-shadow:0 6px 0 #3a2414;padding:18px 20px;max-width:340px;width:100%;text-align:center;color:#3a2414;display:flex;flex-direction:column;gap:6px}
+#rpRes small{font-weight:800;letter-spacing:.06em;opacity:.75}#rpRes b{font-size:24px;line-height:1.1}#rpRes .rpSt{margin:4px 0;font-size:34px;color:#ffb400;-webkit-text-stroke:1.5px #3a2414;letter-spacing:2px}#rpRes em{font-style:normal;font-size:13px;opacity:.8}#rpRes button{margin-top:8px;min-height:48px;font-size:20px}
 #ovMap.browse.fromStart .mPin.cur em::after{content:" ▶";color:#ff8a1f}
 </style>
 <style id="v237">
