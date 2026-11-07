@@ -1406,10 +1406,12 @@ body.introFull #ovIntro .introBox{position:relative;overflow:visible}
 body.introFull #ovIntro .introBox::after{content:"";position:absolute;bottom:-15px;right:26%;border:14px solid transparent;border-bottom:0;border-top:15px solid var(--ink,#3a2a1a)}
 body.introFull #ovIntro .inArt{display:none}
 #btnAlbum,#btnSquad{display:none!important}
-.awTabs{display:flex;gap:4px;margin:0 34px 8px 0}
-.awTabs button{flex:1;min-width:0;padding:6px 2px;border-radius:10px;border:2px solid #3a2a1a;background:#ece0c8;color:#3a2a1a;font:400 15px/1 Bangers,system-ui;letter-spacing:.5px;box-shadow:0 2px 0 #3a2a1a}
-.awTabs button.on{background:#ffd84d}
-#ovHs .awTabs{margin:0 30px 8px 0}
+#awBar{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 10px);transform:translateX(-50%);width:min(420px,calc(100vw - 24px));z-index:120;display:none;gap:5px}
+body.awOn #awBar{display:flex}
+#awBar button{flex:1;min-width:0;padding:9px 2px 7px;border-radius:12px;border:3px solid #3a2a1a;background:#fff6e6;color:#3a2a1a;font:400 17px/1 Bangers,system-ui!important;letter-spacing:.5px;box-shadow:0 3px 0 #3a2a1a!important;background:#fff6e6!important;background-image:none!important;color:#3a2a1a!important;margin:0!important;min-height:0!important}
+#awBar button.on{background:#3a2a1a!important;color:#fff6e6!important}
+body.awOn #ovAlbum,body.awOn #ovSquad{padding-top:calc(env(safe-area-inset-top,0px) + 62px)!important;align-items:flex-start!important}
+body.awOn #ovHs{padding-top:calc(env(safe-area-inset-top,0px) + 62px)!important}
 body:has(#ovAlbum:not([hidden])):has(#albBody):has(#albX) #btnOffline,body:has(#ovAlbum:not([hidden])):has(#albBody):has(#albX) #btnMap,body:has(#ovHs:not([hidden])):has(#hsList):has(#btnHsClose) #btnOffline,body:has(#ovHs:not([hidden])):has(#hsList):has(#btnHsClose) #btnMap{display:none!important}
 #ovSquad{position:fixed;inset:0;z-index:90;display:flex;align-items:center;justify-content:center;padding:12px;background:rgba(40,28,16,.55)}
 #ovSquad[hidden]{display:none}
@@ -2767,7 +2769,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V396";
+const GAME_VER = "V397";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -2831,6 +2833,7 @@ const INTRO_MON = {
   bear:   ["Grizzly",  "Huge and furry. Every hit loses 2 damage in the fur.", ["HP ×4", "Speed ×0.7", "Fur −2"]],
 };
 const INTRO_GEAR = {
+  wolf:  ["Wolf call",      "A howl in the dark: raccoon thieves run and drop your gold.", () => [`${typeof WOLF_COST !== "undefined" ? WOLF_COST : 500} gold`, "Scares thieves", "Gold comes back"]],
   lock:  ["Lockdown",       "Pocket time stop: 8 s frozen, cleared lines explode together.", () => [`${LOCK_COST} gold`, "8 s stop", `+1 per ${LOCK_NEED} lines`]],
   kan:   ["Cannon",         "Slow heavy shells with splash. Cracks brutes.",          () => [`${WEAP.kan.cost} gold`, `Damage ${WEAP.kan.dmg}`, `Range ${WEAP.kan.range}`]],
   frost: ["Frost",          "Slows everything it hits. Pair it with an MG.",          () => [`${WEAP.frost.cost} gold`, `Damage ${WEAP.frost.dmg}`, "Slows 55 %"]],
@@ -4947,7 +4950,7 @@ function tntCell(x, y, g = ctx, s = CELL, px = x * CELL, py = y * CELL) {
   if (s >= 16) { g.fillStyle = "#f5e6c0"; g.font = `700 ${s * 0.34}px "Barlow Condensed", "Arial Narrow", sans-serif`; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText("TNT", px + s * 0.5, py + s * 0.47); }
 }
 // Ein Monster zeichnen (Spielfeld und Feldhandbuch)
-/*SPRITES_START*/const MON_SPR_SRC={norm:"img/0d74d4e1a8.webp",fast:"img/cad8b59a7d.webp",heavy:"img/a5a46f151d.webp",munch:"img/1ed8ccf00b.webp",runner:"img/948aebca31.webp",kiefer:"img/6d3bb5d7c5.webp",bomber:"img/7ab8ccae81.webp",volt:"img/f5a9cc1d7f.webp",jaguar:"img/d6115da788.webp",mummy:"img/b7c38c3e3b.webp",tiger:"img/e28b8c0ffe.webp",bear:"img/9ce1173bc3.webp"};const MON_SPR={};for(const k in MON_SPR_SRC){const im=new Image();im.decoding='async';im.src=MON_SPR_SRC[k];MON_SPR[k]=im;}const MON_SPR_SCALE={norm:2.9,fast:3.1,heavy:2.6,munch:2.9,runner:3.0,kiefer:2.5,bomber:2.8,volt:2.8,jaguar:2.9,mummy:2.8,tiger:2.8,bear:2.6};function drawMonSprite(ctx,m,cx,cy,s,now){const k=m.kind,im=MON_SPR[k];if(!im||!im.complete||!im.naturalWidth)return false;const ph=m.ph||0,r=s*(MON_R[k]||0.33),bob=Math.abs(Math.sin(now/110+ph))*s*0.07,tilt=Math.sin(now/90+ph)*0.09;ctx.fillStyle='rgba(0,0,0,.35)';ctx.beginPath();ctx.ellipse(cx,cy+r*0.95,r*0.9,r*0.3,0,0,7);ctx.fill();const sz=r*(MON_SPR_SCALE[k]||2.8),sq=1+Math.sin(now/55+ph)*0.04;ctx.save();ctx.translate(cx,cy+r*0.95-bob);ctx.rotate(tilt);ctx.scale(Math.cos(m.dir||0)<-0.3?-1:1,1);ctx.scale(1/sq,sq);ctx.drawImage(im,-sz/2,-sz*0.97,sz,sz);ctx.restore();m._top=cy+r*0.95-bob-sz*0.9;return true;}const TOW_SPR={};{const T={mg:"img/9335afdf0f.webp",kan:"img/8d5eb7ae93.webp",frost:"img/595582df1c.webp"};for(const k in T){const im=new Image();im.src=T[k];TOW_SPR[k]=im;}}function drawTowSprite(ctx,t,cx,cy,s){if(!t.w.length)return false;const ty=t.w.some(w=>w.type==='kan')?'kan':t.w.some(w=>w.type==='frost')?'frost':'mg',im=TOW_SPR[ty];if(!im||!im.complete||!im.naturalWidth)return false;const sz=s*1.18;if(S.sel===t){ctx.strokeStyle='#ee7a2c';ctx.lineWidth=Math.max(2,s*0.09);ctx.beginPath();ctx.arc(cx,cy,s*0.52,0,7);ctx.stroke();}ctx.save();ctx.translate(cx,cy);if(Math.cos(t.ang||0)<0)ctx.scale(-1,1);ctx.drawImage(im,-sz/2,-sz*0.58,sz,sz);ctx.restore();const n=t.w.length,pr=s*0.075;for(let i=0;i<n;i++){const px=cx+(i-(n-1)/2)*pr*2.4,py=cy+s*0.4;ctx.fillStyle=WEAP[t.w[i].type].col;ctx.strokeStyle='#17150c';ctx.lineWidth=Math.max(1,s*0.03);ctx.beginPath();ctx.arc(px,py,pr,0,7);ctx.fill();ctx.stroke();}return true;}const ICO_SPR={tower:"img/31f06ee640.webp",snipe:"img/7c9c7b7e55.webp",mix:"img/mixer_icon.webp",tesla:"img/f52a688927.webp",lock:"img/64ef54d7b4.webp",chomp:"img/6ea9cae9a7.webp",ton:"img/ton_icon.webp",wolf:"img/wolf_icon.webp",mg:"img/9335afdf0f.webp",kan:"img/8d5eb7ae93.webp",frost:"img/595582df1c.webp"};/*SPRITES_END*/
+/*SPRITES_START*/const MON_SPR_SRC={norm:"img/0d74d4e1a8.webp",fast:"img/cad8b59a7d.webp",heavy:"img/a5a46f151d.webp",munch:"img/1ed8ccf00b.webp",runner:"img/948aebca31.webp",kiefer:"img/6d3bb5d7c5.webp",bomber:"img/7ab8ccae81.webp",volt:"img/f5a9cc1d7f.webp",jaguar:"img/d6115da788.webp",mummy:"img/b7c38c3e3b.webp",tiger:"img/e28b8c0ffe.webp",bear:"img/9ce1173bc3.webp"};const MON_SPR={};for(const k in MON_SPR_SRC){const im=new Image();im.decoding='async';im.src=MON_SPR_SRC[k];MON_SPR[k]=im;}const MON_SPR_SCALE={norm:2.9,fast:3.1,heavy:2.6,munch:2.9,runner:3.0,kiefer:2.5,bomber:2.8,volt:2.8,jaguar:2.9,mummy:2.8,tiger:2.8,bear:2.6};function drawMonSprite(ctx,m,cx,cy,s,now){const k=m.kind,im=MON_SPR[k];if(!im||!im.complete||!im.naturalWidth)return false;const ph=m.ph||0,r=s*(MON_R[k]||0.33),bob=Math.abs(Math.sin(now/110+ph))*s*0.07,tilt=Math.sin(now/90+ph)*0.09;ctx.fillStyle='rgba(0,0,0,.35)';ctx.beginPath();ctx.ellipse(cx,cy+r*0.95,r*0.9,r*0.3,0,0,7);ctx.fill();const sz=r*(MON_SPR_SCALE[k]||2.8),sq=1+Math.sin(now/55+ph)*0.04;ctx.save();ctx.translate(cx,cy+r*0.95-bob);ctx.rotate(tilt);ctx.scale(Math.cos(m.dir||0)<-0.3?-1:1,1);ctx.scale(1/sq,sq);ctx.drawImage(im,-sz/2,-sz*0.97,sz,sz);ctx.restore();m._top=cy+r*0.95-bob-sz*0.9;return true;}const TOW_SPR={};{const T={mg:"img/9335afdf0f.webp",kan:"img/8d5eb7ae93.webp",frost:"img/595582df1c.webp"};for(const k in T){const im=new Image();im.src=T[k];TOW_SPR[k]=im;}}function drawTowSprite(ctx,t,cx,cy,s){if(!t.w.length)return false;const ty=t.w.some(w=>w.type==='kan')?'kan':t.w.some(w=>w.type==='frost')?'frost':'mg',im=TOW_SPR[ty];if(!im||!im.complete||!im.naturalWidth)return false;const sz=s*1.18;if(S.sel===t){ctx.strokeStyle='#ee7a2c';ctx.lineWidth=Math.max(2,s*0.09);ctx.beginPath();ctx.arc(cx,cy,s*0.52,0,7);ctx.stroke();}ctx.save();ctx.translate(cx,cy);if(Math.cos(t.ang||0)<0)ctx.scale(-1,1);ctx.drawImage(im,-sz/2,-sz*0.58,sz,sz);ctx.restore();const n=t.w.length,pr=s*0.075;for(let i=0;i<n;i++){const px=cx+(i-(n-1)/2)*pr*2.4,py=cy+s*0.4;ctx.fillStyle=WEAP[t.w[i].type].col;ctx.strokeStyle='#17150c';ctx.lineWidth=Math.max(1,s*0.03);ctx.beginPath();ctx.arc(px,py,pr,0,7);ctx.fill();ctx.stroke();}return true;}const ICO_SPR={tower:"img/31f06ee640.webp",snipe:"img/7c9c7b7e55.webp",mix:"img/mixer_icon.webp",tesla:"img/f52a688927.webp",lock:"img/64ef54d7b4.webp",chomp:"img/6ea9cae9a7.webp",ton:"img/ton_icon.webp",wolf:"img/wolf_icon.webp",wolfuse:"img/wolf_icon.webp",mg:"img/9335afdf0f.webp",kan:"img/8d5eb7ae93.webp",frost:"img/595582df1c.webp"};/*SPRITES_END*/
 const MON_R = { heavy: 0.42, fast: 0.27, munch: 0.34, runner: 0.31, bomber: 0.36, kiefer: 0.46, volt: 0.4, jaguar: 0.36, mummy: 0.36, tiger: 0.4, bear: 0.46, norm: 0.33 };
 function drawMonster(ctx, m, cx, cy, s, now) {
     if (drawMonSprite(ctx, m, cx, cy, s, now)) return;
@@ -5974,7 +5977,7 @@ function hud() {
   if (bw.innerHTML !== bwt) bw.innerHTML = bwt;
   bw.disabled = !S.started || S.over;
   bw.classList.toggle("btn-accent", !S.inWave && !S.paused && S.started && !S.over);
-  const nSp = (S.snipes > 0 ? 1 : 0) + (S.mixers > 0 ? 1 : 0) + (S.teslas > 0 ? 1 : 0) + (S.locks > 0 ? 1 : 0) + (S.chomps > 0 ? 1 : 0) + (S.tons > 0 ? 1 : 0);
+  const nSp = (S.snipes > 0 ? 1 : 0) + (S.mixers > 0 ? 1 : 0) + (S.teslas > 0 ? 1 : 0) + (S.locks > 0 ? 1 : 0) + (S.chomps > 0 ? 1 : 0) + (S.tons > 0 ? 1 : 0) + (S.wolves > 0 ? 1 : 0);
   const bp = $("bPocket"), bpt = S.mode === "snipe" ? `HOLSTER<span class="lbl">AIMING</span>` : S.mode === "mix" ? `PARK<span class="lbl">TAP A HOLE</span>` : S.mode === "tesla" ? `HOLSTER<span class="lbl">CHARGED</span>` : nSp >= 2 ? `POCKET<span class="lbl tight">${[S.snipes ? "SNI " + S.snipes : "", S.mixers ? "MIX " + S.mixers : "", S.teslas ? "TES " + S.teslas : "", S.locks ? "LCK " + S.locks : "", S.chomps ? "CHO " + S.chomps : "", S.tons ? "10T " + S.tons : ""].filter(Boolean).join(" · ")}</span>` : S.teslas > 0 ? `TESLA<span class="lbl">×${S.teslas} · TAP TO AIM</span>` : S.snipes > 0 ? `SNIPER<span class="lbl">×${S.snipes} · TAP TO AIM</span>` : S.mixers > 0 ? `MIXER<span class="lbl">×${S.mixers} · TAP TO USE</span>` : S.locks > 0 ? `LOCKDOWN<span class="lbl">×${S.locks} · TAP</span>` : S.chomps > 0 ? `CHOMPER<span class="lbl">×${S.chomps} · TAP</span>` : S.tons > 0 ? `10-TON<span class="lbl">×${S.tons} · TAP</span>` : coachLeft() > 0 ? `POCKET<span class="lbl">COACH ×${coachLeft()}</span>` : `POCKET<span class="lbl">EMPTY</span>`;
   if (bp.innerHTML !== bpt) bp.innerHTML = bpt;
   bp.disabled = !S.started || S.over || !!S.mix; bp.classList.toggle("btn-on", S.mode === "snipe" || S.mode === "mix" || S.mode === "tesla"); bp.classList.toggle("btn-accent", nSp > 0 && !S.mode);
@@ -6021,7 +6024,7 @@ const SNIPE_COST = 200, MIX_COST = 350, TESLA_COST = 500, WOLF_COST = 500, WOLF_
 function playWolf() { try { if (SFX.muted) return; const a = new Audio("sfx/wolf.mp3"); a.volume = Math.min(1, 3.6 * Math.pow(SFX.vol || 0.3, 2)) * (SFX.ch ? SFX.ch("f") : 1); a.play().catch(() => {}); } catch (e) {} }
 function wolfCall() { const D = window.__dist && window.__dist.D, T = D && D.thief;
   if (!(S.wolves > 0)) { snd("nope"); return; }
-  if (!T) { toast("NO THIEF AROUND · the wolf stays in your pocket", "POCKET", 1800); snd("nopeSoft"); return; }
+  if (!T) { S.wolves--; S.mode = null; S.aim = null; playWolf(); setTimeout(() => toast("AWOOO! · no thief around – howl wasted", "POCKET", 2000), 600); return; }
   S.wolves--; S.mode = null; S.aim = null; playWolf();
   setTimeout(() => { if (D.thief !== T) return; T.flee = true; const g = T.stolen || 0; T.stolen = 0; if (g) S.gold += g;
     toast(g ? `THE WOLF SCARED HIM OFF · +${g} gold back` : "THE WOLF SCARED HIM OFF!", "HQ", 2200); praise("AWOOO!", 2, false);
@@ -6104,7 +6107,7 @@ function renderPocket() {
   h += shopItem("pocket", "snipe", ICON.snipe, "Sniper strike", `×${S.snipes}`, "2×2 patch wiped, the blast splats around it.", "AIM", S.snipes < 1, "btn-accent");
   h += shopItem("pocket", "tesla", ICON.tesla, "Tesla storm", `×${S.teslas}`, "4×4 lightning strike, splats count triple." + (S.wave >= 90 ? " Cuts weeds" + "." : ""), "ZAP", S.teslas < 1, "btn-accent");
   if (S.chomps > 0) h += shopItem("pocket", "chomp", ICON.chomp, "Chomper", `×${S.chomps}`, "Runs the ring backwards, eats all in its way.", "RELEASE", !!S.chomp, "btn-accent");
-  if (S.wolves > 0) h += shopItem("pocket", "wolf", ICON.tesla, "Wolf call", `×${S.wolves}`, "Howl: a thief runs off and drops your gold.", "HOWL", !(window.__dist && window.__dist.D && window.__dist.D.thief), "btn-accent");
+  if (S.wolves > 0) h += shopItem("pocket", "wolf", ICON.tesla, "Wolf call", `×${S.wolves}`, "Howl: a thief runs off and drops your gold.", "HOWL", false, "btn-accent");
   if (S.tons > 0) h += shopItem("pocket", "ton", ICON.ton, "Ten-ton drop", `×${S.tons}`, "Crushes monsters, squeezes blocks to half.", "DROP IT", !!S.ton, "btn-accent");
   h += shopItem("pocket", "lock", ICON.lock, "Lockdown", `×${S.locks || 0}`, `${LOCK_TIME} s time stop · next free: ${S.lockCharge || 0}/${LOCK_NEED} lines`, "ACTIVATE", !(S.locks > 0) || S.lockT > 0, "btn-accent");
   h += shopItem("pocket", "mix", ICON.mix, "Concrete mixer", `×${S.mixers}`, "Fills a hole up to the top block.", "DRIVE", S.mixers < 1, "btn-accent");
@@ -6122,6 +6125,7 @@ function renderShop() {
   const lock = k => `Locked · unlocks at wave ${unlockedAt(k)}`;
   rows.push([unlockedAt("snipe"), item("snipe", ICON.snipe, "Sniper strike", SNIPE_COST, unlocked("snipe") ? "One shot: 2×2 patch wiped, the blast splats around it." + (S.wave >= 90 ? " Cuts weeds" + "." : "") : lock("snipe"), unlocked("snipe") ? "BUY" : `<i class="lk">🔒 WAVE ${unlockedAt("snipe")}</i>`, !unlocked("snipe") || S.gold < SNIPE_COST, "btn-accent")]);
   rows.push([unlockedAt("tesla"), item("tesla", ICON.tesla, "Tesla storm", TESLA_COST, unlocked("tesla") ? "4×4 lightning strike, splats count triple." + (S.wave >= 90 ? " Cuts weeds" + "." : "") : lock("tesla"), unlocked("tesla") ? "BUY" : `<i class="lk">🔒 WAVE ${unlockedAt("tesla")}</i>`, !unlocked("tesla") || S.gold < TESLA_COST, "btn-accent")]);
+  if (S.wolves > 0) rows.push([WOLF_W - 0.1, shopItem("shop", "wolfuse", ICON.tesla, "Wolf call", `×${S.wolves}`, "Howl now: a thief runs off and drops your gold. No thief? Then it's wasted.", "USE", false, "btn-accent")]);
   rows.push([WOLF_W, item("wolf", ICON.tesla, "Wolf call", WOLF_COST, (S.wave || 0) >= WOLF_W ? "A howl in the dark: the thief runs off and drops your gold." : `Locked · unlocks at wave ${WOLF_W}`, (S.wave || 0) >= WOLF_W ? "BUY" : `<i class="lk">🔒 WAVE ${WOLF_W}</i>`, (S.wave || 0) < WOLF_W || S.gold < WOLF_COST, "btn-accent")]);
   rows.push([unlockedAt("mix"), item("mix", ICON.mix, "Concrete mixer", MIX_COST, unlocked("mix") ? "Fills a hole up to the top block, buries monsters." : lock("mix"), unlocked("mix") ? "BUY" : `<i class="lk">🔒 WAVE ${unlockedAt("mix")}</i>`, !unlocked("mix") || S.gold < MIX_COST, "btn-accent")]);
   rows.push([unlockedAt("chomp"), item("chomp", ICON.chomp, "Chomper", CHOMP_COST, unlocked("chomp") ? "Steel jaws run the ring backwards: eats every monster and block in its way." : lock("chomp"), unlocked("chomp") ? "BUY" : `<i class="lk">🔒 WAVE ${unlockedAt("chomp")}</i>`, !unlocked("chomp") || S.gold < CHOMP_COST, "btn-accent")]);
@@ -6330,6 +6334,7 @@ $("sheet").addEventListener("click", e => {
     else if (k === "tesla") { if (!unlocked("tesla") || S.gold < TESLA_COST) { snd("nope"); return; } S.gold -= TESLA_COST; S.teslas++; snd("shopBuy"); toast(`TESLA · pocket ×${S.teslas}`, "ARMORY"); renderShop(); }
     else if (k === "chomp" || k === "ton") { const pr = k === "chomp" ? CHOMP_COST : TON_COST; if (!unlocked(k) || S.gold < pr) { snd("nope"); return; } S.gold -= pr; const f = k === "chomp" ? "chomps" : "tons"; S[f] = (S[f] || 0) + 1; snd("shopBuy"); toast(`${k === "chomp" ? "CHOMPER" : "TEN-TON"} · pocket ×${S[f]}`, "ARMORY"); renderShop(); }
     else if (k === "lock") { if (!unlocked("lock") || S.gold < LOCK_COST) { snd("nope"); return; } S.gold -= LOCK_COST; S.locks = (S.locks || 0) + 1; snd("shopBuy"); toast(`LOCKDOWN · pocket ×${S.locks}`, "ARMORY"); renderShop(); }
+    else if (k === "wolfuse") { closeSheet(); wolfCall(); }
     else if (k === "wolf") { if ((S.wave || 0) < WOLF_W || S.gold < WOLF_COST) { snd("nope"); return; } S.gold -= WOLF_COST; S.wolves = (S.wolves || 0) + 1; snd("shopBuy"); toast(`WOLF CALL · pocket ×${S.wolves}`, "ARMORY"); renderShop(); }
     else if (k === "mix") { if (!unlocked("mix") || S.gold < MIX_COST) { snd("nope"); return; } S.gold -= MIX_COST; S.mixers++; snd("shopBuy"); toast(`MIXER · pocket ×${S.mixers}`, "ARMORY"); renderShop(); }
     else if (k === "armory") { renderShop(); }
@@ -6395,9 +6400,9 @@ $("bWave").addEventListener("click", () => { if (!S.started || S.over) return; i
 $("bPocket").addEventListener("click", () => {
   if (!S.started || S.over) return;
   if (S.mode === "snipe" || S.mode === "mix" || S.mode === "tesla") { const wasMix = S.mode === "mix"; S.mode = null; S.aim = null; toast(wasMix ? "MIXER PARKED" : "HOLSTERED", "POCKET"); return; }
-  const kinds = (S.snipes > 0 ? 1 : 0) + (S.mixers > 0 ? 1 : 0) + (S.teslas > 0 ? 1 : 0) + (S.locks > 0 ? 1 : 0) + (S.chomps > 0 ? 1 : 0) + (S.tons > 0 ? 1 : 0);
+  const kinds = (S.snipes > 0 ? 1 : 0) + (S.mixers > 0 ? 1 : 0) + (S.teslas > 0 ? 1 : 0) + (S.locks > 0 ? 1 : 0) + (S.chomps > 0 ? 1 : 0) + (S.tons > 0 ? 1 : 0) + (S.wolves > 0 ? 1 : 0);
   if (kinds === 0 && coachLeft() <= 0) openShop();
-  else if (S.locks > 0 || S.chomps > 0 || S.tons > 0 || coachLeft() > 0) { if (S.shop) closeSheet(); else openPocket(); }
+  else if (S.locks > 0 || S.chomps > 0 || S.tons > 0 || S.wolves > 0 || coachLeft() > 0) { if (S.shop) closeSheet(); else openPocket(); }
   else if (kinds === 1) armSpecial(S.snipes > 0 ? "snipe" : S.mixers > 0 ? "mix" : "tesla");
   else if (S.shop) closeSheet(); else openPocket();
 });
@@ -7119,10 +7124,12 @@ function openSquad() {
 $("btnSquad").addEventListener("click", () => { SFX.init(); openSquad(); });
 /* V395: ein Auszeichnungs-Icon – Pokal öffnet Medaillen, Reiter zu Hall of fame und Squad */
 { let hsOk = false; const OV = { medals: "ovAlbum", hof: "ovHs", squad: "ovSquad" }, BOX = { medals: "#ovAlbum .albBox", hof: "#ovHs .hsBox", squad: "#ovSquad .albBox" };
-  const tabs = act => { for (const k in BOX) { const box = document.querySelector(BOX[k]); if (!box) continue; let t = box.querySelector(".awTabs");
-      if (!t) { t = document.createElement("div"); t.className = "awTabs"; t.innerHTML = `<button data-aw="medals">MEDALS</button><button data-aw="hof">HALL OF FAME</button><button data-aw="squad">SQUAD</button>`; box.insertBefore(t, box.firstChild); }
-      t.querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.aw === act)); } };
-  const go = k => { for (const o of Object.values(OV)) { const e = $(o); if (e) e.hidden = true; } tabs(k);
+  const bar = document.createElement("div"); bar.id = "awBar"; bar.className = "awTabs"; bar.innerHTML = `<button data-aw="medals">MEDALS</button><button data-aw="hof">HALL OF FAME</button><button data-aw="squad">SQUAD</button>`; document.body.appendChild(bar);
+  const tabs = act => { bar.querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.aw === act)); };   /* V397: feste Leiste, aktiver Reiter invers */
+  let awAct = null; const _go0 = k => { awAct = k; document.body.classList.add("awOn"); };
+  setInterval(() => { const open = Object.entries(OV).find(([k, o]) => { const e = $(o); return e && !e.hidden; }); if (!open) { if (document.body.classList.contains("awOn")) document.body.classList.remove("awOn"); awAct = null; return; }
+    if (awAct && open[0] !== awAct) tabs(open[0]); }, 200);
+  const go = k => { for (const o of Object.values(OV)) { const e = $(o); if (e) e.hidden = true; } tabs(k); _go0(k);
     if (k === "medals") openAlbum(); else if (k === "squad") openSquad(); else { hsOk = true; $("btnHs").click(); } };
   $("btnHs").addEventListener("click", e => { if (hsOk) { hsOk = false; return; } e.stopImmediatePropagation(); SFX.init(); go("medals"); }, true);
   document.addEventListener("click", e => { const b = e.target.closest && e.target.closest(".awTabs button"); if (!b) return; e.stopPropagation(); try { snd("uiTap"); } catch (er) {} go(b.dataset.aw); }, true);
@@ -8457,6 +8464,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
                  tesla: { img: "img/ad_tesla_sale.webp", sale: "img/ad_tesla_sale.webp", st: [[11, 37], [12, 74], [88, 18]], tag: "NEW GEAR", line: "4×4 lightning strike. Splats count triple!" },
                  lock: { img: "img/ad_lock_sale.webp", sale: "img/ad_lock_sale.webp", st: [[11, 37], [12, 74], [88, 18]], tag: "NEW GEAR", line: "Freeze time for 8 s – cleared lines explode together!" },
                  elite: { img: "intro/in_blue_elite.webp", sale: "intro/in_blue_elite.webp", st: [[80, 18], [14, 40], [14, 74]], tag: "NEW POWER", line: "Tower levels 4 and 5 are unlocked. Tap a tower and go elite!" },
+                 wolf: { img: "img/ad_wolf.webp", sale: "img/ad_wolf.webp", st: [[11, 37], [12, 74], [88, 18]], tag: "NIGHT WATCH", line: "Raccoon thieves are coming! One howl and they run – and drop your gold." },
                  mix: { img: "img/ad_mix.webp", sale: "img/ad_mix_sale.webp", st: [[8.6, 43], [90, 39], [8.6, 78]], tag: "NEW GEAR", line: "Fills a hole to the top and buries monsters." } };
     let saleMode = false, isFree = false;
     const ov = document.createElement("div"); ov.id = "ovAd"; ov.hidden = true;
@@ -8464,7 +8472,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
       <div class="adBody"><div class="saleHead"><b class="saleMega">MEGA DEAL</b><span class="saleOnly">ONLY THIS WAVE!</span></div><h2 id="adName"></h2><div class="salePrice"><s id="saleWas"></s><b id="saleNow"></b><i id="salePct"></i></div><p id="adLine"></p><div class="adMet" id="adMet"></div><div class="adAct" id="adAct"></div><button id="adLater"></button></div></div>`;
     document.body.appendChild(ov);
     const $a = id => document.getElementById(id); let cur = null;
-    const TOWERW = { kan: 1, frost: 1 }; const price = k => TOWERW[k] ? WEAP[k].cost : k === "mix" ? MIX_COST : k === "snipe" ? SNIPE_COST : k === "chomp" ? CHOMP_COST : k === "tesla" ? TESLA_COST : k === "lock" ? LOCK_COST : TON_COST;
+    const TOWERW = { kan: 1, frost: 1 }; const price = k => TOWERW[k] ? WEAP[k].cost : k === "mix" ? MIX_COST : k === "snipe" ? SNIPE_COST : k === "chomp" ? CHOMP_COST : k === "tesla" ? TESLA_COST : k === "lock" ? LOCK_COST : k === "wolf" ? WOLF_COST : TON_COST;
     function slotTower() { const L = limits(Math.max(1, S.wave)); for (const t of S.towers.values()) if (t.w.length < L.weapons) return t; return null; }
     function why(k) { const p = price(k); if (S.gold < p) return `Not enough gold yet · ${p} gold`; if (TOWERW[k] && !slotTower()) return S.towers.size ? "All towers are full · tap a tower later" : "Build a tower first, then mount it"; return ""; }
     function paint() { if (isFree) { $a("adAct").innerHTML = `<button class="btn-accent" id="adFree">${cur === "drop" ? dropBtn : cur === "elite" ? "AWESOME! · LET'S GO ▶" : "AWESOME! · IT'S FREE ▶"}</button>`; $a("adLater").textContent = ""; $a("adLater").hidden = true; return; } $a("adLater").hidden = false; const k = cur, w = why(k), act = $a("adAct"), sale = $a("adCard").classList.contains("sale");
@@ -8488,6 +8496,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
       if (bought) try { toast(`${INTRO_GEAR[k][0].toUpperCase()} · ${TOWERW[k] ? "mounted on your tower" : "in your Pocket"}`, "ARMORY", 2000); } catch (e) {} }
     function buy() { const k = cur; if (window.__newsPrev) { close(false); return; } if (!k || why(k)) { paint(); return; } const p = price(k);
       if (TOWERW[k]) { const t = slotTower(); if (!t) { paint(); return; } t.w.push({ type: k, lvl: 1, cd: 0 }); }
+      else if (k === "wolf") S.wolves = (S.wolves || 0) + 1;
       else if (k === "mix") S.mixers = (S.mixers || 0) + 1; else if (k === "snipe") S.snipes = (S.snipes || 0) + 1; else if (k === "chomp") S.chomps = (S.chomps || 0) + 1; else if (k === "tesla") S.teslas = (S.teslas || 0) + 1; else if (k === "lock") S.locks = (S.locks || 0) + 1; else S.tons = (S.tons || 0) + 1;
       S.gold -= p; try { snd("shopBuy"); setTimeout(() => SFX.say("Nice!", 1.0, 1.0), 200); } catch (e) {} close(true); }
     ov.addEventListener("click", e => { e.stopPropagation(); if (e.target.closest("#adFree")) { try { snd("uiTap"); } catch (er) {} isFree = false; close(true); } else if (e.target.closest("#adBuy")) buy(); else if (e.target.closest("#adLater")) { try { snd("uiTap"); } catch (er) {} close(false); } });
@@ -8515,6 +8524,11 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     setInterval(() => { try { if (!S || !S.adDue || !calm() || !window.__offerOK()) return;
       if (window.__prioDue && window.__prioDue()) { if (S.prioW == null) S.prioW = S.wave || 0; if ((S.wave || 0) <= S.prioW + 4) return;   /* V314: bis zu 4 Wellen */ } else S.prioW = null;   /* V311: Vorrang Lucky/Rufzeichen */
       for (const k of ["kan", "frost", "mix", "snipe", "ton", "chomp", "tesla", "lock"]) if (S.adDue[k] && !why(k) && !(k === "ton" && [8, 14, 22].some(w => w >= (S.wave || 0) && w <= (S.wave || 0) + 3 && !(S.tonGift || {})[w]))) { delete S.adDue[k]; late = true; S.intro = true; S.adOpen = true; show(k, true); break; } } catch (e) {} }, 700);
+    /* V397: Wolf-Werbung in der Welle vor dem Dieb */
+    const thiefW = w => { let x = 100, i = 0; const st = [10, 9, 11]; while (x < w) x += st[i++ % 3]; return x === w; };
+    setInterval(() => { try { const w = S && (S.wave || 0); if (!S || !S.started || S.over || S.nuts || S.testRun || !S.inWave || w < 99 || !thiefW(w + 1) || S.wolfAdW === w || S.wolves > 0) return;
+      if (!calm() || !window.__offerOK()) return; S.wolfAdW = w; late = true; S.intro = true; S.adOpen = true; show("wolf", false); } catch (e) {} }, 900);
+    try { if (typeof SAVE_KEYS !== "undefined" && !SAVE_KEYS.includes("wolfAdW")) SAVE_KEYS.push("wolfAdW"); } catch (e) {}
     /* V299: Gratis-Air-Drops als Anzeige */
     let dropBtn = "AWESOME! · IT'S FREE ▶";
     function showDrop(kind, o) { o = o || {}; const tc = typeof TON_COST !== "undefined" ? TON_COST : 300;
@@ -9080,7 +9094,7 @@ try { (() => {
       else { if (w.root < GH - 1 && !S.grid[(w.root + 1) * GW + w.x]) w.root++;   /* fällt nach, wenn darunter frei wird */
         if (S.inWave) w.growT += dt; if (w.growT >= 6.8 && w.h < 12) { const ny = w.root - w.h; if (ny >= 1 && weedPush(w.x, ny, p)) { w.h++; w.growT = 0; } else w.growT = 6.8; } } }
     if (D.thief) { const T = D.thief; T.t += dt; if (window.__thiefPos) window.__thiefPos(T);
-      if (!T.stolen && !T.flee && T.t >= 10) { T.stolen = Math.floor(S.gold / 2); S.gold -= T.stolen; snd("sell"); setTimeout(() => snd("sell"), 140); try { SFX.say("thief_laugh", 1.0, 1.0, 0, 0); } catch (e) {} toast(`THIEF GRABBED ${T.stolen} GOLD!`, "ALERT", 1800); const g = $("sGold"); if (g) { g.classList.remove("thiefHit"); void g.offsetWidth; g.classList.add("thiefHit"); } }
+      if (!T.stolen && !T.flee && T.t >= 10) { T.stolen = Math.floor(S.gold / 2); S.gold -= T.stolen; snd("sell"); setTimeout(() => snd("sell"), 140); try { SFX.say("thief_laugh", 1.0, 1.0, 0, 0); } catch (e) {} toast(`THIEF GRABBED ${T.stolen} GOLD!`, "ALERT", 1800); setTimeout(() => { if (D.thief === T && !T.flee) toast(S.wolves > 0 ? "QUICK! Use your WOLF CALL – he'll drop the gold!" : "Raccoons hate wolves! Get a WOLF CALL in the shop.", "HQ", 2800); }, 2100); const g = $("sGold"); if (g) { g.classList.remove("thiefHit"); void g.offsetWidth; g.classList.add("thiefHit"); } }
       if (T.t >= 30) { if (T.stolen) toast(`THIEF GOT AWAY · −${T.stolen} gold`, "HQ", 1800); D.thief = null; } }
     if (!D.thief && window.__thiefPos) window.__thiefPos(null);
   }
