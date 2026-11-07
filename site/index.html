@@ -2774,7 +2774,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V422";
+const GAME_VER = "V423";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -4311,8 +4311,10 @@ const SPEC_AT = { 15: [4, 1], 55: [4, 2], 69: [4, 3], 81: [4, 4], 95: [4, 5],
   41: [16, 1], 45: [16, 2], 61: [16, 3], 75: [16, 4], 89: [16, 5], 99: [16, 6],
   35: [18, 1], 51: [18, 2], 67: [18, 3], 79: [18, 4], 93: [18, 5],
   47: [28, 1], 65: [28, 2], 77: [28, 3], 87: [28, 4] };
-function specBase(w = S.wave) { if (!(w >= 1)) return 0; const e = SPEC_AT[((w - 1) % 100) + 1]; return e ? e[0] : 0; }
-function specK(w = S.wave) { const e = SPEC_AT[(((w || 1) - 1) % 100) + 1], r = Math.floor(((w || 1) - 1) / 100); return Math.min(1.6, 1 + (e ? (e[1] - 1) * 0.1 : 0) + r * 0.25); }
+const SPEC_ABS = { 103: [12, 1], 111: [16, 1], 125: [18, 1], 133: [4, 1] };   /* V423: Lücken nach W100 */
+function specE(w = S.wave) { w = w || 1; return SPEC_ABS[w] || SPEC_AT[((w - 1) % 100) + 1] || null; }
+function specBase(w = S.wave) { if (!(w >= 1)) return 0; const e = specE(w); return e ? e[0] : 0; }
+function specK(w = S.wave) { const e = specE(w), r = Math.floor(((w || 1) - 1) / 100); return Math.min(1.6, 1 + (e ? (e[1] - 1) * 0.1 : 0) + r * 0.25); }
 const HAIL_WAVES = { 12: 1 };   // Welle → Tempo-Faktor (Welle 20: 20 % langsamer)
 function hailOn() { return S.started && !S.over && !!HAIL_WAVES[specBase()] && S.inWave; }
 function nextKey() {
@@ -4494,7 +4496,7 @@ function clearLines() {
 function gravityInterval() { const K = G.gravKnee || 1e9, K2 = G.gravKnee2 || 1e9, we = S.wave <= K ? S.wave : K + (Math.min(S.wave, K2) - K) * (G.gravKneeF ?? 1) + Math.max(0, S.wave - K2) * (G.gravKneeF2 ?? (G.gravKneeF ?? 1)), le = S.wave <= K ? S.lines : S.lines * (we / Math.max(1, S.wave));   // ab dem Knick steigt das Tempo langsamer
   const g = Math.max(G.gravMin, G.gravBase - le * G.gravLine - we * G.gravWave) * ordv("gravMul") * (!S.nuts && S.wave >= 21 && S.wave <= 150 ? 1.8 : 1) / (S.wave >= 60 ? 0.7716 : S.wave >= 50 ? 0.857375 : S.wave >= 40 ? 0.9025 : S.wave >= 30 ? 0.95 : 1) / ((S.wave >= 30 ? 0.9 : 1) * (S.wave >= 50 ? 0.93 : 1) * (S.wave >= 91 && S.wave <= 120 ? 0.92 : 1));   /* V183: ab W30 −10 %, ab W50 −7 %, W91–120 −8 % */   // V179: ab W30 −5 %, ab W40 nochmals −5 %, ab W50 nochmals −5 %, ab W60 nochmals −10 % if (hailOn()) return g / (7.65 * HAIL_WAVES[specBase()] * specK());
   if (hailOn()) return g / 3;   /* V292/V297: Hagel ×3 schneller als normal */
-  { const e = SPEC_AT[((S.wave - 1) % 100) + 1]; if (e && e[0] === 16 && S.inWave && e[1] >= 2) return g / (e[1] === 2 ? 0.7 : 0.65); }   // V178z12: Sidewinder II 30 % langsamer, ab III 35 %
+  { const e = specE(S.wave); if (e && e[0] === 16 && S.inWave && e[1] >= 2) return g / (e[1] === 2 ? 0.7 : 0.65); }   // V178z12: Sidewinder II 30 % langsamer, ab III 35 %
   return g; }
 
 // ---------- Wegfindung ----------
@@ -5211,7 +5213,7 @@ function drawSnow(s, W, HH) {
 // Ablauf in der Welle: 14 s «Hello? Can you hear me?» (gestört) · 18 s «We lost the signal!» → Funk weg (Rauschen, Band NO SIGNAL,
 // Sprüche nur Rauschen, Funkmeldungen verstümmelt) · 36 s Funk zurück «Signal's back! Phew!». Keine Regeländerung.
 const RADIO_BASES = [18, 28];
-function radioOn() { if (!(S && S.started && !S.over && S.inWave && !S.paused && inPlay())) return false; const e = SPEC_AT[((S.wave - 1) % 100) + 1]; return !!(e && RADIO_BASES.includes(e[0]) && (e[1] >= 2 || S.radioForce)); }
+function radioOn() { if (!(S && S.started && !S.over && S.inWave && !S.paused && inPlay())) return false; const e = specE(S.wave); return !!(e && RADIO_BASES.includes(e[0]) && (e[1] >= 2 || S.radioForce)); }
 function stepRadio(dt) {
   const on = radioOn();
   if (S.radioWave !== S.wave) { S.radioWave = S.wave; S.radioPh = 0; S.radioT = 0; if (S.radioOut) { S.radioOut = false; } }
@@ -9178,20 +9180,25 @@ try { (() => {
   const sched = k => { const w = S.wave | 0; if (S.testRun && S.testKind === k && w === S.testLongW) return true;   /* V347: Test-Welle */
     if (k === "blk") return w >= 65 && (w - 65) % 18 === 0;
     if (k === "mag") return [80, 92, 105, 117].includes(w);
-    if (k === "weed") return [86, 110, 130].includes(w) && !ROT_BASES.includes(specBase(w)) && (w - 1) % 30 < 27;
+    if (k === "weed") return (w === WEED5 || [86, 110, 130].includes(w)) && !ROT_BASES.includes(specBase(w)) && (w - 1) % 30 < 27;
     if (k === "thief") { let x = 100, i = 0; const st = [10, 9, 11]; while (x < w) x += st[i++ % 3]; return x === w; }
     return false; };
-  const D = { blk: null, mag: null, weed: null, thief: null, done: {} };
+  const D = { blk: null, mag: null, weeds: [], thief: null, done: {} };
+  Object.defineProperty(D, "weed", { get() { return D.weeds[0] || null; }, set(v) { D.weeds = v ? [v] : []; } });   /* V423: mehrere Unkräuter */
+  const WEED5 = 124;
   window.__dist = { state: () => ({ blk: !!D.blk, mag: D.mag && { side: D.mag.side, y: D.mag.y }, weed: D.weed && { x: D.weed.x, root: D.weed.root, h: D.weed.h }, thief: D.thief && { x: +D.thief.x.toFixed(2), stolen: D.thief.stolen } }), start: k => start(k), fire: (k, x, y) => (k === "snipe" ? snipe : tesla)(x, y), D };
-  const NAMES = { blk: ["SIGNAL LOST!", "Part of the field goes dark"], mag: ["MAGNET!", "It pulls the blocks – steer against it · Tesla fries it"], weed: ["WEEDS!", "Blocks get stuck on it · Tesla or Sniper cut it"], thief: ["THIEF!", "A WOLF CALL scares him off · shop → Wolf call"] };
+  const NAMES = { blk: ["SIGNAL LOST!", "Part of the field goes dark"], mag: ["MAGNET!", "It pulls the blocks – steer against it · Tesla fries it"], weed: ["WEEDS!", "Blocks get stuck on it · Tesla or Sniper cut it"], weed5: ["WEED FIELD!", "Five seeds at once · Tesla or Sniper cut them"], thief: ["THIEF!", "A WOLF CALL scares him off · shop → Wolf call"] };
   function start(k) {
     const GT = GH;
     if (k === "blk") { const n = Math.random() < 0.5 ? 3 : 4; D.blk = { r0: Math.floor(GT * 0.45) - n + 1, n, t: 0, life: 25 + Math.random() * 5 }; }
     if (k === "mag") { const side = Math.random() < 0.5 ? 0 : 1, xs = side ? [GW - 3, GW - 2] : [1, 2]; let top = GT - 1; for (const x of xs) for (let y = 0; y < GT; y++) if (S.grid[y * GW + x]) { top = Math.min(top, y); break; }
       D.mag = { side, xs, y: Math.max(3, Math.min(GT - 4, top - 4)), fy: S.piece ? S.piece.y : 4, t: 0, life: 30, pullT: 0 }; }
-    if (k === "weed") { let x = 2 + Math.floor(Math.random() * (GW - 4)); D.weed = { x, root: null, h: 0, seedY: -1, growT: 0, waves: 0 }; }
+    if (k === "weed") { const n = S.wave === WEED5 ? 5 : 1, pool = []; for (let x = 1; x <= GW - 2; x++) pool.push(x);
+      for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
+      const xs = n > 1 ? pool.slice(0, n).sort((a, b) => a - b) : [2 + Math.floor(Math.random() * (GW - 4))];
+      D.weeds = xs.map(x => ({ x, root: null, h: 0, seedY: -1, growT: Math.random() * 1.5, waves: 0 })); }
     if (k === "thief") D.thief = { x: -0.8, t: 0, stolen: 0 };
-    snd("siren"); announce(NAMES[k][0], NAMES[k][1], "ALERT", 2400);
+    snd("siren"); { const nm = k === "weed" && D.weeds.length > 1 ? NAMES.weed5 : NAMES[k]; announce(nm[0], nm[1], "ALERT", 2400); }
     if (k === "thief") setTimeout(() => { try { SFX.say("thief_hello", 1.0, 1.0, 0, 0); } catch (e) {} }, 900);
   }
   // Rauschen (leise, nur solange ein Stein im Bildausfall steckt)
@@ -9211,23 +9218,22 @@ try { (() => {
       const t = S.towers.get(from); if (t) { S.towers.delete(from); t.y = y; S.towers.set(to, t); } }
     S.grid[ny * GW + x] = 0; snd("move"); gridChanged(); return true; }
   function landY(x) { for (let y = 0; y < GH; y++) if (S.grid[y * GW + x]) return y - 1; return GH - 1; }
-  function weedCells() { const w = D.weed; if (!w || w.root == null) return []; const a = []; for (let i = 0; i < w.h; i++) a.push([w.x, w.root - i]); return a; }
+  function weedCells(w) { w = w || D.weed; if (!w || w.root == null) return []; const a = []; for (let i = 0; i < w.h; i++) a.push([w.x, w.root - i]); return a; }
   // Kollision: Steine bleiben auf dem Unkraut stehen
   const _col = collide;
   collide = function (cells, px, py) { if (_col(cells, px, py)) return true;
-    if (D.weed && D.weed.root != null && !S.rotMode) { const w = D.weed; for (const [x, y] of cells) { const gx = px + x, gy = py + y; if (gx === w.x && gy <= w.root && gy > w.root - w.h) return true; } }
+    if (!S.rotMode) for (const w of D.weeds) { if (w.root == null) continue; for (const [x, y] of cells) { const gx = px + x, gy = py + y; if (gx === w.x && gy <= w.root && gy > w.root - w.h) return true; } }
     return false; };
   // Linien unter der Wurzel → Unkraut rutscht mit
   const _cl = clearLines;
-  clearLines = function () { let below = 0;
-    if (D.weed && D.weed.root != null && !S.rotMode) for (let y = D.weed.root + 1; y < GH; y++) { let full = true; for (let x = 1; x < GW - 1; x++) if (!S.grid[y * GW + x]) { full = false; break; } if (full) below++; }
-    const r = _cl.apply(this, arguments); if (r && below && D.weed) D.weed.root += below; return r; };
+  clearLines = function () { const bl = D.weeds.map(w => { let below = 0; if (w.root != null && !S.rotMode) for (let y = w.root + 1; y < GH; y++) { let full = true; for (let x = 1; x < GW - 1; x++) if (!S.grid[y * GW + x]) { full = false; break; } if (full) below++; } return [w, below]; });
+    const r = _cl.apply(this, arguments); if (r) for (const [w, b] of bl) if (b && D.weeds.includes(w)) w.root += b; return r; };
   function hitArea(x0, y0, w, h, label) {
     let hit = false;
     if (label === "tesla" && D.mag) { const m = D.mag, mx0 = m.side ? GW - 2 : 0, my0 = Math.round(m.fy != null ? m.fy : m.y);   /* V338: Tesla zerstört den Magneten */
       if (mx0 < x0 + w && mx0 + 2 > x0 && my0 < y0 + h && my0 + 3 > y0) { D.mag = null; if (window.__magHum) window.__magHum(0); fxText(mx0 + 1, my0 + 1, "MAGNET FRIED!", "#ffb3a8"); toast("MAGNET FRIED!", "HQ", 1600); hit = true; } }
-    const W2 = D.weed; if (W2 && W2.root != null) { const cs = weedCells(); let low = null; cs.forEach(([x, y], i) => { if (x >= x0 && x < x0 + w && y >= y0 && y < y0 + h && low == null) low = i; });
-      if (low === 0) { D.weed = null; fxText(W2.x, W2.root, "WEED PULLED!", "#9be36b"); hit = true; } else if (low != null) { W2.h = low; fxText(W2.x, W2.root - low, "WEED CUT", "#9be36b"); hit = true; } }
+    for (const W2 of D.weeds.slice()) { if (W2.root == null) continue; const cs = weedCells(W2); let low = null; cs.forEach(([x, y], i) => { if (x >= x0 && x < x0 + w && y >= y0 && y < y0 + h && low == null) low = i; });
+      if (low === 0) { D.weeds = D.weeds.filter(q => q !== W2); fxText(W2.x, W2.root, "WEED PULLED!", "#9be36b"); hit = true; } else if (low != null) { W2.h = low; fxText(W2.x, W2.root - low, "WEED CUT", "#9be36b"); hit = true; } }
     const T = null; if (T) { const tx = Math.round(T.x); if (tx >= x0 - (label === "snipe" ? 1 : 0) && tx < x0 + w + (label === "snipe" ? 1 : 0) && y0 <= (label === "snipe" ? 1 : 0)) {
         if (T.stolen) { S.gold += T.stolen; toast(`THIEF STOPPED · +${T.stolen} gold back`, "HQ", 2000); } else toast("THIEF STOPPED!", "HQ", 1600);
         S.fx.push({ type: "splat", x: T.x, y: 0, t: 0, life: 0.8, col: "#1a1a1a" }); D.thief = null; praise("GOTCHA!", 2, "Nailed it!"); hit = true; } }
@@ -9250,7 +9256,7 @@ try { (() => {
       if (p) { const cy = p.y + p.cells.reduce((a, c) => a + c[1], 0) / p.cells.length - 1; m.fy += (Math.max(0, Math.min(GH - 3, cy)) - m.fy) * Math.min(1, dt * 5); m.y = Math.round(m.fy); }   /* V335: fährt mit dem Stein mit */
       if (m.t >= m.life) { D.mag = null; toast("MAGNET GONE", "HQ", 1200); } }
     if (window.__magHum) window.__magHum(D.mag ? 1 : 0);
-    if (D.weed) { const w = D.weed;
+    for (const w of D.weeds) {
       if (w.root == null) { w.seedY += dt * 6; const ly = landY(w.x); if (w.seedY >= ly) { w.root = ly; w.h = 1; try { tone(260, 110, 0.11, 0.035, 0, "sine", 900); tone(140, 90, 0.08, 0.02, 0.02, "triangle", 500); } catch (e) {} } }
       else { if (w.root < GH - 1 && !S.grid[(w.root + 1) * GW + w.x]) w.root++;   /* fällt nach, wenn darunter frei wird */
         if (S.inWave) w.growT += dt; if (w.growT >= 6.8 && w.h < 12) { const ny = w.root - w.h; if (ny >= 1 && weedPush(w.x, ny, p)) { w.h++; w.growT = 0; } else w.growT = 6.8; } } }
@@ -9312,7 +9318,7 @@ try { (() => {
     if (!T.stolen) { ctx.fillStyle = "#ff4a3a"; ctx.font = `bold ${Math.round(s * 0.3)}px sans-serif`; ctx.textAlign = "center"; ctx.fillText(Math.max(0, Math.ceil(10 - T.t)) + "", 0, -s * 0.45); }
     ctx.restore(); }
   const _dr = draw; draw = function () { const r = _dr.apply(this, arguments); try { if (!S || !S.started || S.over) return r; const s = CELL; ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0);
-      if (D.weed) drawWeed(D.weed, s);
+      for (const w of D.weeds) drawWeed(w, s);
       if (D.mag) drawMag(D.mag, s);
       if (D.blk) { const b = D.blk, now = performance.now(); if (now - nT > 50) { nT = now; const fw = Math.max(64, Math.round(cv.width / 2)), fh = Math.max(16, Math.round(b.n * CELL / 2)); if (nc.width !== fw || nc.height !== fh) { nc.width = fw; nc.height = fh; } const id = nx.createImageData(nc.width, nc.height); for (let i = 0; i < id.data.length; i += 4) { const v = Math.random() * 255 | 0; id.data[i] = v; id.data[i + 1] = v; id.data[i + 2] = Math.min(255, v + 18); id.data[i + 3] = 255; } nx.putImageData(id, 0, 0); }
         const fade = Math.min(1, b.t / 0.6, (b.life - b.t) / 0.6); ctx.globalAlpha = Math.max(0, fade); ctx.imageSmoothingEnabled = false; ctx.drawImage(nc, 0, b.r0 * CELL, cv.width, b.n * CELL);
