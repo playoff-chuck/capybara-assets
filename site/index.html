@@ -2302,7 +2302,7 @@ body.inNuts #btnPRestart{display:none!important}
 .tipCard{background:#ffe6a8;border:2px solid #3a1d10;border-radius:12px;padding:8px 10px;margin:8px 0;color:#3a1d10;text-align:left;font-size:13px;line-height:1.35}
 .tipCard b{display:block;font-family:Bangers,var(--f-display),sans-serif;font-size:18px;letter-spacing:.03em;color:#c23f3f}
 .tipCard button{margin-top:6px;width:100%}
-#hsNuts:empty{display:none}
+#hsNuts:empty{display:none}#hsPlaces:empty{display:none}#hsPlaces .prCont{margin:6px 0 1px;font:700 11px/1.2 var(--f-display),sans-serif;letter-spacing:.08em;text-transform:uppercase;opacity:.75}#hsPlaces .prSt{color:#e8a915;letter-spacing:-1px;white-space:nowrap}#hsPlaces .prKey{margin-top:5px;font-size:11px;opacity:.7}
 .signRule{position:absolute;left:10px;right:10px;bottom:86px;background:rgba(42,13,11,.82);color:#ffe3dc;border-radius:10px;padding:5px 8px;font-size:11px;line-height:1.3;text-align:center}
 .signRule b{color:#ffd36a}
 </style>
@@ -2714,7 +2714,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
       <div class="overlay joinOv" id="ovHs" hidden><div class="joinBox hsBox">
         <button class="xBtn" id="btnHsClose" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></svg></button>
         <div class="alHead"><span class="alTag">HALL OF FAME</span><span></span></div>
-        <div class="hs" id="hsList"></div><div class="hs" id="hsNuts"></div>
+        <div class="hs" id="hsList"></div><div class="hs" id="hsNuts"></div><div class="hs" id="hsPlaces"></div>
       </div>
       </div>
       <div class="overlay" id="ovOver" hidden>
@@ -2769,7 +2769,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V401";
+const GAME_VER = "V402";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -4773,6 +4773,15 @@ function canAct() { return S.started && !S.over && !S.paused && !S.intro && !(pe
 function frozen() { return !S.started || S.over || S.paused || S.coachHold || S.intro || S.duel || S.mode || S.sel || S.shop || S.drop || S.ordersOpen || S.mix || S.tiltCard || !!(window.__tipBulb && window.__tipBulb.open); }   /* V381: Tipp-Karte hält das Spiel an */
 function starsAll() { try { return JSON.parse(LS.get("capy-stars") || "{}") || {}; } catch (e) { return {}; } }   /* V374: Bestwert je Ort 0..29 */
 function starStr(n) { return "★".repeat(n) + "☆".repeat(5 - n); }
+function placeRecAll() { try { return JSON.parse(LS.get("capy-place-rec") || "{}") || {}; } catch (e) { return {}; } }   /* V402: Bestwerte je Ort 0..29 {k: Splats, l: Reihen} */
+function placeRecHtml() {
+  const st = starsAll(), rr = placeRecAll(), nice = t => t.toLowerCase().replace(/\b\w/g, m => m.toUpperCase());
+  const tot = Object.values(st).reduce((a, b) => a + (+b || 0), 0); let h = `<h4>PLACE RECORDS · ★ ${tot} / 150</h4>`, any = false;
+  CONTS.forEach((C, c) => { const rows = C[2].map((nm, i) => { const g = c * 6 + i; if (!(g in st) && !rr[g]) return ""; any = true; const r = rr[g] || {};
+      return `<div class="row prRow"><span>${g + 1}.</span><span>${nice(nm)}</span><span class="prSt">${starStr(+st[g] || 0)}</span><span>${r.k != null ? r.k + "✕ · " + (r.l || 0) + "≡" : "–"}</span></div>`; }).join("");
+    if (rows) h += `<div class="prCont">${nice(C[1])}</div>` + rows; });
+  return any ? h + `<div class="prKey">✕ splats · ≡ rows · best in that place's 5 waves</div>` : h + `<div class="row"><span>–</span><span>Clear a place to set your first record</span><span></span><span></span></div>`;
+}
 function showCredits() {   /* V376: Abspann nach dem Finale */
   if (document.getElementById("credits")) return; const d = document.createElement("div"); d.id = "credits";
   const L = ["CAPYBARA SQUAD", "", "WORLD TOUR COMPLETE", "150 waves · 5 continents · 30 places", "", "THE SQUAD", "Rosie · Blue", "The General", "Doc Hazel", "The Paymaster", "", "THE VILLAINS", "Scouts · Brutes · Munchers", "Sprinters · Bombers · Sparky", "Jaguars · Mummies · Tigers · Bears", "The Jaw · the raccoon thief", "", "Made with love for capybaras", "", "THANKS FOR PLAYING!", "See you on the next tour"];
@@ -4782,7 +4791,7 @@ function showCredits() {   /* V376: Abspann nach dem Finale */
 function startWave() {
   if (S.nuts) { S.wave = S.nuts.base - 1; S.nuts.lvl++; }   // V180: Nuts-Abstecher bleibt auf der Kontinent-Welle, Härte kommt über das Level
   S.wave++; queueIntros(S.wave);
-  if (!S.nuts && !S.testRun && (S.wave - 1) % 5 === 0) S.pl = { g: Math.floor((S.wave - 1) / 5), lives: S.lives, lines: S.lines || 0, splat: S.splatN || 0, med: S.medGot || 0 };   /* V374: Sterne je Ort */
+  if (!S.nuts && !S.testRun && (S.wave - 1) % 5 === 0) S.pl = { g: Math.floor((S.wave - 1) / 5), lives: S.lives, lines: S.lines || 0, splat: S.splatN || 0, med: S.medGot || 0, kills: S.kills || 0 };   /* V374: Sterne je Ort · V402: Splats je Ort */
   { const flip = syncTheme(), P = wherePos(S.wave), D = DAY[P.d];
     if (flip && S.wave > 1) S.fx.push({ type: "flash", t: 0, life: 1.1, col: THEME === "moon" ? "#ff9a4d" : "#fff6d8" });
     toast(P.d === 0 ? `${P.place} · ${D.t} ${D.n}` : `${D.t} · ${D.n}`, P.d === 0 ? P.cont[1] : P.place, 1700);
@@ -4835,6 +4844,7 @@ function update(dt) {
       if (hkOfferWave(S.wave) && S.wave < 150) S.hackPending = S.hackPending || S.wave;   // Boss-Banner kommt, sobald Air Drop / Orders vorbei sind
       if (S.wave % 5 === 0 && !S.nuts && !S.testRun && S.pl && S.pl.g === Math.floor((S.wave - 1) / 5)) { const p = S.pl, st = [true, S.lives >= p.lives, (S.lines || 0) - p.lines >= 5, (S.splatN || 0) - p.splat >= 5, (S.medGot || 0) - p.med >= 1], n = st.filter(Boolean).length;   /* V374 */
         S.lastStars = { g: p.g, n, st }; const all = starsAll(); if (n > (all[p.g] || 0)) { all[p.g] = n; try { LS.set("capy-stars", JSON.stringify(all)); } catch (e) {} }
+        if (p.kills != null) { const rr = placeRecAll(), o = rr[p.g] || {}, k = Math.max(0, (S.kills || 0) - p.kills), l = Math.max(0, (S.lines || 0) - p.lines); rr[p.g] = { k: Math.max(o.k || 0, k), l: Math.max(o.l || 0, l) }; try { LS.set("capy-place-rec", JSON.stringify(rr)); } catch (e) {} }   /* V402 */
         setTimeout(() => toast(`PLACE STARS ${"★".repeat(n)}${"☆".repeat(5 - n)}`, "HQ", 2600), 2400); }
       if (S.replay && S.wave >= S.replay.end) { S.replay.fin = true; setTimeout(() => replayEnd("done"), 2900); }   /* V384 */
       if (S.wave % 5 === 0) praise(`WAVE ${S.wave}!`, S.waveLeaks === 0 ? 3 : 2, S.waveLeaks === 0 ? "Flawless!" : "Keep going!");
@@ -7805,6 +7815,7 @@ $("btnPNutsQuit").addEventListener("click", () => { SFX.init(); if (S && S.nuts)
 for (const id of ["btnPMenu", "btnHQ"]) $(id).addEventListener("click", e => { if (S && S.nuts && !S.over) { e.stopImmediatePropagation(); e.preventDefault(); nutsEnd("quit"); } }, true);
 $("btnPSquad").addEventListener("click", () => { SFX.init(); $("setNick").value = LS.get("tarnturm-nick") || ""; renderThemeBtn(); $("ovSettings").hidden = false; });
 // Hall of Fame: Nuts-Listen je Kontinent
+$("btnHs").addEventListener("click", () => { try { $("hsPlaces").innerHTML = placeRecHtml(); } catch (e) {} });   /* V402 */
 $("btnHs").addEventListener("click", () => { const box = $("hsNuts"); box.innerHTML = ""; [0, 1, 2, 3].forEach(c => nzFetch(c).then(l => { if (l && l.length) box.insertAdjacentHTML("beforeend", nzBoardHtml(c, l)); })); });
 // Guide: Tutorial wiederholen
 $("btnReTut").addEventListener("click", () => { SFX.init(); snd("uiTap"); LS.del("tarnturm-tut"); $("ovInfo").hidden = true;
@@ -8161,7 +8172,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
         ov.querySelectorAll(".mPin.done").forEach(el => { const r = el.querySelector("i").getBoundingClientRect(); if (!r.width) return; const dd = Math.hypot(e.clientX - (r.left + r.width / 2), e.clientY - (r.top + r.height / 2)); if (dd < hd) { hd = dd; hit = el; } });
         if (hit && !(S && S.nuts && !S.over)) { const g = +hit.dataset.g, c = Math.floor(g / 6), i = g % 6, st = starsAll()[g] || 0;
           rb.dataset.g = g; rb.innerHTML = `▶ REPLAY ${nice(CONTS[c][2][i])}<small>waves ${g * 5 + 1}–${g * 5 + 5} · ${starStr(st)}</small>`; rb.hidden = false;
-          label(contName(c), nice(CONTS[c][2][i]), `Cleared · best ${starStr(st)} · replay for more stars`); try { snd("uiTap"); } catch (er) {} return; } }   /* V377: nach Ziehen kein Antippen */ const r = world.getBoundingClientRect(), ny = (e.clientY - r.top) / r.height; let nx = (e.clientX - r.left) / r.width; nx = ((nx % WRAP_P) + WRAP_P) % WRAP_P;
+          const pr = placeRecAll()[g]; label(contName(c), nice(CONTS[c][2][i]), `Cleared · best ${starStr(st)}${pr ? ` · ${pr.k}✕ ${pr.l || 0}≡` : ""} · replay for more stars`);   /* V402 */ try { snd("uiTap"); } catch (er) {} return; } }   /* V377: nach Ziehen kein Antippen */ const r = world.getBoundingClientRect(), ny = (e.clientY - r.top) / r.height; let nx = (e.clientX - r.left) / r.width; nx = ((nx % WRAP_P) + WRAP_P) % WRAP_P;
       let best = -1, bd = 9; MAP_PTS.forEach((P, c) => P.forEach(p => { const d = Math.hypot(p[0] - nx, (p[1] - ny) * MAP_AR); if (d < bd) { bd = d; best = c; } }));
       if (best >= 0 && bd < .12) { ov.classList.remove("wv"); ov.querySelector(".mapWorldBtn").textContent = "WORLD"; go(contCam(best), 800); const g = posOf(curWave()).g; const done = Math.max(0, Math.min(6, g - best * 6));
         label(contName(best), best * 6 > g ? "Not yet reached" : nice(CONTS[best][2][Math.min(5, Math.max(0, g - best * 6))]), best * 6 > g ? `Arrive at wave ${best * 30 + 1}` : `${done} of 6 places cleared`); try { snd("uiTap"); } catch (er) {} } });
