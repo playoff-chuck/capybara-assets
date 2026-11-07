@@ -2309,6 +2309,7 @@ body.inNuts #btnPRestart{display:none!important}
 .sqLv{background:rgba(0,0,0,.25);border:2px solid var(--ink);border-radius:12px;padding:8px 10px;margin:0 0 8px;text-align:center}.sqLv b{display:block;font-family:var(--f-display);font-size:22px;letter-spacing:.06em;color:#ffd36a}.sqLv i{display:block;font-style:normal;font-family:var(--f-display);font-size:13px;letter-spacing:.1em;color:var(--sand)}
 .sqBar{height:10px;border-radius:6px;background:rgba(0,0,0,.4);border:1.5px solid var(--ink);overflow:hidden;margin:6px 0 4px}.sqBar span{display:block;height:100%;background:linear-gradient(90deg,#9cf0ff,#ffd36a);border-radius:6px}.sqLv small{display:block;font-size:11px;opacity:.85}
 .trGrid{display:grid;grid-template-columns:repeat(5,1fr);gap:5px}.trCup{text-align:center}.trCup i{display:block;aspect-ratio:1;border-radius:50%;border:3px solid #d9a93a;box-shadow:0 0 0 2px #7a4b12,0 3px 0 #7a4b12,inset 0 0 0 2px rgba(255,240,180,.5);background:#9ab 50% 10%/170% auto no-repeat}.trCup small{display:block;font:700 8.5px/1.1 var(--f-ui);letter-spacing:.02em;margin-top:4px;color:#3a2a14;text-transform:uppercase}.trCup.off i{filter:grayscale(1) brightness(.45);border-color:#8a8a80;box-shadow:0 0 0 2px #55554c,0 3px 0 #55554c}.trCup.off small{color:#7a7a70}
+.ofRow{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-bottom:6px}.ofRow .mcCard{padding:2px 2px 3px;cursor:pointer}.ofRow .mcCard.on{border-color:#ee7a2c;background:#ffe9d2;box-shadow:0 2px 0 #c45a1a}.ofRow .mcCard i{font-size:9px}.ofRow .mcCard small{font-size:8px}
 </style>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -2773,7 +2774,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V412";
+const GAME_VER = "V413";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -2995,7 +2996,11 @@ const PAL = {
 
 /* V142 – Orte + Tageszeit: jeder Ort = 5 Wellen, Morgen → Mittag → honigfarbener Nachmittag → Abend → Nacht */
 const SKY_BG = {"samerica": ["img/2510465d7d.webp", "img/e24cf5d037.webp"], "africa": ["img/e2bcc54b17.webp", "img/f4325f970b.webp"], "asia": ["img/61bc129f23.webp", "img/4d6930eba2.webp"], "namerica": ["img/668958077c.webp", "img/f7b3efb16a.webp"]};
-const HERO_IMG = {"blue": "img/e8b742aa03.webp", "rosie": "img/cf7539bf2e.webp"};
+const HERO_BASE = {"blue": "img/e8b742aa03.webp", "rosie": "img/cf7539bf2e.webp"};
+const OUTFIT = [["Standard", 0], ["Shades", 30], ["Explorer", 60], ["Winter", 90], ["Champion", 120]];   /* V413: Name, Sterne */
+function outfitImg(k, n) { return n ? `img/outfit_${k}_${n}.webp` : HERO_BASE[k]; }
+function outfitSel(k) { try { const n = +localStorage.getItem("capy-outfit-" + k) || 0; return n >= 0 && n <= 4 ? n : 0; } catch (e) { return 0; } }
+const HERO_IMG = { get blue() { return outfitImg("blue", outfitSel("blue")); }, get rosie() { return outfitImg("rosie", outfitSel("rosie")); } };
 const CONTS = [["samerica", "SOUTH AMERICA", ["RIVER BANK", "MANGROVE", "JUNGLE", "WATERFALL", "RUINS", "JUNGLE TEMPLE"]],
   ["africa", "AFRICA", ["OASIS CAMP", "SAVANNA", "BAOBAB GROVE", "DUNE SEA", "ROCK CANYON", "THE PYRAMID"]],
   ["asia", "ASIA", ["TAIGA", "FROZEN LAKE", "STEPPE", "TUNDRA", "ICE PORT", "ICE PALACE"]],
@@ -7128,7 +7133,7 @@ function openSquad() {
   const st = starsAll(), stars = Object.values(st).reduce((a, b) => a + (+b || 0), 0), places = Object.keys(st).length, med = Object.keys(ALB.got || {}).length;
   const f = n => (n || 0).toLocaleString("en-US"), mins = Math.round((L.t || 0) / 60), tm = mins >= 60 ? `${Math.floor(mins / 60)} h ${mins % 60} min` : `${mins} min`;
   const box = (v, l) => `<div><b>${v}</b><small>${l}</small></div>`;
-  let h = sqHtml() + trophyHtml() + skinHtml() + `<div class="albSec">CAREER</div><div class="sqStats">` + box(f(L.k), "monsters splatted") + box(f(L.l), "lines cleared") + box(f(L.w), "waves cleared") + box(f(L.r), "runs") + box(tm, "time on duty") + box(`${stars} ★`, "stars · " + places + " of 30 places") + box(`${med} / 81`, "medals") + box(f(Math.max(0, ...Object.keys(st).map(Number)) * 5 + (places ? 5 : 0)), "best wave reached") + `</div>`;
+  let h = sqHtml() + trophyHtml() + skinHtml() + outfitHtml() + `<div class="albSec">CAREER</div><div class="sqStats">` + box(f(L.k), "monsters splatted") + box(f(L.l), "lines cleared") + box(f(L.w), "waves cleared") + box(f(L.r), "runs") + box(tm, "time on duty") + box(`${stars} ★`, "stars · " + places + " of 30 places") + box(`${med} / 81`, "medals") + box(f(Math.max(0, ...Object.keys(st).map(Number)) * 5 + (places ? 5 : 0)), "best wave reached") + `</div>`;
   const kinds = Object.keys(MC_NAME).filter(k => MON_SPR_SRC[k]); let got = 0;
   const cards = kinds.map(k => { const n = MC.n[k] || 0, t = MC_TIER.filter(x => n >= x).length; if (t) got += t; const next = MC_TIER[t];
     return `<div class="mcCard ${n ? "t" + t : "off"}">${t ? `<em>${MC_TN[t - 1]}</em>` : ""}<img src="${MON_SPR_SRC[k]}" alt=""><i>${n ? MC_NAME[k] : "???"}</i><small>${f(n)}${next ? " / " + f(next) : " · max"}</small></div>`; }).join("");
@@ -7167,6 +7172,15 @@ function curSkin() { if (!S || !S.started || S.nuts) return null; const w = S.wa
 function skinHtml() { let got = 0; const cards = SKIN_C.map(c => { const on = skinOwned(c[0]); if (on) got++;
     return `<div class="mcCard ${on ? "t3" : "off"}"><img src="img/skin_${c[0]}_mg.webp" alt="" style="${on ? "" : "filter:grayscale(1) brightness(.55)"}"><i>${c[2]}</i><small>${on ? c[1] : `25 ★ in ${c[1]}`}</small></div>`; }).join("");
   return `<div class="albSec">TOWER SKINS<span>${got} / ${SKIN_C.length}</span></div><div class="mcGrid">${cards}</div>`; }
+
+/* V413: Outfits – Auswahl im Squad File */
+function outfitHtml() { const st = starsAll(), stars = Object.values(st).reduce((a, b) => a + (+b || 0), 0); let h = "";
+  for (const k of ["blue", "rosie"]) { const sel = outfitSel(k);
+    h += `<div class="albSec">${k.toUpperCase()}'S OUTFITS<span>${OUTFIT.filter(o => stars >= o[1]).length} / 5</span></div><div class="ofRow">` + OUTFIT.map((o, n) => { const on = stars >= o[1];
+      return `<div class="mcCard ${on ? (n === sel ? "on" : "t3") : "off"}" data-of="${k}:${n}"><img src="${outfitImg(k, n)}" alt=""><i>${o[0]}</i><small>${on ? (n === sel ? "wearing" : "tap to wear") : o[1] + " ★"}</small></div>`; }).join("") + `</div>`; }
+  return h; }
+document.addEventListener("click", e => { const c = e.target.closest && e.target.closest("[data-of]"); if (!c || c.classList.contains("off")) return; const [k, n] = c.dataset.of.split(":");
+  try { localStorage.setItem("capy-outfit-" + k, n); } catch (er) {} try { snd("uiTap"); } catch (er) {} try { const img = document.querySelector("#startMain .heroImg"); } catch (er) {} openSquad(); });
 /* V408: Trophäenregal – Wahrzeichen aus den Boss-Hintergründen (t12 Nr. 9) */
 const TROPHY = [["samerica", "Jungle Temple", "40% 5%"], ["africa", "The Pyramid", "36% 7%"], ["asia", "Ice Palace", "50% 2%"], ["namerica", "Bear Cave", "48% 9%"], ["antarctica", "Ice Fortress", "52% 5%"]];
 function trophyHtml() { const st = starsAll(); let got = 0;
