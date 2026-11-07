@@ -2743,7 +2743,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V362";
+const GAME_VER = "V363";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -8134,7 +8134,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
       $b("bdResT").innerHTML = "&nbsp;"; $b("bdResS").innerHTML = "&nbsp;"; $b("bdSub").textContent = rescue ? "Mayday! The stack is high – HQ sends heavy help!" : "One spin on the house, squad!";
       $b("bdGo").textContent = "SPIN ▶"; $b("bdGo").disabled = false; $b("bdLever").classList.remove("pull");
       ov.classList.remove("spin", "win", "on"); ov.querySelectorAll(".bdConf").forEach(e => e.remove());
-      if (S) { window.__offerLast = performance.now(); if (rescue) S.rescueW = S.wave || 0; else { S.banditDone = true; S.banditNext = (S.wave || 1) + 5 + Math.floor(Math.random() * 3); } wasPaused = !!S.intro; S.intro = true; S.banditOpen = true; }
+      if (S) { window.__offerLast = performance.now(); if (rescue) S.rescueW = S.wave || 0; else { S.banditDone = true; S.banditNext = (S.wave || 1) + ((S.wave || 1) < 60 ? 7 + Math.floor(Math.random() * 4) : 5 + Math.floor(Math.random() * 3));   /* V363: bis Welle 60 30 % seltener */ } wasPaused = !!S.intro; S.intro = true; S.banditOpen = true; }
       ov.hidden = false; [0, 1, 2].forEach(i => $b("bdS" + i).style.setProperty("--rh", rh(i) + "px")); requestAnimationFrame(() => ov.classList.add("on"));
       try { SFX.init(); snd("radio"); } catch (e) {}
     }
