@@ -2773,7 +2773,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V408";
+const GAME_VER = "V409";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -8467,6 +8467,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     setInterval(() => { try { if (!ov.hidden || !S || !S.started || S.over || S.nuts || S.won || (S.wave || 0) < 30 || S.ton) return;
         if ((S.wave || 0) < (S.rescueW || -99) + 8) return; if (stackTopRow() > 5) return;
         if (!window.__playScreen() || performance.now() - (window.__evtLast || -1e9) < 5000) return;
+        if (S.adOpen || S.intro || S.drop || S.ordersOpen || S.duel || S.mapShow || S.mapFly || S.signOpen || S.joinOpen || (typeof uiWinOpen === "function" && uiWinOpen())) return;   /* V409: nie über ein offenes Fenster (Wolf-Werbung) */
         open(true, true); } catch (e) {} }, 400);
     window.__TT && (window.__TT.bandit = { open, spin, close, rescue: () => open(true, true) });
   })(); } catch (e) { console.error("bandit", e); }
