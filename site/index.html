@@ -2774,7 +2774,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V432";
+const GAME_VER = "V433";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -3232,7 +3232,9 @@ const SFX = (() => {
   function smp(name, v = 1, rate = 1, delay = 0, wet = 0, dest) {
     const list = BUF[name]; if (!list || !list.length) return false;
     const t = ac.currentTime + delay, src = ac.createBufferSource(), g = ac.createGain();
-    src.buffer = list[Math.random() * list.length | 0]; src.playbackRate.value = rate; g.gain.value = v;
+    src.buffer = list[Math.random() * list.length | 0]; src.playbackRate.value = rate;
+    { const d = src.buffer.duration / Math.max(0.05, rate); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v, t + 0.003);   /* V433: Klick-Schutz */
+      if (d > 0.02) { g.gain.setValueAtTime(v, t + d - 0.006); g.gain.linearRampToValueAtTime(0, t + d); } }
     src.connect(g); out(g, wet, dest); src.start(t); return true;
   }
   function osc(type, f0, f1, dur, v, delay = 0, o = {}) {
@@ -3849,7 +3851,7 @@ const SFX = (() => {
     if (typeof S !== "undefined" && S && S.radioOut && text !== "signal3") { noise(0.18 + Math.random() * 0.2, 0.1, "bandpass", 1400 + Math.random() * 2000, 1200, 0, 1.6); return; }   // V178z15: Funk weg – nur Rauschen
     if (performance.now() < reservedUntil && key !== reservedKey) return;   // ein Lob ist reserviert, nichts dazwischen
     if (curVoice && !(curVoice.__rb && !/^rb_/.test(String(text)))) return;   // es läuft schon eine Meldung: die neue fällt komplett weg – außer ein Rosie-&-Blue-Spruch (V366)
-    if (curVoice) { try { curVoice.stop(); } catch (e) {} curVoice = null; }
+    if (curVoice) { try { const cv = curVoice, n = ac.currentTime; if (cv.__g) { cv.__g.gain.cancelScheduledValues(n); cv.__g.gain.setValueAtTime(cv.__g.gain.value, n); cv.__g.gain.linearRampToValueAtTime(0, n + 0.025); cv.stop(n + 0.03); } else cv.stop(); } catch (e) {} curVoice = null; }   /* V433: ausblenden statt hart stoppen */
     if (!key && !deg && !VOICE[text] && performance.now() - (window.__sayT || -1e9) < 12000) return; window.__sayT = performance.now();   // V178v: freie Sprüche höchstens alle 12 s
     { const nt = norm(text), nw = performance.now(); if (deg === 0 && lastSaid[nt] && nw - lastSaid[nt] < 3000) return; lastSaid[nt] = nw; }   // gleicher Satz höchstens alle 3 s
     const ck = VOICE[text] ? text : VOICE_BY_TEXT[norm(text)];
@@ -3863,13 +3865,14 @@ const SFX = (() => {
       src.buffer = buf; hp.type = "highpass"; hp.frequency.value = 420; hp.Q.value = 1.1; lp.type = "lowpass"; lp.frequency.value = 2700; lp.Q.value = 1.6; pk.type = "peaking"; pk.frequency.value = 1700; pk.gain.value = 8; pk.Q.value = 1.2;
       const ws = ac.createWaveShaper(), cu = new Float32Array(512); for (let i = 0; i < 512; i++) { const x = i / 255.5 - 1; cu[i] = Math.tanh(x * 3.4) / Math.tanh(3.4); } ws.curve = cu;
       const comp = ac.createDynamicsCompressor(); comp.threshold.value = -24; comp.ratio.value = 8; comp.attack.value = 0.002; comp.release.value = 0.08;
-      g.gain.value = 0.324 * [1, 0.72, 0.42, 0.14][Math.min(3, deg)]; src.connect(hp); hp.connect(pk); pk.connect(lp); lp.connect(ws); ws.connect(comp);
+      g.gain.value = 0.324 * [1, 0.72, 0.42, 0.14][Math.min(3, deg)]; src.connect(hp); src.__g = g; hp.connect(pk); pk.connect(lp); lp.connect(ws); ws.connect(comp);
       // Feldfunk: Aussetzer (etwa jede 10. Meldung) und leichtes Flattern der Lautstärke
       const dg = ac.createGain(); dg.gain.value = 1; comp.connect(dg); dg.connect(g); g.connect(voiceOut || master);
       const t0 = t + 0.06; voiceNo++;
       if (deg > 0) { for (let k = 0, at = t0 + 0.08; at < t0 + dur; k++) { const gap = 0.04 + Math.random() * 0.06 * deg; if (Math.random() < 0.18 * deg) { dg.gain.setValueAtTime(0.02, at); dg.gain.setValueAtTime(1, at + gap); } at += 0.09 + Math.random() * 0.12; } for (let r = 0; r < deg; r++) noise(dur + 0.1, (0.05 + 0.04 * deg) * (1 + Math.random()), "bandpass", 900 + Math.random() * 2600, 700 + Math.random() * 1500, 0.04, 0.5 + Math.random(), 0, voiceOut || master); for (let at = 0.05; at < dur; at += 0.06 + Math.random() * (0.25 - 0.05 * deg)) noise(0.02 + Math.random() * 0.06, 0.05 + 0.05 * deg, "bandpass", 1500 + Math.random() * 3200, 800, at, 2.5, 0, voiceOut || master); }
       /* Zufalls-Aussetzer aus: klang wie Stottern («Ma, Ma, Muncher») */ if (false && (voiceNo % 10 === 0 || Math.random() < 0.06)) { let at = t0 + 0.25 + Math.random() * Math.max(0.1, dur * 0.4); for (let k = 0; k < 1 + Math.floor(Math.random() * 3) && at < t0 + dur - 0.1; k++) { const len = 0.05 + Math.random() * 0.09; dg.gain.setValueAtTime(1, at); dg.gain.linearRampToValueAtTime(0.03, at + 0.01); dg.gain.setValueAtTime(0.03, at + len); dg.gain.linearRampToValueAtTime(1, at + len + 0.015); noise(len, 0.05, "bandpass", 1500 + Math.random() * 1500, 1200, at - t, 0.8, 0, voiceOut || master); at += len + 0.15 + Math.random() * 0.4; } }
       for (let k = 0, at = t0; at < t0 + dur; k++) { const len = 0.12 + Math.random() * 0.25, lvl = 0.82 + Math.random() * 0.18; dg.gain.setTargetAtTime(lvl, at, 0.05); at += len; }   // Flattern
+      { const gv = g.gain.value; g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(gv, t0 + 0.01); g.gain.setValueAtTime(gv, t0 + dur - 0.025); g.gain.linearRampToValueAtTime(0, t0 + dur); }   /* V433: Klick-Schutz */
       src.start(t0); curVoice = src; src.__rb = /^rb_/.test(String(text));
       setTimeout(() => { if (curVoice === src) curVoice = null; }, (dur + 0.45) * 1000);   // erst frei, wenn auch das Squelch-Ende durch ist
       const hiss = Math.random() < 0.7, f1 = 1800 + Math.random() * 1400, f2 = 1200 + Math.random() * 1200;   // immer etwas anders
