@@ -2769,7 +2769,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V400";
+const GAME_VER = "V401";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -8528,6 +8528,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     const thiefW = w => { let x = 100, i = 0; const st = [10, 9, 11]; while (x < w) x += st[i++ % 3]; return x === w; };
     setInterval(() => { try { const w = S && (S.wave || 0); if (!S || !S.started || S.over || S.nuts || S.testRun || !S.inWave || w < 99 || !thiefW(w + 1) || S.wolfAdW === w || S.wolves > 0) return;
       if (!calm() || !window.__offerOK()) return; S.wolfAdW = w; late = true; S.intro = true; S.adOpen = true; show("wolf", false); } catch (e) {} }, 900);
+    window.__wolfAd = () => { if (!S || !S.started || S.over || !ov.hidden) return false; S.wolfAdW = S.wave; late = true; S.intro = true; S.adOpen = true; show("wolf", false); return true; };   /* V401: Test */
     try { if (typeof SAVE_KEYS !== "undefined" && !SAVE_KEYS.includes("wolfAdW")) SAVE_KEYS.push("wolfAdW"); } catch (e) {}
     /* V299: Gratis-Air-Drops als Anzeige */
     let dropBtn = "AWESOME! · IT'S FREE ▶";
@@ -9228,10 +9229,13 @@ try { (() => {
   const _dj = devJump; devJump = function (w, kind) { const r = _dj.apply(this, arguments);
     if (DK.includes(kind)) { S.snipes = (S.snipes || 0) + 2; S.teslas = (S.teslas || 0) + 2; S.waveCD = 3; S.testLongW = w; S.testKind = kind; S.testLongUntil = performance.now() + 300000;
       if (kind === "egg") toast("TEST · EASTER EGG: push a block 5× into the left or right wall", "HQ", 3500);
+      else if (kind === "thief") toast(`TEST · THIEF comes a few seconds into wave ${w} · buy a WOLF CALL in the shop`, "HQ", 3000);
       else toast(`TEST · ${kind.toUpperCase()} starts a few seconds into wave ${w} · 2 Sniper + 2 Tesla in Pocket`, "HQ", 3000); }
+    if (kind === "wolfad") { S.gold = Math.max(S.gold, 900); S.wolves = 0; let n = 0; const tick = () => { if (++n > 120) return; if (S.inWave && window.__wolfAd && window.__wolfAd()) return; setTimeout(tick, 500); }; setTimeout(tick, 1500);
+      toast("TEST · Wolf ad comes in wave 99 · the thief follows in wave 100", "HQ", 3000); }
     return r; };
   let q = null; try { q = new URLSearchParams(location.search).get("test"); } catch (e) {}
-  const map = { blk: 65, mag: 80, weed: 92, thief: 100, egg1: 2, egg2: 32, egg3: 62, egg4: 92, egg5: 122 };
+  const map = { blk: 65, mag: 80, weed: 92, thief: 100, wolfad: 99, egg1: 2, egg2: 32, egg3: 62, egg4: 92, egg5: 122 };
   if (q && map[q]) { const go = () => { setTimeout(() => { try { history.replaceState(null, "", location.pathname); } catch (e) {} devJump(map[q], q.replace(/\d$/, "")); }, 700); };
     const sp = document.getElementById("splash"); if (sp) sp.addEventListener("click", go, { once: true }); else go(); }
 })(); } catch (e) { console.error("v330", e); }
