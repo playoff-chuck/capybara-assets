@@ -2774,7 +2774,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V416";
+const GAME_VER = "V417";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -4800,7 +4800,7 @@ function showCredits() {   /* V376: Abspann nach dem Finale */
 function startWave() {
   if (S.nuts) { S.wave = S.nuts.base - 1; S.nuts.lvl++; }   // V180: Nuts-Abstecher bleibt auf der Kontinent-Welle, Härte kommt über das Level
   S.wave++; queueIntros(S.wave);
-  if (!S.nuts && !S.testRun && (S.wave - 1) % 5 === 0) S.pl = { g: Math.floor((S.wave - 1) / 5), lives: S.lives, lines: S.lines || 0, splat: S.splatN || 0, med: S.medGot || 0, kills: S.kills || 0 };   /* V374: Sterne je Ort · V402: Splats je Ort */
+  if (!S.nuts && ((S.wave - 1) % 5 === 0 || !S.pl || S.pl.g !== Math.floor((S.wave - 1) / 5))) S.pl = { g: Math.floor((S.wave - 1) / 5), lives: S.lives, lines: S.lines || 0, splat: S.splatN || 0, med: S.medGot || 0, kills: S.kills || 0 };   /* V374: Sterne je Ort · V402: Splats je Ort · V417: auch Testlauf / Einstieg mitten im Ort */
   { const flip = syncTheme(), P = wherePos(S.wave), D = DAY[P.d];
     if (flip && S.wave > 1) S.fx.push({ type: "flash", t: 0, life: 1.1, col: THEME === "moon" ? "#ff9a4d" : "#fff6d8" });
     toast(P.d === 0 ? `${P.place} · ${D.t} ${D.n}` : `${D.t} · ${D.n}`, P.d === 0 ? P.cont[1] : P.place, 1700);
@@ -4851,7 +4851,7 @@ function update(dt) {
         if (tg) { S.tonGift = S.tonGift || {}; S.tonGift[S.wave] = 1; S.tons = (S.tons || 0) + 1; S.introQ = S.introQ || []; S.seen = S.seen || {}; if (!S.seen["g:ton"]) { if (!S.introQ.some(x => x && x.k === "ton")) S.introQ.push({ t: "gear", k: "ton" }); } else if (window.__dropAd && S.introWave !== S.wave) window.__dropAd("ton"); }   /* V405: kein Doppelfenster in W8 */
         airDrop(`WAVE ${S.wave} CLEARED`, [["gold", "Gold", "+" + b], ...(tg ? [["ton", "Ten-ton drop", "+1 · in your Pocket"]] : []), ["level", "Level", campTotal() + 1], ["score", "Score", calcScore().toLocaleString("en-US")]]); }
       if (hkOfferWave(S.wave) && S.wave < 150) S.hackPending = S.hackPending || S.wave;   // Boss-Banner kommt, sobald Air Drop / Orders vorbei sind
-      if (S.wave % 5 === 0 && !S.nuts && !S.testRun && S.pl && S.pl.g === Math.floor((S.wave - 1) / 5)) { const p = S.pl, st = [true, S.lives >= p.lives, (S.lines || 0) - p.lines >= 5, (S.splatN || 0) - p.splat >= 5, (S.medGot || 0) - p.med >= 1], n = st.filter(Boolean).length;   /* V374 */
+      if (S.wave % 5 === 0 && !S.nuts && S.pl && S.pl.g === Math.floor((S.wave - 1) / 5)) { const p = S.pl, st = [true, S.lives >= p.lives, (S.lines || 0) - p.lines >= 5, (S.splatN || 0) - p.splat >= 5, (S.medGot || 0) - p.med >= 1], n = st.filter(Boolean).length;   /* V374 */
         S.lastStars = { g: p.g, n, st }; const all = starsAll(); if (n > (all[p.g] || 0)) { all[p.g] = n; try { LS.set("capy-stars", JSON.stringify(all)); } catch (e) {} }
         if (p.kills != null) { const rr = placeRecAll(), o = rr[p.g] || {}, k = Math.max(0, (S.kills || 0) - p.kills), l = Math.max(0, (S.lines || 0) - p.lines); rr[p.g] = { k: Math.max(o.k || 0, k), l: Math.max(o.l || 0, l) }; try { LS.set("capy-place-rec", JSON.stringify(rr)); } catch (e) {} }   /* V402 */
         setTimeout(() => toast(`PLACE STARS ${"★".repeat(n)}${"☆".repeat(5 - n)}`, "HQ", 2600), 2400); }
