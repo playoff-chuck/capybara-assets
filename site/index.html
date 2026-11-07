@@ -2769,7 +2769,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V404";
+const GAME_VER = "V405";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -4839,7 +4839,7 @@ function update(dt) {
     if (S.toSpawn === 0 && S.monsters.length === 0) {
       S.inWave = false; if (S.nuts) nutsLevelDone(); else { S.waveCD = ffOn() ? 3 : G.waveCD; const b = Math.round((20 + 5 * S.wave) * (G.goldMul || 1) * goldTaper() * ordv("waveGoldMul")); S.gold += b; if (ORD_W.includes(S.wave)) { S.ordDue = S.wave; S.ordDueT = performance.now(); }   /* V242: kommt nach dem Air Drop, vor Wegweiser und Flug */ LS.set("tarnturm-waves-" + MODE, campTotal() + 1); lvLabel();
       if (S.wave % 10 === 0 && !S.nuts && !S.testRun && S.wave > (+LS.get("tarnturm-cp-" + MODE) || 0)) { LS.set("tarnturm-cp-" + MODE, S.wave); setTimeout(() => toast(`CHECKPOINT · wave ${S.wave} saved`, "HQ", 1800), 5200); } setTimeout(maybeJoin, 5600); { const tg = [8, 14, 22].includes(S.wave) && !(S.tonGift || {})[S.wave];   // V178q: geschenkter Ten-ton drop als Rettungsanker
-        if (tg) { S.tonGift = S.tonGift || {}; S.tonGift[S.wave] = 1; S.tons = (S.tons || 0) + 1; S.introQ = S.introQ || []; S.seen = S.seen || {}; if (!S.seen["g:ton"]) S.introQ.push({ t: "gear", k: "ton" }); else if (window.__dropAd) window.__dropAd("ton"); }
+        if (tg) { S.tonGift = S.tonGift || {}; S.tonGift[S.wave] = 1; S.tons = (S.tons || 0) + 1; S.introQ = S.introQ || []; S.seen = S.seen || {}; if (!S.seen["g:ton"]) { if (!S.introQ.some(x => x && x.k === "ton")) S.introQ.push({ t: "gear", k: "ton" }); } else if (window.__dropAd && S.introWave !== S.wave) window.__dropAd("ton"); }   /* V405: kein Doppelfenster in W8 */
         airDrop(`WAVE ${S.wave} CLEARED`, [["gold", "Gold", "+" + b], ...(tg ? [["ton", "Ten-ton drop", "+1 · in your Pocket"]] : []), ["level", "Level", campTotal() + 1], ["score", "Score", calcScore().toLocaleString("en-US")]]); }
       if (hkOfferWave(S.wave) && S.wave < 150) S.hackPending = S.hackPending || S.wave;   // Boss-Banner kommt, sobald Air Drop / Orders vorbei sind
       if (S.wave % 5 === 0 && !S.nuts && !S.testRun && S.pl && S.pl.g === Math.floor((S.wave - 1) / 5)) { const p = S.pl, st = [true, S.lives >= p.lives, (S.lines || 0) - p.lines >= 5, (S.splatN || 0) - p.splat >= 5, (S.medGot || 0) - p.med >= 1], n = st.filter(Boolean).length;   /* V374 */
