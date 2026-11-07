@@ -2774,7 +2774,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V413";
+const GAME_VER = "V414";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -6213,6 +6213,10 @@ function mixCells(x, y = GH - 1) {
   let cells = [];
   {
     let sy = Math.max(y, top); while (sy < GH && !free(sy * GW + x)) sy++;
+    /* V414: Höhe = Oberkante des Blockstücks direkt neben dem Loch (zusammenhängend nach oben), nicht die 3-Spalten-Höhe */
+    if (sy < GH) { let lv = -1; for (const nx of [x - 1, x + 1]) { if (nx < 0 || nx > GW - 1 || !S.grid[sy * GW + nx]) continue; let r = sy; while (r > 0 && S.grid[(r - 1) * GW + nx]) r--; lv = Math.max(lv, r); }   /* niedrigere Wand = kein Überlaufen */
+      if (lv < 0) { for (let r = sy + 1; r < GH; r++) if (S.grid[r * GW + x]) { lv = r; break; } }   /* kein Nachbar: nur bis zum Boden unter dem Loch */
+      if (lv >= 0) top = Math.max(top, lv); }
     if (sy < GH) {
       const seen = new Uint8Array(NN), q = [sy * GW + x]; seen[q[0]] = 1;
       while (q.length) { const c = q.pop(), cx = c % GW, cy = (c / GW) | 0; cells.push(c);
