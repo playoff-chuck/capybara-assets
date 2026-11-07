@@ -2769,7 +2769,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V397";
+const GAME_VER = "V398";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -6125,7 +6125,6 @@ function renderShop() {
   const lock = k => `Locked · unlocks at wave ${unlockedAt(k)}`;
   rows.push([unlockedAt("snipe"), item("snipe", ICON.snipe, "Sniper strike", SNIPE_COST, unlocked("snipe") ? "One shot: 2×2 patch wiped, the blast splats around it." + (S.wave >= 90 ? " Cuts weeds" + "." : "") : lock("snipe"), unlocked("snipe") ? "BUY" : `<i class="lk">🔒 WAVE ${unlockedAt("snipe")}</i>`, !unlocked("snipe") || S.gold < SNIPE_COST, "btn-accent")]);
   rows.push([unlockedAt("tesla"), item("tesla", ICON.tesla, "Tesla storm", TESLA_COST, unlocked("tesla") ? "4×4 lightning strike, splats count triple." + (S.wave >= 90 ? " Cuts weeds" + "." : "") : lock("tesla"), unlocked("tesla") ? "BUY" : `<i class="lk">🔒 WAVE ${unlockedAt("tesla")}</i>`, !unlocked("tesla") || S.gold < TESLA_COST, "btn-accent")]);
-  if (S.wolves > 0) rows.push([WOLF_W - 0.1, shopItem("shop", "wolfuse", ICON.tesla, "Wolf call", `×${S.wolves}`, "Howl now: a thief runs off and drops your gold. No thief? Then it's wasted.", "USE", false, "btn-accent")]);
   rows.push([WOLF_W, item("wolf", ICON.tesla, "Wolf call", WOLF_COST, (S.wave || 0) >= WOLF_W ? "A howl in the dark: the thief runs off and drops your gold." : `Locked · unlocks at wave ${WOLF_W}`, (S.wave || 0) >= WOLF_W ? "BUY" : `<i class="lk">🔒 WAVE ${WOLF_W}</i>`, (S.wave || 0) < WOLF_W || S.gold < WOLF_COST, "btn-accent")]);
   rows.push([unlockedAt("mix"), item("mix", ICON.mix, "Concrete mixer", MIX_COST, unlocked("mix") ? "Fills a hole up to the top block, buries monsters." : lock("mix"), unlocked("mix") ? "BUY" : `<i class="lk">🔒 WAVE ${unlockedAt("mix")}</i>`, !unlocked("mix") || S.gold < MIX_COST, "btn-accent")]);
   rows.push([unlockedAt("chomp"), item("chomp", ICON.chomp, "Chomper", CHOMP_COST, unlocked("chomp") ? "Steel jaws run the ring backwards: eats every monster and block in its way." : lock("chomp"), unlocked("chomp") ? "BUY" : `<i class="lk">🔒 WAVE ${unlockedAt("chomp")}</i>`, !unlocked("chomp") || S.gold < CHOMP_COST, "btn-accent")]);
@@ -6135,7 +6134,7 @@ function renderShop() {
   for (const [k, w] of Object.entries(WEAP)) rows.push([unlockedAt(k) + 0.2, item("w-" + k, ICON[k], w.name, w.cost, unlocked(k) ? `${w.tag} · damage ${w.dmg} · range ${w.range}` + (w.splash && k !== "frost" ? ` · splash ${w.splash}` : "") + (k === "frost" ? " · slows 55 %" : "") : lock(k), unlocked(k) ? "TAP A TOWER" : `<i class="lk">🔒 WAVE ${unlockedAt(k)}</i>`, true)]);
   const CAT = k => /data-shop="(tower|w-mg|w-kan|w-frost)"/.test(k) ? 0 : /data-shop="coach"/.test(k) ? 2 : 1;
   const CATS = [["TOWERS & WEAPONS", "Build a tower, add weapons", "cTow"], ["SPECIALS", "Buy, then USE – right here", "cSpe"], ["TRAINING", "Boss-hack practice", "cTra"]];
-  const OWN = { snipe: S.snipes, tesla: S.teslas, mix: S.mixers, chomp: S.chomps, ton: S.tons, lock: S.locks, coach: coachLeft() };
+  const OWN = { snipe: S.snipes, tesla: S.teslas, mix: S.mixers, chomp: S.chomps, ton: S.tons, lock: S.locks, wolf: S.wolves || 0, coach: coachLeft() };
   rows.forEach(r => { const m = r[1].match(/data-shop="(\w+)"/), k = m && m[1]; if (k && k in OWN) r[1] = r[1].replace(/<\/div>\s*$/, `<button data-pocket="${k}" class="useBtn${OWN[k] > 0 ? "" : " none"}" ${OWN[k] > 0 ? "" : "disabled"}>${k === "coach" ? "TRAIN" : "USE"} ×${OWN[k] || 0}</button></div>`); });   // V178w: USE-Knopf immer da (×0 grau) – Layout springt nicht
   rows.sort((p, q) => p[0] - q[0]);
   CATS.forEach((c, ci) => { const rs = rows.filter(r => CAT(r[1]) === ci); if (!rs.length) return; h += `<div class="shopCat ${c[2]}"><b>${c[0]}</b><span>${c[1]}</span></div>` + rs.map(r => r[1].replace('class="shopItem', `class="shopItem ${c[2]}`)).join(""); });
