@@ -2744,7 +2744,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V374";
+const GAME_VER = "V375";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -7911,7 +7911,10 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
       pinsEl.innerHTML = h;
       try { const all = starsAll(), v = Object.values(all), tot = v.reduce((a, b) => a + b, 0), cnt = [1, 2, 3, 4, 5].map(k => v.filter(x => x === k).length); let r = ov.querySelector(".mapRose");
         if (!r) { r = document.createElement("div"); r.className = "mapRose"; ov.appendChild(r); }
-        r.innerHTML = `<svg viewBox="0 0 60 60" aria-hidden="true"><circle cx="30" cy="30" r="27" fill="#f3ead6" stroke="#3a2414" stroke-width="2.5"/><path d="M30 5 L35 30 L30 55 L25 30Z" fill="#3a2414"/><path d="M30 5 L35 30 L25 30Z" fill="#e0412c"/><path d="M5 30 L30 25 L55 30 L30 35Z" fill="#7a6a52"/><circle cx="30" cy="30" r="3.5" fill="#ffc93c" stroke="#3a2414" stroke-width="1.5"/><text x="30" y="14" text-anchor="middle" font-size="8" font-weight="700" fill="#fff">N</text></svg><div class="rsTot">★ ${tot} / 150</div><div class="rsCnt">${cnt.slice(0, 3).map((c, i) => `${i + 1}★ ${c}`).join(" · ")}<br>${cnt.slice(3).map((c, i) => `${i + 4}★ ${c}`).join(" · ")}</div>`; } catch (e) {}
+        const nzb = [0, 1, 2, 3].map(c => { try { return nzBest(c); } catch (e) { return 0; } }), nzf = Math.round(nzb.reduce((a, b) => a + b / 15, 0) / 4 * 100);   /* V375: Nuts-Territorien + Faktor */
+        pinsEl.insertAdjacentHTML("beforeend", nzb.map((b, c) => { const P = MAP_PTS[c]; if (!P) return ""; const x = P.reduce((a, p) => a + p[0], 0) / P.length, y = P.reduce((a, p) => a + p[1], 0) / P.length;
+          return `<div class="mNuts${b ? " on" : ""}" style="left:${(x * 100 - 6).toFixed(2)}%;top:${(y * 100 + 7).toFixed(2)}%"><span>☠ ${b ? "L" + b : "—"}</span></div>`; }).join(""));
+        r.innerHTML = `<svg viewBox="0 0 60 60" aria-hidden="true"><circle cx="30" cy="30" r="27" fill="#f3ead6" stroke="#3a2414" stroke-width="2.5"/><path d="M30 5 L35 30 L30 55 L25 30Z" fill="#3a2414"/><path d="M30 5 L35 30 L25 30Z" fill="#e0412c"/><path d="M5 30 L30 25 L55 30 L30 35Z" fill="#7a6a52"/><circle cx="30" cy="30" r="3.5" fill="#ffc93c" stroke="#3a2414" stroke-width="1.5"/><text x="30" y="14" text-anchor="middle" font-size="8" font-weight="700" fill="#fff">N</text></svg><div class="rsTot">★ ${tot} / 150</div><div class="rsCnt">${cnt.slice(0, 3).map((c, i) => `${i + 1}★ ${c}`).join(" · ")}<br>${cnt.slice(3).map((c, i) => `${i + 4}★ ${c}`).join(" · ")}</div><div class="rsNuts">☠ Nuts ${nzf} %</div>`; } catch (e) {}
       const H = Math.round(1000 * MAP_AR); pathEl.innerHTML = MAP_PTS.map((P, c) => `<polyline points="${P.map(p => (p[0] * 1000).toFixed(1) + "," + (p[1] * H).toFixed(1)).join(" ")}" class="${c * 6 + 5 < g ? "done" : ""}"/>`).join("");
     }
     function arrOrigin(el) { try { const o = ov.getBoundingClientRect(), r = me.getBoundingClientRect(); let x = r.left + r.width / 2 - o.left, y = r.top + r.height / 2 - o.top;
@@ -9532,6 +9535,10 @@ header .brand .logoFull{height:54px!important;width:auto!important}
 .mapRose svg{width:54px;height:54px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.5))}
 .mapRose .rsTot{font-size:13px;color:#ffc93c}
 .mapRose .rsCnt{font-size:9px;opacity:.9;text-align:center;line-height:1.25}
+.mapRose .rsNuts{font-size:11px;color:#ff6fb5}
+.mNuts{position:absolute;width:0;height:0;pointer-events:none}
+.mNuts span{position:absolute;left:0;top:0;transform:translate(-50%,-50%) scale(var(--ik,1));white-space:nowrap;font:700 13px/1 system-ui,sans-serif!important;padding:4px 8px!important;border-radius:10px;width:auto!important;height:auto!important;min-width:0!important;background:rgba(40,20,40,.55);color:#ddd;border:1.5px dashed #b9a;opacity:.75}
+.mNuts.on span{background:#3a1430;color:#ff9fd0;border:1.5px solid #ff6fb5;opacity:1;box-shadow:0 0 8px rgba(255,111,181,.6)}
 #ovMap .mPin.cur i{background:#ff5fa8;animation:mPulse 1.1s ease-in-out infinite}
 #ovMap .mPin.star i{left:-12px;top:-12px;width:24px;height:24px;border-radius:4px;clip-path:polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);border:0;background:#3a2414}
 #ovMap .mPin.star i::after{content:"";position:absolute;inset:3px;clip-path:inherit;background:#e9e2d2}
