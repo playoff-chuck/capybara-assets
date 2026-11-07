@@ -2761,7 +2761,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V392";
+const GAME_VER = "V393";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -4159,7 +4159,7 @@ window.__whenCalm = (fn, gap = 5000) => { const t0 = performance.now(); const ti
     if (busy || performance.now() - (window.__evtLast || -1e9) < gap) { if (performance.now() - t0 < 600000) setTimeout(tick, 300); return; }
     fn(); } catch (e) { console.error("whenCalm", e); } }; setTimeout(tick, 300); };
 function uiWinOpen() { try { const v = id => { const e = document.getElementById(id); return e && !e.hidden && getComputedStyle(e).display !== "none"; }; if (v("ovHackAd")) return true;
-  return !!(window.__tipBulb && window.__tipBulb.open) || v("ovTilt") || v("ovIntro") || v("ovHack") || !!(S && (S.duel || S.hackAdOpen)) || document.body.classList.contains("introWin") || v("ovAd") || v("ovBandit") || v("ovJoin") || document.body.classList.contains("mapUp") || !!(S && (S.joinOpen || S.signOpen || S.banditOpen)); } catch (e) { return false; } }
+  return !!(window.__tipBulb && window.__tipBulb.open) || v("ovTilt") || v("ovIntro") || v("ovHack") || !!(S && (S.duel || S.hackAdOpen)) || document.body.classList.contains("introWin") || v("ovAd") || v("ovBandit") || v("ovJoin") || document.body.classList.contains("mapUp") || v("ovOrders") || !!(S && (S.joinOpen || S.signOpen || S.banditOpen || S.ordersOpen)); } catch (e) { return false; } }
 window.__msgDbg = () => ({ q: MSGQ.map(x => x.title), busy: Math.round(msgBusy - performance.now()), win: uiWinOpen() });
 function msgPush(m) {
   const last = MSGQ[MSGQ.length - 1]; if (last && last.title === m.title && last.sub === m.sub) return;   // gleiche Meldung nicht doppelt
