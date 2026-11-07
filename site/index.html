@@ -2774,7 +2774,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V424";
+const GAME_VER = "V425";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -9180,23 +9180,24 @@ try { (() => {
   const sched = k => { const w = S.wave | 0; if (S.testRun && S.testKind === k && w === S.testLongW) return true;   /* V347: Test-Welle */
     if (k === "blk") return w >= 65 && (w - 65) % 18 === 0;
     if (k === "mag") return [80, 92, 105, 117].includes(w);
-    if (k === "weed") return (w === WEED5 || [86, 110, 130].includes(w)) && !ROT_BASES.includes(specBase(w)) && (w - 1) % 30 < 27;
+    if (k === "weed") return [86, 110, 124, 130].includes(w) && !ROT_BASES.includes(specBase(w)) && (w - 1) % 30 < 27;
     if (k === "thief") { let x = 100, i = 0; const st = [10, 9, 11]; while (x < w) x += st[i++ % 3]; return x === w; }
     return false; };
   const D = { blk: null, mag: null, weeds: [], thief: null, done: {} };
   Object.defineProperty(D, "weed", { get() { return D.weeds[0] || null; }, set(v) { D.weeds = v ? [v] : []; } });   /* V423: mehrere Unkräuter */
-  const WEED5 = 124;
+  const WEEDN = { 110: 3, 124: 4, 130: 5 };   /* V425 */
   window.__dist = { state: () => ({ blk: !!D.blk, mag: D.mag && { side: D.mag.side, y: D.mag.y }, weed: D.weed && { x: D.weed.x, root: D.weed.root, h: D.weed.h }, thief: D.thief && { x: +D.thief.x.toFixed(2), stolen: D.thief.stolen } }), start: k => start(k), fire: (k, x, y) => (k === "snipe" ? snipe : tesla)(x, y), D };
-  const NAMES = { blk: ["SIGNAL LOST!", "Part of the field goes dark"], mag: ["MAGNET!", "It pulls the blocks – steer against it · Tesla fries it"], weed: ["WEEDS!", "Blocks get stuck on it · Tesla or Sniper cut it"], weed5: ["WEED FIELD!", "Five seeds at once · Tesla or Sniper cut them"], thief: ["THIEF!", "A WOLF CALL scares him off · shop → Wolf call"] };
+  const NAMES = { blk: ["SIGNAL LOST!", "Part of the field goes dark"], mag: ["MAGNET!", "It pulls the blocks – steer against it · Tesla fries it"], weed: ["WEEDS!", "Blocks get stuck on it · Tesla or Sniper cut it"], weed5: ["WEED FIELD!", "Seeds after the drop · Tesla or Sniper cut them"], thief: ["THIEF!", "A WOLF CALL scares him off · shop → Wolf call"] };
   function start(k) {
     const GT = GH;
     if (k === "blk") { const n = Math.random() < 0.5 ? 3 : 4; D.blk = { r0: Math.floor(GT * 0.45) - n + 1, n, t: 0, life: 25 + Math.random() * 5 }; }
     if (k === "mag") { const side = Math.random() < 0.5 ? 0 : 1, xs = side ? [GW - 3, GW - 2] : [1, 2]; let top = GT - 1; for (const x of xs) for (let y = 0; y < GT; y++) if (S.grid[y * GW + x]) { top = Math.min(top, y); break; }
       D.mag = { side, xs, y: Math.max(3, Math.min(GT - 4, top - 4)), fy: S.piece ? S.piece.y : 4, t: 0, life: 30, pullT: 0 }; }
-    if (k === "weed") { const n = S.wave === WEED5 ? 5 : 1, pool = []; for (let x = 1; x <= GW - 2; x++) pool.push(x);
+    if (k === "weed") { const n = WEEDN[S.wave] || 1, pool = []; for (let x = 1; x <= GW - 2; x++) pool.push(x);
       for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
       const xs = n > 1 ? pool.slice(0, n).sort((a, b) => a - b) : [2 + Math.floor(Math.random() * (GW - 4))];
-      D.weeds = xs.map(x => ({ x, root: null, h: 0, seedY: -1, growT: Math.random() * 1.5, waves: 0 })); }
+      const dl = n > 1 ? 3 : 0; if (n > 1) { try { if (!S.ton) { S.tons = (S.tons || 0) + 1; startTon(); } } catch (e) {} }   /* V425: erst Ten-ton, dann Samen */
+      D.weeds = xs.map(x => ({ x, root: null, h: 0, seedY: -1, growT: Math.random() * 1.5, waves: 0, delay: dl + Math.random() * 0.4 })); }
     if (k === "thief") D.thief = { x: -0.8, t: 0, stolen: 0 };
     snd("siren"); { const nm = k === "weed" && D.weeds.length > 1 ? NAMES.weed5 : NAMES[k]; announce(nm[0], nm[1], "ALERT", 2400); }
     if (k === "thief") setTimeout(() => { try { SFX.say("thief_hello", 1.0, 1.0, 0, 0); } catch (e) {} }, 900);
@@ -9257,7 +9258,7 @@ try { (() => {
       if (m.t >= m.life) { D.mag = null; toast("MAGNET GONE", "HQ", 1200); } }
     if (window.__magHum) window.__magHum(D.mag ? 1 : 0);
     for (const w of D.weeds) {
-      if (w.root == null) { w.seedY += dt * 6; const ly = landY(w.x); if (w.seedY >= ly) { w.root = ly; w.h = 1; try { tone(260, 110, 0.11, 0.035, 0, "sine", 900); tone(140, 90, 0.08, 0.02, 0.02, "triangle", 500); } catch (e) {} } }
+      if (w.delay > 0) { w.delay -= dt; } else if (w.root == null) { w.seedY += dt * 6; const ly = landY(w.x); if (w.seedY >= ly) { w.root = ly; w.h = 1; try { tone(260, 110, 0.11, 0.035, 0, "sine", 900); tone(140, 90, 0.08, 0.02, 0.02, "triangle", 500); } catch (e) {} } }
       else { if (w.root < GH - 1 && !S.grid[(w.root + 1) * GW + w.x]) w.root++;   /* fällt nach, wenn darunter frei wird */
         if (S.inWave) w.growT += dt; if (w.growT >= 6.8 && w.h < 12) { const ny = w.root - w.h; if (ny >= 1 && weedPush(w.x, ny, p)) { w.h++; w.growT = 0; } else w.growT = 6.8; } } }
     if (D.thief) { const T = D.thief; T.t += dt; if (window.__thiefPos) window.__thiefPos(T);
@@ -9318,7 +9319,7 @@ try { (() => {
     if (!T.stolen) { ctx.fillStyle = "#ff4a3a"; ctx.font = `bold ${Math.round(s * 0.3)}px sans-serif`; ctx.textAlign = "center"; ctx.fillText(Math.max(0, Math.ceil(10 - T.t)) + "", 0, -s * 0.45); }
     ctx.restore(); }
   const _dr = draw; draw = function () { const r = _dr.apply(this, arguments); try { if (!S || !S.started || S.over) return r; const s = CELL; ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0);
-      for (const w of D.weeds) drawWeed(w, s);
+      for (const w of D.weeds) if (!(w.delay > 0)) drawWeed(w, s);
       if (D.mag) drawMag(D.mag, s);
       if (D.blk) { const b = D.blk, now = performance.now(); if (now - nT > 50) { nT = now; const fw = Math.max(64, Math.round(cv.width / 2)), fh = Math.max(16, Math.round(b.n * CELL / 2)); if (nc.width !== fw || nc.height !== fh) { nc.width = fw; nc.height = fh; } const id = nx.createImageData(nc.width, nc.height); for (let i = 0; i < id.data.length; i += 4) { const v = Math.random() * 255 | 0; id.data[i] = v; id.data[i + 1] = v; id.data[i + 2] = Math.min(255, v + 18); id.data[i + 3] = 255; } nx.putImageData(id, 0, 0); }
         const fade = Math.min(1, b.t / 0.6, (b.life - b.t) / 0.6); ctx.globalAlpha = Math.max(0, fade); ctx.imageSmoothingEnabled = false; ctx.drawImage(nc, 0, b.r0 * CELL, cv.width, b.n * CELL);
@@ -9401,7 +9402,7 @@ try { (() => {
       toast("TEST · Wolf ad comes in wave 99 · the thief follows in wave 100", "HQ", 3000); }
     return r; };
   let q = null; try { q = new URLSearchParams(location.search).get("test"); } catch (e) {}
-  const map = { blk: 65, mag: 80, weed: 92, weed5: 124, thief: 100, wolfad: 99, egg1: 2, egg2: 32, egg3: 62, egg4: 92, egg5: 122 };
+  const map = { blk: 65, mag: 80, weed: 86, weed3: 110, weed4: 124, weed5: 130, thief: 100, wolfad: 99, egg1: 2, egg2: 32, egg3: 62, egg4: 92, egg5: 122 };
   if (q && map[q]) { const go = () => { setTimeout(() => { try { history.replaceState(null, "", location.pathname); } catch (e) {} devJump(map[q], q.replace(/\d$/, "")); }, 700); };
     const sp = document.getElementById("splash"); if (sp) sp.addEventListener("click", go, { once: true }); else go(); }
 })(); } catch (e) { console.error("v330", e); }
