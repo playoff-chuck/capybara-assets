@@ -62,10 +62,25 @@ CREATE TABLE IF NOT EXISTS saves(
 CREATE INDEX IF NOT EXISTS saves_k ON saves(k, t DESC);
 """
 
+class _DB:
+    # sqlite3's own "with conn" only commits/rolls back and never closes:
+    # every request leaked a file handle until the 1024 limit was hit.
+    def __enter__(self):
+        self.c = sqlite3.connect(DB, timeout=10)
+        self.c.row_factory = sqlite3.Row
+        return self.c
+    def __exit__(self, et, ev, tb):
+        try:
+            if et is None:
+                self.c.commit()
+            else:
+                self.c.rollback()
+        finally:
+            self.c.close()
+        return False
+
 def db():
-    c = sqlite3.connect(DB, timeout=10)
-    c.row_factory = sqlite3.Row
-    return c
+    return _DB()
 
 def init_db():
     with db() as c:
