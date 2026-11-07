@@ -2744,7 +2744,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V386";
+const GAME_VER = "V387";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -9210,19 +9210,10 @@ try { (() => {
   const el = document.createElement("canvas"); el.id = "thiefCv"; const SZ = 96, DPR = Math.min(3, window.devicePixelRatio || 1); el.width = SZ * DPR; el.height = SZ * DPR;
   el.style.cssText = `position:fixed;left:0;top:0;width:${SZ}px;height:${SZ}px;z-index:2147483000;display:none;cursor:crosshair;touch-action:none;filter:drop-shadow(0 3px 3px rgba(0,0,0,.5))`;
   document.body.appendChild(el); const g = el.getContext("2d");
-  /* V383: Fadenkreuz am Finger, über dem Dieb */
-  const scope = document.createElement("div"); scope.id = "thiefScope"; scope.setAttribute("aria-hidden", "true");
-  scope.innerHTML = '<svg viewBox="0 0 84 84" width="84" height="84"><g fill="none" stroke="currentColor" stroke-linecap="round"><circle cx="42" cy="42" r="26" stroke-width="3.5"/><circle cx="42" cy="42" r="10" stroke-width="2.5"/><path d="M42 4v18M42 62v18M4 42h18M62 42h18" stroke-width="3.5"/></g><circle cx="42" cy="42" r="2.6" fill="currentColor"/><g fill="none" stroke="#fff" stroke-opacity=".75" stroke-linecap="round"><circle cx="42" cy="42" r="28.5" stroke-width="1.2"/></g></svg>';
-  scope.style.cssText = "position:fixed;left:-42px;top:-42px;width:84px;height:84px;z-index:2147483001;pointer-events:none;display:none;filter:drop-shadow(0 0 3px rgba(0,0,0,.6));will-change:transform";
-  document.body.appendChild(scope);
-  let scopeP = null, scopeM = null;
-  const scopeSet = e => { scopeP = [e.clientX, e.clientY]; }; document.addEventListener("pointermove", scopeSet, true); document.addEventListener("pointerdown", scopeSet, true);
-  const scopeTick = (tx, ty) => { const m = typeof S !== "undefined" && S && (S.mode === "snipe" || S.mode === "tesla") ? S.mode : null, on = !!m && el.style.display === "block";
-    if (m !== scopeM) { scopeP = null; scopeM = m; }   /* gerade scharf gemacht: zuerst auf den Dieb */
-    if (!on) { if (scope.style.display !== "none") scope.style.display = "none"; return; }
-    const p = scopeP || [tx, ty], pulse = 1 + 0.06 * Math.sin(performance.now() / 140); scope.style.display = "block"; scope.style.color = m === "tesla" ? "#c58bff" : "#e04a2e";
-    scope.style.transform = `translate(${p[0].toFixed(1)}px,${p[1].toFixed(1)}px) scale(${pulse.toFixed(3)})`; };
-  let scopeT = [0, 0]; const scopeLoop = () => { try { scopeTick(scopeT[0], scopeT[1]); } catch (e) {} requestAnimationFrame(scopeLoop); }; requestAnimationFrame(scopeLoop);   /* läuft auch, wenn das Spiel beim Zielen steht */
+  /* V387: großzügige Trefferzone für Sniper/Tesla rund um den Dieb */
+  document.addEventListener("pointerdown", ev => { try { if (ev.target === el || el.style.display !== "block" || !(S.mode === "snipe" || S.mode === "tesla")) return;
+    const r = el.getBoundingClientRect(), P = 40; if (ev.clientX < r.left - P || ev.clientX > r.right + P || ev.clientY < r.top - P || ev.clientY > r.bottom + P) return;
+    ev.preventDefault(); ev.stopPropagation(); el.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true, cancelable: true, clientX: ev.clientX, clientY: ev.clientY })); } catch (e) {} }, true);
   // Ablauf (Sekunden): 0–6 laufen · 6–7,3 umschauen · 7,3–8,4 zum Gold schauen · 8,4–10 schleichen · 10 greifen · 10–30 rennen
   function phase(t) { return t < 8 ? "walk" : t < 9.4 ? "eye" : t < 10.6 ? "grab" : "run"; }
   const FR = [1, 2, 3, 4, 5, 6, 7].map(n => "thief_" + n).concat([1, 2, 3, 4, 5, 6, 7, 8].map(n => "thief_w" + n)).concat([1, 2, 3, 4].map(n => "thief_r" + n)).map(f => { const im = new Image(); im.decoding = "async"; im.src = "img/" + f + ".webp"; return im; });   /* V360: 7..14 = Laufzyklus */
@@ -9269,7 +9260,7 @@ try { (() => {
     { const tx = x - SZ / 2, ty = Math.round(feet - SZ + 5); let mk = "none";   /* V361: hinter dem General-Kreis durch */
       if (ga && ga.width) { const ax = ga.left + ga.width / 2, ay = ga.top + ga.height / 2, ar = ga.width / 2 + 3, lx = SZ / 2 + (ax - tx - SZ / 2) / sc, ly = SZ + (ay - ty - SZ) / sc, lr = ar / sc;
         if (lx + lr > 0 && lx - lr < SZ && ly + lr > 0 && ly - lr < SZ) mk = `radial-gradient(circle ${lr.toFixed(1)}px at ${lx.toFixed(1)}px ${ly.toFixed(1)}px, transparent ${(lr - 0.5).toFixed(1)}px, #000 ${(lr + 0.5).toFixed(1)}px)`; }
-      if (el.__mk !== mk) { el.__mk = mk; el.style.webkitMaskImage = mk; el.style.maskImage = mk; } } el.style.transform = `translate(${(x - SZ / 2).toFixed(1)}px,${Math.round(feet - SZ + 5)}px) scale(${sc.toFixed(3)})`; sprite(T); scopeT = [x, feet - SZ * sc * 0.5 + 5]; };
+      if (el.__mk !== mk) { el.__mk = mk; el.style.webkitMaskImage = mk; el.style.maskImage = mk; } } el.style.transform = `translate(${(x - SZ / 2).toFixed(1)}px,${Math.round(feet - SZ + 5)}px) scale(${sc.toFixed(3)})`; sprite(T); };
   el.addEventListener("pointerdown", ev => { ev.preventDefault(); ev.stopPropagation(); const D = window.__dist && window.__dist.D, T = D && D.thief; if (!T) return;
     let used = null;
     if (S.mode === "snipe" && S.snipes > 0) { S.snipes--; used = "snipe"; } else if (S.mode === "tesla" && S.teslas > 0) { S.teslas--; used = "tesla"; }
