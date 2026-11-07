@@ -2466,7 +2466,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
   <div class="alHead"><span class="alTag">SETTINGS</span><span class="alTime"></span></div>
   <div class="heroPick" id="heroPickSet"><div class="hpHead">YOUR HERO</div><div class="hpRow"><button class="hpAv" data-hero="blue" aria-label="Play as Blue"><img alt=""><b>BLUE</b></button><button class="hpAv" data-hero="rosie" aria-label="Play as Rosie"><img alt=""><b>ROSIE</b></button></div><div class="hpSub"></div></div>
   <label for="setNick">YOUR PLAYER NAME · made up, never your real name</label>
-  <input id="setNick" type="text" maxlength="14" autocomplete="off" spellcheck="false" placeholder="e.g. CapyKing"><div class="setRow"><button id="setCloud" class="btn-small" type="button">☁ Cloud save</button><button id="setGuide" class="btn-small" type="button">Guide</button></div>
+  <input id="setNick" type="text" maxlength="14" autocomplete="off" spellcheck="false" placeholder="e.g. CapyKing"><div class="setRow"><button id="setCloud" class="btn-small" type="button">☁ Cloud save</button><button id="setGuide" class="btn-small" type="button">Guide</button></div><div class="setInv"><button id="setInvite" class="shareBtn" type="button">INVITE FRIENDS</button><small id="setInvN">Friends get a free Ten-ton drop</small></div>
 </div></div>
       <div class="overlay ordOv" id="ovOrders" hidden>
         <div class="ordHead"><span class="alTag">WILD CARDS</span><h2 id="ordTitle">PICK A WILD CARD</h2><p id="ordDur">Pick one · it stays until the next wild cards.</p></div>
@@ -2774,7 +2774,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V418";
+const GAME_VER = "V419";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -7864,6 +7864,30 @@ async function shareResult(o) {
   shBusy = false;
 }
 window.__shareCard = o => shareCard(o); window.__shareInfo = o => shInfo(o);
+/* V419 (t14): Freunde einladen – Squad-Code, Zähler auf unserem Server, Geschenk für Eingeladene */
+const SQ_RE = /^[ABCDEFGHJKMNPQRSTUVWXYZ2-9]{6}$/;
+function sqPost(path, body) { return fetch(API_BASE + path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body || {}) }); }
+async function sqMyCode() { const c = LS.get("capy-squad-code"); if (c && SQ_RE.test(c)) return c;
+  try { const r = await sqPost("/squad"); if (!r.ok) return null; const d = await r.json(); if (d && SQ_RE.test(d.code || "")) { LS.set("capy-squad-code", d.code); return d.code; } } catch (e) {} return null; }
+function sqNote(t) { const el = $("setInvN"); if (el) el.textContent = t; }
+let sqBusy = false, sqCntT = -1e9;
+async function sqInvite() { if (sqBusy) return; sqBusy = true; sqNote("…");
+  try { const c = await sqMyCode(); if (!c) { sqNote("No connection · please try again later"); return; }
+    const url = SHARE_URL + "/?squad=" + c, text = "Join my squad in Capybara Squad! You get a free Ten-ton drop.";
+    if (navigator.share) { try { await navigator.share({ title: "Capybara Squad", text, url }); sqNote(`Your squad code: ${c}`); } catch (e) { sqNote(e && e.name === "AbortError" ? `Your squad code: ${c}` : `Your link: ${url.replace("https://", "")}`); } return; }
+    try { await navigator.clipboard.writeText(text + " " + url); sqNote("Link copied! Send it to your friends."); } catch (e) { sqNote(`Your link: ${url.replace("https://", "")}`); }
+  } finally { sqBusy = false; } }
+async function sqCount() { const c = LS.get("capy-squad-code"); if (!c || !SQ_RE.test(c) || performance.now() - sqCntT < 30000) return; sqCntT = performance.now();
+  try { const r = await fetch(API_BASE + "/squad?code=" + c, { cache: "no-store" }); if (!r.ok) return; const d = await r.json(); const n = d && d.n | 0; if (!sqBusy) sqNote(n > 0 ? `SQUAD +${n} · ${n === 1 ? "friend" : "friends"} joined with your link` : "Friends get a free Ten-ton drop"); } catch (e) {} }
+document.addEventListener("click", e => { if (e.target.closest("#setInvite")) { try { SFX.init(); snd("uiTap"); } catch (er) {} sqInvite(); return; }
+  setTimeout(() => { const o = $("ovSettings"); if (o && !o.hidden) sqCount(); }, 80); });
+(() => { try { const q = new URLSearchParams(location.search), c = (q.get("squad") || "").toUpperCase();
+  if (!c) return; q.delete("squad"); try { history.replaceState(null, "", location.pathname + (q.toString() ? "?" + q : "") + location.hash); } catch (e) {}
+  if (!SQ_RE.test(c) || LS.get("capy-squad-from") || c === LS.get("capy-squad-code")) return;
+  LS.set("capy-squad-from", c);
+  sqPost("/squad/join", { code: c }).then(r => { if (r.ok) LS.set("capy-squad-gift", "1"); }).catch(() => {}); } catch (e) {} })();
+setInterval(() => { try { if (LS.get("capy-squad-gift") !== "1" || !S || !S.started || S.over || S.nuts || S.replay || S.testRun || (S.wave || 0) < 2 || !window.__dropAd) return;
+  LS.del("capy-squad-gift"); S.tons = (S.tons || 0) + 1; window.__dropAd("friend"); } catch (e) {} }, 2000);
 document.addEventListener("click", e => { if (!e.target.closest("#btnShare")) return; try { SFX.init(); snd("uiTap"); } catch (er) {} shareResult({ kind: "over" }); });
 function startDetour(c) {
   const fr = buildSave(); if (!fr) return; NZ.frozen = fr; window.__NZF = fr; NZ.first = nzFirstOpen(c); NZ.ending = false;
@@ -8670,6 +8694,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     function showDrop(kind, o) { o = o || {}; const tc = typeof TON_COST !== "undefined" ? TON_COST : 300;
       const gold = ((o.loot || []).find(x => x[0] === "gold") || [])[2] || "";
       const D = { ton: { img: "img/ad_drop_free.webp", name: "TEN-TON DROP", line: "HQ sent you a Ten-ton drop. It's already in your Pocket.", met: ["+1 Ten-ton", "In your Pocket"], btn: "THANKS! ▶" },
+                 friend: { img: "img/ad_drop_free.webp", name: "A GIFT FROM A FRIEND", line: "A friend invited you to the squad and sent a Ten-ton drop. It's already in your Pocket.", met: ["+1 Ten-ton", "In your Pocket"], btn: "THANKS! ▶" },   /* V419 */
                  sweep: { img: "img/ad_drop_free.webp", name: "CLEAN SWEEP", line: "You cleared the whole field. HQ sent gold and a medal.", met: [`${gold} gold`, "+1 medal"], btn: "COLLECT ▶" },
                  med: { img: "img/ad_med_free.webp", name: "MEDKIT", line: "Doc Hazel patched you up. You can see clearly again.", met: ["Vision clear"], btn: "THANKS, DOC ▶" },
                  rot: { img: "img/ad_drop_free.webp", name: `${o.rp || "+90°"} PACKAGE`, line: "The field is upright again. Blocks fall down as usual.", met: ["Field upright"], btn: "LET'S GO ▶" } }[kind];
@@ -8678,8 +8703,8 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
       $a("adPic").style.backgroundImage = `url(${D.img})`; $a("adPic").style.backgroundPosition = ""; $a("adTag").textContent = "✈ AIR DROP"; $a("adWave").textContent = `WAVE ${S.wave}`; $a("adPrice").textContent = "";
       $a("adName").textContent = D.name; $a("adLine").textContent = D.line; $a("adMet").innerHTML = D.met.map(x => `<span>${x}</span>`).join("");
       paint(); window.__adLast = performance.now(); $("ovIntro").hidden = true; ov.hidden = false; requestAnimationFrame(() => ov.classList.add("on"));
-      try { const vl = { ton: "ad_drop", sweep: "ad_sweep", med: "ad_med", rot: "ad_upright" }[kind]; if (vl) setTimeout(() => { try { if (!ov.hidden) SFX.say(vl, 1.0, 1.0, 0, 0); } catch (e) {} }, 700); } catch (e) {}
-      try { snd("crate"); if (kind === "sweep" || kind === "ton") [0.5, 0.8].forEach(d => setTimeout(() => snd("coin"), d * 1000)); } catch (e) {} }
+      try { const vl = { ton: "ad_drop", friend: "ad_drop", sweep: "ad_sweep", med: "ad_med", rot: "ad_upright" }[kind]; if (vl) setTimeout(() => { try { if (!ov.hidden) SFX.say(vl, 1.0, 1.0, 0, 0); } catch (e) {} }, 700); } catch (e) {}
+      try { snd("crate"); if (kind === "sweep" || kind === "ton" || kind === "friend") [0.5, 0.8].forEach(d => setTimeout(() => snd("coin"), d * 1000)); } catch (e) {} }
     const dropQ = []; let dropWait = false;
     function pumpDrop() { if (dropWait || !dropQ.length) return; dropWait = true;
       window.__whenCalm(() => { if (!ov.hidden || (window.__playScreen && !window.__playScreen()) || S.nuts) { dropWait = false; setTimeout(pumpDrop, 1000); return; }
@@ -10518,5 +10543,9 @@ body.awOn #ovHs[hidden],body.awOn #ovAlbum[hidden],body.awOn #ovSquad[hidden]{di
 .shareBtn{align-self:center!important;margin:0 0 0 10px!important;min-height:0!important;height:30px!important;width:auto!important;padding:0 14px!important;border-radius:999px!important;border:2px solid #3a2414!important;background:#ff5fa2!important;color:#fff!important;font-family:Bangers,system-ui!important;font-size:16px!important;letter-spacing:.06em!important;line-height:1!important;box-shadow:0 3px 0 #3a2414!important;display:inline-flex!important;flex-direction:row!important;align-items:center!important;justify-content:center!important;flex:0 0 auto!important;gap:0!important}
 .shareBtn::before{content:"";width:14px;height:14px;margin-right:6px;background:no-repeat center/contain url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='18' cy='5' r='3' fill='white'/%3E%3Ccircle cx='6' cy='12' r='3' fill='white'/%3E%3Ccircle cx='18' cy='19' r='3' fill='white'/%3E%3Cpath d='M8.6 13.5l6.8 4M15.4 6.5l-6.8 4' stroke='white' stroke-width='2.2'/%3E%3C/svg%3E")}
 #rpRes .rpShare{margin:6px auto 0!important;height:40px!important;font-size:20px!important;padding:0 20px!important}
+/* V419: Einladen */
+#ovSettings .setInv{display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:10px}
+#ovSettings .setInv .shareBtn{margin:0!important;height:38px!important;font-size:18px!important;padding:0 18px!important}
+#ovSettings .setInv small{font-size:12px;font-weight:700;color:#9b7a5c;text-align:center;line-height:1.25}
 </style>
 </body></html>
