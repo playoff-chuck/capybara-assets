@@ -2744,7 +2744,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V369";
+const GAME_VER = "V370";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -7896,7 +7896,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
       const W = vp.clientWidth, H = vp.clientHeight * .78, k = Math.max(1, Math.min(5, W / ((x1 - x0) * BW), H / ((y1 - y0) * BW * MAP_AR)));
       return { x: (x0 + x1) / 2, y: (y0 + y1) / 2 + .02, k }; }
     function worldCam() { const W = vp.clientWidth, H = vp.clientHeight; return { x: .5, y: .5, k: Math.max(1, Math.min(H / (BW * MAP_AR) * .62, 2.2)) }; }
-    function go(c, ms) { cam = c; apply(ms); }
+    function go(c, ms) { cam = c; window.__camHold = ms ? performance.now() + ms : 0; apply(ms); }   /* V370: Verfolgung pausiert, solange der Schwenk läuft */
     function drawPins(g) {   // g = globaler Index des aktuellen Ortes (0..29)
       let h = ""; MAP_PTS.forEach((P, c) => P.forEach((p, i) => { const gi = c * 6 + i, st = gi < g ? "done" : gi === g ? "cur" : "open";
         h += `<div class="mPin ${st}${i === 5 ? " star" : ""}" data-g="${gi}" style="left:${p[0] * 100}%;top:${p[1] * 100}%"><i></i>${gi === g ? `<em>${nice(CONTS[c][2][i])}</em>` : ""}</div>`; }));
@@ -7985,7 +7985,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     function playIntro(done) { let arr = null;
       seqDone = () => { try { arr && arr.remove(); } catch (e) {} try { if (SFX.music.playing < 1) SFX.music.start(1); } catch (e) {} if (done) done(); };
       show("auto"); drawPins(-1); setMe(MAP_PTS[0][0], false); label("", "Welcome to Capybara World!", "5 continents · 30 places · 150 waves"); window.__introAt = performance.now();
-      const RB = MAP_PTS[0][0], W0 = { ...worldCam(), x: RB[0], y: RB[1] }; go(W0, 0);   /* V317 */
+      const RB = MAP_PTS[0][0], W0 = { ...worldCam(), x: RB[0], y: RB[1] }; go({ ...W0, x: .86, y: .3 }, 0);   /* V370: Start dort, wo das Flugzeug hereinkommt, nicht am Ziel */   /* V317 */
       at(950, () => { try { SFX.music.stop(0.3); } catch (e) {} });   // Spielmusik erst mit dem Ankunftsbild
       at(600, () => { label("", "Flying to South America", "First stop: River Bank"); flyPlane([1.04, .2], RB, 4600); });
       at(700, () => go({ x: .62, y: .42, k: W0.k * 1.12 }, 1800));
