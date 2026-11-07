@@ -2774,7 +2774,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V428";
+const GAME_VER = "V429";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -2998,7 +2998,7 @@ const PAL = {
 const SKY_BG = {"samerica": ["img/2510465d7d.webp", "img/e24cf5d037.webp"], "africa": ["img/e2bcc54b17.webp", "img/f4325f970b.webp"], "asia": ["img/61bc129f23.webp", "img/4d6930eba2.webp"], "namerica": ["img/668958077c.webp", "img/f7b3efb16a.webp"]};
 const HERO_BASE = {"blue": "img/e8b742aa03.webp", "rosie": "img/cf7539bf2e.webp"};
 const OUTFIT = [["Standard", 0], ["Shades", 30], ["Explorer", 60], ["Winter", 90], ["Champion", 120]];   /* V413: Name, Sterne */
-function outfitImg(k, n) { return n ? `img/outfit_${k}_${n}.webp` : HERO_BASE[k]; }
+function outfitImg(k, n) { return `img/outfit_${k}_${n || 0}.webp`; }   /* V429: alle aus einem Ausschnitt */
 function outfitSel(k) { try { const n = +localStorage.getItem("capy-outfit-" + k) || 0; return n >= 0 && n <= 4 ? n : 0; } catch (e) { return 0; } }
 const HERO_IMG = { get blue() { return outfitImg("blue", outfitSel("blue")); }, get rosie() { return outfitImg("rosie", outfitSel("rosie")); } };
 const CONTS = [["samerica", "SOUTH AMERICA", ["RIVER BANK", "MANGROVE", "JUNGLE", "WATERFALL", "RUINS", "JUNGLE TEMPLE"]],
