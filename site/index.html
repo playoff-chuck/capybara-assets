@@ -2769,7 +2769,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V403";
+const GAME_VER = "V404";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -6928,13 +6928,13 @@ const STATIC = { n: null, t: null,
   }; }
 
 /* --- Musik: Suno-Stücke (Südamerika + Menü), Rotation je Ort, DJ-Tipp = nächster Song --- */
-const TRK = { airport: ["Airport Bossa", 100], copacabana: ["Copacabana Sunset", 102], andes: ["Andes Lounge", 96], jungle: ["Jungle Downtempo", 98], rumba: ["Rumba Lounge", 104], samba: ["Samba Lounge", 108], chilldisco: ["Chill Disco Rio", 110], loungedisco: ["Lounge Disco", 110], oasis: ["Oasis Blues", 98], savanna: ["Savanna Groove", 104], dune: ["Dune Dub", 96], dune2: ["Dune Dub II", 96], pyramid: ["Pyramid Disco", 116], taiga: ["Taiga Lounge", 100], frozen: ["Frozen Lake", 96], steppe: ["Steppe Ride", 108], iceport: ["Ice Port Disco", 110], icepalace: ["Ice Palace", 120], dorian: ["Dorian Dust", 84], oddphased: ["Odd-Phased", 96], gameloop: ["Prairie Loop", 100], cartoon: ["Cartoon Trail", 110], icea: ["Polar Night", 90], iceb: ["Ice Shelf", 90], frozenretro: ["Frozen Retro Groove", 116], glide: ["Glide on the Ice", 112], midtown: ["Midtown Shuffle", 120] };
-const TRK_FILE = { airport: "airport_bossa", copacabana: "copacabana_sunset", andes: "andes_lounge", jungle: "jungle_downtempo", rumba: "rumba_lounge", samba: "samba_lounge", chilldisco: "chill_disco_rio", loungedisco: "lounge_disco", oasis: "af_oasis", savanna: "af_savanna", dune: "af_dune", dune2: "af_dune2", pyramid: "af_pyramid", taiga: "as_taiga", frozen: "as_frozen", steppe: "as_steppe", iceport: "as_iceport", icepalace: "as_icepalace", dorian: "na_dorian_dust", oddphased: "na_odd_phased", gameloop: "na_game_loop", cartoon: "na_cartoon_loop", icea: "an_ice_a", iceb: "an_ice_b", frozenretro: "an_frozen_retro", glide: "an_glide", midtown: "na_midtown" };
+const TRK = { airport: ["Airport Bossa", 100], copacabana: ["Copacabana Sunset", 102], andes: ["Andes Lounge", 96], jungle: ["Jungle Downtempo", 98], rumba: ["Rumba Lounge", 104], samba: ["Samba Lounge", 108], chilldisco: ["Chill Disco Rio", 110], loungedisco: ["Lounge Disco", 110], oasis: ["Oasis Blues", 98], savanna: ["Savanna Groove", 104], dune: ["Dune Dub", 96], dune2: ["Dune Dub II", 96], pyramid: ["Pyramid Disco", 116], taiga: ["Taiga Lounge", 100], frozen: ["Frozen Lake", 96], steppe: ["Steppe Ride", 108], iceport: ["Ice Port Disco", 110], icepalace: ["Ice Palace", 120], dorian: ["Dorian Dust", 84], oddphased: ["Odd-Phased", 96], gameloop: ["Prairie Loop", 100], cartoon: ["Cartoon Trail", 110], icea: ["Polar Night", 90], iceb: ["Ice Shelf", 90], frozenretro: ["Frozen Retro Groove", 116], glide: ["Glide on the Ice", 112], midtown: ["Midtown Shuffle", 120], miami: ["Miami Nights", 118] };
+const TRK_FILE = { airport: "airport_bossa", copacabana: "copacabana_sunset", andes: "andes_lounge", jungle: "jungle_downtempo", rumba: "rumba_lounge", samba: "samba_lounge", chilldisco: "chill_disco_rio", loungedisco: "lounge_disco", oasis: "af_oasis", savanna: "af_savanna", dune: "af_dune", dune2: "af_dune2", pyramid: "af_pyramid", taiga: "as_taiga", frozen: "as_frozen", steppe: "as_steppe", iceport: "as_iceport", icepalace: "as_icepalace", dorian: "na_dorian_dust", oddphased: "na_odd_phased", gameloop: "na_game_loop", cartoon: "na_cartoon_loop", icea: "an_ice_a", iceb: "an_ice_b", frozenretro: "an_frozen_retro", glide: "an_glide", midtown: "na_midtown", miami: "na_miami" };
 const TRK_ORDER = ["andes", "jungle", "copacabana", "rumba", "samba", "loungedisco", "chilldisco", "airport"];
-const TRK_AF = ["oasis", "savanna", "dune", "dune2", "pyramid"], TRK_AS = ["taiga", "frozen", "steppe", "iceport", "icepalace"], TRK_NA = ["dorian", "midtown", "oddphased", "gameloop", "cartoon"], TRK_AN = ["icea", "frozenretro", "iceb", "glide"];   /* V400 */
+const TRK_AF = ["oasis", "savanna", "dune", "dune2", "pyramid"], TRK_AS = ["taiga", "frozen", "steppe", "iceport", "icepalace"], TRK_NA = ["dorian", "midtown", "oddphased", "miami", "gameloop", "cartoon"], TRK_AN = ["icea", "frozenretro", "iceb", "glide"];   /* V400 */
 function trkPool(wave) { if (!wave) return ["airport"]; const p = Math.floor(((wave - 1) % 30) / 5);
   if (wave >= 31 && wave <= 60) return [0, 1, 2].map(i => TRK_AF[(p + i) % 5]); if (wave >= 61 && wave <= 90) return [0, 1, 2].map(i => TRK_AS[(p + i) % 5]);
-  if (wave >= 91 && wave <= 120) return [0, 1, 2].map(i => TRK_NA[(p + i) % 5]); if (wave >= 121) return [0, 1, 2].map(i => TRK_AN[(p + i) % 4]);   /* V403 */
+  if (wave >= 91 && wave <= 120) return [0, 1, 2].map(i => TRK_NA[(p + i) % 6]); if (wave >= 121) return [0, 1, 2].map(i => TRK_AN[(p + i) % 4]);   /* V403 */
   return TRK_ORDER.slice(p, p + 3); }   // je Ort 3 Stücke, eines wechselt pro Ort
 window.__tpDbg = () => TP; const TP = { el: null, src: null, g: null, key: null, pool: [], wave: -1, paused: false, synthOn: false, gen: 0, pend: false, errT: 0, stuck: 0 };
 function tpEl() {
