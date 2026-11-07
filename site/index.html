@@ -2744,7 +2744,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V373";
+const GAME_VER = "V374";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -2863,7 +2863,7 @@ function medalTag() { const el = $("medTag"); if (!el || !S) return; const on = 
 function addMedal(prog, whole) {
   if (S.medals >= MEDAL_MAX) { medalTag(); return; }
   if (whole) { S.medals++; S.medalProg = 0; } else { S.medalProg += prog; if (S.medalProg < MEDAL_NEED) { medalTag(); return; } S.medalProg = 0; S.medals++; }
-  medalTag(); setTimeout(() => announce(`MEDAL ${S.medals}`, `All towers +${S.medals * 25} % damage${S.medals >= MEDAL_MAX ? " · maxed" : ""}`, "PROMOTION", 1800), 700);
+  S.medGot = (S.medGot || 0) + 1; medalTag(); setTimeout(() => announce(`MEDAL ${S.medals}`, `All towers +${S.medals * 25} % damage${S.medals >= MEDAL_MAX ? " · maxed" : ""}`, "PROMOTION", 1800), 700);
   snd("medal");
 }
 function loseMedal() { if (S.medals > 0) { S.medals--; S.medalProg = 0; snd("medalLost"); toast(`MEDAL LOST · towers +${S.medals * 25} %`, "ALERT", 1500); } else S.medalProg = 0; medalTag(); }
@@ -4329,7 +4329,7 @@ function crush(p) {
     const cand = [m.cy * GW + m.cx, Math.round(m.y) * GW + Math.round(m.x), Math.floor(m.y) * GW + Math.floor(m.x), Math.ceil(m.y) * GW + Math.ceil(m.x), Math.floor(m.y) * GW + Math.ceil(m.x), Math.ceil(m.y) * GW + Math.floor(m.x)];
     if (m.next) cand.push(m.next[1] * GW + m.next[0]);
     if (!cand.some(c => hit.has(c))) continue;
-    m.dead = true; n++; S.kills += 5; addMedal(1); killMilestones(m); addScore((SCORE_KILL[m.kind] || 10) * 2);   // Erschlagen zählt fünffach
+    m.dead = true; n++; S.splatN = (S.splatN || 0) + 1; S.kills += 5; addMedal(1); killMilestones(m); addScore((SCORE_KILL[m.kind] || 10) * 2);   // Erschlagen zählt fünffach
     if (m.kind === "bomber") setTimeout(() => detonate([m.cy * GW + m.cx]), 80);
     const g = Math.round(m.reward * G.crushMul * ordv("splatMul")); gold += g;
     S.fx.push({ type: "splat", x: m.x, y: m.y, t: 0, life: 0.9, col: m.kind === "heavy" ? "#c63a22" : m.kind === "fast" ? "#f2c321" : m.kind === "munch" ? "#9b5de5" : "#ee7a2c" });
@@ -4716,9 +4716,12 @@ function stepShots(dt) {
 // ---------- Ablauf ----------
 function canAct() { return S.started && !S.over && !S.paused && !S.intro && !(performance.now() < (window.__holdUntil || 0)) && !S.duel && !S.mode && !S.sel && !S.shop && !S.drop && !S.ordersOpen && S.piece; }   // Funksprüche halten das Spiel nicht an
 function frozen() { return !S.started || S.over || S.paused || S.coachHold || S.intro || S.duel || S.mode || S.sel || S.shop || S.drop || S.ordersOpen || S.mix || S.tiltCard; }
+function starsAll() { try { return JSON.parse(LS.get("capy-stars") || "{}") || {}; } catch (e) { return {}; } }   /* V374: Bestwert je Ort 0..29 */
+function starStr(n) { return "★".repeat(n) + "☆".repeat(5 - n); }
 function startWave() {
   if (S.nuts) { S.wave = S.nuts.base - 1; S.nuts.lvl++; }   // V180: Nuts-Abstecher bleibt auf der Kontinent-Welle, Härte kommt über das Level
   S.wave++; queueIntros(S.wave);
+  if (!S.nuts && !S.testRun && (S.wave - 1) % 5 === 0) S.pl = { g: Math.floor((S.wave - 1) / 5), lives: S.lives, lines: S.lines || 0, splat: S.splatN || 0, med: S.medGot || 0 };   /* V374: Sterne je Ort */
   { const flip = syncTheme(), P = wherePos(S.wave), D = DAY[P.d];
     if (flip && S.wave > 1) S.fx.push({ type: "flash", t: 0, life: 1.1, col: THEME === "moon" ? "#ff9a4d" : "#fff6d8" });
     toast(P.d === 0 ? `${P.place} · ${D.t} ${D.n}` : `${D.t} · ${D.n}`, P.d === 0 ? P.cont[1] : P.place, 1700);
@@ -4769,6 +4772,9 @@ function update(dt) {
         if (tg) { S.tonGift = S.tonGift || {}; S.tonGift[S.wave] = 1; S.tons = (S.tons || 0) + 1; S.introQ = S.introQ || []; S.seen = S.seen || {}; if (!S.seen["g:ton"]) S.introQ.push({ t: "gear", k: "ton" }); else if (window.__dropAd) window.__dropAd("ton"); }
         airDrop(`WAVE ${S.wave} CLEARED`, [["gold", "Gold", "+" + b], ...(tg ? [["ton", "Ten-ton drop", "+1 · in your Pocket"]] : []), ["level", "Level", campTotal() + 1], ["score", "Score", calcScore().toLocaleString("en-US")]]); }
       if (hkOfferWave(S.wave) && S.wave < 150) S.hackPending = S.hackPending || S.wave;   // Boss-Banner kommt, sobald Air Drop / Orders vorbei sind
+      if (S.wave % 5 === 0 && !S.nuts && !S.testRun && S.pl && S.pl.g === Math.floor((S.wave - 1) / 5)) { const p = S.pl, st = [true, S.lives >= p.lives, (S.lines || 0) - p.lines >= 5, (S.splatN || 0) - p.splat >= 5, (S.medGot || 0) - p.med >= 1], n = st.filter(Boolean).length;   /* V374 */
+        S.lastStars = { g: p.g, n, st }; const all = starsAll(); if (n > (all[p.g] || 0)) { all[p.g] = n; try { LS.set("capy-stars", JSON.stringify(all)); } catch (e) {} }
+        setTimeout(() => toast(`PLACE STARS ${"★".repeat(n)}${"☆".repeat(5 - n)}`, "HQ", 2600), 2400); }
       if (S.wave % 5 === 0) praise(`WAVE ${S.wave}!`, S.waveLeaks === 0 ? 3 : 2, S.waveLeaks === 0 ? "Flawless!" : "Keep going!");
       else if (S.waveLeaks === 0 && S.lives <= 2) praise("COMEBACK!", 3, "Comeback!");
       else if (S.waveLeaks === 0) { if (S.wave % 2) praise("FLAWLESS!", 2, "Flawless!"); else praise("CLEAN SWEEP", 2, "Clean sweep!"); }
@@ -6311,7 +6317,7 @@ document.addEventListener("visibilitychange", () => { if (document.hidden && S.s
 const MEM = {};
 const LS = { get(k) { try { const v = localStorage.getItem(k); return v === null ? (MEM[k] ?? null) : v; } catch (e) { return MEM[k] ?? null; } }, set(k, v) { MEM[k] = String(v); try { localStorage.setItem(k, v); } catch (e) {} }, del(k) { delete MEM[k]; try { localStorage.removeItem(k); } catch (e) {} } };
 // ---- Spielstand automatisch sichern ----
-const SAVE_KEYS = ["rotN", "rotNW", "ordDue", "hackPending", "nutsAsk", "nutsDone", "nutsBonus", "gotSplat", "spW", "spT", "hkMissed", "tonGift", "tonIntroGift", "introQ", "chomps", "tons", "locks", "hackDone", "rotDone", "rotMode", "rotT", "gold", "lives", "wave", "lines", "kills", "score", "toSpawn", "spawnT", "spawnIdx", "inWave", "waveCD", "waveTotal", "waveLeaks", "gravT", "playT", "builtOnce", "goldMark", "killMark", "lowLifeSaid", "veteran", "towersBuilt", "totalSpawned", "seen", "pieceNo", "lineStreak", "scoreMark", "snipes", "mixers", "teslas", "ff", "cpRun", "speed", "medals", "medalProg", "sweeps", "sendIts", "testRun", "medDone", "ord", "ordersOpen", "lockCharge", "lockT", "lockLines"];
+const SAVE_KEYS = ["pl", "splatN", "medGot", "lastStars", "rotN", "rotNW", "ordDue", "hackPending", "nutsAsk", "nutsDone", "nutsBonus", "gotSplat", "spW", "spT", "hkMissed", "tonGift", "tonIntroGift", "introQ", "chomps", "tons", "locks", "hackDone", "rotDone", "rotMode", "rotT", "gold", "lives", "wave", "lines", "kills", "score", "toSpawn", "spawnT", "spawnIdx", "inWave", "waveCD", "waveTotal", "waveLeaks", "gravT", "playT", "builtOnce", "goldMark", "killMark", "lowLifeSaid", "veteran", "towersBuilt", "totalSpawned", "seen", "pieceNo", "lineStreak", "scoreMark", "snipes", "mixers", "teslas", "ff", "cpRun", "speed", "medals", "medalProg", "sweeps", "sendIts", "testRun", "medDone", "ord", "ordersOpen", "lockCharge", "lockT", "lockLines"];
 function buildSave() {
   if (!S.started || S.over) return null;
   const pc = p => p && { k: p.k, cells: p.cells, x: p.x, y: p.y, col: p.col, tnt: p.tnt };
@@ -7901,7 +7907,11 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     function drawPins(g) {   // g = globaler Index des aktuellen Ortes (0..29)
       let h = ""; MAP_PTS.forEach((P, c) => P.forEach((p, i) => { const gi = c * 6 + i, st = gi < g ? "done" : gi === g ? "cur" : "open";
         h += `<div class="mPin ${st}${i === 5 ? " star" : ""}" data-g="${gi}" style="left:${p[0] * 100}%;top:${p[1] * 100}%"><i></i>${gi === g ? `<em>${nice(CONTS[c][2][i])}</em>` : ""}</div>`; }));
+      { const all = starsAll(); h = h.replace(/data-g="(\d+)" style="([^"]*)"><i><\/i>/g, (m0, gi, sty) => all[gi] ? `data-g="${gi}" style="${sty}"><i></i><b class="pStars">${"★".repeat(all[gi])}</b>` : m0); }   /* V374 */
       pinsEl.innerHTML = h;
+      try { const all = starsAll(), v = Object.values(all), tot = v.reduce((a, b) => a + b, 0), cnt = [1, 2, 3, 4, 5].map(k => v.filter(x => x === k).length); let r = ov.querySelector(".mapRose");
+        if (!r) { r = document.createElement("div"); r.className = "mapRose"; ov.appendChild(r); }
+        r.innerHTML = `<svg viewBox="0 0 60 60" aria-hidden="true"><circle cx="30" cy="30" r="27" fill="#f3ead6" stroke="#3a2414" stroke-width="2.5"/><path d="M30 5 L35 30 L30 55 L25 30Z" fill="#3a2414"/><path d="M30 5 L35 30 L25 30Z" fill="#e0412c"/><path d="M5 30 L30 25 L55 30 L30 35Z" fill="#7a6a52"/><circle cx="30" cy="30" r="3.5" fill="#ffc93c" stroke="#3a2414" stroke-width="1.5"/><text x="30" y="14" text-anchor="middle" font-size="8" font-weight="700" fill="#fff">N</text></svg><div class="rsTot">★ ${tot} / 150</div><div class="rsCnt">${cnt.slice(0, 3).map((c, i) => `${i + 1}★ ${c}`).join(" · ")}<br>${cnt.slice(3).map((c, i) => `${i + 4}★ ${c}`).join(" · ")}</div>`; } catch (e) {}
       const H = Math.round(1000 * MAP_AR); pathEl.innerHTML = MAP_PTS.map((P, c) => `<polyline points="${P.map(p => (p[0] * 1000).toFixed(1) + "," + (p[1] * H).toFixed(1)).join(" ")}" class="${c * 6 + 5 < g ? "done" : ""}"/>`).join("");
     }
     function arrOrigin(el) { try { const o = ov.getBoundingClientRect(), r = me.getBoundingClientRect(); let x = r.left + r.width / 2 - o.left, y = r.top + r.height / 2 - o.top;
@@ -7955,7 +7965,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     const whoosh = () => { try { if (typeof swoosh === "function") swoosh(); } catch (e) {} };
     function celebrate(title, sub) { const c = document.createElement("div"); c.className = "mapCel";
       let conf = ""; for (let i = 0; i < 46; i++) conf += `<i style="--x:${(Math.random() * 2 - 1).toFixed(2)};--y:${(-.4 - Math.random() * .9).toFixed(2)};--r:${Math.floor(Math.random() * 720 - 360)}deg;--d:${(Math.random() * .35).toFixed(2)}s;--c:${["#ffd84d", "#ff6fb5", "#5cbf4a", "#4aa8ff", "#ff9a2a", "#fff"][i % 6]}"></i>`;
-      c.innerHTML = `<div class="celRays"></div><div class="celConf">${conf}</div><div class="celTxt"><b>${title}</b><span>${sub}</span><em>★ ★ ★</em></div>`;
+      c.innerHTML = `<div class="celRays"></div><div class="celConf">${conf}</div><div class="celTxt"><b>${title}</b><span>${sub}</span><em>${S && S.lastStars ? starStr(S.lastStars.n) : "★ ★ ★"}</em></div>`;
       ov.appendChild(c); ov.classList.add("cel"); requestAnimationFrame(() => c.classList.add("on"));
       fx("boom"); setTimeout(() => fx("jingle"), 180); setTimeout(() => fx("hkWin"), 650);
       return () => { c.classList.add("out"); ov.classList.remove("cel"); setTimeout(() => c.remove(), 700); }; }
@@ -8677,7 +8687,7 @@ try { (() => {
   window.__contCel = (name, c, then) => {
     let conf = ""; for (let i = 0; i < 46; i++) conf += `<i style="--x:${(Math.random() * 2 - 1).toFixed(2)};--y:${(-.4 - Math.random() * .9).toFixed(2)};--r:${Math.floor(Math.random() * 720 - 360)}deg;--d:${(Math.random() * .25).toFixed(2)}s;--c:${["#ffd84d", "#ff6fb5", "#5cbf4a", "#4aa8ff", "#ff9a2a", "#fff"][i % 6]}"></i>`;
     const el = document.createElement("div"); el.className = "mapCel";
-    el.innerHTML = `<div class="celRays"></div><div class="celConf">${conf}</div><div class="celTxt"><b>${name} CLEARED!</b><span>Continent ${c + 1} of 5 · the world tour goes on</span><em>★ ★ ★</em></div>`;
+    el.innerHTML = `<div class="celRays"></div><div class="celConf">${conf}</div><div class="celTxt"><b>${name} CLEARED!</b><span>Continent ${c + 1} of 5 · the world tour goes on</span><em>${S && S.lastStars ? starStr(S.lastStars.n) : "★ ★ ★"}</em></div>`;
     host.innerHTML = ""; host.appendChild(el); host.hidden = false; requestAnimationFrame(() => el.classList.add("on"));
     fx("boom"); setTimeout(() => fx("jingle"), 180); setTimeout(() => fx("hkWin"), 650);
     setTimeout(() => el.classList.add("out"), 2600);
@@ -9517,6 +9527,11 @@ header .brand .logoFull{height:54px!important;width:auto!important}
 #ovMap .mPin{position:absolute;width:0;height:0}
 #ovMap .mPin i{position:absolute;left:-9px;top:-9px;width:18px;height:18px;border-radius:50%;border:2.5px solid #3a2414;background:#e9e2d2;box-sizing:border-box;transform:scale(var(--ik,1));box-shadow:0 2px 0 rgba(58,36,20,.6)}
 #ovMap .mPin.done i{background:#ffc93c}
+.mPin .pStars{position:absolute;left:50%;top:9px;transform:translateX(-50%);font-size:9px;line-height:1;letter-spacing:-1px;color:#ffc93c;text-shadow:0 0 2px #3a2414,0 0 2px #3a2414;white-space:nowrap;pointer-events:none}
+.mapRose{position:absolute;right:max(10px,env(safe-area-inset-right,0px));bottom:calc(env(safe-area-inset-bottom,0px) + 70px);z-index:5;display:flex;flex-direction:column;align-items:center;gap:2px;pointer-events:none;font:700 11px/1.1 system-ui,sans-serif;color:#fff;text-shadow:0 1px 2px #000}
+.mapRose svg{width:54px;height:54px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.5))}
+.mapRose .rsTot{font-size:13px;color:#ffc93c}
+.mapRose .rsCnt{font-size:9px;opacity:.9;text-align:center;line-height:1.25}
 #ovMap .mPin.cur i{background:#ff5fa8;animation:mPulse 1.1s ease-in-out infinite}
 #ovMap .mPin.star i{left:-12px;top:-12px;width:24px;height:24px;border-radius:4px;clip-path:polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);border:0;background:#3a2414}
 #ovMap .mPin.star i::after{content:"";position:absolute;inset:3px;clip-path:inherit;background:#e9e2d2}
