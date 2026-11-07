@@ -2761,7 +2761,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V393";
+const GAME_VER = "V394";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -4941,7 +4941,7 @@ function tntCell(x, y, g = ctx, s = CELL, px = x * CELL, py = y * CELL) {
   if (s >= 16) { g.fillStyle = "#f5e6c0"; g.font = `700 ${s * 0.34}px "Barlow Condensed", "Arial Narrow", sans-serif`; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText("TNT", px + s * 0.5, py + s * 0.47); }
 }
 // Ein Monster zeichnen (Spielfeld und Feldhandbuch)
-/*SPRITES_START*/const MON_SPR_SRC={norm:"img/0d74d4e1a8.webp",fast:"img/cad8b59a7d.webp",heavy:"img/a5a46f151d.webp",munch:"img/1ed8ccf00b.webp",runner:"img/948aebca31.webp",kiefer:"img/6d3bb5d7c5.webp",bomber:"img/7ab8ccae81.webp",volt:"img/f5a9cc1d7f.webp",jaguar:"img/d6115da788.webp",mummy:"img/b7c38c3e3b.webp",tiger:"img/e28b8c0ffe.webp",bear:"img/9ce1173bc3.webp"};const MON_SPR={};for(const k in MON_SPR_SRC){const im=new Image();im.decoding='async';im.src=MON_SPR_SRC[k];MON_SPR[k]=im;}const MON_SPR_SCALE={norm:2.9,fast:3.1,heavy:2.6,munch:2.9,runner:3.0,kiefer:2.5,bomber:2.8,volt:2.8,jaguar:2.9,mummy:2.8,tiger:2.8,bear:2.6};function drawMonSprite(ctx,m,cx,cy,s,now){const k=m.kind,im=MON_SPR[k];if(!im||!im.complete||!im.naturalWidth)return false;const ph=m.ph||0,r=s*(MON_R[k]||0.33),bob=Math.abs(Math.sin(now/110+ph))*s*0.07,tilt=Math.sin(now/90+ph)*0.09;ctx.fillStyle='rgba(0,0,0,.35)';ctx.beginPath();ctx.ellipse(cx,cy+r*0.95,r*0.9,r*0.3,0,0,7);ctx.fill();const sz=r*(MON_SPR_SCALE[k]||2.8),sq=1+Math.sin(now/55+ph)*0.04;ctx.save();ctx.translate(cx,cy+r*0.95-bob);ctx.rotate(tilt);ctx.scale(Math.cos(m.dir||0)<-0.3?-1:1,1);ctx.scale(1/sq,sq);ctx.drawImage(im,-sz/2,-sz*0.97,sz,sz);ctx.restore();m._top=cy+r*0.95-bob-sz*0.9;return true;}const TOW_SPR={};{const T={mg:"img/9335afdf0f.webp",kan:"img/8d5eb7ae93.webp",frost:"img/595582df1c.webp"};for(const k in T){const im=new Image();im.src=T[k];TOW_SPR[k]=im;}}function drawTowSprite(ctx,t,cx,cy,s){if(!t.w.length)return false;const ty=t.w.some(w=>w.type==='kan')?'kan':t.w.some(w=>w.type==='frost')?'frost':'mg',im=TOW_SPR[ty];if(!im||!im.complete||!im.naturalWidth)return false;const sz=s*1.18;if(S.sel===t){ctx.strokeStyle='#ee7a2c';ctx.lineWidth=Math.max(2,s*0.09);ctx.beginPath();ctx.arc(cx,cy,s*0.52,0,7);ctx.stroke();}ctx.save();ctx.translate(cx,cy);if(Math.cos(t.ang||0)<0)ctx.scale(-1,1);ctx.drawImage(im,-sz/2,-sz*0.58,sz,sz);ctx.restore();const n=t.w.length,pr=s*0.075;for(let i=0;i<n;i++){const px=cx+(i-(n-1)/2)*pr*2.4,py=cy+s*0.4;ctx.fillStyle=WEAP[t.w[i].type].col;ctx.strokeStyle='#17150c';ctx.lineWidth=Math.max(1,s*0.03);ctx.beginPath();ctx.arc(px,py,pr,0,7);ctx.fill();ctx.stroke();}return true;}const ICO_SPR={tower:"img/31f06ee640.webp",snipe:"img/7c9c7b7e55.webp",mix:"img/mixer_icon.webp",tesla:"img/f52a688927.webp",lock:"img/64ef54d7b4.webp",chomp:"img/6ea9cae9a7.webp",ton:"img/ton_icon.webp",mg:"img/9335afdf0f.webp",kan:"img/8d5eb7ae93.webp",frost:"img/595582df1c.webp"};/*SPRITES_END*/
+/*SPRITES_START*/const MON_SPR_SRC={norm:"img/0d74d4e1a8.webp",fast:"img/cad8b59a7d.webp",heavy:"img/a5a46f151d.webp",munch:"img/1ed8ccf00b.webp",runner:"img/948aebca31.webp",kiefer:"img/6d3bb5d7c5.webp",bomber:"img/7ab8ccae81.webp",volt:"img/f5a9cc1d7f.webp",jaguar:"img/d6115da788.webp",mummy:"img/b7c38c3e3b.webp",tiger:"img/e28b8c0ffe.webp",bear:"img/9ce1173bc3.webp"};const MON_SPR={};for(const k in MON_SPR_SRC){const im=new Image();im.decoding='async';im.src=MON_SPR_SRC[k];MON_SPR[k]=im;}const MON_SPR_SCALE={norm:2.9,fast:3.1,heavy:2.6,munch:2.9,runner:3.0,kiefer:2.5,bomber:2.8,volt:2.8,jaguar:2.9,mummy:2.8,tiger:2.8,bear:2.6};function drawMonSprite(ctx,m,cx,cy,s,now){const k=m.kind,im=MON_SPR[k];if(!im||!im.complete||!im.naturalWidth)return false;const ph=m.ph||0,r=s*(MON_R[k]||0.33),bob=Math.abs(Math.sin(now/110+ph))*s*0.07,tilt=Math.sin(now/90+ph)*0.09;ctx.fillStyle='rgba(0,0,0,.35)';ctx.beginPath();ctx.ellipse(cx,cy+r*0.95,r*0.9,r*0.3,0,0,7);ctx.fill();const sz=r*(MON_SPR_SCALE[k]||2.8),sq=1+Math.sin(now/55+ph)*0.04;ctx.save();ctx.translate(cx,cy+r*0.95-bob);ctx.rotate(tilt);ctx.scale(Math.cos(m.dir||0)<-0.3?-1:1,1);ctx.scale(1/sq,sq);ctx.drawImage(im,-sz/2,-sz*0.97,sz,sz);ctx.restore();m._top=cy+r*0.95-bob-sz*0.9;return true;}const TOW_SPR={};{const T={mg:"img/9335afdf0f.webp",kan:"img/8d5eb7ae93.webp",frost:"img/595582df1c.webp"};for(const k in T){const im=new Image();im.src=T[k];TOW_SPR[k]=im;}}function drawTowSprite(ctx,t,cx,cy,s){if(!t.w.length)return false;const ty=t.w.some(w=>w.type==='kan')?'kan':t.w.some(w=>w.type==='frost')?'frost':'mg',im=TOW_SPR[ty];if(!im||!im.complete||!im.naturalWidth)return false;const sz=s*1.18;if(S.sel===t){ctx.strokeStyle='#ee7a2c';ctx.lineWidth=Math.max(2,s*0.09);ctx.beginPath();ctx.arc(cx,cy,s*0.52,0,7);ctx.stroke();}ctx.save();ctx.translate(cx,cy);if(Math.cos(t.ang||0)<0)ctx.scale(-1,1);ctx.drawImage(im,-sz/2,-sz*0.58,sz,sz);ctx.restore();const n=t.w.length,pr=s*0.075;for(let i=0;i<n;i++){const px=cx+(i-(n-1)/2)*pr*2.4,py=cy+s*0.4;ctx.fillStyle=WEAP[t.w[i].type].col;ctx.strokeStyle='#17150c';ctx.lineWidth=Math.max(1,s*0.03);ctx.beginPath();ctx.arc(px,py,pr,0,7);ctx.fill();ctx.stroke();}return true;}const ICO_SPR={tower:"img/31f06ee640.webp",snipe:"img/7c9c7b7e55.webp",mix:"img/mixer_icon.webp",tesla:"img/f52a688927.webp",lock:"img/64ef54d7b4.webp",chomp:"img/6ea9cae9a7.webp",ton:"img/ton_icon.webp",wolf:"img/wolf_icon.webp",mg:"img/9335afdf0f.webp",kan:"img/8d5eb7ae93.webp",frost:"img/595582df1c.webp"};/*SPRITES_END*/
 const MON_R = { heavy: 0.42, fast: 0.27, munch: 0.34, runner: 0.31, bomber: 0.36, kiefer: 0.46, volt: 0.4, jaguar: 0.36, mummy: 0.36, tiger: 0.4, bear: 0.46, norm: 0.33 };
 function drawMonster(ctx, m, cx, cy, s, now) {
     if (drawMonSprite(ctx, m, cx, cy, s, now)) return;
@@ -6011,7 +6011,15 @@ function showToast(title, sub, tag, hold) {
 // ---------- Turm-Menü ----------
 function openSheet(t) { S.shop = false; S.sel = t; renderSheet(); $("sheet").hidden = false; }
 function closeSheet() { window.__tapGuard = performance.now() + 450; if (S && S.sel) S.sel.fresh = false; if (S) { S.sel = null; S.shop = false; } $("sheet").hidden = true; }
-const SNIPE_COST = 200, MIX_COST = 350, TESLA_COST = 500;
+const SNIPE_COST = 200, MIX_COST = 350, TESLA_COST = 500, WOLF_COST = 500, WOLF_W = 100;   /* V394: Wolf call */
+function playWolf() { try { if (SFX.muted) return; const a = new Audio("sfx/wolf.mp3"); a.volume = Math.min(1, 3.6 * Math.pow(SFX.vol || 0.3, 2)) * (SFX.ch ? SFX.ch("f") : 1); a.play().catch(() => {}); } catch (e) {} }
+function wolfCall() { const D = window.__dist && window.__dist.D, T = D && D.thief;
+  if (!(S.wolves > 0)) { snd("nope"); return; }
+  if (!T) { toast("NO THIEF AROUND · the wolf stays in your pocket", "POCKET", 1800); snd("nopeSoft"); return; }
+  S.wolves--; S.mode = null; S.aim = null; playWolf();
+  setTimeout(() => { if (D.thief !== T) return; T.flee = true; const g = T.stolen || 0; T.stolen = 0; if (g) S.gold += g;
+    toast(g ? `THE WOLF SCARED HIM OFF · +${g} gold back` : "THE WOLF SCARED HIM OFF!", "HQ", 2200); praise("AWOOO!", 2, false);
+    setTimeout(() => { if (D.thief === T) { D.thief = null; window.__thiefPos(null); } }, 1800); }, 900); }
 const ICON = {
   chomp: `<svg viewBox="0 0 48 48"><rect x="6" y="14" width="30" height="22" rx="5" fill="#5d6b3a" stroke="#17150c" stroke-width="2.5"/><rect x="6" y="32" width="30" height="8" rx="4" fill="#2a2f20" stroke="#17150c" stroke-width="2"/><path d="M34 12l10 6-10 6zM34 36l10-6-10-6z" fill="#b8bdb2" stroke="#17150c" stroke-width="2" stroke-linejoin="round"/><path d="M36 18l2 3 2-3M36 30l2-3 2 3" stroke="#17150c" stroke-width="1.5" fill="none"/><circle cx="16" cy="22" r="3" fill="#ff5a3c"/></svg>`,
   ton: `<svg viewBox="0 0 48 48"><path d="M24 2v8" stroke="#8c946f" stroke-width="3"/><path d="M14 12h20l6 30H8z" fill="#3a3f45" stroke="#17150c" stroke-width="2.5" stroke-linejoin="round"/><path d="M16 16h16" stroke="#6b737c" stroke-width="2"/><text x="24" y="35" text-anchor="middle" font-size="12" font-weight="900" fill="#f2cf5b" font-family="sans-serif">10T</text></svg>`,
@@ -6088,8 +6096,9 @@ function openPocket() { S.sel = null; S.shop = true; $("sheetIn").classList.add(
 function renderPocket() {
   let h = `<div class="sheetHead"><h3>POCKET</h3><span>Specials ready</span></div><div class="shopGrid">`;
   h += shopItem("pocket", "snipe", ICON.snipe, "Sniper strike", `×${S.snipes}`, "2×2 patch wiped, the blast splats around it.", "AIM", S.snipes < 1, "btn-accent");
-  h += shopItem("pocket", "tesla", ICON.tesla, "Tesla storm", `×${S.teslas}`, "4×4 lightning strike, splats count triple." + (S.wave >= 90 ? " Cuts weeds" + (S.wave >= 100 ? ", stops thieves." : ".") : ""), "ZAP", S.teslas < 1, "btn-accent");
+  h += shopItem("pocket", "tesla", ICON.tesla, "Tesla storm", `×${S.teslas}`, "4×4 lightning strike, splats count triple." + (S.wave >= 90 ? " Cuts weeds" + "." : ""), "ZAP", S.teslas < 1, "btn-accent");
   if (S.chomps > 0) h += shopItem("pocket", "chomp", ICON.chomp, "Chomper", `×${S.chomps}`, "Runs the ring backwards, eats all in its way.", "RELEASE", !!S.chomp, "btn-accent");
+  if (S.wolves > 0) h += shopItem("pocket", "wolf", ICON.tesla, "Wolf call", `×${S.wolves}`, "Howl: a thief runs off and drops your gold.", "HOWL", !(window.__dist && window.__dist.D && window.__dist.D.thief), "btn-accent");
   if (S.tons > 0) h += shopItem("pocket", "ton", ICON.ton, "Ten-ton drop", `×${S.tons}`, "Crushes monsters, squeezes blocks to half.", "DROP IT", !!S.ton, "btn-accent");
   h += shopItem("pocket", "lock", ICON.lock, "Lockdown", `×${S.locks || 0}`, `${LOCK_TIME} s time stop · next free: ${S.lockCharge || 0}/${LOCK_NEED} lines`, "ACTIVATE", !(S.locks > 0) || S.lockT > 0, "btn-accent");
   h += shopItem("pocket", "mix", ICON.mix, "Concrete mixer", `×${S.mixers}`, "Fills a hole up to the top block.", "DRIVE", S.mixers < 1, "btn-accent");
@@ -6105,8 +6114,9 @@ function renderShop() {
   const rows = [];
   rows.push([0, item("tower", ICON.tower, "Field tower", TOWER_COST, full ? `All ${L.towers} tower slots in use` : noBlocks ? "Land some blocks first" : `Place on a landed block · ${S.towers.size}/${L.towers} built`, "PLACE", full || noBlocks || S.gold < TOWER_COST, "btn-accent")]);
   const lock = k => `Locked · unlocks at wave ${unlockedAt(k)}`;
-  rows.push([unlockedAt("snipe"), item("snipe", ICON.snipe, "Sniper strike", SNIPE_COST, unlocked("snipe") ? "One shot: 2×2 patch wiped, the blast splats around it." + (S.wave >= 90 ? " Cuts weeds" + (S.wave >= 100 ? ", stops thieves." : ".") : "") : lock("snipe"), unlocked("snipe") ? "BUY" : `<i class="lk">🔒 WAVE ${unlockedAt("snipe")}</i>`, !unlocked("snipe") || S.gold < SNIPE_COST, "btn-accent")]);
-  rows.push([unlockedAt("tesla"), item("tesla", ICON.tesla, "Tesla storm", TESLA_COST, unlocked("tesla") ? "4×4 lightning strike, splats count triple." + (S.wave >= 90 ? " Cuts weeds" + (S.wave >= 100 ? ", stops thieves." : ".") : "") : lock("tesla"), unlocked("tesla") ? "BUY" : `<i class="lk">🔒 WAVE ${unlockedAt("tesla")}</i>`, !unlocked("tesla") || S.gold < TESLA_COST, "btn-accent")]);
+  rows.push([unlockedAt("snipe"), item("snipe", ICON.snipe, "Sniper strike", SNIPE_COST, unlocked("snipe") ? "One shot: 2×2 patch wiped, the blast splats around it." + (S.wave >= 90 ? " Cuts weeds" + "." : "") : lock("snipe"), unlocked("snipe") ? "BUY" : `<i class="lk">🔒 WAVE ${unlockedAt("snipe")}</i>`, !unlocked("snipe") || S.gold < SNIPE_COST, "btn-accent")]);
+  rows.push([unlockedAt("tesla"), item("tesla", ICON.tesla, "Tesla storm", TESLA_COST, unlocked("tesla") ? "4×4 lightning strike, splats count triple." + (S.wave >= 90 ? " Cuts weeds" + "." : "") : lock("tesla"), unlocked("tesla") ? "BUY" : `<i class="lk">🔒 WAVE ${unlockedAt("tesla")}</i>`, !unlocked("tesla") || S.gold < TESLA_COST, "btn-accent")]);
+  rows.push([WOLF_W, item("wolf", ICON.tesla, "Wolf call", WOLF_COST, (S.wave || 0) >= WOLF_W ? "A howl in the dark: the thief runs off and drops your gold." : `Locked · unlocks at wave ${WOLF_W}`, (S.wave || 0) >= WOLF_W ? "BUY" : `<i class="lk">🔒 WAVE ${WOLF_W}</i>`, (S.wave || 0) < WOLF_W || S.gold < WOLF_COST, "btn-accent")]);
   rows.push([unlockedAt("mix"), item("mix", ICON.mix, "Concrete mixer", MIX_COST, unlocked("mix") ? "Fills a hole up to the top block, buries monsters." : lock("mix"), unlocked("mix") ? "BUY" : `<i class="lk">🔒 WAVE ${unlockedAt("mix")}</i>`, !unlocked("mix") || S.gold < MIX_COST, "btn-accent")]);
   rows.push([unlockedAt("chomp"), item("chomp", ICON.chomp, "Chomper", CHOMP_COST, unlocked("chomp") ? "Steel jaws run the ring backwards: eats every monster and block in its way." : lock("chomp"), unlocked("chomp") ? "BUY" : `<i class="lk">🔒 WAVE ${unlockedAt("chomp")}</i>`, !unlocked("chomp") || S.gold < CHOMP_COST, "btn-accent")]);
   rows.push([unlockedAt("ton"), item("ton", ICON.ton, "Ten-ton drop", TON_COST, unlocked("ton") ? "Giant weight: crushes every monster above the stack, squeezes all blocks to half." : lock("ton"), unlocked("ton") ? "BUY" : `<i class="lk">🔒 WAVE ${unlockedAt("ton")}</i>`, !unlocked("ton") || S.gold < TON_COST, "btn-accent")]);
@@ -6314,12 +6324,13 @@ $("sheet").addEventListener("click", e => {
     else if (k === "tesla") { if (!unlocked("tesla") || S.gold < TESLA_COST) { snd("nope"); return; } S.gold -= TESLA_COST; S.teslas++; snd("shopBuy"); toast(`TESLA · pocket ×${S.teslas}`, "ARMORY"); renderShop(); }
     else if (k === "chomp" || k === "ton") { const pr = k === "chomp" ? CHOMP_COST : TON_COST; if (!unlocked(k) || S.gold < pr) { snd("nope"); return; } S.gold -= pr; const f = k === "chomp" ? "chomps" : "tons"; S[f] = (S[f] || 0) + 1; snd("shopBuy"); toast(`${k === "chomp" ? "CHOMPER" : "TEN-TON"} · pocket ×${S[f]}`, "ARMORY"); renderShop(); }
     else if (k === "lock") { if (!unlocked("lock") || S.gold < LOCK_COST) { snd("nope"); return; } S.gold -= LOCK_COST; S.locks = (S.locks || 0) + 1; snd("shopBuy"); toast(`LOCKDOWN · pocket ×${S.locks}`, "ARMORY"); renderShop(); }
+    else if (k === "wolf") { if ((S.wave || 0) < WOLF_W || S.gold < WOLF_COST) { snd("nope"); return; } S.gold -= WOLF_COST; S.wolves = (S.wolves || 0) + 1; snd("shopBuy"); toast(`WOLF CALL · pocket ×${S.wolves}`, "ARMORY"); renderShop(); }
     else if (k === "mix") { if (!unlocked("mix") || S.gold < MIX_COST) { snd("nope"); return; } S.gold -= MIX_COST; S.mixers++; snd("shopBuy"); toast(`MIXER · pocket ×${S.mixers}`, "ARMORY"); renderShop(); }
     else if (k === "armory") { renderShop(); }
     else closeSheet();
     return;
   }
-  if (b.dataset.pocket) { if (b.dataset.pocket === "coach") { closeSheet(); startCoach(); return; } if (b.dataset.pocket === "lock") { closeSheet(); startLock(); return; } if (b.dataset.pocket === "chomp") { closeSheet(); startChomp(); return; } if (b.dataset.pocket === "ton") { closeSheet(); startTon(); return; } armSpecial(b.dataset.pocket); return; }
+  if (b.dataset.pocket) { if (b.dataset.pocket === "coach") { closeSheet(); startCoach(); return; } if (b.dataset.pocket === "lock") { closeSheet(); startLock(); return; } if (b.dataset.pocket === "chomp") { closeSheet(); startChomp(); return; } if (b.dataset.pocket === "ton") { closeSheet(); startTon(); return; } if (b.dataset.pocket === "wolf") { closeSheet(); wolfCall(); return; } armSpecial(b.dataset.pocket); return; }
   if (!S.sel) return;
   const t = S.sel;
   if (b.id === "sAllIn") { allIn(t); return; }
@@ -8321,6 +8332,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     const IMG = { snipe: "img/slot_snipe.webp", mix: "img/slot_mix.webp", tesla: "img/slot_tesla.webp", lock: "img/slot_lock.webp", chomp: "img/slot_chomp.webp", ton: "img/slot_ton.webp" };
     const PR = [["snipe", "Sniper strike", "snipes"], ["mix", "Concrete mixer", "mixers"], ["tesla", "Tesla storm", "teslas"],
                 ["lock", "Lockdown", "locks"], ["chomp", "Chomper", "chomps"], ["ton", "Ten-ton drop", "tons"]];
+    try { if (typeof SAVE_KEYS !== "undefined" && !SAVE_KEYS.includes("wolves")) SAVE_KEYS.push("wolves"); } catch (e) {}
     try { if (typeof SAVE_KEYS !== "undefined") ["banditDone", "banditNext"].forEach(k => { if (!SAVE_KEYS.includes(k)) SAVE_KEYS.push(k); }); } catch (e) {}
     const ov = document.createElement("div"); ov.id = "ovBandit"; ov.hidden = true;
     ov.innerHTML = `<div class="bdBox"><div class="bdBurst"></div><span class="bdTag">FREE SUPPLY DROP</span><h2>LUCKY SUPPLY</h2><div class="bdSub" id="bdSub">One spin on the house, squad!</div>
@@ -8980,7 +8992,7 @@ try { (() => {
     return false; };
   const D = { blk: null, mag: null, weed: null, thief: null, done: {} };
   window.__dist = { state: () => ({ blk: !!D.blk, mag: D.mag && { side: D.mag.side, y: D.mag.y }, weed: D.weed && { x: D.weed.x, root: D.weed.root, h: D.weed.h }, thief: D.thief && { x: +D.thief.x.toFixed(2), stolen: D.thief.stolen } }), start: k => start(k), fire: (k, x, y) => (k === "snipe" ? snipe : tesla)(x, y), D };
-  const NAMES = { blk: ["SIGNAL LOST!", "Part of the field goes dark"], mag: ["MAGNET!", "It pulls the blocks – steer against it · Tesla fries it"], weed: ["WEEDS!", "Blocks get stuck on it · Tesla or Sniper cut it"], thief: ["THIEF!", "Stop him with Tesla or Sniper"] };
+  const NAMES = { blk: ["SIGNAL LOST!", "Part of the field goes dark"], mag: ["MAGNET!", "It pulls the blocks – steer against it · Tesla fries it"], weed: ["WEEDS!", "Blocks get stuck on it · Tesla or Sniper cut it"], thief: ["THIEF!", "A WOLF CALL scares him off · shop → Wolf call"] };
   function start(k) {
     const GT = GH;
     if (k === "blk") { const n = Math.random() < 0.5 ? 3 : 4; D.blk = { r0: Math.floor(GT * 0.45) - n + 1, n, t: 0, life: 25 + Math.random() * 5 }; }
@@ -9052,7 +9064,7 @@ try { (() => {
       else { if (w.root < GH - 1 && !S.grid[(w.root + 1) * GW + w.x]) w.root++;   /* fällt nach, wenn darunter frei wird */
         if (S.inWave) w.growT += dt; if (w.growT >= 6.8 && w.h < 12) { const ny = w.root - w.h; if (ny >= 1 && weedPush(w.x, ny, p)) { w.h++; w.growT = 0; } else w.growT = 6.8; } } }
     if (D.thief) { const T = D.thief; T.t += dt; if (window.__thiefPos) window.__thiefPos(T);
-      if (!T.stolen && T.t >= 10) { T.stolen = Math.floor(S.gold / 2); S.gold -= T.stolen; snd("sell"); setTimeout(() => snd("sell"), 140); try { SFX.say("thief_laugh", 1.0, 1.0, 0, 0); } catch (e) {} toast(`THIEF GRABBED ${T.stolen} GOLD!`, "ALERT", 1800); const g = $("sGold"); if (g) { g.classList.remove("thiefHit"); void g.offsetWidth; g.classList.add("thiefHit"); } }
+      if (!T.stolen && !T.flee && T.t >= 10) { T.stolen = Math.floor(S.gold / 2); S.gold -= T.stolen; snd("sell"); setTimeout(() => snd("sell"), 140); try { SFX.say("thief_laugh", 1.0, 1.0, 0, 0); } catch (e) {} toast(`THIEF GRABBED ${T.stolen} GOLD!`, "ALERT", 1800); const g = $("sGold"); if (g) { g.classList.remove("thiefHit"); void g.offsetWidth; g.classList.add("thiefHit"); } }
       if (T.t >= 30) { if (T.stolen) toast(`THIEF GOT AWAY · −${T.stolen} gold`, "HQ", 1800); D.thief = null; } }
     if (!D.thief && window.__thiefPos) window.__thiefPos(null);
   }
@@ -9255,7 +9267,7 @@ try { (() => {
   el.style.cssText = `position:fixed;left:0;top:0;width:${SZ}px;height:${SZ}px;z-index:2147483000;display:none;cursor:crosshair;touch-action:none;filter:drop-shadow(0 3px 3px rgba(0,0,0,.5))`;
   document.body.appendChild(el); const g = el.getContext("2d");
   /* V387: großzügige Trefferzone für Sniper/Tesla rund um den Dieb */
-  document.addEventListener("pointerdown", ev => { try { if (ev.target === el || el.style.display !== "block" || !(S.mode === "snipe" || S.mode === "tesla")) return;
+  document.addEventListener("pointerdown", ev => { try { if (ev.target === el || el.style.display !== "block" || true) return;   /* V394: Sniper/Tesla nicht mehr gegen den Dieb */
     const r = el.getBoundingClientRect(), P = 40; if (ev.clientX < r.left - P || ev.clientX > r.right + P || ev.clientY < r.top - P || ev.clientY > r.bottom + P) return;
     ev.preventDefault(); ev.stopPropagation(); el.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true, cancelable: true, clientX: ev.clientX, clientY: ev.clientY })); } catch (e) {} }, true);
   // Ablauf (Sekunden): 0–6 laufen · 6–7,3 umschauen · 7,3–8,4 zum Gold schauen · 8,4–10 schleichen · 10 greifen · 10–30 rennen
@@ -9276,7 +9288,7 @@ try { (() => {
     g.drawImage(im, -w / 2, -h, w, h); g.restore(); }
   function sprite(T) {
     g.setTransform(DPR, 0, 0, DPR, 0, 0); g.clearRect(0, 0, SZ, SZ);
-    const t = T.t, P = pose(t), h = SZ - 14;
+    const t = T.t, P = pose(t), h = SZ - 14; if (T.flee) { P.sx = -1; P.fi = 7 + Math.floor(t * 18) % 8; P.tilt = -0.08; P.bob = Math.abs(Math.sin(t * 18)) * 2; }
     if (T.fi !== P.fi) { T.prevFi = T.fi == null ? P.fi : T.fi; T.fi = P.fi; T.fadeT = t; }
     const k = ease(Math.min(1, (t - (T.fadeT || 0)) / 0.16));
     g.fillStyle = "rgba(0,0,0,.22)"; g.beginPath(); g.ellipse(SZ / 2, SZ - 5, 22 * (1 - P.bob / 18), 3.5, 0, 0, 6.29); g.fill();
@@ -9295,20 +9307,21 @@ try { (() => {
     const t = T.t, sc0 = Math.min(1, cell * 1.75 / (SZ - 14)), reach = Math.max(cr.left + SZ / 2, gx - 38 * sc0), stop = reach - 30, end = innerWidth + SZ;
     const sc = sc0, ga =   /* V371: so groß wie die Ring-Spur erlaubt */ (document.getElementById("genAv") || { getBoundingClientRect: () => null }).getBoundingClientRect();
     let x0 = Math.min(cr.left, 0) - SZ * sc / 2 - 4, fade = 1;   /* V361: immer von links herein */
-    const x = t < 8 ? x0 + (stop - x0) * (1 - Math.pow(1 - t / 8, 1.5))                       /* läuft heran und bremst sanft */
+    let x = t < 8 ? x0 + (stop - x0) * (1 - Math.pow(1 - t / 8, 1.5))                       /* läuft heran und bremst sanft */
       : t < 9.4 ? stop
       : t < 10 ? stop + (reach - stop) * ease((t - 9.4) / 0.6)                                    /* schleicht hin */
       : t < 10.6 ? reach
       : Math.min(end, reach + Math.max((stop - x0) / 8, (end - reach) / 19) * (t - 10.6));        /* V371: geht im gleichen Tempo weiter */
+    if (T.flee) { if (T.fx0 == null) { T.fx0 = T.lx != null ? T.lx : x; T.ft0 = t; } x = T.fx0 - (t - T.ft0) * 460; } T.lx = x;   /* V394: flieht vor dem Wolf nach links */
     el.style.display = "block"; el.style.transformOrigin = "50% 100%"; el.style.opacity = fade.toFixed(2);
     { const tx = x - SZ / 2, ty = Math.round(feet - SZ + 5); let mk = "none";   /* V361: hinter dem General-Kreis durch */
       if (ga && ga.width) { const ax = ga.left + ga.width / 2, ay = ga.top + ga.height / 2, ar = ga.width / 2 + 3, lx = SZ / 2 + (ax - tx - SZ / 2) / sc, ly = SZ + (ay - ty - SZ) / sc, lr = ar / sc;
         if (lx + lr > 0 && lx - lr < SZ && ly + lr > 0 && ly - lr < SZ) mk = `radial-gradient(circle ${lr.toFixed(1)}px at ${lx.toFixed(1)}px ${ly.toFixed(1)}px, transparent ${(lr - 0.5).toFixed(1)}px, #000 ${(lr + 0.5).toFixed(1)}px)`; }
       if (el.__mk !== mk) { el.__mk = mk; el.style.webkitMaskImage = mk; el.style.maskImage = mk; } } el.style.transform = `translate(${(x - SZ / 2).toFixed(1)}px,${Math.round(feet - SZ + 5)}px) scale(${sc.toFixed(3)})`; sprite(T); };
   el.addEventListener("pointerdown", ev => { ev.preventDefault(); ev.stopPropagation(); const D = window.__dist && window.__dist.D, T = D && D.thief; if (!T) return;
+    if (T.flee) return; if (S.wolves > 0) { wolfCall(); return; }   /* V394: nur der Wolf vertreibt den Dieb */
+    toast("Only a WOLF CALL scares him off · find it in the shop", "HQ", 1800); snd("nopeSoft"); return;
     let used = null;
-    if (S.mode === "snipe" && S.snipes > 0) { S.snipes--; used = "snipe"; } else if (S.mode === "tesla" && S.teslas > 0) { S.teslas--; used = "tesla"; }
-    if (!used) { toast((S.snipes > 0 || S.teslas > 0) ? "POCKET → Sniper or Tesla, then tap the thief" : "Only Sniper or Tesla can stop him!", "HQ", 1800); snd("nopeSoft"); return; }
     S.mode = null; S.aim = null; snd(used); S.shake = 0.5;
     if (T.stolen) { S.gold += T.stolen; toast(`THIEF STOPPED · +${T.stolen} gold back`, "HQ", 2000); } else toast("THIEF STOPPED!", "HQ", 1600);
     D.thief = null; window.__thiefPos(null); praise("GOTCHA!", 2, "Nailed it!"); });
