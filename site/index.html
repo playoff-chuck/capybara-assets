@@ -1077,7 +1077,7 @@ body.introBig #ovIntro{background:rgba(14,19,11,.28)!important}
 .gearTR{position:fixed!important;top:calc(env(safe-area-inset-top,0px) + 10px);right:max(12px,env(safe-area-inset-right,0px));z-index:40;width:40px!important;min-height:40px!important;height:40px;padding:0!important}
 .gearTR svg{width:22px;height:22px}
 .gearTR{background:var(--hero)!important;color:#fff!important;border:3px solid var(--ink,#3a1d10)!important;border-radius:50%!important;box-shadow:0 3px 0 var(--ink,#3a1d10)!important}
-#ovSettings{z-index:65}
+#ovSettings{z-index:65}#ovHs{z-index:65}#ovHs .hsBox{max-height:min(64vh,540px);overflow-y:auto}#ovHs .hs{width:100%}
 #joinWave{display:none}
 
 /* V151 – Comic-Stil für alle Zwischenmeldungen (Funk, Toast, Lob-Stempel, Kiste, Buchhalter, Neuheiten-Karte) */
@@ -2686,10 +2686,11 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
         <div id="monList" class="tabPane manual" hidden></div>
         <div id="armsList" class="tabPane manual" hidden></div>
       </div>
-      <div class="overlay win" id="ovHs" hidden>
+      <div class="overlay joinOv" id="ovHs" hidden><div class="joinBox hsBox">
         <button class="xBtn" id="btnHsClose" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></svg></button>
-        <h2>HALL OF FAME</h2>
+        <div class="alHead"><span class="alTag">HALL OF FAME</span><span></span></div>
         <div class="hs" id="hsList"></div><div class="hs" id="hsNuts"></div>
+      </div>
       </div>
       <div class="overlay" id="ovOver" hidden>
         <div class="aar">
@@ -2743,7 +2744,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V364";
+const GAME_VER = "V368";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -3808,7 +3809,8 @@ const SFX = (() => {
     if (muted || vol === 0 || !voiceOn) return;
     if (typeof S !== "undefined" && S && S.radioOut && text !== "signal3") { noise(0.18 + Math.random() * 0.2, 0.1, "bandpass", 1400 + Math.random() * 2000, 1200, 0, 1.6); return; }   // V178z15: Funk weg – nur Rauschen
     if (performance.now() < reservedUntil && key !== reservedKey) return;   // ein Lob ist reserviert, nichts dazwischen
-    if (curVoice) return;                                                     // es läuft schon eine Meldung: die neue fällt komplett weg
+    if (curVoice && !(curVoice.__rb && !/^rb_/.test(String(text)))) return;   // es läuft schon eine Meldung: die neue fällt komplett weg – außer ein Rosie-&-Blue-Spruch (V366)
+    if (curVoice) { try { curVoice.stop(); } catch (e) {} curVoice = null; }
     if (!key && !deg && !VOICE[text] && performance.now() - (window.__sayT || -1e9) < 12000) return; window.__sayT = performance.now();   // V178v: freie Sprüche höchstens alle 12 s
     { const nt = norm(text), nw = performance.now(); if (deg === 0 && lastSaid[nt] && nw - lastSaid[nt] < 3000) return; lastSaid[nt] = nw; }   // gleicher Satz höchstens alle 3 s
     const ck = VOICE[text] ? text : VOICE_BY_TEXT[norm(text)];
@@ -3829,7 +3831,7 @@ const SFX = (() => {
       if (deg > 0) { for (let k = 0, at = t0 + 0.08; at < t0 + dur; k++) { const gap = 0.04 + Math.random() * 0.06 * deg; if (Math.random() < 0.18 * deg) { dg.gain.setValueAtTime(0.02, at); dg.gain.setValueAtTime(1, at + gap); } at += 0.09 + Math.random() * 0.12; } for (let r = 0; r < deg; r++) noise(dur + 0.1, (0.05 + 0.04 * deg) * (1 + Math.random()), "bandpass", 900 + Math.random() * 2600, 700 + Math.random() * 1500, 0.04, 0.5 + Math.random(), 0, voiceOut || master); for (let at = 0.05; at < dur; at += 0.06 + Math.random() * (0.25 - 0.05 * deg)) noise(0.02 + Math.random() * 0.06, 0.05 + 0.05 * deg, "bandpass", 1500 + Math.random() * 3200, 800, at, 2.5, 0, voiceOut || master); }
       /* Zufalls-Aussetzer aus: klang wie Stottern («Ma, Ma, Muncher») */ if (false && (voiceNo % 10 === 0 || Math.random() < 0.06)) { let at = t0 + 0.25 + Math.random() * Math.max(0.1, dur * 0.4); for (let k = 0; k < 1 + Math.floor(Math.random() * 3) && at < t0 + dur - 0.1; k++) { const len = 0.05 + Math.random() * 0.09; dg.gain.setValueAtTime(1, at); dg.gain.linearRampToValueAtTime(0.03, at + 0.01); dg.gain.setValueAtTime(0.03, at + len); dg.gain.linearRampToValueAtTime(1, at + len + 0.015); noise(len, 0.05, "bandpass", 1500 + Math.random() * 1500, 1200, at - t, 0.8, 0, voiceOut || master); at += len + 0.15 + Math.random() * 0.4; } }
       for (let k = 0, at = t0; at < t0 + dur; k++) { const len = 0.12 + Math.random() * 0.25, lvl = 0.82 + Math.random() * 0.18; dg.gain.setTargetAtTime(lvl, at, 0.05); at += len; }   // Flattern
-      src.start(t0); curVoice = src;
+      src.start(t0); curVoice = src; src.__rb = /^rb_/.test(String(text));
       setTimeout(() => { if (curVoice === src) curVoice = null; }, (dur + 0.45) * 1000);   // erst frei, wenn auch das Squelch-Ende durch ist
       const hiss = Math.random() < 0.7, f1 = 1800 + Math.random() * 1400, f2 = 1200 + Math.random() * 1200;   // immer etwas anders
       noise(0.04 + Math.random() * 0.04, 0.16 + Math.random() * 0.06, "bandpass", f1 + 600, f2, 0, 1.5, 0, voiceOut || master);   // Squelch auf
@@ -4712,7 +4714,7 @@ function stepShots(dt) {
 
 // ---------- Ablauf ----------
 function canAct() { return S.started && !S.over && !S.paused && !S.intro && !(performance.now() < (window.__holdUntil || 0)) && !S.duel && !S.mode && !S.sel && !S.shop && !S.drop && !S.ordersOpen && S.piece; }   // Funksprüche halten das Spiel nicht an
-function frozen() { return !S.started || S.over || S.paused || S.intro || S.duel || S.mode || S.sel || S.shop || S.drop || S.ordersOpen || S.mix || S.tiltCard; }
+function frozen() { return !S.started || S.over || S.paused || S.coachHold || S.intro || S.duel || S.mode || S.sel || S.shop || S.drop || S.ordersOpen || S.mix || S.tiltCard; }
 function startWave() {
   if (S.nuts) { S.wave = S.nuts.base - 1; S.nuts.lvl++; }   // V180: Nuts-Abstecher bleibt auf der Kontinent-Welle, Härte kommt über das Level
   S.wave++; queueIntros(S.wave);
@@ -4748,7 +4750,7 @@ function update(dt) {
     else if (f.type === "spark") { f.vy += 9 * dt; f.vx *= (1 - 2.5 * dt); f.x += f.vx * dt; f.y += f.vy * dt; }
     else if (f.type === "smoke") { f.vy *= (1 - 0.35 * dt); f.x += (f.vx + Math.sin(f.t * 1.7 + f.ph) * 0.6) * dt; f.y += f.vy * dt; f.r += f.grow * dt; }
   }
-  SFX.music.setPaused(SFX.music.playing !== 0 && !!frozen() && !S.drop && !S.alert && !S.mix && !S.duel && !S.mapShow && !S.tiltCard);
+  SFX.music.setPaused(SFX.music.playing !== 0 && !!frozen() && !S.drop && !S.alert && !S.mix && !S.duel && !S.mapShow && !S.tiltCard && !S.coachHold);
   if (S.mix) stepMix(dt);
   stepTon(dt); stepChomp(dt);
   if (frozen() || S.ton) return;   // während das Gewicht fällt, steht alles
@@ -5276,7 +5278,7 @@ function openHack(force) {
   $("ovHack").hidden = false; $("hackBet").hidden = false; $("hackCv").hidden = true; $("hackRes").hidden = true;
 }
 function hkStakeUI() { const v = +$("hkRange").value || 0; $("hkStakeV").textContent = v; $("hkWinV").textContent = v ? `win → +${v} (${v * 2} back)` : "no stake · just for honour"; }
-function tutAbort() { if (TUT.on) { TUT.on = false; $("coach").hidden = true; coachHi(null); } }
+function tutAbort() { if (TUT.on) { TUT.on = false; S.coachHold = false; $("coachSkip").textContent = "Skip tutorial"; $("coach").hidden = true; coachHi(null); } }
 function closeHack() { const wasCoach = !!HK.coach; window.__hackBack = true; HK.coach = false; HK._bk = null; snd("arcade", false); $("ovHack").hidden = true; document.body.classList.remove("duelOn", "duelPick"); S.hackDone = S.hackOfferWave || S.wave; HK.phase = "off"; S.duel = false; S.hackDone = S.wave; if (wasCoach && S.started && !S.over) setTimeout(() => { try { openShop(); } catch (e) {} }, 80); }
 function startDuel(keepStake) {
   if (!keepStake) { HK.stake = Math.min(S.gold, +$("hkRange").value || 0); S.gold -= HK.stake; const pool = hkPool(HK.stake); HK.type = pool[Math.floor(Math.random() * pool.length)]; }
@@ -6430,11 +6432,11 @@ const TUT_STEPS = [
   { t: "BUILD A TOWER", s: "Tap SHOP, then PLACE.", at: "bBuild", done: () => S.mode === "build" || S.towers.size >= 1 },
   { t: "PICK A BLOCK", s: "Tap one of your landed blocks.", at: "board", done: () => S.towers.size >= 1 },
   { t: "ARM IT", s: "Buy the MG. Then tap Done.", at: "sheet", done: () => [...S.towers.values()].some(t => t.w.length) && !S.sel },
-  { t: "HOLD THE RING", s: "Monsters run the lane. Full laps cost lives. Clear rows for gold. Good luck, squad!", at: "board", done: () => TUT.t >= 20 },
+  { t: "HOLD THE RING", s: "Monsters run the lane. Full laps cost lives. Clear rows for gold. Good luck, squad!", at: "board", done: () => false },   /* V367: endet mit «Got it», Spiel steht bis dahin */
 ];
 function tutStart() { TUT.on = true; TUT.step = 0; TUT.t = 0; $("coach").hidden = false; tutShow(); }
-function tutEnd(skipped) { TUT.on = false; $("coach").hidden = true; coachHi(null); LS.set("tarnturm-tut", "1"); if (!skipped) { toast("TUTORIAL DONE · good luck, squad", "HQ", 1800); SFX.say("Nice!"); } }
-function tutShow() { const st = TUT_STEPS[TUT.step]; $("coachStep").textContent = `${TUT.step + 1}/${TUT_STEPS.length}`; $("coachT").textContent = st.t; $("coachS").textContent = st.s; snd("radio"); tutPlace(); }
+function tutEnd(skipped) { TUT.on = false; S.coachHold = false; $("coachSkip").textContent = "Skip tutorial"; $("coach").hidden = true; coachHi(null); LS.set("tarnturm-tut", "1"); if (!skipped) { toast("TUTORIAL DONE · good luck, squad", "HQ", 1800); SFX.say("Nice!"); } }
+function tutShow() { const st = TUT_STEPS[TUT.step]; $("coachStep").textContent = `${TUT.step + 1}/${TUT_STEPS.length}`; $("coachT").textContent = st.t; $("coachS").textContent = st.s; const last = TUT.step === TUT_STEPS.length - 1; S.coachHold = last; $("coachSkip").textContent = last ? "Got it" : "Skip tutorial"; snd("radio"); tutPlace(); }
 function coachHi(el) { document.querySelectorAll(".coachHi").forEach(x => { if (x !== el) x.classList.remove("coachHi"); }); if (el && el.id !== "board" && el.id !== "sheet") el.classList.add("coachHi"); }
 function tutPlace() {
   const st = TUT_STEPS[TUT.step], el = $(st.at), a = $("coachArrow"), c = $("coach"); if (!el) return; coachHi(el);
@@ -6450,19 +6452,19 @@ function tutTick(dt) {
   if (st.done()) { TUT.step++; if (TUT.step >= TUT_STEPS.length) { tutEnd(false); return; } TUT.t = 0; if (TUT.step === 4) S.waveCD = 2; tutShow(); }
   else tutPlace();
 }
-$("coachSkip").addEventListener("click", () => { if (TUT.on) tutEnd(true); else hintEnd(); });
+$("coachSkip").addEventListener("click", () => { if (TUT.on) tutEnd(TUT.step < TUT_STEPS.length - 1); else hintEnd(); });
 // Erstes-Mal-Hinweise: einmal pro Gerät, 5 s, antippen schließt
 let hintT = null, hintKey = null;
 function hint(key, title, sub, at) {
   if (TUT.on || LS.get("tarnturm-hint-" + key) === "1" || hintKey) return;
-  try { if (uiWinOpen() || (S && (S.ordersOpen || S.mapShow || S.drop || S.paused))) { setTimeout(() => hint(key, title, sub, at), 1500); return; } } catch (e) {}   /* V318 */ LS.set("tarnturm-hint-" + key, "1"); hintKey = key;
+  try { if (uiWinOpen() || (S && (S.ordersOpen || S.mapShow || S.drop || S.paused))) { setTimeout(() => hint(key, title, sub, at), 1500); return; } } catch (e) {}   /* V318 */ LS.set("tarnturm-hint-" + key, "1"); hintKey = key; try { if (S && S.started && !S.over) S.coachHold = true; } catch (e) {}   /* V367: Spiel steht, solange der General erklärt */
   const c = $("coach"); c.hidden = false; $("coachStep").textContent = "NEW"; $("coachT").textContent = title; $("coachS").textContent = sub; $("coachSkip").textContent = "Got it";
   const el = $(at), a = $("coachArrow"), card = c.querySelector(".coachCard"); coachHi(el);
   if (el && at !== "board") { const r = el.getBoundingClientRect(), below = r.top < window.innerHeight * 0.5, dk = document.querySelector(".deck").getBoundingClientRect(); a.style.display = "block"; a.textContent = below ? "▲" : "▼"; a.style.left = (r.left + r.width / 2) + "px"; if (below) { a.style.top = (r.bottom + 4) + "px"; card.style.bottom = ""; card.style.top = (r.bottom + 40) + "px"; } else { a.style.top = (dk.top - 32) + "px"; if (r.top > dk.top + 40) a.style.display = "none"; const br = $("board").getBoundingClientRect(); card.style.bottom = ""; card.style.top = (br.top + br.height * 0.5 - 70) + "px"; /* Karte in der Feldmitte: oben bleibt das fallende Teil, unten die Landestelle sichtbar */ } }
   else { const br = $("board").getBoundingClientRect(); a.style.display = "none"; card.style.bottom = ""; card.style.top = (br.top + br.height * 0.5 - 70) + "px"; }
   snd("radio"); clearTimeout(hintT); hintT = setTimeout(hintEnd, 5500);
 }
-function hintEnd() { if (!hintKey) return; hintKey = null; $("coach").hidden = true; coachHi(null); $("coachSkip").textContent = "Skip tutorial"; clearTimeout(hintT); }
+function hintEnd() { if (!hintKey) return; hintKey = null; try { if (S) S.coachHold = false; } catch (e) {} $("coach").hidden = true; coachHi(null); $("coachSkip").textContent = "Skip tutorial"; clearTimeout(hintT); }
 function showCamp(action, label) { tutAbort();
   if (S && S.started && !S.over) { S.paused = true; S.mode = null; S.aim = null; closeSheet(); }   // altes Spiel ruht, bis Deploy
   $("ovPause").hidden = true; SFX.music.menu();
@@ -6762,7 +6764,7 @@ const COMFORT = ["Next time we've got this!", "So close! I'm proud of you.", "Ev
   if (aar) { const c = document.createElement("div"); c.className = "comfort"; c.innerHTML = `<img alt=""><div><small></small><b></b></div>`; aar.insertBefore(c, aar.querySelector(".hsScore")); }
   const _go = gameOver; gameOver = function () {
     const was = S && S.over; const r = _go.apply(this, arguments); if (was) return r;
-    try { const c = document.querySelector("#ovOver .comfort"), b = buddyKey();
+    try { const c = document.querySelector("#ovOver .comfort"), b = "blue";   // V366: dazu spricht Martins Stimme -> Blue
       c.querySelector("img").src = HERO_IMG[b]; c.querySelector("small").textContent = (b === "rosie" ? "ROSIE" : "BLUE") + " SAYS";
       c.querySelector("b").textContent = COMFORT[Math.floor(Math.random() * COMFORT.length)];
       $("overTitle").textContent = $("overTitle").textContent === "FALLEN" ? "SO CLOSE!" : $("overTitle").textContent;
@@ -6797,23 +6799,24 @@ const TRK_AF = ["oasis", "savanna", "dune", "dune2", "pyramid"], TRK_AS = ["taig
 function trkPool(wave) { if (!wave) return ["airport"]; const p = Math.floor(((wave - 1) % 30) / 5);
   if (wave >= 31 && wave <= 60) return [0, 1, 2].map(i => TRK_AF[(p + i) % 5]); if (wave >= 61 && wave <= 90) return [0, 1, 2].map(i => TRK_AS[(p + i) % 5]);
   return TRK_ORDER.slice(p, p + 3); }   // je Ort 3 Stücke, eines wechselt pro Ort
-window.__tpDbg = () => TP; const TP = { el: null, src: null, g: null, key: null, pool: [], wave: -1, paused: false, synthOn: false };
+window.__tpDbg = () => TP; const TP = { el: null, src: null, g: null, key: null, pool: [], wave: -1, paused: false, synthOn: false, gen: 0, pend: false, errT: 0, stuck: 0 };
 function tpEl() {
   if (TP.el) return TP.el; const a = new Audio(); a.preload = "auto"; a.loop = false; a.volume = 0; TP.el = a;
   a.addEventListener("ended", () => tpNext());
+  a.addEventListener("error", () => { if (!TP.key || Date.now() - TP.errT < 3000) return; TP.errT = Date.now(); setTimeout(() => { if (TP.key) tpNext(); }, 1000); });   // V365: Ladefehler -> nächstes Stück
   return a;
 }
-const TP_VOL = () => (SFX.muted ? 0 : Math.min(1, 0.6 * Math.pow(SFX.vol || 0.3, 2) * 1.5) * Math.pow(SFX.ch("m"), 2) * (typeof S !== "undefined" && S && S.over ? 0.45 : 1) * (typeof S !== "undefined" && S && S.duel ? 0.375 : 1) * (shopOpenNow() ? 0.5 : 1));
+const TP_VOL = () => (SFX.muted ? 0 : Math.min(1, 0.6 * Math.pow(SFX.vol == null ? 0.3 : SFX.vol, 2) * 1.5) * SFX.ch("m") * (typeof S !== "undefined" && S && S.over ? 0.45 : 1) * (typeof S !== "undefined" && S && S.duel ? 0.375 : 1) * (shopOpenNow() ? 0.5 : 1));
 function shopOpenNow() { const e = document.getElementById("sheet"); return !!(e && !e.hidden); }   // Boss-Hack: Musik deutlich leiser
 let tpFadeT = null;
 function tpFade(to, sec) { const a = TP.el; if (!a) return; clearInterval(tpFadeT); const from = a.volume, target = to > 0.001 ? TP_VOL() * Math.min(1, to / 0.5) : 0, n = Math.max(1, Math.round(sec * 20)); let i = 0;
   tpFadeT = setInterval(() => { i++; try { a.volume = Math.max(0, Math.min(1, from + (target - from) * i / n)); } catch (e) {} if (i >= n) { clearInterval(tpFadeT); tpFadeT = null; } }, 50); }
 function tpPlay(key) {
-  const a = tpEl(); TP.key = key; TP.paused = false; const go = () => { a.src = "music/" + TRK_FILE[key] + ".mp4"; a.currentTime = 0; const p = a.play(); if (p && p.catch) p.catch(() => {}); tpFade(0.5, 1.2); };
+  const a = tpEl(); TP.key = key; TP.paused = false; TP.stopping = false; const g = ++TP.gen; TP.pend = true; const go = () => { if (g !== TP.gen) return; TP.pend = false; a.src = "music/" + TRK_FILE[key] + ".mp4"; a.currentTime = 0; const p = a.play(); if (p && p.catch) p.catch(() => {}); tpFade(0.5, 1.2); };
   if (!a.paused && a.src) { tpFade(0.0001, 0.6); setTimeout(go, 650); } else { tpFade(0.0001, 0.01); go(); }
 }
 function tpNext() { const pool = TP.pool.length ? TP.pool : ["airport"]; const i = pool.indexOf(TP.key); tpPlay(pool[(i + 1) % pool.length]); }
-function tpStop(f = 0.5) { if (!TP.el) return; tpFade(0.0001, f); const a = TP.el; setTimeout(() => { if (TP.key === null || TP.stopping) a.pause(); TP.stopping = false; }, f * 1000 + 60); TP.stopping = true; TP.key = null; }
+function tpStop(f = 0.5) { if (!TP.el) return; tpFade(0.0001, f); const a = TP.el, g = ++TP.gen; TP.pend = false; setTimeout(() => { if (g === TP.gen) { a.pause(); TP.stopping = false; } }, f * 1000 + 60); TP.stopping = true; TP.key = null; }   // V365: pausiert nur, wenn seitdem kein neues Stück gestartet wurde
 { const M = SFX.music, o = { start: M.start, stop: M.stop, menu: M.menu, switchTo: M.switchTo, next: M.next, setPaused: M.setPaused, toggle: M.toggle, duck: M.duck };
   const useTrk = w => w === 0 || (w >= 1 && w <= 90);
   const begin = w => { if (!M.on) return; TP.wave = w; const pool = trkPool(w); TP.pool = pool;
@@ -6834,7 +6837,9 @@ function tpStop(f = 0.5) { if (!TP.el) return; tpFade(0.0001, f); const a = TP.e
   d("info", () => TP.key ? { no: TP.key === "airport" && TP.wave === 0 ? 0 : TRK_ORDER.indexOf(TP.key) + 1, title: TRK[TP.key][0], style: "Rio lounge", bpm: TRK[TP.key][1] } : gi.call(M));
   d("playing", () => TP.key ? (TP.wave === 0 ? 0 : (TRK_ORDER.indexOf(TP.key) < 0 ? 90 : TRK_ORDER.indexOf(TP.key) + 1)) : gp.call(M));
 }
-setInterval(() => { const a = TP.el; if (a && !a.paused && TP.key && !TP.paused) { const v = TP_VOL(); if (Math.abs(a.volume - v) > 0.02 && !tpFadeT) tpFade(v > 0 ? 0.5 : 0, 0.6); } }, 500);
+setInterval(() => { const a = TP.el; const hold = document.body.classList.contains("mapUp") || !!window.__tpHack || !!window.__tpHush || !!(typeof S !== "undefined" && S && S.duel);   // Karte, Hack/Duell und Ein-Fenster-Stummschaltung halten die Musik selbst an
+  if (a && a.paused && a.src && TP.key && !TP.paused && !TP.pend && !TP.stopping && SFX.music.on && !document.hidden && !hold) { if (++TP.stuck >= 4) { TP.stuck = 0; const p = a.play(); if (p && p.catch) p.catch(() => {}); tpFade(0.5, 0.8); } return; } TP.stuck = 0;   // V365: Wächter – hängt die Musik 2 s grundlos, neu abspielen
+  if (a && !a.paused && TP.key && !TP.paused) { const v = TP_VOL(); if (Math.abs(a.volume - v) > 0.02 && !tpFadeT) tpFade(v > 0 ? 0.5 : 0, 0.6); } }, 500);
 
 /* V172 – gemaltes Logo (Nano Banana Pro), passend zum Helden */
 const MAIN_LOGO = "img/logo_main.webp?v=258"; const LOGO_IMG = {"blue": MAIN_LOGO, "rosie": MAIN_LOGO};
@@ -7154,7 +7159,7 @@ $("btnHs").addEventListener("click", () => {
   const W = ["pro"];   // V180: eine Hauptliste (Nuts-Abstecher unten eigene Listen)
   const chillHtml = "";
   $("hsList").innerHTML = W.map(m => ghsHtml(m, GHS[m] || [], 0, MODES[m].label + " · WORLD")).join("") + chillHtml + `<h4>Loading…</h4>`;
-  $("ovStart").hidden = true; $("ovHs").hidden = false;
+  $("ovHs").hidden = false;   /* V368: Menü bleibt stehen, Hall of fame als Karte darüber */
   Promise.all(W.map(fetchGlobalHs)).then(ls => {
     if ($("ovHs").hidden) return;
     if (ls.every(l => l === null)) $("hsList").innerHTML = W.map(m => hsHtml(m)).join("") + chillHtml + `<h4>Offline · this device only</h4>`;
@@ -7453,7 +7458,7 @@ try { for (const m of ["pro", "nuts"]) { if (!LS.get("tarnturm-cp-" + m)) { cons
   const t = document.getElementById("overTitle"); if (t && t.parentElement) t.parentElement.insertBefore(img, t);
   const _g = gameOver; gameOver = function () { const r = _g.apply(this, arguments); try { const fm = document.getElementById("finMedals"); if (fm) { fm.hidden = true; fm.querySelector(".fmRow").innerHTML = ""; } } catch (e) {} try { ov.classList.toggle("won", !!(S && S.won)); if (S && S.won) {
       $("overTitle").textContent = "WORLD TOUR COMPLETE!"; const md = $("overMode"); if (md) md.textContent = "ALL 150 WAVES · 5 CONTINENTS";
-      const c = ov.querySelector(".comfort b"), s = ov.querySelector(".comfort small"); if (c) c.textContent = "We did it! Around the whole world – you are my hero!"; if (s) s.textContent = (buddyKey() === "rosie" ? "ROSIE" : "BLUE") + " SAYS";
+      const c = ov.querySelector(".comfort b"), s = ov.querySelector(".comfort small"); if (c) c.textContent = "We did it! Around the whole world – you are my hero!"; if (s) s.textContent = "BLUE SAYS";
       try { SFX.say("godlike"); snd("hkWin"); } catch (e) {} } } catch (e) {} return r; };
   try { window.__TT.v178.gameOver = gameOver; } catch (e) {}
   setInterval(() => { if (typeof S === "undefined" || !S || !S.started || S.over || S.won) return; if (S.wave >= 150 && !S.inWave && S.toSpawn === 0 && S.monsters.length === 0) { S.won = true; S.paused = true; setTimeout(() => gameOver("World tour complete"), 1800); announce("WORLD TOUR COMPLETE!", "All 150 waves · you beat the world", "HQ", 3000); } }, 400);
@@ -7728,7 +7733,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
 (() => {
   const ID = Math.random().toString(36).slice(2); let hiddenMute = false, otherMute = false;
   const allAudio = () => [TP.el].filter(Boolean);
-  const hush = on => { try { allAudio().forEach(a => { if (on) { a.dataset.wasPlaying = a.paused ? "0" : "1"; a.pause(); } else if (a.dataset.wasPlaying === "1" && TP.key && !TP.paused) { const p = a.play(); if (p && p.catch) p.catch(() => {}); } }); } catch (e) {}
+  const hush = on => { window.__tpHush = on; try { allAudio().forEach(a => { if (on) { if (!a.paused) a.dataset.wasPlaying = "1"; a.pause(); } else if (a.dataset.wasPlaying === "1" && TP.key && !TP.paused) { a.dataset.wasPlaying = "0"; const p = a.play(); if (p && p.catch) p.catch(() => {}); } }); } catch (e) {}
     try { const ac = SFX._ac && SFX._ac(); if (ac) { if (on && ac.state === "running") ac.suspend(); else if (!on && ac.state === "suspended") ac.resume(); } } catch (e) {} };
   const apply = () => hush(hiddenMute || otherMute);
   document.addEventListener("visibilitychange", () => { hiddenMute = document.hidden; apply(); if (!document.hidden) announce(); });
@@ -7749,7 +7754,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     const up = FULL.some(id => { const e = document.getElementById(id); return e && !e.hidden && e.getClientRects().length; });
     document.body.classList.toggle("ovUp", up);
     const hackUp = (() => { const e = document.getElementById("ovHack"), r = document.getElementById("hackRes"); if (r && !r.hidden && r.getClientRects().length) return false; return !!(e && !e.hidden) || !!(typeof S !== "undefined" && S && S.duel); })();
-    hackNow = hackUp; try { if (hackUp && TP.el && !TP.el.paused && !hackFadeT) { tpFade(0.0001, 3); hackFadeT = setTimeout(() => { hackFadeT = null; if (hackNow && TP.el && !TP.el.paused) { TP.el.pause(); hackHeld = true; } }, 3000); }
+    hackNow = hackUp; window.__tpHack = hackUp || hackHeld; try { if (hackUp && TP.el && !TP.el.paused && !hackFadeT) { tpFade(0.0001, 3); hackFadeT = setTimeout(() => { hackFadeT = null; if (hackNow && TP.el && !TP.el.paused) { TP.el.pause(); hackHeld = true; } }, 3000); }
       else if (!hackUp && hackFadeT) { clearTimeout(hackFadeT); hackFadeT = null; tpFade(0.5, 0.8); }
       else if (!hackUp && hackHeld) { hackHeld = false; try { snd("arcade", false); } catch (e) {} if (TP.key && !TP.paused && !document.hidden) { const p = TP.el.play(); if (p && p.catch) p.catch(() => {}); tpFade(0.5, 0.8); } } } catch (e) {} if (wasHack && !hackUp) { try { snd("arcade", false); } catch (e) {} } wasHack = hackUp;
   }, 120);
@@ -8305,7 +8310,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     let on = false, ac = null, bus = null, step = 0, nextT = 0, timer = null, nb = null, heldTP = false, heldSyn = false, inAt = 0, rampDone = false, fadeEnd = 0, resumeT = null;
     const CH = [[220, 261.6, 329.6, 392], [146.8, 220, 261.6, 329.6], [174.6, 220, 261.6, 329.6], [164.8, 196, 246.9, 293.7]];   // Am7 Dm9 Fmaj7 Em7
     const BASS = [[55, 0], [55, 6], [65.4, 10], [49, 14], [73.4, 0], [73.4, 7], [87.3, 11], [65.4, 14], [87.3, 0], [87.3, 6], [98, 10], [82.4, 14], [82.4, 0], [82.4, 7], [98, 10], [61.7, 13]];
-    const vol = () => { try { return SFX.muted ? 0 : Math.min(1, 0.6 * Math.pow(SFX.vol || 0.3, 2) * 1.5) * Math.pow(SFX.ch("m"), 2); } catch (e) { return 0.2; } };
+    const vol = () => { try { return SFX.muted ? 0 : Math.min(1, 0.6 * Math.pow(SFX.vol == null ? 0.3 : SFX.vol, 2) * 1.5) * SFX.ch("m"); } catch (e) { return 0.2; } };
     function noise() { if (nb) return nb; const n = ac.createBuffer(1, ac.sampleRate, ac.sampleRate), d = n.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; return nb = n; }
     function env(g, t, v, a, d) { g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(Math.max(0.0002, v), t + a); g.gain.exponentialRampToValueAtTime(0.0001, t + a + d); }
     function osc(type, f, t, v, a, d, lp) { const o = ac.createOscillator(), g = ac.createGain(); o.type = type; o.frequency.setValueAtTime(f, t); let n = o; if (lp) { const fl = ac.createBiquadFilter(); fl.type = "lowpass"; fl.frequency.value = lp; o.connect(fl); n = fl; } n.connect(g); g.connect(bus); env(g, t, v, a, d); o.start(t); o.stop(t + a + d + 0.05); return o; }
@@ -8985,17 +8990,17 @@ try { (() => {
 try { (() => {
   const ROSIE_K = ["rb_room", "rb_ceiling", "rb_triple", "rb_four", "rb_fancy", "rb_bigone", "rb_byebig", "rb_pancake", "rb_bags"];
   let lastSay = -1e9, bT = 0; const lastKey = {};
-  function bubble(key) { const el = document.getElementById("buddy"); if (!el) return; const who = ROSIE_K.includes(key) ? "rosie" : "blue";
+  function bubble(key) { const el = document.getElementById("buddy"); if (!el) return; const who = "blue";   // V366: Martins Stimme = immer Blue
     el.className = Math.random() < 0.5 ? "l" : "r"; el.querySelector("img").src = HERO_IMG[who];
     el.querySelector(".say").innerHTML = `${VOICE_TEXT[key]}<small>${who === "rosie" ? "ROSIE" : "BLUE"}</small>`;
-    void el.offsetWidth; el.classList.add("on"); clearTimeout(bT); bT = setTimeout(() => el.classList.remove("on"), 2800); }
+    void el.offsetWidth; el.classList.add("on"); clearTimeout(bT); const mine = el.querySelector(".say").innerHTML; bT = setTimeout(() => { if (el.querySelector(".say").innerHTML === mine) el.classList.remove("on"); }, 2800); }
   function rbSay(key, delay = 0, force = false) {
     const t0 = performance.now() + delay;
     const tryIt = () => { const now = performance.now();
       if (!S || !S.started || (S.over && key !== "rb_tea")) return;
       if (now - (lastKey[key] || -1e9) < 240000) return;
       if (!force && now - lastSay < 20000) return;
-      const busy = SFX.voiceBusy || (!force && (uiWinOpen() || S.paused || S.drop || S.intro || S.eggOpen || S.tiltCard));
+      const bb = document.getElementById("buddy"), busy = SFX.voiceBusy || !!(bb && bb.classList.contains("on")) || (!force && (uiWinOpen() || S.paused || S.drop || S.intro || S.eggOpen || S.tiltCard));
       if (busy) { if (now - t0 < 8000) setTimeout(tryIt, 700); return; }
       lastSay = now; lastKey[key] = now; bubble(key); try { SFX.say(key); } catch (e) {} };
     setTimeout(tryIt, delay); }
