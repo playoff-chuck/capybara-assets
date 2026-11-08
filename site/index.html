@@ -2787,7 +2787,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V482";
+const GAME_VER = "V484";
 /* ===== V456: Sprachschicht ===== */
 const LANGS = { en: { flag: "🇬🇧🇺🇸", name: "English" }, es: { flag: "🇪🇸", name: "Español" }, pt: { flag: "🇧🇷🇵🇹", name: "Português" }, ru: { flag: "🇷🇺", name: "Русский" } };   /* V482: de vorerst abgeschaltet (Martin 08.11.) – zum Einschalten wieder einfügen: de: { flag: "🇦🇹🇩🇪🇨🇭", name: "Deutsch" } */
 const I18N = { lang: "en", dict: null, cache: new Map(), miss: new Set(), seen: new Set(), audit: false, names: [], ready: false };
@@ -5727,7 +5727,7 @@ function wowTick(dt) {
   if (!wowDone("ton") && wowOk() && S.inWave && WOW.wt > 18 && !S.ton) {
     const top = stackTopRow(); if (S.monsters.filter(m => !m.dead && m.y < top - 0.5).length >= 3) {
       wowSet("ton"); WOW.tonT = performance.now(); S.wowTon = true; wowBanner("SQUAD INCOMING!", `${heroKey() === "rosie" ? "Blue" : "Rosie"} sends a free Ten-ton drop`);
-      snd("horn"); setTimeout(() => { if (!S.over) { S.tons = (S.tons || 0) + 1; startTon(); } }, 1500); } }
+      snd("horn"); setTimeout(() => { if (!S.over) { S.tons = (S.tons || 0) + 1; if (window.__dropAd) window.__dropAd("squad"); else startTon(); } }, 1500); } }   /* V484: als Air-Drop-Karte, DROP IT löst sofort aus */
   // 3) ELITE-Turm
   const eW = [6, 56, 106].find(w => S.wave >= w && S.wave <= w + 3 && !wowDone(w === 6 ? "elite" : "elite" + w));   /* V444: W6, W56, W106 */
   if (eW && WOW.wt > 10 && wowOk(eW + 3) && S.inWave && performance.now() - WOW.tonT > 8000) {   /* V389: fest W6, 10 s nach Start */
@@ -6725,11 +6725,11 @@ const TUT_STEPS = [
   { t: "BUILD A TOWER", s: "Tap SHOP, then PLACE.", at: "bBuild", done: () => S.mode === "build" || S.towers.size >= 1 },
   { t: "PICK A BLOCK", s: "Tap one of your landed blocks.", at: "board", done: () => S.towers.size >= 1 },
   { t: "ARM IT", s: "Buy the MG. Then tap Done.", at: "sheet", done: () => [...S.towers.values()].some(t => t.w.length) && !S.sel },
-  { t: "HOLD THE RING", s: "Monsters run the lane. Full laps cost lives. Clear rows for gold. Good luck, squad!", at: "board", done: () => false },   /* V367: endet mit «Got it», Spiel steht bis dahin */
+  { t: "HOLD THE RING", s: "Monsters run the lane. Full laps cost lives. Clear rows for gold. Good luck, squad!", at: "board", done: () => false },   /* V367: endet mit «Got it» · V483: Spiel läuft dabei weiter */
 ];
 function tutStart() { TUT.on = true; TUT.step = 0; TUT.t = 0; $("coach").hidden = false; tutShow(); }
 function tutEnd(skipped) { TUT.on = false; S.coachHold = false; $("coachSkip").textContent = "Skip tutorial"; $("coach").hidden = true; coachHi(null); LS.set("tarnturm-tut", "1"); if (!skipped) { toast("TUTORIAL DONE · good luck, squad", "HQ", 1800); SFX.say("Nice!"); } }
-function tutShow() { const st = TUT_STEPS[TUT.step]; $("coachStep").textContent = `${TUT.step + 1}/${TUT_STEPS.length}`; $("coachT").textContent = st.t; $("coachS").textContent = st.s; const last = TUT.step === TUT_STEPS.length - 1; S.coachHold = last; $("coachSkip").textContent = last ? "Got it" : "Skip tutorial"; snd("radio"); tutPlace(); }
+function tutShow() { const st = TUT_STEPS[TUT.step]; $("coachStep").textContent = `${TUT.step + 1}/${TUT_STEPS.length}`; $("coachT").textContent = st.t; $("coachS").textContent = st.s; const last = TUT.step === TUT_STEPS.length - 1; S.coachHold = false; $("coachSkip").textContent = last ? "Got it" : "Skip tutorial";   /* V483: Spiel läuft auch bei Schritt 5 weiter */ snd("radio"); tutPlace(); }
 function coachHi(el) { document.querySelectorAll(".coachHi").forEach(x => { if (x !== el) x.classList.remove("coachHi"); }); if (el && el.id !== "board" && el.id !== "sheet") el.classList.add("coachHi"); }
 function tutPlace() {
   const st = TUT_STEPS[TUT.step], el = $(st.at), a = $("coachArrow"), c = $("coach"); if (!el) return; coachHi(el);
@@ -6741,7 +6741,7 @@ function tutPlace() {
 function tutTick(dt) {
   if (!TUT.on) return;
   const st = TUT_STEPS[TUT.step]; TUT.t += dt;
-  if (TUT.step < 4) { S.waveCD = Math.max(S.waveCD, 6); S.inWave = false; S.gravT = 0; }   /* V320: Block wartet im Tutorial */   // Welle wartet, bis die Grundlagen sitzen
+  if (TUT.step < 4) { S.waveCD = Math.max(S.waveCD, 6); S.inWave = false; }   /* V320: Welle wartet im Tutorial · V483: Blöcke fallen weiter (Martin 08.11.) */   // Welle wartet, bis die Grundlagen sitzen
   if (st.done()) { TUT.step++; if (TUT.step >= TUT_STEPS.length) { tutEnd(false); return; } TUT.t = 0; if (TUT.step === 4) S.waveCD = 2; tutShow(); }
   else tutPlace();
 }
@@ -9093,7 +9093,8 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
         else { s2.textContent = "HOT!"; s3.textContent = "DEAL"; mg.textContent = "MEGA DEAL"; on.textContent = "ONLY THIS WAVE!"; }
         paint(); }
       try { snd("radio"); } catch (e) {} }
-    function close(bought) { ov.classList.remove("on"); ov.hidden = true; const k = cur; cur = null; if (k === "drop") { bought = false; $a("adCard").classList.remove("drop"); if (window.__dropKind === "weed") { window.__dropKind = null; setTimeout(() => { try { if (S && S.started && !S.over && !S.ton) startTon(); } catch (e) {} try { (window.__dist.D.weeds || []).forEach(w => { if (w.delay > 100) w.delay = 2.5 + Math.random() * 0.4; }); } catch (e) {} }, 300); } }   /* V446 */ if (late) { late = false; S.intro = false; S.adOpen = false; } else try { closeIntro(); } catch (e) {}
+    function close(bought) { ov.classList.remove("on"); ov.hidden = true; const k = cur; cur = null; if (k === "drop") { bought = false; $a("adCard").classList.remove("drop"); if (window.__dropKind === "squad") { window.__dropKind = null; setTimeout(() => { try { if (S && S.started && !S.over && !S.ton) startTon(); } catch (e) {} }, 400); }   /* V484 */
+      else if (window.__dropKind === "weed") { window.__dropKind = null; setTimeout(() => { try { if (S && S.started && !S.over && !S.ton) startTon(); } catch (e) {} try { (window.__dist.D.weeds || []).forEach(w => { if (w.delay > 100) w.delay = 2.5 + Math.random() * 0.4; }); } catch (e) {} }, 300); } }   /* V446 */ if (late) { late = false; S.intro = false; S.adOpen = false; } else try { closeIntro(); } catch (e) {}
       if (bought) try { toast(`${INTRO_GEAR[k][0].toUpperCase()} · ${TOWERW[k] ? "mounted on your tower" : "in your Pocket"}`, "ARMORY", 2000); } catch (e) {} }
     function buy() { const k = cur; if (window.__newsPrev) { close(false); return; } if (!k || why(k)) { paint(); return; } const p = price(k);
       if (TOWERW[k]) { const t = slotTower(); if (!t) { paint(); return; } t.w.push({ type: k, lvl: 1, cd: 0 }); }
@@ -9139,6 +9140,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
                  friend: { img: "img/ad_drop_free.webp", name: "A GIFT FROM A FRIEND", line: "A friend invited you to the squad and sent a Ten-ton drop. It's already in your Pocket.", met: ["+1 Ten-ton", "In your Pocket"], btn: "THANKS! ▶" },   /* V419 */
                  sweep: { img: "img/ad_drop_free.webp", name: "CLEAN SWEEP", line: "You cleared the whole field. HQ sent gold and a medal.", met: [`${gold} gold`, "+1 medal"], btn: "COLLECT ▶" },
                  med: { img: "img/ad_med_free.webp", name: "MEDKIT", line: "Doc Hazel patched you up. You can see clearly again.", met: ["Vision clear"], btn: "THANKS, DOC ▶" },
+                 squad: { img: "img/ad_drop_free.webp", name: "SQUAD INCOMING", line: "Your partner sends a free Ten-ton drop. Confirm it and it falls right now – flattens the whole stack!", met: ["+1 Ten-ton", "Drops now"], btn: "DROP IT ▶" },   /* V484 */
                  weed: { img: "img/ad_drop_free.webp", name: "WEED DEFENSE DROP", line: "Weed seeds are about to land. HQ sent a Ten-ton drop – use it NOW to flatten the field before they sprout!", met: ["+1 Ten-ton", "Use it now"], btn: "DROP IT ▶" },   /* V446 */
                  rot: { img: "img/ad_drop_free.webp", name: `${o.rp || "+90°"} PACKAGE`, line: "The field is upright again. Blocks fall down as usual.", met: ["Field upright"], btn: "LET'S GO ▶" } }[kind];
       if (!D) return; cur = "drop"; window.__dropKind = kind; saleMode = false; isFree = true; dropBtn = D.btn; late = true; S.intro = true; S.adOpen = true;
@@ -9146,8 +9148,8 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
       $a("adPic").style.backgroundImage = `url(${D.img})`; $a("adPic").style.backgroundPosition = ""; $a("adTag").textContent = "✈ AIR DROP"; $a("adWave").textContent = `WAVE ${S.wave}`; $a("adPrice").textContent = "";
       $a("adName").textContent = D.name; $a("adLine").textContent = D.line; $a("adMet").innerHTML = D.met.map(x => `<span>${x}</span>`).join("");
       paint(); window.__adLast = performance.now(); $("ovIntro").hidden = true; ov.hidden = false; requestAnimationFrame(() => ov.classList.add("on"));
-      try { const vl = { ton: "ad_drop", friend: "ad_drop", sweep: "ad_sweep", med: "ad_med", rot: "ad_upright" }[kind]; if (vl) setTimeout(() => { try { if (!ov.hidden) SFX.say(vl, 1.0, 1.0, 0, 0); } catch (e) {} }, 700); } catch (e) {}
-      try { snd("crate"); if (kind === "sweep" || kind === "ton" || kind === "friend") [0.5, 0.8].forEach(d => setTimeout(() => snd("coin"), d * 1000)); } catch (e) {} }
+      try { const vl = { ton: "ad_drop", friend: "ad_drop", squad: "ad_drop", sweep: "ad_sweep", med: "ad_med", rot: "ad_upright" }[kind]; if (vl) setTimeout(() => { try { if (!ov.hidden) SFX.say(vl, 1.0, 1.0, 0, 0); } catch (e) {} }, 700); } catch (e) {}
+      try { snd("crate"); if (kind === "sweep" || kind === "ton" || kind === "friend" || kind === "squad") [0.5, 0.8].forEach(d => setTimeout(() => snd("coin"), d * 1000)); } catch (e) {} }
     const dropQ = []; let dropWait = false;
     function pumpDrop() { if (dropWait || !dropQ.length) return; dropWait = true;
       window.__whenCalm(() => { if (!ov.hidden || (window.__playScreen && !window.__playScreen()) || S.nuts) { dropWait = false; setTimeout(pumpDrop, 1000); return; }
