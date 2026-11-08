@@ -2777,7 +2777,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V444";
+const GAME_VER = "V445";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -6367,6 +6367,11 @@ function renderSheet() { $("sheetIn").classList.remove("pk");
   const t = S.sel; if (!t) return;
   const L = limits(Math.max(1, S.wave));
   let h = `<div class="sheetHead"><h3>TOWER ${t.id}</h3><span>Gold: ${S.gold}</span></div>`;
+  if (t.eliteT > 0) {   /* V445: Elite-Turm – nichts zu kaufen */
+    h += `<div class="eliteTag"><i>★</i><div><b>ELITE TOWER</b><small>Laser active · ${Math.ceil(t.eliteT)} s left · nothing to buy here</small></div></div>`;
+    h += `<div class="sheetFoot"><button id="sSell">Sell · +${Math.round(towerValue(t) / 2)}</button><button id="sClose" class="btn-accent">Done</button></div>`;
+    $("sheetIn").innerHTML = h; return;
+  }
   { const p = allInPlan(t); if (p.cost && S.wave >= 3) setTimeout(() => hint("allin", "ALL IN", "One tap: every weapon, max level, +10 %.", "sAllIn"), 300); if (p.cost) { const prem = S.wave >= ELITE_FROM; h += `<button id="sAllIn" class="allIn${prem ? " prem" : ""}" ${S.gold < p.price ? "disabled" : ""}><i class="aiMark">${prem ? "★" : "◆"}</i><span class="aiTxt"><b>${prem ? "ELITE ALL IN" : "ALL IN"}</b><small>${[...t.w.map(w => w.type), ...p.add].map(k => WEAP[k].name).join(" · ")} · level ${maxLvl()}</small></span><span class="aiPrice">${p.price}<small>gold</small></span></button>`; } }
   for (let i = 0; i < L.weapons; i++) {
     const w = t.w[i];
@@ -10205,7 +10210,9 @@ body.wowSlow #board{filter:saturate(1.35) contrast(1.06)}
 @keyframes wowFly{from{transform:scaleX(-1)}to{transform:translateX(calc(100vw + 330px)) scaleX(-1)}}
 .wowPlane .wpChute{position:absolute;left:0;top:0;width:0;height:0;opacity:0;animation:wowChute 2.3s cubic-bezier(.3,.6,.5,1) 1s forwards}.wowPlane .wpSw{position:absolute;left:0;top:0;transform-origin:0 -70px;animation:wowSway .85s ease-in-out infinite alternate}.wowPlane .wpChute .cA{transform:scale(0);transform-origin:50% 100%;animation:wowOpen .3s ease-out 1.4s forwards}.wowPlane .wpChute.b2 .cA{animation-delay:1.65s}
 .wowPlane .wpChute.b2{animation-delay:1.25s}
-.wowPlane .wpChute img{position:absolute;left:-17px;top:-34px;width:34px;height:34px;max-width:none;border-radius:50%;border:2px solid #3a2414;background:#fff7e8;object-fit:cover;object-position:50% 18%}
+.wowPlane .wpChute img{position:absolute;left:-24px;top:-44px;width:48px;height:48px;max-width:none;object-fit:contain;filter:drop-shadow(0 2px 2px rgba(0,0,0,.35))}   /* V445: kein weißer Kreis */
+.eliteTag{display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,#ffd84d,#ff9f1a);border:3px solid #3a2414;border-radius:14px;padding:10px 12px;box-shadow:0 4px 0 #3a2414;transform:rotate(-1.5deg);margin:2px 0 4px}
+.eliteTag b{font-family:var(--f-display);font-weight:400;font-size:22px;letter-spacing:.06em;color:#3a2414;line-height:1}.eliteTag small{display:block;font:700 12px var(--f-body);color:#5a3a1a;margin-top:2px}.eliteTag i{font-style:normal;font-size:26px;line-height:1}
 .wowPlane .cA{position:absolute;left:-24px;top:-70px;width:48px;height:26px;border-radius:24px 24px 4px 4px;background:repeating-linear-gradient(90deg,#ff6fb5 0 12px,#fff7e8 12px 24px);border:2px solid #3a2414}
 .wowPlane .cA::after{content:"";position:absolute;left:8px;right:8px;top:24px;height:12px;border-left:1.5px solid #3a2414;border-right:1.5px solid #3a2414}
 @keyframes wowChute{0%{opacity:1;transform:translate(var(--sx),var(--sy)) scale(.45)}14%{opacity:1;transform:translate(calc(var(--sx) + 22px),calc(var(--sy) - 46px)) scale(.6)}100%{opacity:1;transform:translate(var(--tx),var(--ty)) scale(1)}}@keyframes wowSway{from{transform:rotate(-13deg)}to{transform:rotate(13deg)}}@keyframes wowOpen{to{transform:scale(1)}}
