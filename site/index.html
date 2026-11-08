@@ -2777,7 +2777,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V450";
+const GAME_VER = "V451";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -7843,6 +7843,8 @@ function nutsHp(l) { const b = S && S.nuts ? S.nuts.base : 30; return nzHpW(12) 
 function nutsSpd(l) { return 0.9 * (1.05 + 0.015 * l); }
 function nutsCount(l) { return Math.max(3, Math.round(0.9 * (6 + 2 * l))); }
 const nzName = c => CONTS[c][1];
+const NZ_WORD = ["SKULLGROG", "GORKAZAR", "FROSTGNAW", "GRUMBLEFANG"];   /* V451: verrücktes Ork-Wort je Nuts-Territorium */
+const nzWord = c => NZ_WORD[c] || "GRAKMAW";
 const NZ_COL = [ /* V449: dunkle Kontinentfarbe + Leuchtakzent */
   { b: "rgba(10,48,30,.78)", f: "rgba(60,170,110,.38)", a: "#7dffb8", e: "#5cf0a0" },
   { b: "rgba(70,42,8,.78)", f: "rgba(230,160,50,.36)", a: "#ffd27a", e: "#ffb347" },
@@ -8502,7 +8504,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
         if (!r) { r = document.createElement("div"); r.className = "mapRose"; ov.appendChild(r); }
         const nzb = [0, 1, 2, 3].map(c => { try { return nzBest(c); } catch (e) { return 0; } }), nzf = Math.round(nzb.reduce((a, b) => a + b / 15, 0) / 4 * 100);   /* V375: Nuts-Territorien + Faktor */
         pinsEl.insertAdjacentHTML("beforeend", nzb.map((b, c) => { const P = MAP_PTS[c]; if (!P) return ""; const x = P.reduce((a, p) => a + p[0], 0) / P.length, y = P.reduce((a, p) => a + p[1], 0) / P.length;
-          return `<div class="mNuts${b ? " on" : ""}" style="left:${(x * 100 - 6).toFixed(2)}%;top:${(y * 100 + 7).toFixed(2)}%"><span style="${nzVars(c)}">${nzLair(c, b)}</span></div>`; }).join(""));
+          return `<div class="mNuts${b ? " on" : ""}" data-nz="${c}" style="left:${(x * 100 - 6).toFixed(2)}%;top:${(y * 100 + 7).toFixed(2)}%"><span style="${nzVars(c)}">${nzLair(c, b)}</span><b class="nzAnc" style="${nzVars(c)}"><i class="nzPin"></i><em class="nzTag">NUTS<small>${nzWord(c)}</small></em></b></div>`; }).join(""));
         r.innerHTML = `<svg viewBox="0 0 64 64" aria-hidden="true"><g transform="rotate(-6 32 32)"><circle cx="32" cy="32" r="28" fill="#3a2414"/><circle cx="31" cy="31" r="26" fill="#fff6e6" stroke="#3a2414" stroke-width="2"/><path d="M32 8 L36 28 L56 32 L36 36 L32 56 L28 36 L8 32 L28 28Z" fill="#ffc93c" stroke="#3a2414" stroke-width="2.4" stroke-linejoin="round"/><path d="M32 8 L36 28 L28 28Z" fill="#ff6fb5" stroke="#3a2414" stroke-width="2.4" stroke-linejoin="round"/><path d="M17 17 L30 29 L21 23Z M47 17 L34 29 L43 23Z M47 47 L34 35 L43 41Z M17 47 L30 35 L21 41Z" fill="#3a2414"/><circle cx="32" cy="32" r="4.5" fill="#fff6e6" stroke="#3a2414" stroke-width="2.2"/><text x="32" y="13" text-anchor="middle" font-family="Bangers,Impact,system-ui" font-size="11" fill="#fff6e6" stroke="#3a2414" stroke-width="2.2" paint-order="stroke" transform="rotate(6 32 32)">N</text></g></svg><div class="rsTot">★ ${tot} / 150</div><div class="rsCnt">${cnt.slice(0, 3).map((c, i) => `${i + 1}★ ${c}`).join(" · ")}<br>${cnt.slice(3).map((c, i) => `${i + 4}★ ${c}`).join(" · ")}</div><div class="rsNuts">☠ Nuts ${nzf} %</div>`; } catch (e) {}
       const H = Math.round(1000 * MAP_AR); pathEl.innerHTML = MAP_PTS.map((P, c) => `<polyline points="${P.map(p => (p[0] * 1000).toFixed(1) + "," + (p[1] * H).toFixed(1)).join(" ")}" class="${c * 6 + 5 < g ? "done" : ""}"/>`).join("");
     }
@@ -8543,6 +8545,20 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
       vp.addEventListener("pointerup", up); vp.addEventListener("pointercancel", up);
       vp.addEventListener("wheel", e => { if (mode !== "browse") return; e.preventDefault(); cam = { ...cam, k: clampK(kNow() * (e.deltaY < 0 ? 1.15 : 1 / 1.15)) }; apply(120); }, { passive: false });
     }
+    vp.addEventListener("pointerdown", e => { try { window.__nzHit = e.target && e.target.closest ? e.target.closest(".mNuts") : null; } catch (er) { window.__nzHit = null; } }, true);   /* V451: Ziel merken – setPointerCapture leitet den Klick auf die Fläche um */
+    vp.addEventListener("click", e => {   /* V451: Nuts-Schild/-Pin/-Territorium antippen */
+      const nz = window.__nzHit; window.__nzHit = null; if (!nz || mode !== "browse") return; if (performance.now() - (window.__mapDragT || 0) < 300) return;
+      e.stopPropagation(); e.stopImmediatePropagation(); const c = +nz.dataset.nz, nm = contName(c), w = curWave(), g = posOf(w).g, done = Math.max(0, Math.min(6, g - c * 6));
+      ov.classList.remove("wv"); ov.querySelector(".mapWorldBtn").textContent = "WORLD"; go(contCam(c), 800); ov.querySelector(".mapReplay").hidden = true;
+      const open = w > NZ_BASES[c] || nzUnl().includes(c);
+      if (!open) { label(nm, `NUTS · ${nzWord(c)}`, `Finish ${nm} first · ${done} of 6 places cleared · then the Nuts detour opens`); try { snd("close"); } catch (er) {} nz.classList.remove("shake"); void nz.offsetWidth; nz.classList.add("shake"); return; }
+      if (S && S.nuts && !S.over) { label(nm, `NUTS · ${nzWord(c)}`, "You are already on a Nuts detour · finish or leave it first"); try { snd("uiTap"); } catch (er) {} return; }
+      const running = !!(S && S.started && !S.over && !S.nuts && !S.replay), rs = document.getElementById("btnResume"), hasSave = !!(rs && rs.getClientRects().length);
+      if (!running && !hasSave) { label(nm, `NUTS · ${nzWord(c)}`, "Start your tour first · the Nuts detour opens from the pause menu"); try { snd("uiTap"); } catch (er) {} return; }
+      label(nm, `NUTS · ${nzWord(c)}`, `${NZ_MAX} levels · no mercy · best L${nzBest(c)}`); try { snd("start"); } catch (er) {}
+      const kick = () => { try { if (S && S.started && !S.over && !S.nuts) { for (const id of ["ovStart", "ovOver", "ovPause"]) $(id).hidden = true; startDetour(c); } } catch (er) {} };
+      if (running) { hide(); setTimeout(kick, 80); return; }
+      ov.querySelector(".mapClose").click(); setTimeout(() => rs.click(), 60); const t0 = performance.now(), wait = () => { if (S && S.started && !S.over && !S.nuts && !S.replay) { setTimeout(kick, 120); return; } if (performance.now() - t0 < 4000) requestAnimationFrame(wait); }; setTimeout(wait, 200); });
     vp.addEventListener("click", e => { if (mode !== "browse") return; if (performance.now() - (window.__mapDragT || 0) < 300) return;
       { const rb = ov.querySelector(".mapReplay"); rb.hidden = true; let hit = null, hd = 30;   /* V384: geschafften Ort antippen -> nochmal spielen */
         ov.querySelectorAll(".mPin.done").forEach(el => { const r = el.querySelector("i").getBoundingClientRect(); if (!r.width) return; const dd = Math.hypot(e.clientX - (r.left + r.width / 2), e.clientY - (r.top + r.height / 2)); if (dd < hd) { hd = dd; hit = el; } });
@@ -10235,6 +10251,14 @@ body.wowSlow #board{filter:saturate(1.35) contrast(1.06)}
 @media (prefers-reduced-motion:reduce){.wowCoins,.wowPlane .wpPlane{display:none}.wowBan{animation-duration:2.3s}}
 .mNuts span{position:absolute;left:0;top:0;transform:translate(-50%,-50%) scale(var(--ik,1));width:80px!important;height:64px!important;min-width:0!important;padding:0!important;background:none!important;border:0!important;display:block;filter:drop-shadow(0 0 7px var(--nzF,rgba(120,90,140,.5)))}
 .mNuts{z-index:1}.mPin{z-index:3}   /* V449: Schilder und Pins über den Territorien */
+.mNuts .nzPin{position:absolute;left:-7px;top:30px;width:14px;height:14px;border-radius:50%;border:2.5px solid #2a1a22;background:var(--nzA,#efe6d6);box-sizing:border-box;box-shadow:0 0 8px var(--nzE,#ff8a5a),0 2px 0 rgba(42,26,34,.6);pointer-events:auto;cursor:pointer;animation:nzPin 1.6s ease-in-out infinite}
+.mNuts .nzTag{position:absolute;left:0;top:42px;transform:translateX(-50%);white-space:nowrap;font:400 14px/1 var(--f-display,"Bangers",sans-serif);letter-spacing:.06em;font-style:normal;color:#fff;background:#2a1a22;border:2.5px solid var(--nzA,#efe6d6);border-radius:10px;padding:3px 8px 2px;box-shadow:0 2px 0 #1a0f14,0 0 10px var(--nzF,rgba(120,90,140,.5));pointer-events:auto;cursor:pointer;text-align:center;display:grid;gap:1px}
+.mNuts .nzTag small{font:400 9.5px/1 var(--f-display,"Bangers",sans-serif);letter-spacing:.12em;color:var(--nzA,#efe6d6)}
+.mNuts span{pointer-events:auto;cursor:pointer}.mNuts .nzL{bottom:auto;top:-12px}
+.mNuts.shake .nzTag,.mNuts.shake .nzPin{animation:nzShake .45s ease-in-out 1}
+@keyframes nzPin{0%,100%{box-shadow:0 0 6px var(--nzE,#ff8a5a),0 2px 0 rgba(42,26,34,.6)}50%{box-shadow:0 0 14px var(--nzE,#ff8a5a),0 2px 0 rgba(42,26,34,.6)}}
+@keyframes nzShake{0%,100%{translate:0 0}20%{translate:-4px 0}40%{translate:4px 0}60%{translate:-3px 0}80%{translate:3px 0}}
+.mNuts .nzAnc{position:absolute;left:0;top:0;width:0;height:0;display:block;transform:scale(var(--ik,1));transform-origin:0 0;pointer-events:none}
 .nzFence{fill:var(--nzB,rgba(30,14,26,.55));stroke:var(--nzA,#2a1a22);stroke-opacity:.85}
 .nzWisp{fill:var(--nzA,#d9cfe0);opacity:0;animation:nzWisp 3.6s ease-in-out infinite}
 @keyframes nzWisp{0%{opacity:0;transform:translateY(0)}35%{opacity:.95}70%{opacity:.4}100%{opacity:0;transform:translateY(-7px)}}
