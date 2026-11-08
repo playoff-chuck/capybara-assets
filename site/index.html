@@ -2780,7 +2780,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V452";
+const GAME_VER = "V453";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -5664,11 +5664,11 @@ function wowElite(t) {
   /* V432: Absprung aus dem Cockpit – Position des Flugzeugs zur Sprungzeit (1 s / 1,25 s von 3,4 s Flug) */
   const px = tt => -160 + (innerWidth + 330) * tt / 3.4 + 72, py = innerHeight * 0.09 + 52;
   const ch = (k, tt, dx, cls) => `<div class="wpChute${cls}" style="--sx:${Math.round(px(tt))}px;--sy:${Math.round(py)}px;--tx:${pt.x + dx}px;--ty:${pt.y}px"><div class="wpSw"><span class="cA"></span><img src="${HERO_IMG[k]}" alt=""></div></div>`;
-  const spr = b === "rosie";   /* V447: Rosie mit echtem Fallschirm-Sprite */
+  const spr = true, sp = b === "rosie" ? "chute" : "chuteb";   /* V447: Rosie mit echtem Fallschirm-Sprite · V453: Blue auch */
   d.innerHTML = `<img class="wpPlane" src="img/biplane.webp" alt="">` + (spr
-    ? `<div class="wpChute spr" style="--sx:${Math.round(px(1.0))}px;--sy:${Math.round(py)}px;--tx:${pt.x}px;--ty:${pt.y}px"><img class="wpSpr" src="img/chute_1.webp" alt=""></div>`
+    ? `<div class="wpChute spr" style="--sx:${Math.round(px(1.0))}px;--sy:${Math.round(py)}px;--tx:${pt.x}px;--ty:${pt.y}px"><img class="wpSpr" src="img/${sp}_1.webp" alt=""></div>`
     : ch(b, 1.0, 0, ""));
-  if (spr) { const im = d.querySelector(".wpSpr"); const seq = [1, 2, 3, 4, 5, 6, 5, 4, 3, 2]; let i = 0; const iv = setInterval(() => { if (!document.body.contains(d)) { clearInterval(iv); return; } i = (i + 1) % seq.length; im.src = `img/chute_${seq[i]}.webp`; }, 150); }
+  if (spr) { const im = d.querySelector(".wpSpr"); const seq = [1, 2, 3, 4, 5, 6, 5, 4, 3, 2]; let i = 0; const iv = setInterval(() => { if (!document.body.contains(d)) { clearInterval(iv); return; } i = (i + 1) % seq.length; im.src = `img/${sp}_${seq[i]}.webp`; }, 150); }
   document.body.appendChild(d); snd("engine");
   setTimeout(() => { if (S.over) return; t.eliteT = 60; snd("powerup"); wowBuzz([40, 40, 90]); announce("ELITE TOWER", `${b === "rosie" ? "Rosie" : "Blue"} brings the Elite tower · 2× fire rate for 60 s`, "SQUAD", 2400); }, 3600);
   setTimeout(() => d.remove(), 4200);
