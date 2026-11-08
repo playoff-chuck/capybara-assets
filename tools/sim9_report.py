@@ -31,6 +31,7 @@ def summ(R):
                 topDeath=dieW.most_common(10), cont={f"{c}:{y}": v for (c, y), v in sorted(cont.items())}, livesEnd=dict(sorted(lives.items())),
                 gold=gold, cash=cash)
 R = load(main); res = dict(main=summ(R))
+res["main"]["deathByBand"] = {f"W{a}-{a+9}": dict(__import__("collections").Counter(r["why"] for r in R if r["why"] != "finished" and a <= r["w"] <= a + 9)) for a in range(1, 151, 10)}
 # Boss-Hack: alle Duelle aus den Läufen + Stichprobe 10 000
 H = [h for r in R for h in r["hk"]]
 rnd = random.Random(5); samp = rnd.sample(H, min(10000, len(H)))
