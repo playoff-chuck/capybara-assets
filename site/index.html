@@ -2787,12 +2787,12 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V481";
+const GAME_VER = "V482";
 /* ===== V456: Sprachschicht ===== */
-const LANGS = { en: { flag: "🇬🇧🇺🇸", name: "English" }, es: { flag: "🇪🇸", name: "Español" }, pt: { flag: "🇧🇷🇵🇹", name: "Português" }, de: { flag: "🇦🇹🇩🇪🇨🇭", name: "Deutsch" }, ru: { flag: "🇷🇺", name: "Русский" } };
+const LANGS = { en: { flag: "🇬🇧🇺🇸", name: "English" }, es: { flag: "🇪🇸", name: "Español" }, pt: { flag: "🇧🇷🇵🇹", name: "Português" }, ru: { flag: "🇷🇺", name: "Русский" } };   /* V482: de vorerst abgeschaltet (Martin 08.11.) – zum Einschalten wieder einfügen: de: { flag: "🇦🇹🇩🇪🇨🇭", name: "Deutsch" } */
 const I18N = { lang: "en", dict: null, cache: new Map(), miss: new Set(), seen: new Set(), audit: false, names: [], ready: false };
 (function () { try { const q = new URLSearchParams(location.search), l = q.get("lang"); if (l && LANGS[l]) { localStorage.setItem("capy-lang", l); } I18N.audit = q.get("i18n") === "audit"; } catch (e) {}
-  try { const l = localStorage.getItem("capy-lang"); if (l && LANGS[l]) I18N.lang = l; } catch (e) {} })();
+  try { const l = localStorage.getItem("capy-lang"); if (l && LANGS[l]) I18N.lang = l; else if (l) localStorage.setItem("capy-lang", "en"); } catch (e) {} })();   /* V482: abgeschaltete Sprache → Englisch */
 const I18N_NUM = /[-−]?\d[\d.,:/]*\d|[-−]?\d/g, I18N_WS = /\s+/g;
 function i18nNorm(t) { return String(t).replace(I18N_WS, " ").trim(); }
 function i18nLookup(key) {   /* exakt → Zahlen-Muster → Namens-Muster → Teile an « · » */
