@@ -2787,7 +2787,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V474";
+const GAME_VER = "V475";
 /* ===== V456: Sprachschicht ===== */
 const LANGS = { en: { flag: "🇬🇧🇺🇸", name: "English" }, es: { flag: "🇪🇸", name: "Español" }, pt: { flag: "🇧🇷🇵🇹", name: "Português" }, de: { flag: "🇦🇹🇩🇪🇨🇭", name: "Deutsch" }, ru: { flag: "🇷🇺", name: "Русский" } };
 const I18N = { lang: "en", dict: null, cache: new Map(), miss: new Set(), seen: new Set(), audit: false, names: [], ready: false };
@@ -6129,6 +6129,10 @@ let tickerT = null;
 function ticker(txt, tag, hold = 1400) {
   const t = $("ticker"); $("tkTag").textContent = tagShow(tag); $("tkTxt").textContent = txt;
   t.hidden = false; t.classList.remove("go"); void t.offsetWidth; t.classList.add("go");
+  { const b = $("tkTxt"); const fit = () => { try { b.style.fontSize = ""; b.style.whiteSpace = ""; let fs = parseFloat(getComputedStyle(b).fontSize) || 12; let n = 0;
+      while (b.scrollWidth > b.clientWidth + 1 && fs > 9 && n++ < 8) { fs -= 0.5; b.style.fontSize = fs + "px"; }
+      if (b.scrollWidth > b.clientWidth + 1) { b.style.whiteSpace = "normal"; b.style.textAlign = "center"; } } catch (e) {} };
+    fit(); setTimeout(fit, 60); setTimeout(fit, 400); }   /* V475: Laufband schrumpft/umbricht statt abzuschneiden (RU, PT) */
   clearTimeout(tickerT); tickerT = setTimeout(() => { t.classList.remove("go"); setTimeout(() => { if (!t.classList.contains("go")) t.hidden = true; }, 220); }, hold);
 }
 function toast(msg, tag = "REPORT", hold = 1700) {
