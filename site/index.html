@@ -2787,7 +2787,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V478";
+const GAME_VER = "V479";
 /* ===== V456: Sprachschicht ===== */
 const LANGS = { en: { flag: "🇬🇧🇺🇸", name: "English" }, es: { flag: "🇪🇸", name: "Español" }, pt: { flag: "🇧🇷🇵🇹", name: "Português" }, de: { flag: "🇦🇹🇩🇪🇨🇭", name: "Deutsch" }, ru: { flag: "🇷🇺", name: "Русский" } };
 const I18N = { lang: "en", dict: null, cache: new Map(), miss: new Set(), seen: new Set(), audit: false, names: [], ready: false };
@@ -9835,8 +9835,8 @@ try { (() => {
       toast("TEST · Wolf ad comes in wave 99 · the thief follows in wave 100", "HQ", 3000); }
     return r; };
   let q = null; try { q = new URLSearchParams(location.search).get("test"); } catch (e) {}
-  const map = { blk: 65, mag: 80, weed: 81, weed3: 106, weed4: 126, weed5: 136, elite: 6, peek: 3, nuts: 31, thief: 100, wolfad: 99, egg1: 2, egg2: 32, egg3: 62, egg4: 92, egg5: 122 };
-  if (q && map[q]) { const go = () => { setTimeout(() => { try { history.replaceState(null, "", location.pathname); } catch (e) {} devJump(map[q], q.replace(/\d$/, "")); if (q === "elite") { try { LS.del("capy-wow-elite"); } catch (e) {} S.testRun = false; S.gold += 200; } if (q === "nuts") { setTimeout(() => { try { S.testRun = false; S.inWave = false; startDetour(0); } catch (e) {} }, 1500); }   /* V456: Nuts direkt */   /* V439: Elite-Wow direkt in W6 testen */ }, 700); };
+  const map = { blk: 65, mag: 80, weed: 81, weed3: 106, weed4: 126, weed5: 136, elite: 6, peek: 3, nuts: 31, nuts2: 61, nuts3: 91, nuts4: 121, thief: 100, wolfad: 99, egg1: 2, egg2: 32, egg3: 62, egg4: 92, egg5: 122 };
+  if (q && map[q]) { const go = () => { setTimeout(() => { try { history.replaceState(null, "", location.pathname); } catch (e) {} devJump(map[q], q.replace(/\d$/, "")); if (q === "elite") { try { LS.del("capy-wow-elite"); } catch (e) {} S.testRun = false; S.gold += 200; } if (/^nuts\d?$/.test(q)) { const nc = Math.max(0, (+q.slice(4) || 1) - 1); setTimeout(() => { try { S.testRun = false; S.inWave = false; startDetour(nc); } catch (e) {} }, 1500); }   /* V479: nuts2–4 = Afrika/Asien/Nordamerika */   /* V456: Nuts direkt */   /* V439: Elite-Wow direkt in W6 testen */ }, 700); };
     const sp = document.getElementById("splash"); if (sp) sp.addEventListener("click", go, { once: true }); else go(); }
 })(); } catch (e) { console.error("v330", e); }
 
