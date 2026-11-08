@@ -465,7 +465,7 @@ button svg{width:20px;height:20px;fill:currentColor;display:block}
   box-shadow:0 -10px 30px rgba(0,0,0,.5);
 }
 .sheetIn{max-width:568px;margin:0 auto;display:flex;flex-direction:column;gap:10px}
-.sheet{transition:opacity .18s}.sheet.peek{opacity:.14}
+.sheet{transition:opacity .18s}.sheet.peek{opacity:0}
 .peekTip{font-size:12px;color:var(--muted);margin:-4px 0 0;text-align:center;letter-spacing:.02em}
 .sheetHead{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
 .sheetHead h3{font-family:var(--f-display);font-weight:400;font-size:22px;margin:0;color:var(--sand);letter-spacing:.05em}
@@ -2776,7 +2776,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V441";
+const GAME_VER = "V442";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -5833,9 +5833,12 @@ function draw() {
     const pk = S.peek;   /* V441: gehaltene Waffe im Menü → ihre Reichweite */
     const r = pk ? wstat({ type: pk.type, lvl: pk.lvl }).range + heightBonus(S.sel) : Math.max(0, ...S.sel.w.map(w => wstat(w).range), 0) + (S.sel.w.length ? heightBonus(S.sel) : 0);
     if (r) { const hx = pk ? WEAP[pk.type].col : "#ee7a2c", rgb = `${parseInt(hx.slice(1, 3), 16)},${parseInt(hx.slice(3, 5), 16)},${parseInt(hx.slice(5, 7), 16)}`;
-      ctx.fillStyle = `rgba(${rgb},${pk ? .18 : .1})`; ctx.strokeStyle = `rgba(${rgb},${pk ? .95 : .7})`; ctx.lineWidth = (pk ? 3 : 1.5) * DPR; if (pk) ctx.setLineDash([9 * DPR, 7 * DPR]);
-      ctx.beginPath(); ctx.arc(C(S.sel.x), C(S.sel.y), r * s, 0, 7); ctx.fill(); ctx.stroke(); ctx.setLineDash([]);
-      if (pk) { ctx.font = `${Math.round(14 * DPR)}px Bangers, Impact, sans-serif`; ctx.textAlign = "center"; ctx.lineWidth = 4 * DPR; ctx.strokeStyle = "rgba(0,0,0,.55)"; ctx.fillStyle = hx; const tx = `${WEAP[pk.type].name.toUpperCase()} L${pk.lvl} · RANGE ${r.toFixed(1)}`, ty = C(S.sel.y) - r * s - 8 * DPR; ctx.strokeText(tx, C(S.sel.x), ty); ctx.fillText(tx, C(S.sel.x), ty); } }
+      const rr = r * s * (pk ? 1 + 0.012 * Math.sin(performance.now() / 260) : 1), cx0 = C(S.sel.x), cy0 = C(S.sel.y);   /* V442: weiche Zone, leuchtender Rand, Pulsieren */
+      if (pk) { const g = ctx.createRadialGradient(cx0, cy0, rr * 0.15, cx0, cy0, rr); g.addColorStop(0, `rgba(${rgb},.06)`); g.addColorStop(0.75, `rgba(${rgb},.16)`); g.addColorStop(1, `rgba(${rgb},.42)`); ctx.fillStyle = g; } else ctx.fillStyle = `rgba(${rgb},.1)`;
+      ctx.beginPath(); ctx.arc(cx0, cy0, rr, 0, 7); ctx.fill();
+      if (pk) { ctx.lineWidth = 12 * DPR; ctx.strokeStyle = `rgba(${rgb},.16)`; ctx.stroke(); ctx.lineWidth = 3 * DPR; ctx.strokeStyle = `rgba(${rgb},.95)`; ctx.stroke(); ctx.lineWidth = 1 * DPR; ctx.strokeStyle = "rgba(255,255,255,.55)"; ctx.stroke(); }
+      else { ctx.strokeStyle = `rgba(${rgb},.7)`; ctx.lineWidth = 1.5 * DPR; ctx.stroke(); }
+      if (pk) { ctx.font = `${Math.round(14 * DPR)}px Bangers, Impact, sans-serif`; ctx.textAlign = "center"; ctx.lineWidth = 4 * DPR; ctx.strokeStyle = "rgba(0,0,0,.55)"; ctx.fillStyle = hx; const tx = `${WEAP[pk.type].name.toUpperCase()} L${pk.lvl} · RANGE ${r.toFixed(1)}`, ty0 = C(S.sel.y) - rr - 10 * DPR, ty = ty0 < 18 * DPR ? C(S.sel.y) + rr + 20 * DPR : ty0; ctx.strokeText(tx, C(S.sel.x), ty); ctx.fillText(tx, C(S.sel.x), ty); } }
   }
   // Türme
   for (const t of S.towers.values()) {
@@ -6052,7 +6055,7 @@ function showToast(title, sub, tag, hold) {
 }
 
 // ---------- Turm-Menü ----------
-function openSheet(t) { S.shop = false; S.sel = t; renderSheet(); $("sheet").hidden = false; }
+function openSheet(t) { S.shop = false; S.sel = t; renderSheet(); $("sheet").hidden = false; try { const p = cvPt(t.x + 0.5, t.y + 0.5); $("sheet").classList.toggle("atBottom", p.y < innerHeight * 0.52); } catch (e) {} }   /* V442 */
 function closeSheet() { window.__tapGuard = performance.now() + 450; if (S && S.sel) S.sel.fresh = false; if (S) { S.sel = null; S.shop = false; } $("sheet").hidden = true; }
 /* V441: Reichweite durchs Menü sehen – Waffe/Upgrade gedrückt halten */
 try { (() => { const sh = $("sheet"); let held = false, tm = 0;
@@ -9873,6 +9876,7 @@ body.ovUp #genAv,body.ovUp #waveNum,body.ovUp #bPauseTop,body.ovUp #bWave,body.o
 .verTag{position:absolute;top:calc(env(safe-area-inset-top,0px) + 4px);right:8px;z-index:50;font:600 10px/1 ui-monospace,Menlo,monospace;letter-spacing:.04em;color:#fff;opacity:.75;text-shadow:0 1px 2px rgba(0,0,0,.7);pointer-events:none}
 /* V192 Shop-Höhe: sichtbare Bildschirmhöhe (dvh) statt 100vh – Handy-Leisten schneiden nichts mehr ab */
 body:has(#sheet:not([hidden])) #sheet{max-height:calc(100dvh - 66px - env(safe-area-inset-top,0px))!important;bottom:auto!important}
+body:has(#sheet:not([hidden])) #sheet.atBottom{top:auto!important;bottom:0!important;border-radius:22px 22px 0 0}   /* V442: Menü unten, wenn der Turm oben steht */
 body:has(#sheet:not([hidden])) #sheetIn{max-height:calc(100dvh - 74px - env(safe-area-inset-top,0px))!important}
 #sheetIn.shopV{display:flex!important;flex-direction:column!important}
 #sheetIn.shopV .shopGrid{flex:1 1 auto!important;min-height:0!important;padding-bottom:16px!important}
