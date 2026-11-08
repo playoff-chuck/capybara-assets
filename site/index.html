@@ -248,7 +248,7 @@ canvas#cv{display:block;width:100%;height:100%;touch-action:none}
 .hs{width:100%;max-width:300px;display:flex;flex-direction:column;gap:1px;font-size:12px;font-variant-numeric:tabular-nums;overflow-y:auto;min-height:0;scrollbar-width:none}
 .hs::-webkit-scrollbar{display:none}
 .hs h4{margin:3px 0 1px;font-family:var(--f-display);font-weight:400;font-size:13px;letter-spacing:.08em;color:var(--sand)}
-.hs .row{display:grid;grid-template-columns:20px 1fr auto auto;gap:6px;text-align:left;padding:1px 6px;border-radius:3px;color:var(--fg);line-height:1.2}
+.hs .row{display:grid;grid-template-columns:28px minmax(0,1fr) 92px 96px;gap:6px;text-align:left;padding:1px 6px;border-radius:3px;color:var(--fg);line-height:1.2;align-items:baseline}.hs .row span:nth-child(1){text-align:right}.hs .row span:nth-child(2){overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.hs .row span:nth-child(3){text-align:right;white-space:nowrap}.hs .row span:nth-child(4){text-align:right;white-space:nowrap}#hsPlaces .prRow span:nth-child(3){letter-spacing:-1px}   /* V452: feste Spalten – Sterne, Zahlen, Level untereinander */
 .hs .row.me{background:rgba(238,122,44,.25);color:#ffd9b8}
 .hs .row span:last-child{color:var(--muted)}
 .hsEntry{display:flex;flex-direction:column;gap:6px;width:100%;max-width:300px;align-items:stretch}
@@ -424,7 +424,7 @@ button svg{width:20px;height:20px;fill:currentColor;display:block}
 .tabs button{flex:1;min-height:30px;font-size:13px;padding:2px 4px}
 .manual{display:flex;flex-direction:column;gap:3px;width:100%;max-width:320px;text-align:left}
 .mRow{display:grid;grid-template-columns:40px 1fr auto;gap:8px;align-items:center;background:rgba(20,26,17,.6);border:1px solid var(--line);border-radius:4px;padding:3px 7px}
-.mRow canvas,.mRow svg{width:40px;height:40px;display:block}
+.mRow canvas,.mRow svg{width:40px;height:40px;display:block}.mRow img.gIco{width:40px;height:40px;display:block;object-fit:contain;transform:scale(1.15);filter:drop-shadow(0 2px 2px rgba(0,0,0,.35))}.mRow em.elite{background:#ffd3ea;color:#8a2a5a;border:1px solid #c23f8a}
 .mRow b{display:block;font-family:var(--f-display);font-weight:400;font-size:15px;letter-spacing:.05em;color:var(--sand);line-height:1}
 .mRow span{display:block;font-size:clamp(9px,2.6vw,11px);line-height:1.2;color:var(--muted)}
 .mRow em{font-style:normal;font-size:9px;letter-spacing:.1em;color:#1b1206;background:var(--hazard);padding:1px 5px;border-radius:2px;font-weight:700;white-space:nowrap}
@@ -1080,7 +1080,7 @@ body.introBig #ovIntro{background:rgba(14,19,11,.28)!important}
 .gearTR{position:fixed!important;top:calc(env(safe-area-inset-top,0px) + 10px);right:max(12px,env(safe-area-inset-right,0px));z-index:40;width:40px!important;min-height:40px!important;height:40px;padding:0!important}
 .gearTR svg{width:22px;height:22px}
 .gearTR{background:var(--hero)!important;color:#fff!important;border:3px solid var(--ink,#3a1d10)!important;border-radius:50%!important;box-shadow:0 3px 0 var(--ink,#3a1d10)!important}
-#ovSettings{z-index:65}#ovHs{z-index:65}#ovHs .hsBox{max-height:min(64vh,540px);overflow-y:auto}#ovHs .hs{width:100%}
+#ovSettings{z-index:65}#ovHs{z-index:65}#ovHs .hsBox{max-height:min(64vh,540px);overflow-y:auto}#ovHs .hs{width:100%}#ovHs .hsBox{position:relative}#ovHs .hsBox .albX{top:8px;right:8px;width:40px!important;height:40px!important;min-height:0!important;padding:0!important;line-height:1!important;font-size:20px!important}#ovHs .hs{max-width:none!important}
 #joinWave{display:none}
 
 /* V151 – Comic-Stil für alle Zwischenmeldungen (Funk, Toast, Lob-Stempel, Kiste, Buchhalter, Neuheiten-Karte) */
@@ -1413,6 +1413,9 @@ body.introFull #ovIntro .inArt{display:none}
 body.awOn #awBar{display:flex}
 #awBar button{flex:1;min-width:0;padding:9px 2px 7px;border-radius:12px;border:3px solid #3a2a1a;background:#fff6e6;color:#3a2a1a;font:400 17px/1 Bangers,system-ui!important;letter-spacing:.5px;box-shadow:0 3px 0 #3a2a1a!important;background:#fff6e6!important;background-image:none!important;color:#3a2a1a!important;margin:0!important;min-height:0!important}
 #awBar button.on{background:#3a2a1a!important;color:#fff6e6!important}
+#awBar.dance button{animation:awDance 1.5s ease-in-out 3}#awBar.dance button:nth-child(2){animation-delay:.5s}#awBar.dance button:nth-child(3){animation-delay:1s}
+@keyframes awDance{0%,100%{transform:translateY(0) rotate(0)}25%{transform:translateY(-7px) rotate(-2.5deg)}50%{transform:translateY(0) rotate(0)}75%{transform:translateY(-4px) rotate(2deg)}}
+@media (prefers-reduced-motion:reduce){#awBar.dance button{animation:none}}
 body.awOn #ovAlbum,body.awOn #ovSquad{padding-top:calc(env(safe-area-inset-top,0px) + 62px)!important;align-items:flex-start!important}
 body.awOn #ovHs{padding-top:calc(env(safe-area-inset-top,0px) + 62px)!important}
 body:has(#ovAlbum:not([hidden])):has(#albBody):has(#albX) #btnOffline,body:has(#ovAlbum:not([hidden])):has(#albBody):has(#albX) #btnMap,body:has(#ovHs:not([hidden])):has(#hsList):has(#btnHsClose) #btnOffline,body:has(#ovHs:not([hidden])):has(#hsList):has(#btnHsClose) #btnMap{display:none!important}
@@ -2720,7 +2723,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
         <div id="armsList" class="tabPane manual" hidden></div>
       </div>
       <div class="overlay joinOv" id="ovHs" hidden><div class="joinBox hsBox">
-        <button class="xBtn" id="btnHsClose" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></svg></button>
+        <button class="albX" id="btnHsClose" aria-label="Close">✕</button>
         <h2>HALL OF FAME</h2>
         <div class="hs" id="hsList"></div><div class="hs" id="hsNuts"></div><div class="hs" id="hsPlaces"></div>
       </div>
@@ -2777,7 +2780,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V451";
+const GAME_VER = "V452";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -6156,8 +6159,15 @@ function renderManual() {
     ["snipe", ICON.snipe, "Sniper strike", `${SNIPE_COST} gold · one shot: wipes a 2×2 patch, splats every monster one cell around. Splats count double.`, "snipe"],
     ["mix", ICON.mix, "Concrete mixer", `${MIX_COST} gold · one load: fills a cavity or everything up to the top block. Buried monsters count four times.`, "mix"],
     ["tesla", ICON.tesla, "Tesla storm", `${TESLA_COST} gold · wonder weapon: lightning wipes a 4×4 target. Splats count three times.`, "tesla"],
-  ];
-  $("armsList").innerHTML = arms.map(([k, icon, name, desc]) => `<div class="mRow">${icon}<div><b>${name}</b><span>${desc}</span></div>${tag(unlockedAt(k))}</div>`).join("");
+    ["chomp", ICON.chomp, "Chomper", `${CHOMP_COST} gold · steel jaws run the ring backwards and eat every monster and block in their way.`, "chomp"],
+    ["ton", ICON.ton, "Ten-ton drop", `${TON_COST} gold · giant weight: crushes every monster above the stack and squeezes all blocks to half. HQ drops a free one before weed seeds land.`, "ton"],
+    ["lock", ICON.lock, "Lockdown", `${LOCK_COST} gold · ${LOCK_TIME} s time stop. Free every ${LOCK_NEED} rows.`, "lock"],
+    ["wolf", ICON.tesla, "Wolf call", `${WOLF_COST} gold · a howl in the dark: the raccoon thief drops your gold and runs. Also a Lucky Supply prize.`, "wolf"],
+    ["elite", "", "Elite tower", `Not for sale · your partner parachutes in with it. 60 s pink laser that burns everything on its line. Waves 6, 56 and 106.`, "elite"],
+  ];   /* V452: alle Gadgets, Sprite-Icons */
+  const gIcon = (k, icon) => k === "elite" ? `<img class="gIco" src="img/chute_1.webp" alt="">` : (typeof ICO_SPR !== "undefined" && ICO_SPR[k]) ? `<img class="gIco" src="${ICO_SPR[k]}" alt="">` : icon;
+  const gTag = k => k === "elite" ? `<em class="elite">W6 · 56 · 106</em>` : k === "wolf" ? tag(WOLF_W) : tag(unlockedAt(k));
+  $("armsList").innerHTML = arms.map(([k, icon, name, desc]) => `<div class="mRow">${gIcon(k, icon)}<div><b>${name}</b><span>${desc}</span></div>${gTag(k)}</div>`).join("");
 }
 $("infoTabs").addEventListener("click", e => {
   const b = e.target.closest("button"); if (!b) return;
@@ -7336,7 +7346,8 @@ function trophyHtml() { const st = starsAll(); let got = 0;
   let awAct = null; const _go0 = k => { awAct = k; document.body.classList.add("awOn"); };
   setInterval(() => { const open = Object.entries(OV).find(([k, o]) => { const e = $(o); return e && !e.hidden; }); if (!open) { if (document.body.classList.contains("awOn")) document.body.classList.remove("awOn"); awAct = null; return; }
     if (awAct && open[0] !== awAct) tabs(open[0]); }, 200);
-  const go = k => { for (const o of Object.values(OV)) { const e = $(o); if (e) e.hidden = true; } tabs(k); _go0(k);
+  const dance = () => { try { const n = +(LS.get("capy-aw-dance") || 0); if (n >= 3 || document.body.classList.contains("awOn")) return; LS.set("capy-aw-dance", n + 1); bar.classList.add("dance"); setTimeout(() => bar.classList.remove("dance"), 5200); } catch (e) {} };   /* V452: erste drei Einstiege */
+  const go = k => { dance(); for (const o of Object.values(OV)) { const e = $(o); if (e) e.hidden = true; } tabs(k); _go0(k);
     if (k === "medals") openAlbum(); else if (k === "squad") openSquad(); else { hsOk = true; $("btnHs").click(); } };
   $("btnHs").addEventListener("click", e => { if (hsOk) { hsOk = false; return; } e.stopImmediatePropagation(); SFX.init(); go("medals"); }, true);
   document.addEventListener("click", e => { const b = e.target.closest && e.target.closest(".awTabs button"); if (!b) return; e.stopPropagation(); try { snd("uiTap"); } catch (er) {} go(b.dataset.aw); }, true);
@@ -8125,7 +8136,7 @@ function nutsLevelDone() {
 function nzBoardHtml(c, list, markT) {
   const top = (list || []).slice(0, 5); let h = `<h4>NUTS · ${nzName(c)}</h4>`;
   if (!top.length) return h + `<div class="row"><span>–</span><span>no entries yet</span><span></span><span></span></div>`;
-  return h + top.map((e, i) => `<div class="row${markT && e.t === markT ? " me" : ""}"><span>${i + 1}.</span><span>${e.name}</span><span>L${e.wave | 0}</span><span>${(e.kills || 0) ? e.kills + "✕" : ""}</span></div>`).join("");
+  return h + top.map((e, i) => `<div class="row${markT && e.t === markT ? " me" : ""}"><span>${i + 1}.</span><span>${e.name}</span><span>${(e.kills || 0) ? e.kills + "✕" : ""}</span><span>L${e.wave | 0}</span></div>`).join("");
 }
 async function nzFetch(c) {
   if (HSDB) { try { return await dbList("nuts" + c); } catch (e) { return null; } }
