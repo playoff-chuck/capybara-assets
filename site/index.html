@@ -2777,7 +2777,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V447";
+const GAME_VER = "V448";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -6080,7 +6080,7 @@ try { (() => { const sh = $("sheet"); let held = false, tm = 0;
   sh.addEventListener("pointerdown", e => { const b = e.target.closest("button[data-buy],button[data-peek],button[data-up],.wline"); if (!b || !S || !S.sel) return;
     let type, lvl; if (b.dataset.buy || b.dataset.peek) { type = b.dataset.buy || b.dataset.peek; lvl = 1; }
     else { const slot = b.closest(".slot"), i = b.dataset.up != null ? +b.dataset.up : [...sh.querySelectorAll(".slot")].indexOf(slot); const w = S.sel.w[i]; if (!w) return; type = w.type; lvl = b.dataset.up != null ? Math.min(maxLvl(), w.lvl + 1) : w.lvl; }
-    S.peek = { type, lvl }; held = false; sh.classList.add("peek"); document.body.classList.add("peeking"); clearTimeout(tm); tm = setTimeout(() => { held = true; }, 320); }, { passive: true });
+    const pk = { type, lvl }; held = false; clearTimeout(tm); tm = setTimeout(() => { held = true; if (!S || !S.sel) return; S.peek = pk; sh.classList.add("peek"); document.body.classList.add("peeking"); }, 320); }, { passive: true });   /* V448: erst nach 320 ms Halten */
   ["pointerup", "pointercancel"].forEach(ev => sh.addEventListener(ev, () => { clearTimeout(tm); if (held) window.__peekSwallow = performance.now() + 500; held = false; end(); }));
   sh.addEventListener("click", e => { if (window.__peekSwallow && performance.now() < window.__peekSwallow && e.target.closest("button[data-buy],button[data-up]")) { window.__peekSwallow = 0; e.stopImmediatePropagation(); e.preventDefault(); } }, true);
   const _cs = closeSheet; closeSheet = function () { end(); return _cs.apply(this, arguments); };
