@@ -2322,7 +2322,7 @@ body.inNuts #btnPRestart{display:none!important}
 .sqLv{background:rgba(0,0,0,.25);border:2px solid var(--ink);border-radius:12px;padding:8px 10px;margin:0 0 8px;text-align:center}.sqLv b{display:block;font-family:var(--f-display);font-size:22px;letter-spacing:.06em;color:#ffd36a}.sqLv i{display:block;font-style:normal;font-family:var(--f-display);font-size:13px;letter-spacing:.1em;color:var(--sand)}
 .sqBar{height:10px;border-radius:6px;background:rgba(0,0,0,.4);border:1.5px solid var(--ink);overflow:hidden;margin:6px 0 4px}.sqBar span{display:block;height:100%;background:linear-gradient(90deg,#9cf0ff,#ffd36a);border-radius:6px}.sqLv small{display:block;font-size:11px;opacity:.85}
 .trGrid{display:grid;grid-template-columns:repeat(5,1fr);gap:5px}.trCup{text-align:center}.trCup i{display:block;aspect-ratio:1;border-radius:50%;border:3px solid #d9a93a;box-shadow:0 0 0 2px #7a4b12,0 3px 0 #7a4b12,inset 0 0 0 2px rgba(255,240,180,.5);background:#9ab 50% 10%/170% auto no-repeat}.trCup small{display:block;font:700 8.5px/1.1 var(--f-ui);letter-spacing:.02em;margin-top:4px;color:#3a2a14;text-transform:uppercase}.trCup.off i{filter:grayscale(1) brightness(.45);border-color:#8a8a80;box-shadow:0 0 0 2px #55554c,0 3px 0 #55554c}.trCup.off small{color:#7a7a70}
-.ofRow{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-bottom:6px}.ofRow .mcCard{padding:2px 2px 3px;cursor:pointer}.ofRow .mcCard.on{border-color:#ee7a2c;background:#ffe9d2;box-shadow:0 2px 0 #c45a1a}.ofRow .mcCard i{font-size:9px}.ofRow .mcCard small{font-size:8px}
+.ofRow{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-bottom:6px}.ofRow .mcCard{padding:2px 2px 3px;cursor:pointer}.ofRow .mcCard.on{border-color:#ee7a2c;background:#ffe9d2;box-shadow:0 2px 0 #c45a1a}.ofRow .mcCard i{font-size:9px}.ofRow .mcCard small{font-size:8px}.ofRow .mcCard b.ofFx{display:block;font:700 7px/1.15 "Baloo 2",sans-serif;color:#b8561a;margin-top:1px;min-height:16px}.ofRow .mcCard b.ofFx.no{color:#a89a85;font-weight:600}.ofRow .mcCard.off b.ofFx{color:#a89a85}
 </style>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -2787,7 +2787,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V489";
+const GAME_VER = "V490";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -3070,14 +3070,62 @@ const SKY_BG = {"samerica": ["img/2510465d7d.webp", "img/e24cf5d037.webp"], "afr
 const HERO_BASE = {"blue": "img/e8b742aa03.webp", "rosie": "img/cf7539bf2e.webp"};
 const OUTFIT = [["Standard", 0], ["Shades", { w: 20 }], ["Explorer", 60], ["Winter", 90], ["Champion", 120], ["Pop Star", { f: 1 }], ["Rock King", { f: 2 }], ["Big Boss", { f: 3 }], ["Pirate", { f: 5 }], ["Astronaut", { f: 8 }]];   /* V413: Name, Sterne · V480: {w} = ab Welle, {f} = geworbene Freunde */
 const OUTFIT_ROSIE = { 5: "Queen", 6: "Diva", 7: "Princess", 8: "Movie Star", 9: "Fairy Queen" };   /* V481: Rosies eigene Freunde-Outfits */
+const OUTFIT_FX_B = [null, ["s", "gold", "Golden splats"], ["r", "leaf", "Leaf confetti"], ["s", "frost", "Frost glitter"], ["t", "star", "Star trail"]];   /* V490 (t143): Effekt je Outfit · s = Splat, r = volle Reihe, t = Spur */
+const OUTFIT_FX = { blue: OUTFIT_FX_B.concat([["s", "glitter", "Pop glitter"], ["r", "note", "Rock notes"], ["r", "goldrain", "Gold rain"], ["s", "bubble", "Sea bubbles"], ["t", "comet", "Comet trail"]]),
+  rosie: OUTFIT_FX_B.concat([["s", "golddust", "Gold dust"], ["s", "heart", "Diva hearts"], ["r", "pinkstar", "Princess sparkles"], ["r", "flash", "Star flashes"], ["t", "fairy", "Fairy dust"]]) };
+const FX_FORCE = (() => { try { const v = +new URLSearchParams(location.search).get("fx"); return v >= 1 && v <= 9 ? v : null; } catch (e) { return null; } })();   /* V490: Test-Link ?fx=1…9 */
 function outfitName(k, n) { return (k === "rosie" && OUTFIT_ROSIE[n]) || OUTFIT[n][0]; }
 function outfitNeed(o) { const r = o[1]; return typeof r === "number" ? { s: r } : r; }
 function sqFriends() { try { return +localStorage.getItem("capy-squad-n") || 0; } catch (e) { return 0; } }
 function outfitOn(o, stars) { const n = outfitNeed(o); if (n.s != null) return stars >= n.s; if (n.w != null) return getBest("pro") >= n.w; return sqFriends() >= n.f; }
 function outfitLabel(o) { const n = outfitNeed(o); if (n.s != null) return n.s + " ★"; if (n.w != null) return "wave " + n.w; return n.f === 1 ? "1 friend" : n.f + " friends"; }
 function outfitImg(k, n) { return `img/outfit_${k}_${n || 0}.webp`; }   /* V429: alle aus einem Ausschnitt */
-function outfitSel(k) { try { const n = +localStorage.getItem("capy-outfit-" + k) || 0; return n >= 0 && n < OUTFIT.length ? n : 0; } catch (e) { return 0; } }
+function outfitSel(k) { if (FX_FORCE != null) return FX_FORCE; try { const n = +localStorage.getItem("capy-outfit-" + k) || 0; return n >= 0 && n < OUTFIT.length ? n : 0; } catch (e) { return 0; } }
 function heroDisco() { try { const s = window.__TT && window.__TT.S; return !!(s && s.nuts); } catch (e) { return false; } }   /* V466: Nuts = 80er-Disco-Outfit */
+function outfitFx() { try { if (heroDisco()) return null; const k = heroKey(); return OUTFIT_FX[k][outfitSel(k)] || null; } catch (e) { return null; } }   /* V490 */
+const OFX_COL = { gold: ["#ffd84a", "#fff3b0", "#f0b52a"], leaf: ["#7cbf4a", "#4f8f2a", "#e8a33a", "#c9662a"], frost: ["#ffffff", "#cdeeff", "#8fd3ff"], star: ["#ffd84a", "#fff3b0", "#ffb83a"],
+  glitter: ["#ff6fb5", "#ffd84a", "#6fd3ff", "#a6f06f", "#c39bff"], note: ["#ffd84a", "#ff6fb5", "#ffffff"], goldrain: ["#ffd84a", "#f2b630", "#fff3b0"], bubble: ["#dff4ff", "#ffffff", "#9fd8ff"],
+  comet: ["#9fd8ff", "#ffffff", "#c9b6ff"], golddust: ["#ffd84a", "#fff3b0", "#e8c06a"], heart: ["#ff6fb5", "#ff9ccc", "#ffd1e6"], pinkstar: ["#ff9ccc", "#ffffff", "#ffd84a"], flash: ["#ffffff", "#fff3b0", "#ffe58a"], fairy: ["#ff9ccc", "#c39bff", "#ffffff"] };
+const OFX_SH = { gold: "spark", leaf: "leaf", frost: "flake", star: "star", glitter: "dot", note: "note", goldrain: "spark", bubble: "bubble", comet: "dot", golddust: "dot", heart: "heart", pinkstar: "spark", flash: "spark", fairy: "spark" };
+function ofxAdd(st, x, y, n, mode) {   /* V490: höchstens 14 Outfit-Partikel gleichzeitig */
+  let have = 0; for (const f of S.fx) if (f.type === "ofx") have++;
+  const cols = OFX_COL[st] || OFX_COL.gold, sh = OFX_SH[st] || "spark";
+  for (let i = 0; i < n && have < 14; i++, have++) {
+    const a = Math.random() * 6.283, v = mode === "t" ? 0.4 + Math.random() * 0.6 : 1.6 + Math.random() * 2.6;
+    let vx = Math.cos(a) * v, vy = Math.sin(a) * v - (mode === "t" ? 0 : 1.6), g = 3.2;
+    if (sh === "bubble" || sh === "note") { g = -2.4; vy = -1 - Math.random() * 1.4; vx *= 0.5; }
+    else if (sh === "leaf") { g = 1.6; vy = -2.5 - Math.random() * 2; }
+    else if (st === "goldrain") { g = 4; vy = -3 - Math.random() * 2; }
+    else if (mode === "t") { g = 0.6; vy = -0.5 - Math.random() * 0.5; }
+    S.fx.push({ type: "ofx", sh, col: cols[Math.floor(Math.random() * cols.length)], x: x + (Math.random() - 0.5) * 0.6, y: y + (Math.random() - 0.5) * 0.4, vx, vy, g, rot: Math.random() * 6.283, vr: (Math.random() - 0.5) * 6,
+      sz: (sh === "dot" ? 0.12 : st === "flash" ? 0.26 : 0.17) * (0.8 + Math.random() * 0.5), ph: Math.random() * 6.283, t: 0, life: mode === "t" ? 0.55 + Math.random() * 0.3 : 0.8 + Math.random() * 0.5 });
+  }
+}
+function ofxStep(dt) {   /* V490: Auslöser + Bewegung der Outfit-Partikel */
+  const e = outfitFx();
+  if (e) for (const f of S.fx) {
+    if (f.ofx || f.t < 0) continue;
+    if (e[0] === "s" && f.type === "splat") { f.ofx = 1; ofxAdd(e[1], f.x, f.y, 4, "s"); }
+    else if (e[0] === "r" && f.type === "rowflash") { f.ofx = 1; for (let i = 0; i < 3; i++) ofxAdd(e[1], 1 + Math.random() * (GW - 2), f.y, 2, "r"); }
+  }
+  if (e && e[0] === "t" && S.piece && !frozen() && !S.ton && !S.nuts) { S._ofxT = (S._ofxT || 0) + dt;
+    if (S._ofxT > 0.11) { S._ofxT = 0; const c = S.piece.cells[Math.floor(Math.random() * S.piece.cells.length)]; if (c) ofxAdd(e[1], S.piece.x + c[0], S.piece.y + c[1] - 0.3, 1, "t"); } }
+  for (const f of S.fx) { if (f.type !== "ofx" || f.t < 0) continue; f.vy += f.g * dt; f.vx *= (1 - 1.2 * dt); f.x += (f.vx + (f.sh === "leaf" || f.sh === "bubble" ? Math.sin(f.t * 5 + f.ph) * 0.8 : 0)) * dt; f.y += f.vy * dt; f.rot += f.vr * dt; }
+}
+function drawOfx(f, k, s) {   /* V490 */
+  const z = s * f.sz * (f.sh === "spark" ? 0.75 + 0.35 * Math.sin(f.t * 14 + f.ph) : 1);
+  ctx.save(); ctx.globalAlpha = Math.min(1, k * 2.2); ctx.translate(C(f.x), C(f.y)); ctx.rotate(f.rot); ctx.fillStyle = f.col; ctx.strokeStyle = f.col; ctx.lineCap = "round";
+  if (f.sh === "spark") { ctx.beginPath(); ctx.moveTo(0, -z * 2); ctx.quadraticCurveTo(0, 0, z * 2, 0); ctx.quadraticCurveTo(0, 0, 0, z * 2); ctx.quadraticCurveTo(0, 0, -z * 2, 0); ctx.quadraticCurveTo(0, 0, 0, -z * 2); ctx.fill(); }
+  else if (f.sh === "star") { ctx.beginPath(); for (let i = 0; i < 10; i++) { const r = i % 2 ? z * 0.6 : z * 1.5, a = i * Math.PI / 5; ctx.lineTo(Math.sin(a) * r, -Math.cos(a) * r); } ctx.closePath(); ctx.fill(); }
+  else if (f.sh === "dot") { ctx.globalAlpha *= 0.35; ctx.beginPath(); ctx.arc(0, 0, z * 2.2, 0, 7); ctx.fill(); ctx.globalAlpha = Math.min(1, k * 2.2); ctx.beginPath(); ctx.arc(0, 0, z, 0, 7); ctx.fill(); }
+  else if (f.sh === "leaf") { ctx.beginPath(); ctx.ellipse(0, 0, z * 1.5, z * 0.7, 0, 0, 7); ctx.fill(); ctx.globalAlpha *= 0.5; ctx.strokeStyle = "#2c4416"; ctx.lineWidth = Math.max(1, z * 0.18); ctx.beginPath(); ctx.moveTo(-z * 1.3, 0); ctx.lineTo(z * 1.3, 0); ctx.stroke(); }
+  else if (f.sh === "flake") { ctx.lineWidth = Math.max(1, z * 0.35); ctx.beginPath(); for (let i = 0; i < 3; i++) { const a = i * Math.PI / 3; ctx.moveTo(Math.cos(a) * z * 1.5, Math.sin(a) * z * 1.5); ctx.lineTo(-Math.cos(a) * z * 1.5, -Math.sin(a) * z * 1.5); } ctx.stroke(); }
+  else if (f.sh === "note") { ctx.rotate(-f.rot); ctx.beginPath(); ctx.ellipse(-z * 0.4, z * 0.9, z * 0.7, z * 0.5, -0.4, 0, 7); ctx.fill(); ctx.lineWidth = Math.max(1, z * 0.3); ctx.beginPath(); ctx.moveTo(z * 0.25, z * 0.8); ctx.lineTo(z * 0.25, -z * 1.4); ctx.lineTo(z * 1.1, -z * 0.9); ctx.stroke(); }
+  else if (f.sh === "bubble") { ctx.lineWidth = Math.max(1, z * 0.25); ctx.beginPath(); ctx.arc(0, 0, z * 1.2, 0, 7); ctx.stroke(); ctx.globalAlpha *= 0.8; ctx.beginPath(); ctx.arc(-z * 0.4, -z * 0.4, z * 0.3, 0, 7); ctx.fill(); }
+  else if (f.sh === "heart") { ctx.rotate(-f.rot * 0.8); ctx.beginPath(); ctx.moveTo(0, z * 1.2); ctx.bezierCurveTo(-z * 1.8, 0, -z * 0.9, -z * 1.3, 0, -z * 0.4); ctx.bezierCurveTo(z * 0.9, -z * 1.3, z * 1.8, 0, 0, z * 1.2); ctx.fill(); }
+  ctx.restore();
+}
+window.__ofx = { fx: outfitFx, add: ofxAdd };
 const HERO_IMG = { get blue() { return heroDisco() ? "img/outfit_blue_disco.webp" : outfitImg("blue", outfitSel("blue")); }, get rosie() { return heroDisco() ? "img/outfit_rosie_disco.webp" : outfitImg("rosie", outfitSel("rosie")); } }; window.__heroImg = HERO_IMG; window.__heroDisco = heroDisco;
 const CONTS = [["samerica", "SOUTH AMERICA", ["RIVER BANK", "MANGROVE", "JUNGLE", "WATERFALL", "RUINS", "JUNGLE TEMPLE"]],
   ["africa", "AFRICA", ["OASIS CAMP", "SAVANNA", "BAOBAB GROVE", "DUNE SEA", "ROCK CANYON", "THE PYRAMID"]],
@@ -4930,6 +4978,7 @@ function update(dt) {
     else if (f.type === "spark") { f.vy += 9 * dt; f.vx *= (1 - 2.5 * dt); f.x += f.vx * dt; f.y += f.vy * dt; }
     else if (f.type === "smoke") { f.vy *= (1 - 0.35 * dt); f.x += (f.vx + Math.sin(f.t * 1.7 + f.ph) * 0.6) * dt; f.y += f.vy * dt; f.r += f.grow * dt; }
   }
+  try { ofxStep(dt); } catch (e) {}   /* V490: Outfit-Effekte */
   SFX.music.setPaused(SFX.music.playing !== 0 && !!frozen() && !S.drop && !S.alert && !S.mix && !S.duel && !S.mapShow && !S.tiltCard && !S.coachHold);
   if (S.mix) stepMix(dt);
   stepTon(dt); stepChomp(dt);
@@ -6066,6 +6115,7 @@ function draw() {
       ctx.fillStyle = "#fff6fb"; ctx.beginPath(); ctx.arc(x2, y2, Math.max(3, s * 0.2) * k, 0, 7); ctx.fill(); ctx.lineCap = "butt"; }
     else if (f.type === "tracer") { ctx.globalAlpha = k; ctx.strokeStyle = f.col; ctx.lineWidth = Math.max(1, s * 0.07); ctx.beginPath(); ctx.moveTo(C(f.x1), C(f.y1)); ctx.lineTo(C(f.x2), C(f.y2)); ctx.stroke(); }
     else if (f.type === "boom") { ctx.globalAlpha = k * 0.8; ctx.fillStyle = f.col; ctx.beginPath(); ctx.arc(C(f.x), C(f.y), f.r * s * (0.4 + 0.6 * (1 - k)), 0, 7); ctx.fill(); }
+    else if (f.type === "ofx") drawOfx(f, k, s);   /* V490 */
     else if (f.type === "splat") {
       ctx.globalAlpha = Math.min(1, k * 1.6); ctx.fillStyle = f.col;
       const cx = C(f.x), cy = C(f.y), R = s * 0.5 * (0.8 + 0.4 * (1 - k));
@@ -7414,7 +7464,7 @@ function skinHtml() { let got = 0; const cards = SKIN_C.map(c => { const on = sk
 function outfitHtml() { const st = starsAll(), stars = Object.values(st).reduce((a, b) => a + (+b || 0), 0); let h = "";
   for (const k of ["blue", "rosie"]) { const sel = outfitSel(k);
     h += `<div class="albSec">${k.toUpperCase()}'S OUTFITS<span>${OUTFIT.filter(o => outfitOn(o, stars)).length} / ${OUTFIT.length}</span></div><div class="ofRow">` + OUTFIT.map((o, n) => { const on = outfitOn(o, stars);
-      return `<div class="mcCard ${on ? (n === sel ? "on" : "t3") : "off"}" data-of="${k}:${n}"><img src="${outfitImg(k, n)}" alt=""><i>${outfitName(k, n)}</i><small>${on ? (n === sel ? "wearing" : "tap to wear") : outfitLabel(o)}</small></div>`; }).join("") + `</div>`; }
+      return `<div class="mcCard ${on ? (n === sel ? "on" : "t3") : "off"}" data-of="${k}:${n}"><img src="${outfitImg(k, n)}" alt=""><i>${outfitName(k, n)}</i><small>${on ? (n === sel ? "wearing" : "tap to wear") : outfitLabel(o)}</small><b class="ofFx${n ? "" : " no"}">${n ? OUTFIT_FX[k][n][2] : "no effect"}</b></div>`; }).join("") + `</div>`; }
   { const fn = sqFriends(), nx = OUTFIT.map(outfitNeed).filter(n => n.f != null && n.f > fn).map(n => n.f).sort((a, b) => a - b)[0];   /* V480: Freunde-Zähler + nächstes Outfit */
     h += `<div class="albSec">SQUAD FRIENDS<span>${fn}</span></div><div class="sqNote">${nx ? `Friends who reach wave 5 with your link unlock outfits · next at ${nx}` : "All friend outfits unlocked!"}</div>`; setTimeout(sqRefresh, 0); }
   return h; }
