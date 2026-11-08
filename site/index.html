@@ -2785,7 +2785,49 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V455";
+const GAME_VER = "V456";
+/* ===== V456: Sprachschicht ===== */
+const LANGS = { en: { flag: "🇬🇧🇺🇸", name: "English" }, es: { flag: "🇪🇸", name: "Español" }, pt: { flag: "🇧🇷🇵🇹", name: "Português" }, de: { flag: "🇦🇹🇩🇪🇨🇭", name: "Deutsch" }, ru: { flag: "🇷🇺", name: "Русский" } };
+const I18N = { lang: "en", dict: null, cache: new Map(), miss: new Set(), seen: new Set(), audit: false, names: [], ready: false };
+(function () { try { const q = new URLSearchParams(location.search), l = q.get("lang"); if (l && LANGS[l]) { localStorage.setItem("capy-lang", l); } I18N.audit = q.get("i18n") === "audit"; } catch (e) {}
+  try { const l = localStorage.getItem("capy-lang"); if (l && LANGS[l]) I18N.lang = l; } catch (e) {} })();
+const I18N_NUM = /\d[\d.,:/]*\d|\d/g, I18N_WS = /\s+/g;
+function i18nNorm(t) { return String(t).replace(I18N_WS, " ").trim(); }
+function i18nLookup(key) {   /* exakt → Zahlen-Muster → Namens-Muster → Teile an « · » */
+  const D = I18N.dict; if (!D) return null;
+  if (D[key] != null) return D[key];
+  const nums = key.match(I18N_NUM); if (nums) { const pat = key.replace(I18N_NUM, "#"); const v = D[pat]; if (v != null) { let i = 0; return v.replace(/#/g, () => nums[i++] ?? "#"); } }
+  for (const nm of I18N.names) { if (nm && key.includes(nm)) { const pat = key.split(nm).join("@"), v = D[pat]; if (v != null) return v.split("@").join(D[nm] != null ? D[nm] : nm); } }
+  if (key.includes(" · ")) { const parts = key.split(" · "); let hit = false; const out = parts.map(p => { const k = i18nNorm(p); const v = k ? i18nLookup(k) : null; if (v != null) hit = true; return v != null ? v : p; }); if (hit) return out.join(" · "); }
+  return null; }
+function T(t) {
+  if (t == null) return t; const raw = String(t); const key = i18nNorm(raw); if (!key || !/[A-Za-zÀ-ÿ]{2}/.test(key)) return raw;
+  if (I18N.audit) I18N.seen.add(key);
+  if (!I18N.dict) return raw;
+  let v = I18N.cache.get(key); if (v === undefined) { v = i18nLookup(key); if (v == null) { I18N.miss.add(key); v = null; } I18N.cache.set(key, v); }
+  if (v == null) return raw;
+  const lead = raw.match(/^\s*/)[0], tail = raw.match(/\s*$/)[0]; return lead + v + tail; }
+const I18N_SKIP = new Set(["SCRIPT", "STYLE", "TEXTAREA", "INPUT", "CODE"]), I18N_ATTR = ["placeholder", "aria-label", "title"], i18nDone = new WeakMap();
+function i18nText(n) { const d = n.data; if (!d || !d.trim()) return; const p = n.parentNode; if (!p || I18N_SKIP.has(p.nodeName)) return; const m = i18nDone.get(n); if (m && m.out === d) return; const out = T(d); i18nDone.set(n, { out }); if (out !== d) n.data = out; }
+function i18nEl(el) { if (!el || el.nodeType !== 1 || I18N_SKIP.has(el.nodeName)) return; for (const a of I18N_ATTR) { if (el.hasAttribute(a)) { const v = el.getAttribute(a), k = "a:" + a, m = i18nDone.get(el) || {}; if (m[k] === v) continue; const o = T(v); m[k] = o; i18nDone.set(el, m); if (o !== v) el.setAttribute(a, o); } }
+  const w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT, null); let n; while ((n = w.nextNode())) { if (n.nodeType === 3) i18nText(n); else if (n.nodeType === 1 && !I18N_SKIP.has(n.nodeName)) { for (const a of I18N_ATTR) if (n.hasAttribute(a)) { const v = n.getAttribute(a), k = "a:" + a, m = i18nDone.get(n) || {}; if (m[k] === v) continue; const o = T(v); m[k] = o; i18nDone.set(n, m); if (o !== v) n.setAttribute(a, o); } } } }
+function i18nApplyAll() { try { i18nEl(document.body); } catch (e) {} }
+(function () { const obs = new MutationObserver(ms => { for (const m of ms) { if (m.type === "characterData") { i18nText(m.target); continue; } if (m.type === "attributes") { i18nEl(m.target); continue; } m.addedNodes.forEach(n => { if (n.nodeType === 3) i18nText(n); else i18nEl(n); }); } });
+  const start = () => obs.observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: I18N_ATTR }); if (document.body) start(); else document.addEventListener("DOMContentLoaded", start); })();
+(function () { try { const P = CanvasRenderingContext2D.prototype, ft = P.fillText, st = P.strokeText, mt = P.measureText;
+  P.fillText = function (t) { arguments[0] = T(t); return ft.apply(this, arguments); }; P.strokeText = function (t) { arguments[0] = T(t); return st.apply(this, arguments); }; P.measureText = function (t) { return mt.call(this, T(t)); }; } catch (e) {} })();
+function i18nLoad(lang, cb) {
+  I18N.lang = lang; I18N.cache.clear(); I18N.miss.clear(); try { localStorage.setItem("capy-lang", lang); } catch (e) {} document.documentElement.lang = lang;
+  fetch(`lang/${lang}.json?v=${GAME_VER}`).then(r => r.ok ? r.json() : {}).catch(() => ({})).then(d => { I18N.dict = d || {}; I18N.names = Object.keys(I18N.dict).filter(k => /^[A-Z][A-Za-z' -]{2,24}$/.test(k) && !k.includes("#")).sort((a, b) => b.length - a.length); I18N.ready = true; i18nApplyAll();
+    if (lang !== "en") fetch(`lang/voice_${lang}.json?v=${GAME_VER}`).then(r => r.ok ? r.json() : null).catch(() => null).then(v => { if (!v) return; try { for (const k in (v.v || {})) VOICE[k] = v.v[k]; for (const k in (v.t || {})) VOICE_TEXT[k] = v.t[k]; } catch (e) {} });
+    cb && cb(); }); }
+window.__i18n = { get lang() { return I18N.lang; }, miss: () => [...I18N.miss].sort(), seen: () => [...I18N.seen].sort(), set: l => i18nLoad(l), apply: i18nApplyAll, T };
+function i18nPicker(onDone) {   /* ganz am Anfang: nur Flagge wählen */
+  const ov = document.createElement("div"); ov.id = "ovLang"; ov.innerHTML = `<div class="lgBox"><div class="lgTitle">CAPYBARA SQUAD</div><div class="lgSub">Choose your language · Elige idioma · Escolha o idioma · Sprache wählen · Выберите язык</div>${Object.entries(LANGS).map(([k, v]) => `<button data-lang="${k}"><span class="lgFlag">${v.flag}</span><span class="lgName">${v.name}</span></button>`).join("")}</div>`;
+  document.body.appendChild(ov);
+  ov.addEventListener("click", e => { const b = e.target.closest("[data-lang]"); if (!b) return; e.stopPropagation(); const l = b.dataset.lang; ov.classList.add("out"); i18nLoad(l, () => { setTimeout(() => ov.remove(), 400); onDone && onDone(); }); }); }
+/* ===== Ende V456 ===== */
+
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -4508,7 +4550,7 @@ function clearLines() {
   return cleared;
 }
 function gravityInterval() { const K = G.gravKnee || 1e9, K2 = G.gravKnee2 || 1e9, we = S.wave <= K ? S.wave : K + (Math.min(S.wave, K2) - K) * (G.gravKneeF ?? 1) + Math.max(0, S.wave - K2) * (G.gravKneeF2 ?? (G.gravKneeF ?? 1)), le = S.wave <= K ? S.lines : S.lines * (we / Math.max(1, S.wave));   // ab dem Knick steigt das Tempo langsamer
-  const g = Math.max(G.gravMin, G.gravBase - le * G.gravLine - we * G.gravWave) * ordv("gravMul") * (!S.nuts && S.wave >= 21 && S.wave <= 150 ? 1.8 : 1) / (S.wave >= 60 ? 0.7716 : S.wave >= 50 ? 0.857375 : S.wave >= 40 ? 0.9025 : S.wave >= 30 ? 0.95 : 1) / ((S.wave >= 30 ? 0.9 : 1) * (S.wave >= 50 ? 0.93 : 1) * (S.wave >= 91 && S.wave <= 120 ? 0.92 : 1));   /* V183: ab W30 −10 %, ab W50 −7 %, W91–120 −8 % */   // V179: ab W30 −5 %, ab W40 nochmals −5 %, ab W50 nochmals −5 %, ab W60 nochmals −10 % if (hailOn()) return g / (7.65 * HAIL_WAVES[specBase()] * specK());
+  const g = Math.max(G.gravMin, G.gravBase - le * G.gravLine - we * G.gravWave) * ordv("gravMul") * (!S.nuts && S.wave >= 21 && S.wave <= 150 ? 1.8 : 1) * (!S.nuts && S.wave <= 4 ? 1.1 : 1) / (S.wave >= 60 ? 0.7716 : S.wave >= 50 ? 0.857375 : S.wave >= 40 ? 0.9025 : S.wave >= 30 ? 0.95 : 1) / ((S.wave >= 30 ? 0.9 : 1) * (S.wave >= 50 ? 0.93 : 1) * (S.wave >= 91 && S.wave <= 120 ? 0.92 : 1));   /* V183: ab W30 −10 %, ab W50 −7 %, W91–120 −8 % */   // V179: ab W30 −5 %, ab W40 nochmals −5 %, ab W50 nochmals −5 %, ab W60 nochmals −10 % if (hailOn()) return g / (7.65 * HAIL_WAVES[specBase()] * specK());
   if (hailOn()) return g / 3;   /* V292/V297: Hagel ×3 schneller als normal */
   { const e = specE(S.wave); if (e && e[0] === 16 && S.inWave && e[1] >= 2) return g / (e[1] === 2 ? 0.7 : 0.65); }   // V178z12: Sidewinder II 30 % langsamer, ab III 35 %
   return g; }
@@ -4662,7 +4704,7 @@ function spawnMonster() {
   const intro = { volt: "New: Sparky! Zaps blocks on its path", fast: "New: Scout! Small, quick, low health", heavy: "New: Brute! Slow, armored, lots of health", munch: "New: Muncher! Eats through blocks", runner: "New: Sprinter! Armored: at least 5 hits", bomber: "New: Bomber! Explodes when splatted", kiefer: "New: The Jaw! Eats everything, tough" };
   S.seen = S.seen || {};
   const baseHp = G.hpBase * (1 + (G.hpLin || 0) * (w - 1)) * Math.pow(G.hpGrow, w - 1);
-  const hp = ordv("monHpMul") * (w >= 50 ? 1.25 : w >= 20 ? 1.15 : 1) * (S.nuts ? 1 : w >= 91 && w <= 100 ? 0.75 : w >= 101 && w <= 110 ? 0.75 : w >= 111 && w <= 120 ? 0.85 : w >= 121 && w <= 150 ? 0.90 : 1) * (!S.nuts && w >= 21 && w <= 150 ? 0.4 : 1) * baseHp * ({ heavy: 2.6, fast: 0.6, munch: 1.5, runner: 2.2, bomber: 1.3, kiefer: 3.2, volt: 1.8, jaguar: 1.4, mummy: 2.4, tiger: 2.2, bear: 4.0, norm: 1 }[kind]);
+  const hp = ordv("monHpMul") * (w >= 50 ? 1.25 : w >= 20 ? 1.15 : 1) * (S.nuts ? 1 : w >= 91 && w <= 100 ? 0.75 : w >= 101 && w <= 110 ? 0.75 : w >= 111 && w <= 120 ? 0.85 : w >= 121 && w <= 150 ? 0.90 : 1) * (!S.nuts && w >= 21 && w <= 150 ? (w >= 91 && w <= 120 ? 0.7 : w >= 61 && w <= 90 ? 0.55 : 0.4) : 1) * baseHp * ({ heavy: 2.6, fast: 0.6, munch: 1.5, runner: 2.2, bomber: 1.3, kiefer: 3.2, volt: 1.8, jaguar: 1.4, mummy: 2.4, tiger: 2.2, bear: 4.0, norm: 1 }[kind]);
   const sp = ordv("monSpdMul") * (!S.nuts && w >= 21 && w <= 150 ? 0.65 : 1) * Math.min(G.spMax, G.spBase + G.spGrow * w) * ({ fast: 1.5, heavy: 0.7, munch: 0.85, runner: 1.75, bomber: 0.9, kiefer: 1.0, volt: 0.8, jaguar: 1.25, mummy: 0.6, tiger: 1.3, bear: 0.7, norm: 1 }[kind]);
   const spF = ffOn() ? sp * 1.7 : sp;
   const rew = ({ heavy: 14, munch: 11, runner: 22, bomber: 16, kiefer: 40, volt: 26, jaguar: 18, mummy: 24, tiger: 30, bear: 45 }[kind] ?? G.killBase) + w;
@@ -7365,7 +7407,7 @@ $("ovAlbum").addEventListener("click", e => { if (e.target.id === "ovAlbum") $("
 /* ===== V455: Daily Drop + Daily Mission (Kalenderblatt) ===== */
 const DAILY_DROP_W = 10, DAILY_MSN_W = 20, DAILY_XP = 300;
 const DAILY_DROPS = [["snipe", "Sniper strike", "snipes", 13], ["lock", "Lockdown", "locks", 25], ["mix", "Concrete mixer", "mixers", 9], ["chomp", "Chomper", "chomps", 17], ["tesla", "Tesla storm", "teslas", 21], ["snipe", "Sniper strike", "snipes", 13], ["ton", "Ten-ton drop", "tons", 8]];
-const DAILY_MSN = [["k", "Splat {n} monsters", [40, 60, 90]], ["l", "Clear {n} rows", [12, 18, 25]], ["w", "Finish {n} waves", [6, 10, 15]], ["t", "Build {n} towers", [6, 9, 12]], ["c3", "Clear 3 rows at once {n} times", [1, 2, 3]], ["sp", "Squish {n} monsters with blocks", [3, 5, 8]]];
+const DAILY_MSN = [["k", "Splat {n} monsters", [25, 40, 60, 90]], ["l", "Clear {n} rows", [8, 12, 18, 25]], ["w", "Finish {n} waves", [4, 6, 10, 15]], ["t", "Build {n} towers", [4, 6, 9, 12]], ["c3", "Clear 3 rows at once {n} times", [1, 1, 2, 3]], ["sp", "Squish {n} monsters with blocks", [2, 3, 5, 8]]];   /* V456: Stufe nach Spielstand – Anfänger (bis W30) · W30+ · W60+ · W100+ */
 function dailyKey(d = new Date()) { return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
 function dailyWeek(d = new Date()) { const x = new Date(d); x.setHours(0, 0, 0, 0); x.setDate(x.getDate() - ((x.getDay() + 6) % 7)); return dailyKey(x); }
 function dailyLoad() { let D = null; try { D = JSON.parse(LS.get("capy-daily") || "null"); } catch (e) {} if (!D || typeof D !== "object") D = {}; D.streak = +D.streak || 0; D.sent = Array.isArray(D.sent) ? D.sent : []; return D; }
@@ -7381,7 +7423,7 @@ function dailyRoll() {   /* neuer Tag: Kette fortschreiben, Mission würfeln */
   else if (DAILY.day === bk && DAILY.shieldWk !== wk) { DAILY.streak += 1; DAILY.shieldWk = wk; DAILY.shieldUsed = today; }   /* ein ausgelassener Tag je Woche */
   else DAILY.streak = 1;
   DAILY.day = today; DAILY.claimed = false;
-  const bw = dailyBestW(), pool = DAILY_MSN.filter(m => !(m[0] === "t" && bw < 3)), pick = pool[Math.floor(Math.random() * pool.length)], tier = bw >= 60 ? 2 : bw >= 35 ? 1 : 0;
+  const bw = dailyBestW(), pool = DAILY_MSN.filter(m => !(m[0] === "t" && bw < 3)), pick = pool[Math.floor(Math.random() * pool.length)], tier = bw >= 100 ? 3 : bw >= 60 ? 2 : bw >= 30 ? 1 : 0;
   DAILY.m = { k: pick[0], n: pick[2][tier], p: 0, txt: pick[1].replace("{n}", pick[2][tier]), done: false, xp: false };
   dailySave(); return true; }
 function dailyDrop() { const i = dailyDay() - 1, bw = dailyBestW(); let d = DAILY_DROPS[i]; if (bw < d[3]) d = DAILY_DROPS[6]; return d; }
@@ -7586,7 +7628,9 @@ $("setX").addEventListener("click", async () => { const n = cleanNick($("setNick
   { const t0 = performance.now(), ready = () => setTimeout(() => sp.classList.remove("loading"), Math.max(0, 1200 - (performance.now() - t0)));
     if (document.readyState === "complete") ready(); else window.addEventListener("load", ready, { once: true }); setTimeout(() => sp.classList.remove("loading"), 5000); }
   const go = () => { if (done) return; done = true; try { LS.set("tarnturm-terms", "1"); renderModes(); SFX.init(); SFX.music.menu(); } catch (e) {} sp.classList.add("out"); setTimeout(() => sp.remove(), 650); };
-  sp.addEventListener("click", go); setTimeout(go, 6000); })();
+  let hasLang = false; try { hasLang = !!localStorage.getItem("capy-lang"); } catch (e) {}
+  if (!hasLang) { sp.classList.add("pick"); i18nPicker(() => { sp.classList.remove("pick"); sp.addEventListener("click", go); setTimeout(go, 6000); }); }   /* V456: erst Flagge wählen */
+  else { try { i18nLoad(I18N.lang); } catch (e) {} sp.addEventListener("click", go); setTimeout(go, 6000); } })();
 $("btnHQ").addEventListener("click", tutAbort);
 // DJ antippen: nächstes Lied
 $("dj").addEventListener("click", ev => {
@@ -9516,12 +9560,12 @@ try { (() => {
   const sched = k => { const w = S.wave | 0; if (S.testRun && S.testKind === k && w === S.testLongW) return true;   /* V347: Test-Welle */
     if (k === "blk") return w >= 65 && (w - 65) % 18 === 0;
     if (k === "mag") return [80, 92, 105, 117].includes(w);
-    if (k === "weed") return [81, 106, 126, 131].includes(w) && !ROT_BASES.includes(specBase(w)) && (w - 1) % 30 < 27;
+    if (k === "weed") return [81, 106, 126, 136].includes(w) && !ROT_BASES.includes(specBase(w)) && (w - 1) % 30 < 27;
     if (k === "thief") { let x = 100, i = 0; const st = [10, 9, 11]; while (x < w) x += st[i++ % 3]; return x === w; }
     return false; };
   const D = { blk: null, mag: null, weeds: [], thief: null, done: {} };
   Object.defineProperty(D, "weed", { get() { return D.weeds[0] || null; }, set(v) { D.weeds = v ? [v] : []; } });   /* V423: mehrere Unkräuter */
-  const WEEDN = { 106: 3, 126: 4, 131: 5 };   /* V426: am Ortsanfang */
+  const WEEDN = { 106: 3, 126: 4, 136: 5 };   /* V426: am Ortsanfang */
   window.__dist = { state: () => ({ blk: !!D.blk, mag: D.mag && { side: D.mag.side, y: D.mag.y }, weed: D.weed && { x: D.weed.x, root: D.weed.root, h: D.weed.h }, thief: D.thief && { x: +D.thief.x.toFixed(2), stolen: D.thief.stolen } }), start: k => start(k), fire: (k, x, y) => (k === "snipe" ? snipe : tesla)(x, y), D };
   const NAMES = { blk: ["SIGNAL LOST!", "Part of the field goes dark"], mag: ["MAGNET!", "It pulls the blocks – steer against it · Tesla fries it"], weed: ["WEEDS!", "Blocks get stuck on it · Tesla or Sniper cut it"], weed5: ["WEED FIELD!", "Seeds after the drop · Tesla or Sniper cut them"], thief: ["THIEF!", "A WOLF CALL scares him off · shop → Wolf call"] };
   function start(k) {
@@ -9597,7 +9641,7 @@ try { (() => {
     for (const w of D.weeds) {
       if (w.delay > 0) { w.delay -= dt; } else if (w.root == null) { w.seedY += dt * 6; const ly = landY(w.x); if (w.seedY >= ly) { w.root = ly; w.h = 1; try { tone(260, 110, 0.11, 0.035, 0, "sine", 900); tone(140, 90, 0.08, 0.02, 0.02, "triangle", 500); } catch (e) {} } }
       else { if (w.root < GH - 1 && !S.grid[(w.root + 1) * GW + w.x]) w.root++;   /* fällt nach, wenn darunter frei wird */
-        if (S.inWave) w.growT += dt; if (w.growT >= 6.8) { const ny = w.root - w.h; if (ny <= 0 && !S.over) { w.growT = 0; try { fxText(w.x, 1, "WEEDS TOOK THE RING", "#ff6fb5"); } catch (e) {} gameOver("Weeds reached the ring."); } else if (ny >= 1 && weedPush(w.x, ny, p)) { w.h++; w.growT = 0; } else w.growT = 6.8; }   /* V438: Spitze im Ring = Game over */
+        if (S.inWave) w.growT += dt; if (w.growT >= 6.8) { const ny = w.root - w.h; if (ny <= 0 && !S.over) { w.growT = 0; D.weeds = D.weeds.filter(q => q !== w); S.lives = Math.max(0, (S.lives || 0) - 3); try { fxText(w.x, 1, "WEED HIT THE RING · −3 ♥", "#ff6fb5"); snd("leak"); announce("WEED HIT THE RING", "−3 lives · the weed withers", "ALERT", 2600); hud(); } catch (e) {} if (S.lives <= 0) gameOver("Weeds reached the ring."); }   /* V456: −3 Leben statt Game over (Martin 08.11. 15:33) */ else if (ny >= 1 && weedPush(w.x, ny, p)) { w.h++; w.growT = 0; } else w.growT = 6.8; }   /* V438: Spitze im Ring = Game over */
         { const left = w.root - w.h + 1;   /* freie Zeilen zwischen Spitze und Ring (Zeile 0) */
           if (left <= 2 && !D.weedW2) { D.weedW2 = true; try { window.__rbSay && window.__rbSay("rb_weedlast", true); } catch (e) {} if (!D.weedW0) { D.weedW0 = true; try { weedCard(); } catch (e) {} } }   /* V446: Karte spätestens hier */
           else if (left <= 4 && !D.weedW1) { D.weedW1 = true; try { snd("siren"); announce("WEED ALERT", "If it reaches the ring, it's over · Tesla or Sniper", "ALERT", 3000); setTimeout(() => SFX.say("weed_warn"), 500); } catch (e) {} } } } }
@@ -9742,8 +9786,8 @@ try { (() => {
       toast("TEST · Wolf ad comes in wave 99 · the thief follows in wave 100", "HQ", 3000); }
     return r; };
   let q = null; try { q = new URLSearchParams(location.search).get("test"); } catch (e) {}
-  const map = { blk: 65, mag: 80, weed: 81, weed3: 106, weed4: 126, weed5: 131, elite: 6, peek: 3, thief: 100, wolfad: 99, egg1: 2, egg2: 32, egg3: 62, egg4: 92, egg5: 122 };
-  if (q && map[q]) { const go = () => { setTimeout(() => { try { history.replaceState(null, "", location.pathname); } catch (e) {} devJump(map[q], q.replace(/\d$/, "")); if (q === "elite") { try { LS.del("capy-wow-elite"); } catch (e) {} S.testRun = false; S.gold += 200; }   /* V439: Elite-Wow direkt in W6 testen */ }, 700); };
+  const map = { blk: 65, mag: 80, weed: 81, weed3: 106, weed4: 126, weed5: 136, elite: 6, peek: 3, nuts: 31, thief: 100, wolfad: 99, egg1: 2, egg2: 32, egg3: 62, egg4: 92, egg5: 122 };
+  if (q && map[q]) { const go = () => { setTimeout(() => { try { history.replaceState(null, "", location.pathname); } catch (e) {} devJump(map[q], q.replace(/\d$/, "")); if (q === "elite") { try { LS.del("capy-wow-elite"); } catch (e) {} S.testRun = false; S.gold += 200; } if (q === "nuts") { setTimeout(() => { try { S.testRun = false; S.inWave = false; startDetour(0); } catch (e) {} }, 1500); }   /* V456: Nuts direkt */   /* V439: Elite-Wow direkt in W6 testen */ }, 700); };
     const sp = document.getElementById("splash"); if (sp) sp.addEventListener("click", go, { once: true }); else go(); }
 })(); } catch (e) { console.error("v330", e); }
 
@@ -10436,6 +10480,16 @@ body:has(#ovStart:not([hidden])):has(.overlay.win:not([hidden])) #btnMap,body:ha
 #ovDaily .dlChain i small{display:block;font:700 8.5px/1.1 "Baloo 2",system-ui;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 2px}
 #ovDaily .dlChain i.on{background:#9fd18a}#ovDaily .dlChain i.now{background:#ff6fb5;color:#fff}
 #ovDaily .dlNote{font-size:12px;color:#7a5a3c;margin-top:8px;text-align:center}
+
+/* V456: Sprachwahl */
+#ovLang{position:fixed;inset:0;z-index:260;display:flex;align-items:center;justify-content:center;background:rgba(40,20,12,.55);backdrop-filter:blur(3px);transition:opacity .35s}#ovLang.out{opacity:0;pointer-events:none}
+#ovLang .lgBox{width:min(360px,calc(100vw - 32px));background:#fff7e8;border:3px solid #3a2414;border-radius:20px;box-shadow:0 6px 0 #3a2414;padding:16px 14px 14px;display:grid;gap:8px}
+#ovLang .lgTitle{font:400 30px/1 Bangers,system-ui;letter-spacing:1px;text-align:center;color:#ee7a2c;-webkit-text-stroke:1px #3a2414}
+#ovLang .lgSub{font:700 11.5px/1.3 "Baloo 2",system-ui;color:#7a5a3c;text-align:center;margin-bottom:4px}
+#ovLang button{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:12px;min-height:52px;padding:6px 14px;background:#fff;border:3px solid #3a2414;border-radius:14px;box-shadow:0 3px 0 #3a2414;font:800 18px "Baloo 2",system-ui;color:#3a2414;text-align:left;cursor:pointer}
+#ovLang button:active{transform:translateY(2px);box-shadow:0 1px 0 #3a2414}
+#ovLang .lgFlag{font-size:24px;letter-spacing:2px;line-height:1}
+#splash.pick .spGo,#splash.pick .spDots{visibility:hidden}
 </style>
 <style id="v225">
 /* Stecknadeln und Held in Bildschirm-Pixeln (eine Gegenskalierung am Anker) */
