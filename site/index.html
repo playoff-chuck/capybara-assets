@@ -2787,7 +2787,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V475";
+const GAME_VER = "V476";
 /* ===== V456: Sprachschicht ===== */
 const LANGS = { en: { flag: "🇬🇧🇺🇸", name: "English" }, es: { flag: "🇪🇸", name: "Español" }, pt: { flag: "🇧🇷🇵🇹", name: "Português" }, de: { flag: "🇦🇹🇩🇪🇨🇭", name: "Deutsch" }, ru: { flag: "🇷🇺", name: "Русский" } };
 const I18N = { lang: "en", dict: null, cache: new Map(), miss: new Set(), seen: new Set(), audit: false, names: [], ready: false };
@@ -6708,7 +6708,7 @@ function startGame(m, fromWave = 0) { window.__evtLast = performance.now();
   { const own = m === "nuts" ? "Go nuts!" : m === "chill" ? "Take it easy." : "Let's go!", pool = [own, own, "Here we go, squad!", "Let's roll!", "Time to stack!"];   // V164: keine Militär-Sprüche mehr (Clips in Martins Stimme folgen)
     setTimeout(() => { if (performance.now() - (window.__introAt || -1e9) < 25000) return; SFX.say(pool[Math.floor(Math.random() * pool.length)], 1.1, 1.05); }, 400); }
   $("ovStart").hidden = true; $("ovOver").hidden = true;
-  if (LS.get("tarnturm-tut") !== "1" && !fromWave && !S.testRun) { S.ff = false; S.waveCD = 60; setTimeout(tutStart, 700); }
+  if (LS.get("tarnturm-tut") !== "1" && !fromWave && !S.testRun) { S.ff = false; S.waveCD = 60; setTimeout(() => { if (S && S.started && !S.over && !S.testRun && !S.nuts && !S.replay) tutStart(); }, 700); }   /* V476: nicht nach Test-/Nuts-Sprung */
   else setTimeout(() => announce(`${MODES[m].label.toUpperCase()} OPERATION`, `First wave in ${G.firstCD} seconds · build your defense`, "GET READY", 1800), 300);
 }
 let pendingStart = null;
@@ -8279,6 +8279,7 @@ try { const st = document.createElement("style"); st.textContent = `.chRow{align
 #ovSquad .chSend::before,#ovSquad .chSend::after{display:none!important}`; document.head.appendChild(st); } catch (e) {}
 window.__ch = { get L() { return CH; }, hit: (k, v, g) => chHit(k, v, g), tq: () => chTQ.length, html: () => chHtml(), url: (k, v, g) => chUrl(k, v, g), reload: () => { CH = chLoad(); } };   /* Test-Haken */
 function startDetour(c) {
+  if (TUT.on) { try { TUT.on = false; S.coachHold = false; $("coach").hidden = true; coachHi(null); } catch (e) {} }   /* V476: Tutorial gehört nicht in die Höhle (bleibt für das nächste normale Spiel offen) */
   const fr = buildSave(); if (!fr) return; NZ.frozen = fr; window.__NZF = fr; NZ.first = nzFirstOpen(c); NZ.ending = false;
   const seen = { ...(S.seen || {}) };
   newGame(); S.started = true; S.cpRun = true; S.ff = false;
