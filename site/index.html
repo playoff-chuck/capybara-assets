@@ -2787,7 +2787,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V480";
+const GAME_VER = "V481";
 /* ===== V456: Sprachschicht ===== */
 const LANGS = { en: { flag: "🇬🇧🇺🇸", name: "English" }, es: { flag: "🇪🇸", name: "Español" }, pt: { flag: "🇧🇷🇵🇹", name: "Português" }, de: { flag: "🇦🇹🇩🇪🇨🇭", name: "Deutsch" }, ru: { flag: "🇷🇺", name: "Русский" } };
 const I18N = { lang: "en", dict: null, cache: new Map(), miss: new Set(), seen: new Set(), audit: false, names: [], ready: false };
@@ -3067,6 +3067,8 @@ const PAL = {
 const SKY_BG = {"samerica": ["img/2510465d7d.webp", "img/e24cf5d037.webp"], "africa": ["img/e2bcc54b17.webp", "img/f4325f970b.webp"], "asia": ["img/61bc129f23.webp", "img/4d6930eba2.webp"], "namerica": ["img/668958077c.webp", "img/f7b3efb16a.webp"]};
 const HERO_BASE = {"blue": "img/e8b742aa03.webp", "rosie": "img/cf7539bf2e.webp"};
 const OUTFIT = [["Standard", 0], ["Shades", { w: 20 }], ["Explorer", 60], ["Winter", 90], ["Champion", 120], ["Pop Star", { f: 1 }], ["Rock King", { f: 2 }], ["Big Boss", { f: 3 }], ["Pirate", { f: 5 }], ["Astronaut", { f: 8 }]];   /* V413: Name, Sterne · V480: {w} = ab Welle, {f} = geworbene Freunde */
+const OUTFIT_ROSIE = { 5: "Queen", 6: "Diva", 7: "Princess", 8: "Movie Star", 9: "Fairy Queen" };   /* V481: Rosies eigene Freunde-Outfits */
+function outfitName(k, n) { return (k === "rosie" && OUTFIT_ROSIE[n]) || OUTFIT[n][0]; }
 function outfitNeed(o) { const r = o[1]; return typeof r === "number" ? { s: r } : r; }
 function sqFriends() { try { return +localStorage.getItem("capy-squad-n") || 0; } catch (e) { return 0; } }
 function outfitOn(o, stars) { const n = outfitNeed(o); if (n.s != null) return stars >= n.s; if (n.w != null) return getBest("pro") >= n.w; return sqFriends() >= n.f; }
@@ -7409,7 +7411,7 @@ function skinHtml() { let got = 0; const cards = SKIN_C.map(c => { const on = sk
 function outfitHtml() { const st = starsAll(), stars = Object.values(st).reduce((a, b) => a + (+b || 0), 0); let h = "";
   for (const k of ["blue", "rosie"]) { const sel = outfitSel(k);
     h += `<div class="albSec">${k.toUpperCase()}'S OUTFITS<span>${OUTFIT.filter(o => outfitOn(o, stars)).length} / ${OUTFIT.length}</span></div><div class="ofRow">` + OUTFIT.map((o, n) => { const on = outfitOn(o, stars);
-      return `<div class="mcCard ${on ? (n === sel ? "on" : "t3") : "off"}" data-of="${k}:${n}"><img src="${outfitImg(k, n)}" alt=""><i>${o[0]}</i><small>${on ? (n === sel ? "wearing" : "tap to wear") : outfitLabel(o)}</small></div>`; }).join("") + `</div>`; }
+      return `<div class="mcCard ${on ? (n === sel ? "on" : "t3") : "off"}" data-of="${k}:${n}"><img src="${outfitImg(k, n)}" alt=""><i>${outfitName(k, n)}</i><small>${on ? (n === sel ? "wearing" : "tap to wear") : outfitLabel(o)}</small></div>`; }).join("") + `</div>`; }
   { const fn = sqFriends(), nx = OUTFIT.map(outfitNeed).filter(n => n.f != null && n.f > fn).map(n => n.f).sort((a, b) => a - b)[0];   /* V480: Freunde-Zähler + nächstes Outfit */
     h += `<div class="albSec">SQUAD FRIENDS<span>${fn}</span></div><div class="sqNote">${nx ? `Friends who reach wave 5 with your link unlock outfits · next at ${nx}` : "All friend outfits unlocked!"}</div>`; setTimeout(sqRefresh, 0); }
   return h; }
