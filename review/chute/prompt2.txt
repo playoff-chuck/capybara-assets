@@ -1,0 +1,8 @@
+The reference image shows my game character Rosie: a cute cartoon capybara in a soft 3D CGI style (like a modern animated movie), round brown body, a CAMOUFLAGE MILITARY HELMET with a big pink bow on it, pink knitted scarf, camo vest with pink pouches and pink binoculars, happy closed-eyes smile.
+
+Make a sprite sheet of this EXACT character in the EXACT same 3D CGI style, lighting and colors (NOT flat 2D, no outlines). Front view, facing the viewer. She MUST wear her camouflage helmet with the pink bow in every frame, and her camo vest with the pink pouches.
+Scene: Rosie is parachuting. She hangs in a simple harness under a round, dome-shaped parachute canopy. The canopy has wide pink and cream stripes with a thin camouflage band at the rim, and cream risers/lines connect the canopy to her harness. Her short legs dangle, both hands hold the risers above her head, scarf flutters slightly. Keep her face clearly visible and cheerful.
+Animation: a gentle SWING cycle, 6 frames, arranged as 3 columns x 2 rows (left to right, top row first):
+1 canopy tilted left, body swung to the right; 2 canopy nearly level, body hanging straight; 3 canopy tilted right, body swung to the left; 4 canopy nearly level, body straight, legs kicked a bit; 5 canopy tilted left again (smaller tilt); 6 canopy level, body straight, one hand waving.
+The whole figure (canopy + lines + Rosie) must be fully visible in every cell, same size and scale, centered, with empty space around it. The parachute canopy should be about 1.3 times as wide as Rosie.
+The ENTIRE background of the whole image must be one flat solid pure green color #00FF00 (no white, no gradient, no sky, no clouds, no ground, no shadow, no text, no numbers, no grid lines).
