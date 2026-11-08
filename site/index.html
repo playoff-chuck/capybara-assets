@@ -466,6 +466,7 @@ button svg{width:20px;height:20px;fill:currentColor;display:block}
 }
 .sheetIn{max-width:568px;margin:0 auto;display:flex;flex-direction:column;gap:10px}
 .sheet{transition:opacity .18s}.sheet.peek{opacity:0}
+#sheet button.off{filter:grayscale(.7) brightness(.7);opacity:.6;cursor:default}#sheet button.off:active{transform:none}
 .peekTip{font-size:12px;color:var(--muted);margin:-4px 0 0;text-align:center;letter-spacing:.02em}
 .sheetHead{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
 .sheetHead h3{font-family:var(--f-display);font-weight:400;font-size:22px;margin:0;color:var(--sand);letter-spacing:.05em}
@@ -2776,7 +2777,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V442";
+const GAME_VER = "V443";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -6060,8 +6061,8 @@ function closeSheet() { window.__tapGuard = performance.now() + 450; if (S && S.
 /* V441: Reichweite durchs Menü sehen – Waffe/Upgrade gedrückt halten */
 try { (() => { const sh = $("sheet"); let held = false, tm = 0;
   const end = () => { sh.classList.remove("peek"); if (S) S.peek = null; };
-  sh.addEventListener("pointerdown", e => { const b = e.target.closest("button[data-buy],button[data-up],.wline"); if (!b || !S || !S.sel) return;
-    let type, lvl; if (b.dataset.buy) { type = b.dataset.buy; lvl = 1; }
+  sh.addEventListener("pointerdown", e => { const b = e.target.closest("button[data-buy],button[data-peek],button[data-up],.wline"); if (!b || !S || !S.sel) return;
+    let type, lvl; if (b.dataset.buy || b.dataset.peek) { type = b.dataset.buy || b.dataset.peek; lvl = 1; }
     else { const slot = b.closest(".slot"), i = b.dataset.up != null ? +b.dataset.up : [...sh.querySelectorAll(".slot")].indexOf(slot); const w = S.sel.w[i]; if (!w) return; type = w.type; lvl = b.dataset.up != null ? Math.min(maxLvl(), w.lvl + 1) : w.lvl; }
     S.peek = { type, lvl }; held = false; sh.classList.add("peek"); clearTimeout(tm); tm = setTimeout(() => { held = true; }, 320); }, { passive: true });
   ["pointerup", "pointercancel"].forEach(ev => sh.addEventListener(ev, () => { clearTimeout(tm); if (held) window.__peekSwallow = performance.now() + 500; held = false; end(); }));
@@ -6362,11 +6363,11 @@ function renderSheet() { $("sheetIn").classList.remove("pk");
       const st = wstat(w), max = w.lvl >= maxLvl(), c = upCost(w);
       h += `<div class="wline"><div><div class="wname" style="color:${WEAP[w.type].col}">${WEAP[w.type].name} · Level ${w.lvl}${w.lvl > MAXLVL ? " ★" : ""}</div>
         <div class="wstat">Damage ${st.dmg.toFixed(0)} · Range ${(st.range + heightBonus(t)).toFixed(1)}${heightBonus(t) >= 0.05 ? ` <span style="color:#f0b323" title="height bonus">▲+${heightBonus(t).toFixed(1)}</span>` : ""} · ${st.rate.toFixed(1)}/s</div></div>
-        <button data-up="${i}" ${max || S.gold < c ? "disabled" : ""}>${max ? "Max" : (w.lvl >= MAXLVL ? "Elite · " : "Upgrade · ") + c}</button></div>`;
+        <button data-up="${i}" ${max ? "disabled" : ""} class="${!max && S.gold < c ? "off" : ""}">${max ? "Max" : (w.lvl >= MAXLVL ? "Elite · " : "Upgrade · ") + c}</button></div>`;
     } else {
       h += `<div class="slotRow">` + Object.entries(WEAP).map(([k, b]) => unlocked(k)
-        ? `<button data-buy="${k}" data-slot="${i}" ${S.gold < b.cost ? "disabled" : ""}><span style="color:${b.col}">${b.name}</span><small>${b.cost} gold · ${b.tag}</small></button>`
-        : `<button disabled><span style="color:${b.col}">${b.name}</span><small>🔒 wave ${unlockedAt(k)}</small></button>`).join("") + `</div>`;
+        ? `<button data-buy="${k}" data-slot="${i}" class="${S.gold < b.cost ? "off" : ""}"><span style="color:${b.col}">${b.name}</span><small>${b.cost} gold · ${b.tag}</small></button>`
+        : `<button class="off" data-peek="${k}"><span style="color:${b.col}">${b.name}</span><small>🔒 wave ${unlockedAt(k)}</small></button>`).join("") + `</div>`;
     }
     h += `</div>`;
   }
@@ -6378,6 +6379,7 @@ function renderSheet() { $("sheetIn").classList.remove("pk");
 }
 $("sheet").addEventListener("click", e => {
   const b = e.target.closest("button"); if (!b) return;
+  if (b.classList.contains("off")) { snd("nope"); return; }   /* V443: gesperrt / zu wenig Gold – nur Vorschau */
   if (b.dataset.shop) {
     const k = b.dataset.shop;
     if (k === "tower") { closeSheet(); toggleBuild(); }
