@@ -2787,7 +2787,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V487";
+const GAME_VER = "V488";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -6728,7 +6728,7 @@ const TUT_STEPS = [
   { t: "BUILD A TOWER", s: "Tap SHOP, then PLACE.", at: "bBuild", done: () => S.mode === "build" || S.towers.size >= 1 },
   { t: "PICK A BLOCK", s: "Tap one of your landed blocks.", at: "board", done: () => S.towers.size >= 1 },
   { t: "ARM IT", s: "Buy the MG. Then tap Done.", at: "sheet", done: () => [...S.towers.values()].some(t => t.w.length) && !S.sel },
-  { t: "HOLD THE RING", s: "Monsters run the lane. Full laps cost lives. Clear rows for gold. Good luck, squad!", at: "board", done: () => false },   /* V367: endet mit «Got it» · V483: Spiel läuft dabei weiter */
+  { t: "HOLD THE RING", s: "Monsters run the lane. Full laps cost lives. Clear rows for gold. Good luck, squad!", at: "board", done: () => TUT.t >= 10 },   /* V367: «Got it» · V483: Spiel läuft dabei weiter · V488: nach 10 s von selbst zu (Martin 09.11.) */
 ];
 function tutStart() { TUT.on = true; TUT.step = 0; TUT.t = 0; $("coach").hidden = false; tutShow(); }
 function tutEnd(skipped) { TUT.on = false; S.coachHold = false; $("coachSkip").textContent = "Skip tutorial"; $("coach").hidden = true; coachHi(null); LS.set("tarnturm-tut", "1"); if (!skipped) { toast("TUTORIAL DONE · good luck, squad", "HQ", 1800); SFX.say("Nice!"); } }
