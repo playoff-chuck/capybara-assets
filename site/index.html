@@ -2785,7 +2785,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V465";
+const GAME_VER = "V466";
 /* ===== V456: Sprachschicht ===== */
 const LANGS = { en: { flag: "🇬🇧🇺🇸", name: "English" }, es: { flag: "🇪🇸", name: "Español" }, pt: { flag: "🇧🇷🇵🇹", name: "Português" }, de: { flag: "🇦🇹🇩🇪🇨🇭", name: "Deutsch" }, ru: { flag: "🇷🇺", name: "Русский" } };
 const I18N = { lang: "en", dict: null, cache: new Map(), miss: new Set(), seen: new Set(), audit: false, names: [], ready: false };
@@ -3061,7 +3061,8 @@ const HERO_BASE = {"blue": "img/e8b742aa03.webp", "rosie": "img/cf7539bf2e.webp"
 const OUTFIT = [["Standard", 0], ["Shades", 30], ["Explorer", 60], ["Winter", 90], ["Champion", 120]];   /* V413: Name, Sterne */
 function outfitImg(k, n) { return `img/outfit_${k}_${n || 0}.webp`; }   /* V429: alle aus einem Ausschnitt */
 function outfitSel(k) { try { const n = +localStorage.getItem("capy-outfit-" + k) || 0; return n >= 0 && n <= 4 ? n : 0; } catch (e) { return 0; } }
-const HERO_IMG = { get blue() { return outfitImg("blue", outfitSel("blue")); }, get rosie() { return outfitImg("rosie", outfitSel("rosie")); } };
+function heroDisco() { try { const s = window.__TT && window.__TT.S; return !!(s && s.nuts); } catch (e) { return false; } }   /* V466: Nuts = 80er-Disco-Outfit */
+const HERO_IMG = { get blue() { return heroDisco() ? "img/outfit_blue_disco.webp" : outfitImg("blue", outfitSel("blue")); }, get rosie() { return heroDisco() ? "img/outfit_rosie_disco.webp" : outfitImg("rosie", outfitSel("rosie")); } }; window.__heroImg = HERO_IMG; window.__heroDisco = heroDisco;
 const CONTS = [["samerica", "SOUTH AMERICA", ["RIVER BANK", "MANGROVE", "JUNGLE", "WATERFALL", "RUINS", "JUNGLE TEMPLE"]],
   ["africa", "AFRICA", ["OASIS CAMP", "SAVANNA", "BAOBAB GROVE", "DUNE SEA", "ROCK CANYON", "THE PYRAMID"]],
   ["asia", "ASIA", ["TAIGA", "FROZEN LAKE", "STEPPE", "TUNDRA", "ICE PORT", "ICE PALACE"]],
