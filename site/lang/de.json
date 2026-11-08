@@ -1336,7 +1336,7 @@
 "TOWERS SOLD · +# GOLD": "TÜRME VERKAUFT · +# GOLD",
 "TOWERS SQUEEZED · +#": "TÜRME ZUSAMMENGEPRESST · +#",
 "TRAIN": "TRAINIEREN",
-"TRAIN WITH OLLIE": "MIT OLLIE TRAINIEREN",
+"TRAIN WITH OLLIE": "OLLIE-COACHING",
 "TRAIN ×#": "TRAINIEREN ×#",
 "TRAIN ▶": "TRAINIEREN ▶",
 "TRAINING": "TRAINING",
@@ -1843,5 +1843,13 @@
 "DAILY DROP · +# gold · @ in your Pocket": "TAGESABWURF · +# Gold · @ in deiner Tasche",
 "XP count right away, gold lands in your next run. Play on 7 days in a row for the Ten-ton. Miss one day a week – the shield keeps your chain.": "XP zählen sofort, das Gold landet in deiner nächsten Runde. Spiel 7 Tage am Stück für den Zehntonner. Einen Tag pro Woche darfst du auslassen – der Schild hält deine Kette.",
 "tap": "tippen",
-"+# gold · tap": "+# Gold · tippen"
+"+# gold · tap": "+# Gold · tippen",
+"CONTINUE": "WEITER",
+"# PTS": "# PKT",
+"FIRST TRY COUNTS": "ERSTER VERSUCH ZÄHLT",
+"+# % MAIN SCORE PER LEVEL": "+# % HAUPTSCORE JE LEVEL",
+"REPLAY": "NOCHMAL",
+"NUTS BOARD & MEDALS ONLY": "NUR NUTS-TABELLE & MEDAILLEN",
+"Paused": "Pause",
+"wave # in # s · build towers": "Welle # in # s · Türme bauen"
 }

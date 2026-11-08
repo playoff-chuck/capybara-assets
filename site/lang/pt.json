@@ -1843,5 +1843,13 @@
 "DAILY DROP · +# gold · @ in your Pocket": "ENTREGA DIÁRIA · +# ouro · @ no seu bolso",
 "XP count right away, gold lands in your next run. Play on 7 days in a row for the Ten-ton. Miss one day a week – the shield keeps your chain.": "Os XP contam na hora; o ouro chega na sua próxima partida. Jogue 7 dias seguidos para a Dez Toneladas. Perdeu um dia na semana? O escudo mantém sua sequência.",
 "tap": "toque",
-"+# gold · tap": "+# ouro · toque"
+"+# gold · tap": "+# ouro · toque",
+"CONTINUE": "CONTINUAR",
+"# PTS": "# PTS",
+"FIRST TRY COUNTS": "A PRIMEIRA TENTATIVA CONTA",
+"+# % MAIN SCORE PER LEVEL": "+# % NA PONTUAÇÃO PRINCIPAL POR NÍVEL",
+"REPLAY": "REPETIR",
+"NUTS BOARD & MEDALS ONLY": "SÓ TABELA NUTS E MEDALHAS",
+"Paused": "Pausado",
+"wave # in # s · build towers": "onda # em # s · construa torres"
 }

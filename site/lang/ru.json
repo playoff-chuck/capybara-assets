@@ -1842,5 +1842,13 @@
 "DAILY DROP · +# gold · @ in your Pocket": "ДНЕВНОЙ СБРОС · +# золота · @ в кармане",
 "XP count right away, gold lands in your next run. Play on 7 days in a row for the Ten-ton. Miss one day a week – the shield keeps your chain.": "XP начисляются сразу, золото придёт в следующем забеге. Играй 7 дней подряд ради Десятитонки. Один пропуск в неделю прощается — щит сохранит цепочку.",
 "tap": "нажми",
-"+# gold · tap": "+# золота · нажми"
+"+# gold · tap": "+# золота · нажми",
+"CONTINUE": "ДАЛЬШЕ",
+"# PTS": "# ОЧК.",
+"FIRST TRY COUNTS": "ПЕРВАЯ ПОПЫТКА В ЗАЧЁТ",
+"+# % MAIN SCORE PER LEVEL": "+# % К ОСНОВНОМУ СЧЁТУ ЗА УРОВЕНЬ",
+"REPLAY": "ПОВТОР",
+"NUTS BOARD & MEDALS ONLY": "ТОЛЬКО ТАБЛИЦА NUTS И МЕДАЛИ",
+"Paused": "Пауза",
+"wave # in # s · build towers": "волна # через # с · строй башни"
 }
