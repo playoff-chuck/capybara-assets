@@ -1080,7 +1080,7 @@ body.introBig #ovIntro{background:rgba(14,19,11,.28)!important}
 .gearTR{position:fixed!important;top:calc(env(safe-area-inset-top,0px) + 10px);right:max(12px,env(safe-area-inset-right,0px));z-index:40;width:40px!important;min-height:40px!important;height:40px;padding:0!important}
 .gearTR svg{width:22px;height:22px}
 .gearTR{background:var(--hero)!important;color:#fff!important;border:3px solid var(--ink,#3a1d10)!important;border-radius:50%!important;box-shadow:0 3px 0 var(--ink,#3a1d10)!important}
-#ovSettings{z-index:65;overflow-y:auto!important;justify-content:flex-start!important;padding-top:calc(env(safe-area-inset-top,0px) + 56px)!important;padding-bottom:24px!important}#ovSettings .joinBox{width:min(380px,100%)!important;max-height:none!important;overflow:visible!important;flex:0 0 auto}#ovSettings .hpAv{width:84px!important;height:98px!important}#ovHs{z-index:65}#ovHs .hsBox{max-height:min(64vh,540px);overflow-y:auto}#ovHs .hs{width:100%}#ovHs .hsBox{position:relative}#ovHs .hsBox .albX{top:8px;right:8px;width:40px!important;height:40px!important;min-height:0!important;padding:0!important;line-height:1!important;font-size:20px!important}#ovHs .hs{max-width:none!important}
+#ovSettings{z-index:65;overflow:hidden!important;justify-content:center!important;padding:calc(env(safe-area-inset-top,0px) + 10px) 10px calc(env(safe-area-inset-bottom,0px) + 10px)!important}#ovSettings .joinBox{width:min(400px,100%)!important;max-height:none!important;overflow:visible!important;flex:0 0 auto;transform-origin:50% 50%;gap:9px!important;padding:14px 16px 16px!important}#ovSettings .hpAv{width:96px!important;height:112px!important}#ovSettings .setRow button{min-height:48px}#ovHs{z-index:65}#ovHs .hsBox{max-height:min(64vh,540px);overflow-y:auto}#ovHs .hs{width:100%}#ovHs .hsBox{position:relative}#ovHs .hsBox .albX{top:8px;right:8px;width:40px!important;height:40px!important;min-height:0!important;padding:0!important;line-height:1!important;font-size:20px!important}#ovHs .hs{max-width:none!important}
 #joinWave{display:none}
 
 /* V151 – Comic-Stil für alle Zwischenmeldungen (Funk, Toast, Lob-Stempel, Kiste, Buchhalter, Neuheiten-Karte) */
@@ -1414,7 +1414,7 @@ body.introFull #ovIntro .inArt{display:none}
 #btnAlbum,#btnSquad{display:none!important}
 #awBar{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 10px);transform:translateX(-50%);width:min(420px,calc(100vw - 24px));z-index:120;display:none;gap:5px}
 body.awOn #awBar{display:flex}
-#awBar button{flex:1;min-width:0;padding:9px 2px 7px;border-radius:12px;border:3px solid #3a2a1a;background:#fff6e6;color:#3a2a1a;font:400 17px/1 Bangers,system-ui!important;letter-spacing:.5px;box-shadow:0 3px 0 #3a2a1a!important;background:#fff6e6!important;background-image:none!important;color:#3a2a1a!important;margin:0!important;min-height:0!important}
+#awBar button{flex:1;min-width:0;padding:9px 2px 7px;border-radius:12px;border:3px solid #3a2a1a;background:#fff6e6;color:#3a2a1a;font:400 clamp(12px,4.1vw,17px)/1 Bangers,system-ui!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.5px;box-shadow:0 3px 0 #3a2a1a!important;background:#fff6e6!important;background-image:none!important;color:#3a2a1a!important;margin:0!important;min-height:0!important}
 #awBar button.on{background:#3a2a1a!important;color:#fff6e6!important}
 #awBar.dance button{animation:awDance 1.5s ease-in-out 3}#awBar.dance button:nth-child(2){animation-delay:.5s}#awBar.dance button:nth-child(3){animation-delay:1s}
 @keyframes awDance{0%,100%{transform:translateY(0) rotate(0)}25%{transform:translateY(-7px) rotate(-2.5deg)}50%{transform:translateY(0) rotate(0)}75%{transform:translateY(-4px) rotate(2deg)}}
@@ -2785,13 +2785,13 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V459";
+const GAME_VER = "V460";
 /* ===== V456: Sprachschicht ===== */
 const LANGS = { en: { flag: "🇬🇧🇺🇸", name: "English" }, es: { flag: "🇪🇸", name: "Español" }, pt: { flag: "🇧🇷🇵🇹", name: "Português" }, de: { flag: "🇦🇹🇩🇪🇨🇭", name: "Deutsch" }, ru: { flag: "🇷🇺", name: "Русский" } };
 const I18N = { lang: "en", dict: null, cache: new Map(), miss: new Set(), seen: new Set(), audit: false, names: [], ready: false };
 (function () { try { const q = new URLSearchParams(location.search), l = q.get("lang"); if (l && LANGS[l]) { localStorage.setItem("capy-lang", l); } I18N.audit = q.get("i18n") === "audit"; } catch (e) {}
   try { const l = localStorage.getItem("capy-lang"); if (l && LANGS[l]) I18N.lang = l; } catch (e) {} })();
-const I18N_NUM = /\d[\d.,:/]*\d|\d/g, I18N_WS = /\s+/g;
+const I18N_NUM = /[-−]?\d[\d.,:/]*\d|[-−]?\d/g, I18N_WS = /\s+/g;
 function i18nNorm(t) { return String(t).replace(I18N_WS, " ").trim(); }
 function i18nLookup(key) {   /* exakt → Zahlen-Muster → Namens-Muster → Teile an « · » */
   const D = I18N.dict; if (!D) return null;
@@ -2804,7 +2804,7 @@ function T(t) {
   if (t == null) return t; const raw = String(t); const key = i18nNorm(raw); if (!key || !/[A-Za-zÀ-ÿ]{2}/.test(key)) return raw;
   if (I18N.audit) I18N.seen.add(key);
   if (!I18N.dict) return raw;
-  let v = I18N.cache.get(key); if (v === undefined) { v = i18nLookup(key); if (v == null) { I18N.miss.add(key); v = null; } I18N.cache.set(key, v); }
+  let v = I18N.cache.get(key); if (v === undefined) { v = i18nLookup(key); if (v == null) { if (!(I18N.rev && (I18N.rev.has(key) || I18N.rev.has(key.replace(I18N_NUM, "#"))))) I18N.miss.add(key); v = null; } I18N.cache.set(key, v); }   /* V460: Rückübersetztes nicht als fehlend zählen */
   if (v == null) return raw;
   const lead = raw.match(/^\s*/)[0], tail = raw.match(/\s*$/)[0]; return lead + v + tail; }
 const I18N_SKIP = new Set(["SCRIPT", "STYLE", "TEXTAREA", "INPUT", "CODE"]), I18N_ATTR = ["placeholder", "aria-label", "title"], i18nDone = new WeakMap();
@@ -2819,13 +2819,16 @@ function i18nApplyAll() { try { i18nEl(document.body); } catch (e) {} }
   P.fillText = function (t) { arguments[0] = T(t); return ft.apply(this, arguments); }; P.strokeText = function (t) { arguments[0] = T(t); return st.apply(this, arguments); }; P.measureText = function (t) { return mt.call(this, T(t)); }; } catch (e) {} })();
 function i18nLoad(lang, cb) {
   I18N.lang = lang; I18N.cache.clear(); I18N.miss.clear(); try { localStorage.setItem("capy-lang", lang); } catch (e) {} document.documentElement.lang = lang;
-  fetch(`lang/${lang}.json?v=${GAME_VER}`).then(r => r.ok ? r.json() : {}).catch(() => ({})).then(d => { I18N.dict = d || {}; I18N.names = Object.keys(I18N.dict).filter(k => /^[A-Z][A-Za-z' -]{2,24}$/.test(k) && !k.includes("#")).sort((a, b) => b.length - a.length); I18N.ready = true; i18nApplyAll();
+  fetch(`lang/${lang}.json?v=${GAME_VER}`).then(r => r.ok ? r.json() : {}).catch(() => ({})).then(d => { I18N.dict = d || {}; I18N.rev = new Set(Object.values(I18N.dict)); I18N.names = Object.keys(I18N.dict).filter(k => /^[A-Z][A-Za-z' -]{2,24}$/.test(k) && !k.includes("#")).sort((a, b) => b.length - a.length); I18N.ready = true; i18nApplyAll();
     if (lang !== "en") fetch(`lang/voice_${lang}.json?v=${GAME_VER}`).then(r => r.ok ? r.json() : null).catch(() => null).then(v => { if (!v) return; try { for (const k in (v.v || {})) VOICE[k] = v.v[k]; for (const k in (v.t || {})) VOICE_TEXT[k] = v.t[k]; } catch (e) {} });
     cb && cb(); }); }
 function i18nSetRow() { const box = document.getElementById("setLang"); if (!box) return; box.innerHTML = Object.entries(LANGS).map(([k, v]) => `<button type="button" data-lang="${k}" class="${k === I18N.lang ? "on" : ""}" title="${v.name}"><span>${v.flag}</span></button>`).join("");
   if (!box.__wired) { box.__wired = true; box.addEventListener("click", e => { const b = e.target.closest("[data-lang]"); if (!b) return; e.stopPropagation(); try { SFX.init(); snd("uiTap"); } catch (er) {} i18nLoad(b.dataset.lang, () => { i18nSetRow(); try { renderModes(); } catch (er) {} }); i18nSetRow(); }); }
   try { new MutationObserver(() => { const ov = document.getElementById("ovSettings"); if (ov && !ov.hidden) i18nSetRow(); }).observe(document.getElementById("ovSettings"), { attributes: true, attributeFilter: ["hidden"] }); } catch (e) {} }
 try { i18nSetRow(); } catch (e) {}   /* V457: Flaggen im Zahnrad-Menü */
+(function () { const ov = document.getElementById("ovSettings"), box = ov && ov.querySelector(".joinBox"); if (!box) return;   /* V460: Fenster so groß wie möglich, nie scrollen */
+  const fit = () => { box.style.transform = ""; const avail = innerHeight - 20, h = box.getBoundingClientRect().height; const r = box.getBoundingClientRect(), k = Math.min(1, (innerWidth - 20) / Math.max(1, r.width), Math.max(0.6, avail / Math.max(1, h))); box.style.transform = `scale(${k.toFixed(3)})`; };
+  new MutationObserver(() => { if (!ov.hidden) requestAnimationFrame(fit); }).observe(ov, { attributes: true, attributeFilter: ["hidden"] }); addEventListener("resize", () => { if (!ov.hidden) fit(); }); })();
 window.__i18n = { get lang() { return I18N.lang; }, miss: () => [...I18N.miss].sort(), seen: () => [...I18N.seen].sort(), set: l => i18nLoad(l), apply: i18nApplyAll, T };
 function i18nPicker(onDone) {   /* ganz am Anfang: nur Flagge wählen */
   const ov = document.createElement("div"); ov.id = "ovLang"; ov.innerHTML = `<div class="lgBox"><div class="lgTitle">CAPYBARA SQUAD</div><div class="lgSub">Choose your language · Elige idioma · Escolha o idioma · Sprache wählen · Выберите язык</div>${Object.entries(LANGS).map(([k, v]) => `<button data-lang="${k}"><span class="lgFlag">${v.flag}</span><span class="lgName">${v.name}</span></button>`).join("")}</div>`;
@@ -10480,7 +10483,7 @@ body:has(#ovStart:not([hidden])):has(.overlay.win:not([hidden])) #btnMap,body:ha
 #ovDaily .dlRow{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:10px;align-items:center;background:#fff;border:2px solid #e6d6bb;border-radius:12px;padding:8px 10px}
 #ovDaily .dlRow img{width:44px;height:44px;object-fit:contain}#ovDaily .dlRow b{display:block;font-size:15px;line-height:1.2}#ovDaily .dlRow span{display:block;font-size:12px;color:#7a5a3c}
 #ovDaily .dlBig{font-family:Bangers,system-ui;font-size:26px;text-align:center;color:#d94c8c}
-#ovDaily .dlRow button{min-height:36px;padding:4px 12px;font-size:14px;border-radius:999px}
+#ovDaily .dlRow button{min-height:36px;padding:4px 10px;font-size:13px;border-radius:999px;white-space:nowrap}#ovDaily .dlChain i small{font-size:8px}
 #ovDaily .dlGot{font-family:Bangers,system-ui;color:#5f8a2e;letter-spacing:.5px;font-style:normal}
 #ovDaily .dlChain{display:flex;gap:4px;justify-content:space-between}#ovDaily .dlChain i{flex:1;min-width:0;text-align:center;font-style:normal;border:2px solid #3a2414;border-radius:10px;background:#e9e2d2;padding:4px 0 3px;font:400 14px/1 Bangers,system-ui}
 #ovDaily .dlChain i small{display:block;font:700 8.5px/1.1 "Baloo 2",system-ui;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 2px}
@@ -11024,7 +11027,7 @@ body.awOn #ovHs[hidden],body.awOn #ovAlbum[hidden],body.awOn #ovSquad[hidden]{di
 #ovMap .mapFlip{top:auto;bottom:auto;transform:scaleY(-1)}
 #ovMap .mapFlip.fT{top:-100%;-webkit-mask-image:linear-gradient(to bottom,#000 0,#000 6%,transparent 20%);mask-image:linear-gradient(to bottom,#000 0,#000 6%,transparent 20%)}
 #ovMap .mapFlip.fB{top:100%;-webkit-mask-image:linear-gradient(to top,#000 0,#000 6%,transparent 20%);mask-image:linear-gradient(to top,#000 0,#000 6%,transparent 20%)}
-#ovMap{background:#7fb9b6!important}
+#ovMap{background:#0b1230 radial-gradient(ellipse 70% 40% at 50% 0%,rgba(90,110,190,.28),transparent 70%),radial-gradient(ellipse 60% 35% at 50% 100%,rgba(120,80,160,.22),transparent 70%),radial-gradient(1.2px 1.2px at 12% 18%,rgba(255,255,255,.9),transparent 60%),radial-gradient(1px 1px at 28% 9%,rgba(255,255,255,.7),transparent 60%),radial-gradient(1.4px 1.4px at 41% 23%,rgba(255,255,255,.85),transparent 60%),radial-gradient(1px 1px at 63% 14%,rgba(255,255,255,.6),transparent 60%),radial-gradient(1.3px 1.3px at 78% 20%,rgba(255,255,255,.8),transparent 60%),radial-gradient(1px 1px at 90% 7%,rgba(255,255,255,.7),transparent 60%),radial-gradient(1.2px 1.2px at 8% 84%,rgba(255,255,255,.8),transparent 60%),radial-gradient(1px 1px at 22% 93%,rgba(255,255,255,.6),transparent 60%),radial-gradient(1.4px 1.4px at 47% 88%,rgba(255,255,255,.85),transparent 60%),radial-gradient(1px 1px at 69% 95%,rgba(255,255,255,.7),transparent 60%),radial-gradient(1.2px 1.2px at 84% 86%,rgba(255,255,255,.8),transparent 60%),radial-gradient(1px 1px at 95% 78%,rgba(255,255,255,.6),transparent 60%)!important}
 #ovMap .mapFlip{display:none!important}
 #ovMap.mapSmall .mapImg{-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 7%,#000 97%,transparent 100%);mask-image:linear-gradient(to bottom,transparent 0,#000 7%,#000 97%,transparent 100%)}
 #ovMap.mapSmall .mapWrap.wR{-webkit-mask-image:linear-gradient(to right,transparent 0,#000 5%),linear-gradient(to bottom,transparent 0,#000 7%,#000 97%,transparent 100%);mask-image:linear-gradient(to right,transparent 0,#000 5%),linear-gradient(to bottom,transparent 0,#000 7%,#000 97%,transparent 100%);-webkit-mask-composite:source-in;mask-composite:intersect}
