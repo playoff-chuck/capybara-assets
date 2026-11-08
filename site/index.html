@@ -2787,7 +2787,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V476";
+const GAME_VER = "V477";
 /* ===== V456: Sprachschicht ===== */
 const LANGS = { en: { flag: "🇬🇧🇺🇸", name: "English" }, es: { flag: "🇪🇸", name: "Español" }, pt: { flag: "🇧🇷🇵🇹", name: "Português" }, de: { flag: "🇦🇹🇩🇪🇨🇭", name: "Deutsch" }, ru: { flag: "🇷🇺", name: "Русский" } };
 const I18N = { lang: "en", dict: null, cache: new Map(), miss: new Set(), seen: new Set(), audit: false, names: [], ready: false };
@@ -7438,11 +7438,11 @@ const DAILY_DROP_W = 10, DAILY_MSN_W = 20, DAILY_XP = 300;
 const DAILY_CHAIN = [[200, 100], [300, 150], [400, 200], [500, 250], [600, 300], [800, 400], [1000, 500]];   /* V474: [XP sofort, Gold im nächsten Lauf] je Tag; Tag 7 + Ten-ton */
 function dailyRew(day) { const c = DAILY_CHAIN[Math.max(0, Math.min(6, (day || dailyDay()) - 1))]; return { xp: c[0], gold: c[1], ton: (day || dailyDay()) === 7 }; }
 const DAILY_DROPS = [["snipe", "Sniper strike", "snipes", 13], ["lock", "Lockdown", "locks", 25], ["mix", "Concrete mixer", "mixers", 9], ["chomp", "Chomper", "chomps", 17], ["tesla", "Tesla storm", "teslas", 21], ["snipe", "Sniper strike", "snipes", 13], ["ton", "Ten-ton drop", "tons", 8]];
-const DAILY_MSN = [["k", "Splat {n} monsters", [25, 40, 60, 90]], ["l", "Clear {n} rows", [8, 12, 18, 25]], ["w", "Finish {n} waves", [4, 6, 10, 15]], ["t", "Build {n} towers", [4, 6, 9, 12]], ["c3", "Clear 3 rows at once {n} times", [1, 1, 2, 3]], ["sp", "Squish {n} monsters with blocks", [2, 3, 5, 8]]];   /* V456: Stufe nach Spielstand – Anfänger (bis W30) · W30+ · W60+ · W100+ */
+const DAILY_MSN = [["k", "Splat {n} monsters", [25, 40, 60, 90]], ["l", "Clear {n} rows", [8, 12, 18, 25]], ["w", "Finish {n} waves", [4, 6, 10, 15]], ["t", "Build {n} towers", [4, 6, 9, 12]], ["c3", "Clear 3 rows at once ×{n}", [1, 1, 2, 3]], ["sp", "Squish {n} monsters with blocks", [2, 3, 5, 8]]];   /* V456: Stufe nach Spielstand – Anfänger (bis W30) · W30+ · W60+ · W100+ */
 function dailyKey(d = new Date()) { return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
 function dailyWeek(d = new Date()) { const x = new Date(d); x.setHours(0, 0, 0, 0); x.setDate(x.getDate() - ((x.getDay() + 6) % 7)); return dailyKey(x); }
 function dailyLoad() { let D = null; try { D = JSON.parse(LS.get("capy-daily") || "null"); } catch (e) {} if (!D || typeof D !== "object") D = {}; D.streak = +D.streak || 0; D.sent = Array.isArray(D.sent) ? D.sent : []; return D; }
-let DAILY = dailyLoad();
+let DAILY = dailyLoad(); if (DAILY.m && DAILY.m.k === "c3" && DAILY.m.n) DAILY.m.txt = "Clear 3 rows at once ×" + DAILY.m.n;   /* V477: alter gespeicherter Text */
 function dailySave() { try { LS.set("capy-daily", JSON.stringify(DAILY)); } catch (e) {} }
 function dailyBestW() { try { return Math.max(msnBestW(), +LS.get("tarnturm-cp-" + MODE) || 0); } catch (e) { return 0; } }
 function dailyDay() { return DAILY.streak > 0 ? ((DAILY.streak - 1) % 7) + 1 : 1; }
