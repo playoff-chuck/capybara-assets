@@ -2786,7 +2786,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V469";
+const GAME_VER = "V470";
 /* ===== V456: Sprachschicht ===== */
 const LANGS = { en: { flag: "🇬🇧🇺🇸", name: "English" }, es: { flag: "🇪🇸", name: "Español" }, pt: { flag: "🇧🇷🇵🇹", name: "Português" }, de: { flag: "🇦🇹🇩🇪🇨🇭", name: "Deutsch" }, ru: { flag: "🇷🇺", name: "Русский" } };
 const I18N = { lang: "en", dict: null, cache: new Map(), miss: new Set(), seen: new Set(), audit: false, names: [], ready: false };
@@ -5697,7 +5697,9 @@ function wowBuzz(p) { try { window.__vib && window.__vib(p, true); } catch (e) {
 function wowCoins(n = 28) { const d = document.createElement("div"); d.className = "wowCoins"; d.setAttribute("aria-hidden", "true");
   d.innerHTML = Array.from({ length: n }, () => `<i style="left:${(Math.random() * 96).toFixed(1)}%;animation-delay:${(Math.random() * 0.7).toFixed(2)}s;animation-duration:${(1.3 + Math.random() * 0.9).toFixed(2)}s;--r:${Math.round(Math.random() * 720 - 360)}deg">$</i>`).join("");
   document.body.appendChild(d); [0, 180, 360, 600].forEach(t => setTimeout(() => snd("coin"), t)); setTimeout(() => d.remove(), 2800); }
-function wowBanner(t, sub) { const d = document.createElement("div"); d.className = "wowBan"; d.innerHTML = `<b>${t}</b>${sub ? `<small>${sub}</small>` : ""}`; document.body.appendChild(d); setTimeout(() => d.remove(), 2000); }
+function wowBanner(t, sub) { const d = document.createElement("div"); d.className = "wowBan"; d.innerHTML = `<b>${t}</b>${sub ? `<small>${sub}</small>` : ""}`; document.body.appendChild(d); wowBanFit(d); setTimeout(() => wowBanFit(d), 60); setTimeout(() => d.remove(), 2000); }
+/* V470 (t136): übersetzte Titel (PT «ESQUADRÃO CHEGANDO!») nie breiter als der Screen – Schrift schrumpft */
+function wowBanFit(d) { try { const b = d.querySelector("b"); if (!b) return; b.style.fontSize = ""; const max = window.innerWidth - 24, w = b.offsetWidth; if (w > max) b.style.fontSize = Math.floor(44 * max / w) + "px"; } catch (e) {} }
 function wowOk(maxW = 6) { return S.started && !S.over && !S.nuts && !S.testRun && !(TUT && TUT.on) && !frozen() && (S.wave || 0) >= 1 && S.wave <= maxW; }
 function wowTick(dt) {
   if (!S || !S.started || S.over) return;
@@ -10394,7 +10396,7 @@ header .brand .logoFull{height:54px!important;width:auto!important}
 @keyframes wowCoin{to{transform:translateY(calc(100vh + 80px)) rotate(var(--r,360deg))}}
 .wowBan{position:fixed;left:50%;top:30%;transform:translate(-50%,-50%);z-index:2147482100;pointer-events:none;text-align:center;animation:wowBan 2s ease-out forwards}
 .wowBan b{display:block;font:400 44px/1 var(--f-display,"Bangers",sans-serif);letter-spacing:.04em;color:#ffd84d;-webkit-text-stroke:2px #3a2414;text-shadow:0 4px 0 #3a2414,0 0 18px rgba(255,190,40,.7);white-space:nowrap}
-.wowBan small{display:inline-block;margin-top:8px;font:700 13px/1.2 system-ui,sans-serif;color:#fff7e8;background:#3a2414;border-radius:10px;padding:5px 10px}
+.wowBan small{display:inline-block;max-width:calc(100vw - 32px);margin-top:8px;font:700 13px/1.2 system-ui,sans-serif;color:#fff7e8;background:#3a2414;border-radius:10px;padding:5px 10px}
 @keyframes wowBan{0%{opacity:0;transform:translate(-50%,-50%) scale(.3)}12%{opacity:1;transform:translate(-50%,-50%) scale(1.12)}20%{transform:translate(-50%,-50%) scale(1)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-60%) scale(1)}}
 body.wowSlow #board{filter:saturate(1.35) contrast(1.06)}
 .wowPlane{position:fixed;inset:0;pointer-events:none;z-index:2147482000;overflow:hidden}
