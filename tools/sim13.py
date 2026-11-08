@@ -1,4 +1,4 @@
-"""sim13: sim12 mit LINEAREM Anstieg (V482): Anzahl 11→65, Grunt-HP 15,6→1320,8, Tempo 1,28→1,67, Anführer ab W6 jedes 6., ab W57 jedes 5. Basis sim12: sim10 + Anführer (V463) + HPF/WEEDLOSS per Umgebung. Capybara Squad – Simulation v10 (08.11.2026, Stand V457) – Spielertypen «Wie Martin» und «Etwas schlechter» (martin-).
+"""sim13: sim12 mit LINEAREM Anstieg (V482): Anzahl 11→65, Grunt-HP 15,6→1320,8, Tempo 1,28→1,67, Anführer ab W6 jedes 6., ab W57 jedes 5. + Blöcke linear 0,87→0,61 s/Zeile. Basis sim12: sim10 + Anführer (V463) + HPF/WEEDLOSS per Umgebung. Capybara Squad – Simulation v10 (08.11.2026, Stand V457) – Spielertypen «Wie Martin» und «Etwas schlechter» (martin-).
 Neu gegenüber sim9: Unkraut (V438) = Game over, wenn es nicht geschnitten wird (Wahrscheinlichkeit je Spielertyp); Mehr-Samen-Wellen W106/126/131 mit Gratis-Ten-ton (V446);
 Elite-Laserturm W6/56/106 (V444) senkt in seiner Welle den Monsterdruck (−30 % Leben-Verlust). Ansonsten wie sim9 (Stand V361).
 Aufruf: python3 sim10.py n hk_res.json out.jsonl seed [typ=martin|martin-]
@@ -63,6 +63,7 @@ def hpmul(w):
     return m * lead * (f if 21 <= w <= 150 else 1)
 
 def grav(G, w, lines):
+    return 0.87 + (0.61 - 0.87) * (max(1, min(150, w)) - 1) / 149   # V483: Blöcke linear
     g = S8.grav(G, w, lines)
     if w <= 4: g *= 1.1   # V456   # enthält die alten Teiler (W30/40/50/60)
     if 21 <= w <= 150: g *= 1.8
