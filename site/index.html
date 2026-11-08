@@ -465,7 +465,7 @@ button svg{width:20px;height:20px;fill:currentColor;display:block}
   box-shadow:0 -10px 30px rgba(0,0,0,.5);
 }
 .sheetIn{max-width:568px;margin:0 auto;display:flex;flex-direction:column;gap:10px}
-.sheet{transition:opacity .18s}.sheet.peek{opacity:0}
+.sheet{transition:opacity .18s}.sheet.peek{opacity:0}body.peeking #buddy{opacity:0!important;transition:opacity .15s}
 #sheet button.off{filter:grayscale(.7) brightness(.7);opacity:.6;cursor:default}#sheet button.off:active{transform:none}
 .peekTip{font-size:12px;color:var(--muted);margin:-4px 0 0;text-align:center;letter-spacing:.02em}
 .sheetHead{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
@@ -2777,7 +2777,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V443";
+const GAME_VER = "V444";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -4760,6 +4760,14 @@ function stepTowers(dt) {
       t.ang = Math.atan2(best.y - t.y, best.x - t.x); t._aim = 1;
       const off = (wi - (t.w.length - 1) / 2) * 0.22;
       const ox = t.x + Math.cos(t.ang + Math.PI / 2) * off, oy = t.y + Math.sin(t.ang + Math.PI / 2) * off;
+      if (t.eliteT > 0) {   /* V444: Elite-Turm schießt Laser – trifft alles auf der Linie bis zum Ziel */
+        const dx = best.x - ox, dy = best.y - oy, L = Math.hypot(dx, dy) || 1, ex = ox + dx / L * (L + 0.6), ey = oy + dy / L * (L + 0.6);
+        for (const m of S.monsters) { if (m.dead) continue; const px = m.x - ox, py = m.y - oy, u = Math.max(0, Math.min(1, (px * dx + py * dy) / (L * L))); if (Math.hypot(px - u * dx, py - u * dy) <= 0.45) hurt(m, st.dmg * (m === best ? 1 : 0.6)); }
+        if (w.type === "frost") for (const m of S.monsters) if (!m.dead && Math.hypot(m.x - best.x, m.y - best.y) <= st.splash) m.slowT = st.slow;
+        S.fx.push({ type: "laser", x1: ox, y1: oy, x2: ex, y2: ey, t: 0, life: 0.2 });
+        const now = performance.now(); if (!window.__lzT || now - window.__lzT > 85) { window.__lzT = now; try { if (!SFX.muted) { const v = Math.min(1, Math.max(0.2, 3 * (SFX.vol || 0.3))); tone(1500, 320, 0.17, 0.07 * v, 0, "sawtooth", 3200); tone(2400, 1100, 0.09, 0.04 * v, 0, "square", 5000); } } catch (e) {} }
+        return;
+      }
       if (w.type === "kan") {
         S.shots.push({ x: ox, y: oy, tx: best.x, ty: best.y, dmg: st.dmg, splash: st.splash, spd: 9 }); snd("kan");
       } else {
@@ -5641,9 +5649,10 @@ function wowTick(dt) {
       wowSet("ton"); WOW.tonT = performance.now(); S.wowTon = true; wowBanner("SQUAD INCOMING!", `${heroKey() === "rosie" ? "Blue" : "Rosie"} sends a free Ten-ton drop`);
       snd("horn"); setTimeout(() => { if (!S.over) { S.tons = (S.tons || 0) + 1; startTon(); } }, 1500); } }
   // 3) ELITE-Turm
-  if (!wowDone("elite") && S.wave >= 6 && WOW.wt > 10 && wowOk(9) && S.inWave && performance.now() - WOW.tonT > 8000) {   /* V389: fest W6, 10 s nach Start */
+  const eW = [6, 56, 106].find(w => S.wave >= w && S.wave <= w + 3 && !wowDone(w === 6 ? "elite" : "elite" + w));   /* V444: W6, W56, W106 */
+  if (eW && WOW.wt > 10 && wowOk(eW + 3) && S.inWave && performance.now() - WOW.tonT > 8000) {   /* V389: fest W6, 10 s nach Start */
     let tw = null; for (const t of S.towers.values()) if (t.w && t.w.length) { tw = t; break; }
-    if (tw) { wowSet("elite"); wowElite(tw); } }
+    if (tw) { wowSet(eW === 6 ? "elite" : "elite" + eW); wowElite(tw); } }
 }
 function wowElite(t) {
   const pt = (() => { try { return cvPt(t.x + 0.5, t.y + 0.5); } catch (e) { return { x: innerWidth / 2, y: innerHeight / 2 }; } })();
@@ -5965,6 +5974,9 @@ function draw() {
       ctx.fillStyle = "rgba(224,74,46,.28)"; ctx.fillRect(f.x * s, f.y * s, 2 * s, 2 * s); ctx.strokeStyle = "#e04a2e"; ctx.lineWidth = Math.max(1.5, s * 0.1); ctx.strokeRect(f.x * s + 1, f.y * s + 1, 2 * s - 2, 2 * s - 2);
       ctx.beginPath(); ctx.arc(cx, cy, R, 0, 7); ctx.stroke(); ctx.beginPath(); ctx.moveTo(cx - R * 1.3, cy); ctx.lineTo(cx - R * 0.5, cy); ctx.moveTo(cx + R * 0.5, cy); ctx.lineTo(cx + R * 1.3, cy); ctx.moveTo(cx, cy - R * 1.3); ctx.lineTo(cx, cy - R * 0.5); ctx.moveTo(cx, cy + R * 0.5); ctx.lineTo(cx, cy + R * 1.3); ctx.stroke(); }
     else if (f.type === "ebox") { ctx.globalAlpha = k * 0.8; ctx.fillStyle = "rgba(180,110,255,.35)"; ctx.fillRect(f.x * s, f.y * s, 4 * s, 4 * s); ctx.strokeStyle = "#e6c8ff"; ctx.lineWidth = Math.max(1.5, s * 0.1); ctx.strokeRect(f.x * s + 1, f.y * s + 1, 4 * s - 2, 4 * s - 2); }
+    else if (f.type === "laser") { const x1 = C(f.x1), y1 = C(f.y1), x2 = C(f.x2), y2 = C(f.y2); ctx.lineCap = "round"; ctx.globalAlpha = k * 0.35; ctx.strokeStyle = "#ff6fb5"; ctx.lineWidth = Math.max(6, s * 0.42); ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+      ctx.globalAlpha = k; ctx.strokeStyle = "#ff3fa0"; ctx.lineWidth = Math.max(3, s * 0.18); ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); ctx.strokeStyle = "#fff6fb"; ctx.lineWidth = Math.max(1.2, s * 0.07); ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+      ctx.fillStyle = "#fff6fb"; ctx.beginPath(); ctx.arc(x2, y2, Math.max(3, s * 0.2) * k, 0, 7); ctx.fill(); ctx.lineCap = "butt"; }
     else if (f.type === "tracer") { ctx.globalAlpha = k; ctx.strokeStyle = f.col; ctx.lineWidth = Math.max(1, s * 0.07); ctx.beginPath(); ctx.moveTo(C(f.x1), C(f.y1)); ctx.lineTo(C(f.x2), C(f.y2)); ctx.stroke(); }
     else if (f.type === "boom") { ctx.globalAlpha = k * 0.8; ctx.fillStyle = f.col; ctx.beginPath(); ctx.arc(C(f.x), C(f.y), f.r * s * (0.4 + 0.6 * (1 - k)), 0, 7); ctx.fill(); }
     else if (f.type === "splat") {
@@ -6060,11 +6072,11 @@ function openSheet(t) { S.shop = false; S.sel = t; renderSheet(); $("sheet").hid
 function closeSheet() { window.__tapGuard = performance.now() + 450; if (S && S.sel) S.sel.fresh = false; if (S) { S.sel = null; S.shop = false; } $("sheet").hidden = true; }
 /* V441: Reichweite durchs Menü sehen – Waffe/Upgrade gedrückt halten */
 try { (() => { const sh = $("sheet"); let held = false, tm = 0;
-  const end = () => { sh.classList.remove("peek"); if (S) S.peek = null; };
+  const end = () => { sh.classList.remove("peek"); document.body.classList.remove("peeking"); if (S) S.peek = null; };
   sh.addEventListener("pointerdown", e => { const b = e.target.closest("button[data-buy],button[data-peek],button[data-up],.wline"); if (!b || !S || !S.sel) return;
     let type, lvl; if (b.dataset.buy || b.dataset.peek) { type = b.dataset.buy || b.dataset.peek; lvl = 1; }
     else { const slot = b.closest(".slot"), i = b.dataset.up != null ? +b.dataset.up : [...sh.querySelectorAll(".slot")].indexOf(slot); const w = S.sel.w[i]; if (!w) return; type = w.type; lvl = b.dataset.up != null ? Math.min(maxLvl(), w.lvl + 1) : w.lvl; }
-    S.peek = { type, lvl }; held = false; sh.classList.add("peek"); clearTimeout(tm); tm = setTimeout(() => { held = true; }, 320); }, { passive: true });
+    S.peek = { type, lvl }; held = false; sh.classList.add("peek"); document.body.classList.add("peeking"); clearTimeout(tm); tm = setTimeout(() => { held = true; }, 320); }, { passive: true });
   ["pointerup", "pointercancel"].forEach(ev => sh.addEventListener(ev, () => { clearTimeout(tm); if (held) window.__peekSwallow = performance.now() + 500; held = false; end(); }));
   sh.addEventListener("click", e => { if (window.__peekSwallow && performance.now() < window.__peekSwallow && e.target.closest("button[data-buy],button[data-up]")) { window.__peekSwallow = 0; e.stopImmediatePropagation(); e.preventDefault(); } }, true);
   const _cs = closeSheet; closeSheet = function () { end(); return _cs.apply(this, arguments); };
@@ -6645,6 +6657,16 @@ function hint(key, title, sub, at) {
   else { const br = $("board").getBoundingClientRect(); a.style.display = "none"; card.style.bottom = ""; card.style.top = (br.top + br.height * 0.5 - 70) + "px"; }
   snd("radio"); clearTimeout(hintT); hintT = setTimeout(hintEnd, 5500);
 }
+/* V444: eindringliche Unkraut-Warnung von Blue – wie eine Tipp-Karte, Spiel steht bis «Got it» */
+function weedCard() {
+  if (hintKey) { setTimeout(weedCard, 800); return; } hintKey = "weed"; try { if (S && S.started && !S.over) S.coachHold = true; } catch (e) {}
+  const c = $("coach"); c.hidden = false; $("coachStep").textContent = "ALERT"; $("coachT").innerHTML = `<img src="${HERO_IMG.blue}" alt="" style="width:64px;height:64px;object-fit:contain;vertical-align:middle;margin:-10px 6px -6px -4px">WEED ALERT!`;
+  $("coachS").textContent = "Blue: It's almost at the ring! If the weed grows into the top row of the ring, it's GAME OVER. Cut it NOW – Tesla storm or Sniper strike.";
+  $("coachSkip").textContent = "Got it"; const a = $("coachArrow"), card = c.querySelector(".coachCard"); coachHi(null); a.style.display = "none";
+  const br = $("board").getBoundingClientRect(); card.style.bottom = ""; card.style.top = (br.top + br.height * 0.5 - 90) + "px";
+  try { snd("siren"); } catch (e) {} clearTimeout(hintT);   /* kein Auto-Ende */
+}
+window.__weedCard = weedCard;
 function hintEnd() { if (!hintKey) return; hintKey = null; try { if (S) S.coachHold = false; } catch (e) {} $("coach").hidden = true; coachHi(null); $("coachSkip").textContent = "Skip tutorial"; clearTimeout(hintT); }
 function showCamp(action, label) { tutAbort();
   if (S && S.started && !S.over) { S.paused = true; S.mode = null; S.aim = null; closeSheet(); }   // altes Spiel ruht, bis Deploy
@@ -9451,7 +9473,7 @@ try { (() => {
       else { if (w.root < GH - 1 && !S.grid[(w.root + 1) * GW + w.x]) w.root++;   /* fällt nach, wenn darunter frei wird */
         if (S.inWave) w.growT += dt; if (w.growT >= 6.8) { const ny = w.root - w.h; if (ny <= 0 && !S.over) { w.growT = 0; try { fxText(w.x, 1, "WEEDS TOOK THE RING", "#ff6fb5"); } catch (e) {} gameOver("Weeds reached the ring."); } else if (ny >= 1 && weedPush(w.x, ny, p)) { w.h++; w.growT = 0; } else w.growT = 6.8; }   /* V438: Spitze im Ring = Game over */
         { const left = w.root - w.h + 1;   /* freie Zeilen zwischen Spitze und Ring (Zeile 0) */
-          if (left <= 2 && !D.weedW2) { D.weedW2 = true; try { window.__rbSay && window.__rbSay("rb_weedlast", true); } catch (e) {} }
+          if (left <= 2 && !D.weedW2) { D.weedW2 = true; try { window.__rbSay && window.__rbSay("rb_weedlast", true); } catch (e) {} try { weedCard(); } catch (e) {} }   /* V444: Karte */
           else if (left <= 4 && !D.weedW1) { D.weedW1 = true; try { snd("siren"); announce("WEED ALERT", "If it reaches the ring, it's over · Tesla or Sniper", "ALERT", 3000); setTimeout(() => SFX.say("weed_warn"), 500); } catch (e) {} } } } }
     if (D.thief) { const T = D.thief; T.t += dt; if (window.__thiefPos) window.__thiefPos(T);
       if (!T.stolen && !T.flee && T.t >= 10) { T.stolen = Math.floor(S.gold / 2); S.gold -= T.stolen; snd("sell"); setTimeout(() => snd("sell"), 140); try { SFX.say("thief_laugh", 1.0, 1.0, 0, 0); } catch (e) {} toast(`THIEF GRABBED ${T.stolen} GOLD!`, "ALERT", 1800); setTimeout(() => { if (D.thief === T && !T.flee) toast(S.wolves > 0 ? "QUICK! Use your WOLF CALL – he'll drop the gold!" : "Raccoons hate wolves! Get a WOLF CALL in the shop.", "HQ", 2800); }, 2100); const g = $("sGold"); if (g) { g.classList.remove("thiefHit"); void g.offsetWidth; g.classList.add("thiefHit"); } }
