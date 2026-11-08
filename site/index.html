@@ -2284,6 +2284,7 @@ body:has(.bar:not(.off)) #genAv.isGen{transform:scaleX(-1)!important;animation:g
 #signNext{background:linear-gradient(#5fbf4a,#2f8a2a)!important;color:#fff!important}
 .signBtns button:active{transform:translateY(3px);box-shadow:0 1px 0 #3a1d10}
 body.inNuts #sky{filter:brightness(.28) saturate(.6) sepia(.45) hue-rotate(-22deg) contrast(1.15)!important}
+body.inNuts.nzImg #sky{filter:brightness(.72) saturate(1.05) contrast(1.08)!important}   /* V473: echtes Höhlenbild bleibt sichtbar */
 body.inNuts::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:3;background:radial-gradient(ellipse 14% 30% at 4% 20%,rgba(20,8,6,.95),transparent 70%),radial-gradient(ellipse 12% 26% at 2% 62%,rgba(20,8,6,.95),transparent 70%),radial-gradient(ellipse 14% 30% at 96% 28%,rgba(20,8,6,.95),transparent 70%),radial-gradient(ellipse 12% 26% at 98% 70%,rgba(20,8,6,.95),transparent 70%),radial-gradient(ellipse 9% 16% at 18% -2%,rgba(26,10,8,.98),transparent 70%),radial-gradient(ellipse 7% 20% at 36% -4%,rgba(26,10,8,.98),transparent 70%),radial-gradient(ellipse 10% 18% at 58% -3%,rgba(26,10,8,.98),transparent 70%),radial-gradient(ellipse 8% 22% at 80% -5%,rgba(26,10,8,.98),transparent 70%),linear-gradient(180deg,rgba(18,6,4,.75),rgba(18,6,4,0) 18%,rgba(18,6,4,0) 82%,rgba(18,6,4,.7))}
 body.inNuts::after{background:radial-gradient(ellipse at center,rgba(0,0,0,0) 48%,rgba(120,8,8,.5) 100%)!important}
 body.inNuts::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:4;background:radial-gradient(ellipse at center,rgba(0,0,0,0) 55%,rgba(160,10,10,.42) 100%)}
@@ -2786,7 +2787,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V472";
+const GAME_VER = "V473";
 /* ===== V456: Sprachschicht ===== */
 const LANGS = { en: { flag: "🇬🇧🇺🇸", name: "English" }, es: { flag: "🇪🇸", name: "Español" }, pt: { flag: "🇧🇷🇵🇹", name: "Português" }, de: { flag: "🇦🇹🇩🇪🇨🇭", name: "Deutsch" }, ru: { flag: "🇷🇺", name: "Русский" } };
 const I18N = { lang: "en", dict: null, cache: new Map(), miss: new Set(), seen: new Set(), audit: false, names: [], ready: false };
@@ -3083,16 +3084,19 @@ const DAY = [
   { t: "22:00", n: "NIGHT",     th: "moon", field: "rgba(24,32,22,.88)",    f: "brightness(.5)",                                  night: 1,    tint: "linear-gradient(180deg,rgba(8,14,40,.40),rgba(8,14,40,.20))" },
 ];
 const NUTS_D = { t: "", n: "NUTS", th: "moon", field: "rgba(34,12,10,.58)", f: "sepia(.2) saturate(1.35) brightness(.92) hue-rotate(-10deg)", night: .12, tint: "linear-gradient(180deg,rgba(210,40,30,.34),rgba(90,12,10,.22))" };
+const NUTS_BG = ["bg/nuts_samerica.webp", null, null, null];   /* V473: echtes Höhlenbild je Nuts-Territorium (null = alter Look) */
+const NUTS_DI = Object.assign({}, NUTS_D, { f: "saturate(1.1) brightness(.96)", night: .06, tint: "linear-gradient(180deg,rgba(150,30,40,.12),rgba(30,8,12,.2))" });   /* V473: Tint zurückgenommen, wenn ein Bild da ist */
 function wherePos(w) { w = Math.max(1, w | 0); const c = Math.min(CONTS.length - 1, Math.floor((w - 1) / 30)), r = (w - 1) % 30, p = Math.floor(r / 5), d = r % 5; return { c, p, d, cont: CONTS[c], place: CONTS[c][2][p] }; }
 let skyKey = "";
 const PLACE_BG = Object.fromEntries(["samerica", "africa", "asia", "namerica", "antarctica"].map(k => [k, [0, 1, 2, 3, 4, 5].map(i => `bg/pl_${k}_${i}.webp`)]));   // V246: alle 5 Kontinente   // V178z14: eigene Hintergründe je Ort
 function syncSky() {
   const sky = document.getElementById("sky"); if (!sky) return;
   const live = typeof S !== "undefined" && S && S.started && !S.over;
-  const P = wherePos(live ? S.wave || 1 : 1), D = live ? (S.nuts ? NUTS_D : DAY[P.d]) : DAY[1];
-  const key = P.cont[0] + "|" + P.p + "|" + (live ? (S.nuts ? "nuts" : P.d) : "menu");
-  if (key === skyKey) return; skyKey = key;
-  const im = SKY_BG[P.cont[0]], pl = (PLACE_BG[P.c === 4 ? "antarctica" : P.cont[0]] || [])[P.p];
+  const nb = live && S.nuts ? NUTS_BG[S.nuts.c | 0] : null;   /* V473 */
+  const P = wherePos(live ? S.wave || 1 : 1), D = live ? (S.nuts ? (nb ? NUTS_DI : NUTS_D) : DAY[P.d]) : DAY[1];
+  const key = P.cont[0] + "|" + P.p + "|" + (live ? (S.nuts ? "nuts" + (nb ? "i" : "") : P.d) : "menu");
+  if (key === skyKey) return; skyKey = key; document.body.classList.toggle("nzImg", !!nb);   /* V473 */
+  const im = SKY_BG[P.cont[0]], pl = nb || (PLACE_BG[P.c === 4 ? "antarctica" : P.cont[0]] || [])[P.p];
   sky.querySelector(".day").style.backgroundImage = pl ? `url(${pl}), url(${im[0]})` : `url(${im[0]})`;
   sky.querySelector(".night").style.backgroundImage = `url(${im[1]})`;
   sky.style.setProperty("--skyF", live ? D.f : "brightness(.75) saturate(.9)");
