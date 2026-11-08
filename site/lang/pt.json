@@ -1833,5 +1833,15 @@
 "# waves": "# ondas",
 "WORLD TILT #°": "INCLINAÇÃO DO MUNDO #°",
 "BLIZZARD · #°": "NEVASCA · #°",
-"# popped +#": "# estourados +#"
+"# popped +#": "# estourados +#",
+"+# XP · +# gold": "+# XP · +# ouro",
+"+# XP · +# gold · Ten-ton": "+# XP · +# ouro · 10 Ton",
+"+# gold": "+# ouro",
+"XP now · gold at the start of your next run": "XP agora · ouro no início da sua próxima partida",
+"Day-7 bonus · plus a Ten-ton drop": "Bônus do dia 7 · mais uma Dez Toneladas",
+"DAILY DROP · +# gold": "ENTREGA DIÁRIA · +# ouro",
+"DAILY DROP · +# gold · @ in your Pocket": "ENTREGA DIÁRIA · +# ouro · @ no seu bolso",
+"XP count right away, gold lands in your next run. Play on 7 days in a row for the Ten-ton. Miss one day a week – the shield keeps your chain.": "Os XP contam na hora; o ouro chega na sua próxima partida. Jogue 7 dias seguidos para a Dez Toneladas. Perdeu um dia na semana? O escudo mantém sua sequência.",
+"tap": "toque",
+"+# gold · tap": "+# ouro · toque"
 }
