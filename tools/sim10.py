@@ -1,4 +1,4 @@
-"""Capybara Squad – Simulation v10 (08.11.2026, Stand V450) – Spielertypen «Wie Martin» und «Etwas schlechter» (martin-).
+"""Capybara Squad – Simulation v10 (08.11.2026, Stand V457) – Spielertypen «Wie Martin» und «Etwas schlechter» (martin-).
 Neu gegenüber sim9: Unkraut (V438) = Game over, wenn es nicht geschnitten wird (Wahrscheinlichkeit je Spielertyp); Mehr-Samen-Wellen W106/126/131 mit Gratis-Ten-ton (V446);
 Elite-Laserturm W6/56/106 (V444) senkt in seiner Welle den Monsterdruck (−30 % Leben-Verlust). Ansonsten wie sim9 (Stand V361).
 Aufruf: python3 sim10.py n hk_res.json out.jsonl seed [typ=martin|martin-]
@@ -29,8 +29,8 @@ HK_LOW = 175
 THIEF = {100, 110, 119, 130, 140, 149}
 BLK = {w for w in range(65, 151) if (w - 65) % 18 == 0}
 MAG = {80, 92, 105, 117}
-WEED = {86, 130}            # einzelne Unkräuter
-WEED_N = {106: 3, 126: 4, 131: 5}   # V426/V446: mehrere Samen am Ortsanfang, davor Gratis-Ten-ton
+WEED = {81}            # einzelne Unkräuter (V426)
+WEED_N = {106: 3, 126: 4, 136: 5}   # V426/V446: mehrere Samen am Ortsanfang, davor Gratis-Ten-ton
 ELITE = {6, 56, 106}
 SPEC = {15, 55, 69, 81, 95, 23, 57, 71, 83, 97, 37, 59, 73, 85, 41, 45, 61, 75, 89, 99, 35, 51, 67, 79, 93, 47, 65, 77, 87}
 SPEC = SPEC | {w + 100 for w in SPEC if w + 100 <= 150}
@@ -43,10 +43,11 @@ PTYPE = "martin"
 def hpmul(w):
     m = 1.25 if w >= 50 else 1.15 if w >= 20 else 1
     m *= 0.75 if 91 <= w <= 110 else 0.85 if 111 <= w <= 120 else 0.90 if 121 <= w <= 150 else 1
-    return m * (0.4 if 21 <= w <= 150 else 1)
+    return m * ((0.7 if w <= 30 else 0.6 if w <= 60 else 0.55 if w <= 90 else 0.7 if w <= 120 else 0.4) if 21 <= w <= 150 else 1)   # V456/V457
 
 def grav(G, w, lines):
-    g = S8.grav(G, w, lines)   # enthält die alten Teiler (W30/40/50/60)
+    g = S8.grav(G, w, lines)
+    if w <= 4: g *= 1.1   # V456   # enthält die alten Teiler (W30/40/50/60)
     if 21 <= w <= 150: g *= 1.8
     g /= (0.9 if w >= 30 else 1) * (0.93 if w >= 50 else 1) * (0.92 if 91 <= w <= 120 else 1)
     return g
@@ -72,11 +73,11 @@ def run(G, HK, rnd, log):
             v = tower_value(G, towers); gold += v; cash["refund"] += v; towers = []
         if w == unl.get("ton", 99): tons += 1; cash["gifts"] += 1
         tier = (w - 1) // 3
-        N = max(1, round(min(G["capBase"] + G.get("capPer", 4) * tier, G["waveBase"] + G["wavePer"] * w) * (0.55 if 21 <= w <= 150 else 1)))
+        N = max(1, round(min(G["capBase"] + G.get("capPer", 4) * tier, G["waveBase"] + G["wavePer"] * w) * (0.55 if 21 <= w <= 150 else 1)) + (1 if w >= 10 else 0))
         tp = S8.taper(w)
         g0 = gold; gold = S8.buy(G, Sk, w, gold, towers, unl); cash["spent"] += g0 - gold
 
-        leaks, inc = S8.fight(G, Sk, w, N, spawned, towers, medals, e, cardm, hpmul(w), 0.65 if 21 <= w <= 150 else 1.0); spawned += N
+        leaks, inc = S8.fight(G, Sk, w, N, spawned, towers, medals, e, cardm, hpmul(w), ((0.85 if w <= 30 else 0.8 if w <= 60 else 0.65) if 21 <= w <= 150 else 1.0)); spawned += N
         inc *= G["goldMul"] * tp; gold += inc; cash["kills"] += inc
         if w in ELITE and leaks: leaks = int(leaks * 0.7)   # V444: Elite-Laser 60 s
         lives -= leaks; medals = max(0, medals - leaks)
@@ -93,7 +94,8 @@ def run(G, HK, rnd, log):
         if c not in eggs and w % 30 == 10 and rnd.random() < A["eggFind"]: eggs.add(c); gold += 1000; cash["egg"] += 1000
         if w in WEED or w in WEED_N:   # V438: Unkraut nicht geschnitten -> Game over
             if w in WEED_N: tons += 1
-            if rnd.random() >= (A["weedCutN"] if w in WEED_N else A["weedCut"]): return dict(w=w, why="weed", cash=cash, goldAt=goldAt, lives=lives)
+            if rnd.random() >= (A["weedCutN"] if w in WEED_N else A["weedCut"]): lives -= 3; cash["weedhit"] = cash.get("weedhit", 0) + 1
+            if lives <= 0: return dict(w=w, why="weed", cash=cash, goldAt=goldAt, lives=lives)
         if w in THIEF:
             stolen = gold // 2
             if rnd.random() >= A["thiefStop"]: gold -= stolen; cash["thief"] -= stolen; log["thief"].append(stolen)
