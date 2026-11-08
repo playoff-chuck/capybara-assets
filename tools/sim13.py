@@ -51,7 +51,7 @@ def leadf(w, hp=True):   # Anführer: jedes 6. (W6–56) / 5. (ab W57) Monster, 
     if w < 6: return 1
     k = 6 if w <= 56 else 5
     return 1 + (0.6 if hp else 0.25) / k
-def hpmul_lin(G, w): return lin("hp", w) / basehp(G, w) * leadf(w, True)
+def hpmul_lin(G, w): return lin("hp", w) / basehp(G, w) * leadf(w, True) * (0.75 if ((w - 1) % 30 < 3 and w > 30) else 1)   # V485 Anlaufpolster
 def spmul_lin(G, w): return lin("sp", w) / min(G["spMax"], G["spBase"] + G["spGrow"] * w) * leadf(w, False)
 def hpmul(w):
     m = 1.25 if w >= 50 else 1.15 if w >= 20 else 1

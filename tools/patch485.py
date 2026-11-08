@@ -3,6 +3,7 @@
 Stufen ×1,15/×1,25, Kontinent-Rabatte, Tempo-Bremsen) sind im Hauptspiel ersetzt durch Geraden vom Startwert W1 zum Endwert W150:
   Anzahl 11 → 65 · Leben (Grunt) 15,6 → 1 320,8 · Tempo (Grunt) 1,28 → 1,67 · Anführer ab W6 jedes 6., ab W57 jedes 5. Monster (bis W150)
   · Blöcke: Fallzeit je Zeile 0,87 s → 0,61 s (1,15 → 1,64 Zeilen/s), alle Stufen/Knicke raus (Martin 23:25 «Blöcke auch linear»).
+Anlaufpolster (Martin 23:46 «Ankaufpolster OK»): in den ersten 3 Wellen jedes neuen Kontinents (W31–33, 61–63, 91–93, 121–123) Monster-Leben −25 % (leeres Feld, Türme verkauft; Simulation: W93 war der Hauptkiller).
 Nuts-Abstecher unverändert (eigene Formeln). Nutzung: python3 tools/patch485.py src dst"""
 import sys, re
 src, dst = sys.argv[1], sys.argv[2]
@@ -16,7 +17,7 @@ rep(m.group(0), f'const GAME_VER = "V{v + 1}";\n'
     'function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }')
 # Leben
 rep('''  const hp = ordv("monHpMul") * (w >= 50 ? 1.25 : w >= 20 ? 1.15 : 1) * (S.nuts ? 1 : w >= 91 && w <= 100 ? 0.75 : w >= 101 && w <= 110 ? 0.75 : w >= 111 && w <= 120 ? 0.85 : w >= 121 && w <= 150 ? 0.90 : 1) * (!S.nuts && w >= 21 && w <= 150 ? (w <= 30 ? 0.7 : w <= 60 ? 0.6 : w <= 90 ? 0.55 : w <= 120 ? 0.7 : 0.4) : 1) * baseHp * ({''',
-    '''  const hp = ordv("monHpMul") * (S.nuts ? (w >= 50 ? 1.25 : w >= 20 ? 1.15 : 1) * baseHp : lin("hp", w)) * ({''')
+    '''  const hp = ordv("monHpMul") * (S.nuts ? (w >= 50 ? 1.25 : w >= 20 ? 1.15 : 1) * baseHp : lin("hp", w) * ((w - 1) % 30 < 3 && w > 30 ? 0.75 : 1)) * ({''')
 # Tempo
 rep('''  const sp = ordv("monSpdMul") * (!S.nuts && w >= 21 && w <= 150 ? (w <= 30 ? 0.85 : w <= 60 ? 0.8 : 0.65) : 1) * Math.min(G.spMax, G.spBase + G.spGrow * w) * ({''',
     '''  const sp = ordv("monSpdMul") * (S.nuts ? Math.min(G.spMax, G.spBase + G.spGrow * w) : lin("sp", w)) * ({''')
