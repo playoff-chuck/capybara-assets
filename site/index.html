@@ -1444,7 +1444,7 @@ body:has(#ovAlbum:not([hidden])):has(#albBody):has(#albX) #btnOffline,body:has(#
 .albBox{width:min(420px,100%);max-height:100%;overflow:auto;background:#fff6e6;border:3px solid #3a2a1a;border-radius:18px;box-shadow:0 10px 30px rgba(0,0,0,.45);padding:12px 12px 14px;color:#3a2a1a;position:relative}
 .albBox h2{font-family:Bangers,system-ui;letter-spacing:1px;font-size:30px;margin:0 0 2px;text-align:center;color:var(--hero,#4fa3ff);-webkit-text-stroke:1px #3a2a1a}
 .albSum{text-align:center;font-weight:800;font-size:13px;margin-bottom:8px}
-.albSec{margin:10px 0 4px;font-family:Bangers,system-ui;font-size:18px;letter-spacing:.5px;display:flex;justify-content:space-between}
+.albSec{margin:10px 0 4px;font-family:Bangers,system-ui;font-size:18px;letter-spacing:.5px;display:flex;justify-content:space-between}.sqNote{font-size:12px;opacity:.8;margin:0 0 6px}
 .albSec span{font-family:system-ui;font-size:12px;font-weight:800;opacity:.7}
 .albGrid{display:grid;grid-template-columns:repeat(6,1fr);gap:5px}
 .albGrid.c5{grid-template-columns:repeat(5,1fr)}
@@ -2787,7 +2787,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V479";
+const GAME_VER = "V480";
 /* ===== V456: Sprachschicht ===== */
 const LANGS = { en: { flag: "🇬🇧🇺🇸", name: "English" }, es: { flag: "🇪🇸", name: "Español" }, pt: { flag: "🇧🇷🇵🇹", name: "Português" }, de: { flag: "🇦🇹🇩🇪🇨🇭", name: "Deutsch" }, ru: { flag: "🇷🇺", name: "Русский" } };
 const I18N = { lang: "en", dict: null, cache: new Map(), miss: new Set(), seen: new Set(), audit: false, names: [], ready: false };
@@ -3066,9 +3066,13 @@ const PAL = {
 /* V142 – Orte + Tageszeit: jeder Ort = 5 Wellen, Morgen → Mittag → honigfarbener Nachmittag → Abend → Nacht */
 const SKY_BG = {"samerica": ["img/2510465d7d.webp", "img/e24cf5d037.webp"], "africa": ["img/e2bcc54b17.webp", "img/f4325f970b.webp"], "asia": ["img/61bc129f23.webp", "img/4d6930eba2.webp"], "namerica": ["img/668958077c.webp", "img/f7b3efb16a.webp"]};
 const HERO_BASE = {"blue": "img/e8b742aa03.webp", "rosie": "img/cf7539bf2e.webp"};
-const OUTFIT = [["Standard", 0], ["Shades", 30], ["Explorer", 60], ["Winter", 90], ["Champion", 120]];   /* V413: Name, Sterne */
+const OUTFIT = [["Standard", 0], ["Shades", { w: 20 }], ["Explorer", 60], ["Winter", 90], ["Champion", 120], ["Pop Star", { f: 1 }], ["Rock King", { f: 2 }], ["Big Boss", { f: 3 }], ["Pirate", { f: 5 }], ["Astronaut", { f: 8 }]];   /* V413: Name, Sterne · V480: {w} = ab Welle, {f} = geworbene Freunde */
+function outfitNeed(o) { const r = o[1]; return typeof r === "number" ? { s: r } : r; }
+function sqFriends() { try { return +localStorage.getItem("capy-squad-n") || 0; } catch (e) { return 0; } }
+function outfitOn(o, stars) { const n = outfitNeed(o); if (n.s != null) return stars >= n.s; if (n.w != null) return getBest("pro") >= n.w; return sqFriends() >= n.f; }
+function outfitLabel(o) { const n = outfitNeed(o); if (n.s != null) return n.s + " ★"; if (n.w != null) return "wave " + n.w; return n.f === 1 ? "1 friend" : n.f + " friends"; }
 function outfitImg(k, n) { return `img/outfit_${k}_${n || 0}.webp`; }   /* V429: alle aus einem Ausschnitt */
-function outfitSel(k) { try { const n = +localStorage.getItem("capy-outfit-" + k) || 0; return n >= 0 && n <= 4 ? n : 0; } catch (e) { return 0; } }
+function outfitSel(k) { try { const n = +localStorage.getItem("capy-outfit-" + k) || 0; return n >= 0 && n < OUTFIT.length ? n : 0; } catch (e) { return 0; } }
 function heroDisco() { try { const s = window.__TT && window.__TT.S; return !!(s && s.nuts); } catch (e) { return false; } }   /* V466: Nuts = 80er-Disco-Outfit */
 const HERO_IMG = { get blue() { return heroDisco() ? "img/outfit_blue_disco.webp" : outfitImg("blue", outfitSel("blue")); }, get rosie() { return heroDisco() ? "img/outfit_rosie_disco.webp" : outfitImg("rosie", outfitSel("rosie")); } }; window.__heroImg = HERO_IMG; window.__heroDisco = heroDisco;
 const CONTS = [["samerica", "SOUTH AMERICA", ["RIVER BANK", "MANGROVE", "JUNGLE", "WATERFALL", "RUINS", "JUNGLE TEMPLE"]],
@@ -7404,8 +7408,10 @@ function skinHtml() { let got = 0; const cards = SKIN_C.map(c => { const on = sk
 /* V413: Outfits – Auswahl im Squad File */
 function outfitHtml() { const st = starsAll(), stars = Object.values(st).reduce((a, b) => a + (+b || 0), 0); let h = "";
   for (const k of ["blue", "rosie"]) { const sel = outfitSel(k);
-    h += `<div class="albSec">${k.toUpperCase()}'S OUTFITS<span>${OUTFIT.filter(o => stars >= o[1]).length} / 5</span></div><div class="ofRow">` + OUTFIT.map((o, n) => { const on = stars >= o[1];
-      return `<div class="mcCard ${on ? (n === sel ? "on" : "t3") : "off"}" data-of="${k}:${n}"><img src="${outfitImg(k, n)}" alt=""><i>${o[0]}</i><small>${on ? (n === sel ? "wearing" : "tap to wear") : o[1] + " ★"}</small></div>`; }).join("") + `</div>`; }
+    h += `<div class="albSec">${k.toUpperCase()}'S OUTFITS<span>${OUTFIT.filter(o => outfitOn(o, stars)).length} / ${OUTFIT.length}</span></div><div class="ofRow">` + OUTFIT.map((o, n) => { const on = outfitOn(o, stars);
+      return `<div class="mcCard ${on ? (n === sel ? "on" : "t3") : "off"}" data-of="${k}:${n}"><img src="${outfitImg(k, n)}" alt=""><i>${o[0]}</i><small>${on ? (n === sel ? "wearing" : "tap to wear") : outfitLabel(o)}</small></div>`; }).join("") + `</div>`; }
+  { const fn = sqFriends(), nx = OUTFIT.map(outfitNeed).filter(n => n.f != null && n.f > fn).map(n => n.f).sort((a, b) => a - b)[0];   /* V480: Freunde-Zähler + nächstes Outfit */
+    h += `<div class="albSec">SQUAD FRIENDS<span>${fn}</span></div><div class="sqNote">${nx ? `Friends who reach wave 5 with your link unlock outfits · next at ${nx}` : "All friend outfits unlocked!"}</div>`; setTimeout(sqRefresh, 0); }
   return h; }
 document.addEventListener("click", e => { const c = e.target.closest && e.target.closest("[data-of]"); if (!c || c.classList.contains("off")) return; const [k, n] = c.dataset.of.split(":");
   try { localStorage.setItem("capy-outfit-" + k, n); } catch (er) {} try { snd("uiTap"); } catch (er) {} try { const img = document.querySelector("#startMain .heroImg"); } catch (er) {} openSquad(); });
@@ -8191,7 +8197,10 @@ function sqPost(path, body) { return fetch(API_BASE + path, { method: "POST", he
 async function sqMyCode() { const c = LS.get("capy-squad-code"); if (c && SQ_RE.test(c)) return c;
   try { const r = await sqPost("/squad"); if (!r.ok) return null; const d = await r.json(); if (d && SQ_RE.test(d.code || "")) { LS.set("capy-squad-code", d.code); return d.code; } } catch (e) {} return null; }
 function sqNote(t) { const el = $("setInvN"); if (el) el.textContent = t; }
-let sqBusy = false, sqCntT = -1e9;
+let sqBusy = false, sqCntT = -1e9, sqRefT = -1e9;
+function sqStoreN(n) { try { const old = +localStorage.getItem("capy-squad-n") || 0; if (n !== old) { localStorage.setItem("capy-squad-n", n); const o = $("ovSquad"); if (o && !o.hidden) openSquad(); } } catch (e) {} }   /* V480 */
+async function sqRefresh() { const c = LS.get("capy-squad-code"); if (!c || !SQ_RE.test(c) || performance.now() - sqRefT < 20000) return; sqRefT = performance.now();
+  try { const r = await fetch(API_BASE + "/squad?code=" + c, { cache: "no-store" }); if (!r.ok) return; const d = await r.json(); sqStoreN(d && d.n | 0); } catch (e) {} }   /* V480: Freunde-Zähler fürs Squad File */
 async function sqInviteFrom(btn) {   /* V438: Einladung von der Siegkarte – Rückmeldung im Knopf */
   const t0 = btn.textContent; const note = t => { btn.textContent = t; setTimeout(() => { btn.textContent = t0; }, 3500); };
   if (sqBusy) return; sqBusy = true;
@@ -8206,14 +8215,15 @@ async function sqInvite() { if (sqBusy) return; sqBusy = true; sqNote("…");
     try { await navigator.clipboard.writeText(text + " " + url); sqNote("Link copied! Send it to your friends."); } catch (e) { sqNote(`Your link: ${url.replace("https://", "")}`); }
   } finally { sqBusy = false; } }
 async function sqCount() { const c = LS.get("capy-squad-code"); if (!c || !SQ_RE.test(c) || performance.now() - sqCntT < 30000) return; sqCntT = performance.now();
-  try { const r = await fetch(API_BASE + "/squad?code=" + c, { cache: "no-store" }); if (!r.ok) return; const d = await r.json(); const n = d && d.n | 0; if (!sqBusy) sqNote(n > 0 ? `SQUAD +${n} · ${n === 1 ? "friend" : "friends"} joined with your link` : "Friends get a free Ten-ton drop"); } catch (e) {} }
+  try { const r = await fetch(API_BASE + "/squad?code=" + c, { cache: "no-store" }); if (!r.ok) return; const d = await r.json(); const n = d && d.n | 0; sqStoreN(n); if (!sqBusy) sqNote(n > 0 ? `SQUAD +${n} · ${n === 1 ? "friend" : "friends"} joined with your link` : "Friends get a free Ten-ton drop"); } catch (e) {} }
 document.addEventListener("click", e => { if (e.target.closest("#setInvite")) { try { SFX.init(); snd("uiTap"); } catch (er) {} sqInvite(); return; }
   setTimeout(() => { const o = $("ovSettings"); if (o && !o.hidden) sqCount(); }, 80); });
 (() => { try { const q = new URLSearchParams(location.search), c = (q.get("squad") || "").toUpperCase();
   if (!c) return; q.delete("squad"); try { history.replaceState(null, "", location.pathname + (q.toString() ? "?" + q : "") + location.hash); } catch (e) {}
   if (!SQ_RE.test(c) || LS.get("capy-squad-from") || c === LS.get("capy-squad-code")) return;
-  LS.set("capy-squad-from", c);
-  sqPost("/squad/join", { code: c }).then(r => { if (r.ok) LS.set("capy-squad-gift", "1"); }).catch(() => {}); } catch (e) {} })();
+  LS.set("capy-squad-from", c); LS.set("capy-squad-gift", "1"); LS.set("capy-squad-pend", c); } catch (e) {} })();   /* V480: zählen erst ab Welle 5 (s. u.) */
+setInterval(() => { try { const c = LS.get("capy-squad-pend"); if (!c || !SQ_RE.test(c) || !S || !S.started || S.over || S.nuts || S.replay || S.testRun || (S.wave || 0) < 5) return;
+  LS.del("capy-squad-pend"); sqPost("/squad/join", { code: c }).catch(() => {}); } catch (e) {} }, 4000);   /* V480: der Freund zählt, sobald er Welle 5 erreicht */
 setInterval(() => { try { if (LS.get("capy-squad-gift") !== "1" || !S || !S.started || S.over || S.nuts || S.replay || S.testRun || (S.wave || 0) < 2 || !window.__dropAd) return;
   LS.del("capy-squad-gift"); S.tons = (S.tons || 0) + 1; window.__dropAd("friend"); } catch (e) {} }, 2000);
 document.addEventListener("click", e => { if (!e.target.closest("#btnShare")) return; try { SFX.init(); snd("uiTap"); } catch (er) {} shareResult({ kind: "over" }); });

@@ -27,6 +27,9 @@ SAVE_KEEP = 5
 SAVE_RETENTION_DAYS = 730
 SAVES_PER_MIN = 20
 SAVE_READS_PER_MIN = 10
+SQUAD_ABC = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"
+SQUAD_RE = re.compile(r"[ABCDEFGHJKMNPQRSTUVWXYZ23456789]{6}")
+SQUAD_MAX_N = 100000
 CODE_RE = re.compile(r"[0-9A-HJKMNP-TV-Z]{10}")
 SAVE_KEY_RE = re.compile(r"(tarnturm|capy)-[a-z0-9_-]{1,40}")
 EVENT_RETENTION_DAYS = 90
@@ -60,6 +63,10 @@ CREATE INDEX IF NOT EXISTS events_kind ON events(kind, t);
 CREATE TABLE IF NOT EXISTS saves(
   id INTEGER PRIMARY KEY, k TEXT NOT NULL, t INTEGER NOT NULL, ver TEXT, wave INTEGER, size INTEGER, data TEXT NOT NULL);
 CREATE INDEX IF NOT EXISTS saves_k ON saves(k, t DESC);
+CREATE TABLE IF NOT EXISTS squads(
+  code TEXT PRIMARY KEY, t INTEGER NOT NULL, n INTEGER NOT NULL DEFAULT 0, last INTEGER);
+CREATE TABLE IF NOT EXISTS squad_joins(h TEXT PRIMARY KEY, t INTEGER NOT NULL);
+CREATE TABLE IF NOT EXISTS kv(k TEXT PRIMARY KEY, v TEXT NOT NULL);
 """
 
 class _DB:
@@ -303,6 +310,13 @@ class H(BaseHTTPRequestHandler):
                 return self.send_json(200, self.summary(qs))
             if p == "/events/summary":
                 return self.send_json(200, self.event_summary(qs))
+            if p == "/squad":
+                c0 = squad_code(qs.get("code", [""])[0])
+                with db() as c:
+                    r = c.execute("SELECT n FROM squads WHERE code=?", (c0,)).fetchone()
+                if not r:
+                    return self.send_json(404, {"error": "unknown code"})
+                return self.send_json(200, {"ok": True, "n": r["n"]})
             if p == "/save":
                 if not rate_ok(self.client_ip(), "r", SAVE_READS_PER_MIN):
                     return self.send_json(429, {"error": "too many requests"})
@@ -433,6 +447,38 @@ class H(BaseHTTPRequestHandler):
                 return self.post_run(d)
             if p == "/nuts":
                 return self.post_nuts(d)
+            if p == "/squad":
+                with db() as c:
+                    for _ in range(8):
+                        code = "".join(secrets.choice(SQUAD_ABC) for _ in range(6))
+                        if not c.execute("SELECT 1 FROM squads WHERE code=?", (code,)).fetchone():
+                            c.execute("INSERT INTO squads(code,t,n) VALUES(?,?,0)", (code, now_ms()))
+                            return self.send_json(200, {"ok": True, "code": code})
+                return self.send_json(500, {"error": "server error"})
+            if p == "/squad/join":
+                code = squad_code(d.get("code"))
+                ip = self.client_ip()
+                with db() as c:
+                    row = c.execute("SELECT n, last FROM squads WHERE code=?", (code,)).fetchone()
+                    if not row:
+                        return self.send_json(404, {"error": "unknown code"})
+                    now = now_ms()
+                    sr = c.execute("SELECT v FROM kv WHERE k='squad_salt'").fetchone()
+                    if sr:
+                        salt = sr["v"]
+                    else:
+                        salt = secrets.token_hex(32)
+                        c.execute("INSERT OR IGNORE INTO kv(k, v) VALUES('squad_salt', ?)", (salt,))
+                    h = hashlib.sha256((salt + code + ip).encode()).hexdigest()
+                    j = c.execute("SELECT t FROM squad_joins WHERE h=?", (h,)).fetchone()
+                    if j and now - j["t"] < 86400000:
+                        return self.send_json(200, {"ok": True, "counted": False})
+                    if row["last"] and now - row["last"] < 60000:
+                        return self.send_json(200, {"ok": True, "counted": False})
+                    c.execute("INSERT OR REPLACE INTO squad_joins(h, t) VALUES(?, ?)", (h, now))
+                    c.execute("DELETE FROM squad_joins WHERE t < ?", (now - 3 * 86400000,))
+                    c.execute("UPDATE squads SET n=MIN(n+1,?), last=? WHERE code=?", (SQUAD_MAX_N, now, code))
+                return self.send_json(200, {"ok": True, "counted": True})
             return self.send_json(404, {"error": "not found"})
         except OverflowError:
             return self.send_json(413, {"error": "body too large"})
@@ -521,6 +567,14 @@ class H(BaseHTTPRequestHandler):
             lst = top_nuts(c, cont, 50)
         return self.send_json(200, {"ok": True, "continent": cont, "improved": improved, "rank": rank, "t": t, "list": lst})
 
+
+def squad_code(v):
+    if not isinstance(v, str):
+        raise Bad("bad code")
+    c = v.strip().upper()
+    if not SQUAD_RE.fullmatch(c):
+        raise Bad("bad code")
+    return c
 
 def purge_old_entries():
     cutoff = int(time.time() * 1000) - 730 * 86400 * 1000   # 24 Monate ohne neues Ergebnis
