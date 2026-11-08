@@ -2787,7 +2787,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V477";
+const GAME_VER = "V478";
 /* ===== V456: Sprachschicht ===== */
 const LANGS = { en: { flag: "🇬🇧🇺🇸", name: "English" }, es: { flag: "🇪🇸", name: "Español" }, pt: { flag: "🇧🇷🇵🇹", name: "Português" }, de: { flag: "🇦🇹🇩🇪🇨🇭", name: "Deutsch" }, ru: { flag: "🇷🇺", name: "Русский" } };
 const I18N = { lang: "en", dict: null, cache: new Map(), miss: new Set(), seen: new Set(), audit: false, names: [], ready: false };
@@ -3084,7 +3084,7 @@ const DAY = [
   { t: "22:00", n: "NIGHT",     th: "moon", field: "rgba(24,32,22,.88)",    f: "brightness(.5)",                                  night: 1,    tint: "linear-gradient(180deg,rgba(8,14,40,.40),rgba(8,14,40,.20))" },
 ];
 const NUTS_D = { t: "", n: "NUTS", th: "moon", field: "rgba(34,12,10,.58)", f: "sepia(.2) saturate(1.35) brightness(.92) hue-rotate(-10deg)", night: .12, tint: "linear-gradient(180deg,rgba(210,40,30,.34),rgba(90,12,10,.22))" };
-const NUTS_BG = ["bg/nuts_samerica.webp", null, null, null];   /* V473: echtes Höhlenbild je Nuts-Territorium (null = alter Look) */
+const NUTS_BG = ["bg/nuts_samerica.webp", "bg/nuts_africa.webp", "bg/nuts_asia.webp", "bg/nuts_namerica.webp"];   /* V473/V478: echtes Höhlenbild je Nuts-Territorium (null = alter Look) */
 const NUTS_DI = Object.assign({}, NUTS_D, { f: "saturate(1.1) brightness(.96)", night: .06, tint: "linear-gradient(180deg,rgba(150,30,40,.12),rgba(30,8,12,.2))" });   /* V473: Tint zurückgenommen, wenn ein Bild da ist */
 function wherePos(w) { w = Math.max(1, w | 0); const c = Math.min(CONTS.length - 1, Math.floor((w - 1) / 30)), r = (w - 1) % 30, p = Math.floor(r / 5), d = r % 5; return { c, p, d, cont: CONTS[c], place: CONTS[c][2][p] }; }
 let skyKey = "";
