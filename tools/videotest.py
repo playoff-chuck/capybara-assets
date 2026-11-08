@@ -55,7 +55,7 @@ def main():
             br = p.chromium.launch(executable_path="/usr/bin/google-chrome", args=["--no-sandbox", "--autoplay-policy=no-user-gesture-required", "--mute-audio"])
             ctx = br.new_context(viewport={"width": int(os.environ.get("VW", 412)), "height": int(os.environ.get("VH", 915))}, device_scale_factor=1)
             ctx.route("**/api/**", lambda r: r.fulfill(status=200, content_type="application/json", body="{}"))
-            ctx.add_init_script("""try{localStorage.setItem('capy-reset','276');localStorage.setItem('tarnturm-tut','1');localStorage.setItem('tarnturm-terms','1');}catch(e){}""")
+            ctx.add_init_script("""try{localStorage.setItem('capy-reset','276');localStorage.setItem('tarnturm-tut','1');localStorage.setItem('tarnturm-terms','1');if(!localStorage.getItem('capy-lang'))localStorage.setItem('capy-lang','en');}catch(e){}""")
             pg = ctx.new_page()
             pg.on("console", lambda m: cons.append(m.text[:160]) if m.type == "error" else None)
             pg.on("pageerror", lambda e: cons.append("PAGEERROR " + str(e)[:200]))
