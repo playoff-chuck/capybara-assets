@@ -2338,7 +2338,7 @@ body.inNuts #btnPRestart{display:none!important}
   <symbol id="i-mute" viewBox="0 0 24 24"><path d="M3 9h4l5-4v14l-5-4H3zM15 9.4l1.4-1.4 2.1 2.1 2.1-2.1 1.4 1.4-2.1 2.1 2.1 2.1-1.4 1.4-2.1-2.1-2.1 2.1-1.4-1.4 2.1-2.1z"/></symbol>
 </svg>
 
-<div id="splash" class="loading" role="button" aria-label="Tap to start"><img alt="Capybara Squad: Rosie and Blue defend a tower of camo blocks against funny monsters" src="img/b6f38631c6.webp"><div class="spT">CAPYBARA<span>SQUAD</span></div><div class="spGo">TAP TO START</div><div class="spDots" aria-hidden="true"><i></i><i></i><i></i></div></div>
+<div id="splash" class="loading" role="button" aria-label="Tap to start"><img alt="Capybara Squad: Rosie and Blue defend a tower of camo blocks against funny monsters" src="img/b6f38631c6.webp"><div class="spT" translate="no">CAPYBARA<span>SQUAD</span></div><div class="spGo">TAP TO START</div><div class="spDots" aria-hidden="true"><i></i><i></i><i></i></div></div>
 <script>(function(){try{var c=CanvasRenderingContext2D.prototype,d=c.drawImage;c.drawImage=function(im){if(im&&im.tagName==="IMG"&&(!im.complete||!im.naturalWidth))return;return d.apply(this,arguments);};}catch(e){}
 setTimeout(function(){try{var sp=document.getElementById("splash");if(!sp||!document.body.contains(sp)||sp.querySelector(".verTag"))return;
 var st=window.__TT?"tt":"none";try{fetch("/api/events",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ver:"boot",sess:"boot"+Date.now()%1e6,dev:0,plat:navigator.userAgent.slice(0,120),br:"",sw:screen.width|0,sh:screen.height|0,ev:[{k:"error",msg:"boot-stall "+st+" rs="+document.readyState,src:"splash"}]}),keepalive:true});}catch(e){}
@@ -2352,7 +2352,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
   <header>
     <div class="brand">
       <img class="logo" id="logoHero" alt="">
-      <div class="brandTxt"><h1>CAPYBARA<span>SQUAD</span></h1><div class="tags"><span class="modeTag" id="modeTag">PRO</span><span class="modeTag" id="lvTag">LV 1</span></div></div>
+      <div class="brandTxt"><h1 translate="no">CAPYBARA<span>SQUAD</span></h1><div class="tags"><span class="modeTag" id="modeTag">PRO</span><span class="modeTag" id="lvTag">LV 1</span></div></div>
     </div>
     <div class="djBox"><div class="dj" id="dj" title="DJ Major Ledger">
       <img class="djsvg djLedger" id="djImg" alt="DJ Major Ledger">
@@ -2786,7 +2786,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V468";
+const GAME_VER = "V469";
 /* ===== V456: Sprachschicht ===== */
 const LANGS = { en: { flag: "🇬🇧🇺🇸", name: "English" }, es: { flag: "🇪🇸", name: "Español" }, pt: { flag: "🇧🇷🇵🇹", name: "Português" }, de: { flag: "🇦🇹🇩🇪🇨🇭", name: "Deutsch" }, ru: { flag: "🇷🇺", name: "Русский" } };
 const I18N = { lang: "en", dict: null, cache: new Map(), miss: new Set(), seen: new Set(), audit: false, names: [], ready: false };
@@ -2810,7 +2810,7 @@ function T(t) {
   if (v == null) return raw;
   const lead = raw.match(/^\s*/)[0], tail = raw.match(/\s*$/)[0]; return lead + v + tail; }
 const I18N_SKIP = new Set(["SCRIPT", "STYLE", "TEXTAREA", "INPUT", "CODE"]), I18N_ATTR = ["placeholder", "aria-label", "title"], i18nDone = new WeakMap();
-function i18nText(n) { const d = n.data; if (!d || !d.trim()) return; const p = n.parentNode; if (!p || I18N_SKIP.has(p.nodeName)) return; const m = i18nDone.get(n); if (m && m.out === d && m.lang === I18N.lang) return; const src = (m && m.out === d) ? m.src : d; const out = T(src); i18nDone.set(n, { src, out, lang: I18N.lang }); if (out !== d) n.data = out; }   /* V457: Original merken */
+function i18nText(n) { const d = n.data; if (!d || !d.trim()) return; const p = n.parentNode; if (!p || I18N_SKIP.has(p.nodeName)) return; if (p.closest && p.closest("[translate=no]")) return;   /* V469 */ const m = i18nDone.get(n); if (m && m.out === d && m.lang === I18N.lang) return; const src = (m && m.out === d) ? m.src : d; const out = T(src); i18nDone.set(n, { src, out, lang: I18N.lang }); if (out !== d) n.data = out; }   /* V457: Original merken */
 function i18nAttr(el, a) { const v = el.getAttribute(a), k = "a:" + a, m = i18nDone.get(el) || {}; if (m[k] === v && m[k + ":l"] === I18N.lang) return; const src = m[k] === v ? m[k + ":s"] : v; const o = T(src); m[k] = o; m[k + ":s"] = src; m[k + ":l"] = I18N.lang; i18nDone.set(el, m); if (o !== v) el.setAttribute(a, o); }
 function i18nEl(el) { if (!el || el.nodeType !== 1 || I18N_SKIP.has(el.nodeName)) return; for (const a of I18N_ATTR) if (el.hasAttribute(a)) i18nAttr(el, a);
   const w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT, null); let n; while ((n = w.nextNode())) { if (n.nodeType === 3) i18nText(n); else if (n.nodeType === 1 && !I18N_SKIP.has(n.nodeName)) { for (const a of I18N_ATTR) if (n.hasAttribute(a)) i18nAttr(n, a); } } }
@@ -7462,7 +7462,17 @@ function dailyLeaf() {
     + (m ? `<div class="tag">DAILY MISSION</div><div class="task">${m.txt}</div><div class="dlBar"><b style="width:${Math.round(100 * Math.min(1, (m.p || 0) / m.n))}%"></b></div><div class="num"><span>${m.p || 0} / ${m.n}</span><span>${m.done ? "done ✓" : "today"}</span></div>` : `<div class="tag">DAILY MISSION</div><div class="task dim">Opens at wave ${DAILY_MSN_W}</div>`)
     + `<div class="rew${DAILY.claimed ? " got" : ""}"><img src="${(typeof ICO_SPR !== "undefined" && ICO_SPR[d[0]]) || ""}" alt="">${DAILY.claimed ? `${d[1]}<br>${DAILY.pend ? "in your next run" : "collected"}` : `${d[1]}<br>Daily Drop · tap`}</div>`
     + `<div class="streak">${dots}</div><div class="sub">7-day chain · 1 shield day</div><i class="corner"></i></div>`;
+  dailyFit();
 }
+/* V469 (t136): Blatt darf den CONTINUE/PLAY-Knopf nie verdecken – sonst kleiner (min. 0,55) */
+function dailyFit() { try { const el = document.getElementById("dailyLeaf"); if (!el) return;
+  const bt = [...document.querySelectorAll("#modeList .playBtn, #btnResume")].find(b => b.getClientRects().length && !b.hidden); if (!bt) { el.style.removeProperty("--dlS"); return; }
+  const top = el.getBoundingClientRect().top, h = el.offsetHeight, w = el.offsetWidth, r = bt.getBoundingClientRect(), vw = window.innerWidth;
+  if (!h || r.right < vw - 12 - w) { el.style.removeProperty("--dlS"); return; }
+  const room = r.top - 8 - top, k = h > room ? Math.max(.55, room / h) : 1;
+  const v = k >= .999 ? "" : k.toFixed(3); if ((el.style.getPropertyValue("--dlS") || "") !== v) { if (v) el.style.setProperty("--dlS", v); else el.style.removeProperty("--dlS"); }
+} catch (e) {} }
+window.addEventListener("resize", () => dailyFit());
 function dailyCard() {
   dailyRoll(); const d = dailyDrop(), m = dailyMsnGate() ? DAILY.m : null, day = dailyDay();
   let ov = document.getElementById("ovDaily"); if (!ov) { ov = document.createElement("div"); ov.id = "ovDaily"; ov.className = "overlay"; document.body.appendChild(ov); ov.addEventListener("click", e => { if (e.target === ov || e.target.closest(".dlX")) { ov.hidden = true; dailyLeaf(); } }); }
@@ -7478,7 +7488,7 @@ function dailyCard() {
     if (navigator.share) { try { await navigator.share({ title: "Capybara Squad", text, url }); note("SENT!"); } catch (er) { if (!(er && er.name === "AbortError")) note("LINK: " + url.replace("https://", "")); } return; }
     try { await navigator.clipboard.writeText(text + " " + url); note("LINK COPIED!"); } catch (er) { note("LINK: " + url.replace("https://", "")); } });
 }
-setInterval(() => { try { const st = document.getElementById("ovStart"); if (!st || st.hidden || document.body.classList.contains("awOn")) { const el = document.getElementById("dailyLeaf"); if (el && (!st || st.hidden)) el.remove(); return; } if (!document.getElementById("dailyLeaf") || dailyKey() !== DAILY.day) dailyLeaf(); } catch (e) {} }, 800);
+setInterval(() => { try { const st = document.getElementById("ovStart"); if (!st || st.hidden || document.body.classList.contains("awOn")) { const el = document.getElementById("dailyLeaf"); if (el && (!st || st.hidden)) el.remove(); return; } if (!document.getElementById("dailyLeaf") || dailyKey() !== DAILY.day) dailyLeaf(); else dailyFit(); } catch (e) {} }, 800);
 try { if (new URLSearchParams(location.search).get("test") === "daily") { LS.set("tarnturm-cp-" + MODE, "25"); const y = new Date(); y.setDate(y.getDate() - 1); DAILY = { day: dailyKey(y), streak: 2, sent: [] }; dailySave(); } } catch (e) {}
 window.__daily = { add: dailyAdd, leaf: dailyLeaf, card: dailyCard, roll: dailyRoll, get D() { return DAILY; } };
 /* ===== Ende V455 ===== */
@@ -10462,7 +10472,7 @@ body:has(#ovStart:not([hidden])):has(.overlay.win:not([hidden])) #btnMap,body:ha
 #btnOMap span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 /* V455: Daily-Kalenderblatt rechts am Startscreen */
-#dailyLeaf{position:fixed;right:12px;top:calc(env(safe-area-inset-top,0px) + 96px);width:148px;z-index:60;font-family:"Baloo 2",system-ui,sans-serif;color:#3a2414;transform:rotate(2.5deg);filter:drop-shadow(0 6px 0 rgba(58,36,20,.55)) drop-shadow(0 10px 14px rgba(0,0,0,.35));cursor:pointer;text-align:left}
+#dailyLeaf{position:fixed;right:12px;top:calc(env(safe-area-inset-top,0px) + 96px);width:148px;z-index:60;font-family:"Baloo 2",system-ui,sans-serif;color:#3a2414;transform:rotate(2.5deg) scale(var(--dlS,1));transform-origin:100% 0;filter:drop-shadow(0 6px 0 rgba(58,36,20,.55)) drop-shadow(0 10px 14px rgba(0,0,0,.35));cursor:pointer;text-align:left}
 #dailyLeaf .ring{position:absolute;top:-9px;width:10px;height:18px;border:3px solid #3a2414;border-radius:6px;background:#e9e2d2;box-sizing:border-box;z-index:2}
 #dailyLeaf .ring.l{left:28px}#dailyLeaf .ring.r{right:28px}
 #dailyLeaf .head{background:linear-gradient(#ff7fbd,#e94c95);border:3px solid #3a2414;border-bottom:0;border-radius:14px 14px 0 0;padding:9px 10px 5px;text-align:center;color:#fff;font:400 12px/1 Bangers,sans-serif;letter-spacing:.14em;text-shadow:0 2px 0 #7a1d4a}
