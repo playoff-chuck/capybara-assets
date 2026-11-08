@@ -2777,7 +2777,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V445";
+const GAME_VER = "V446";
 
 (() => {
 const GW = 12, GH = 18, NN = GW * GH;
@@ -8728,9 +8728,10 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
 
   /* V248: Einarmiger Bandit «LUCKY SUPPLY» */
   try { (() => {
-    const IMG = { snipe: "img/slot_snipe.webp", mix: "img/slot_mix.webp", tesla: "img/slot_tesla.webp", lock: "img/slot_lock.webp", chomp: "img/slot_chomp.webp", ton: "img/slot_ton.webp" };
+    const IMG = { snipe: "img/slot_snipe.webp", mix: "img/slot_mix.webp", tesla: "img/slot_tesla.webp", lock: "img/slot_lock.webp", chomp: "img/slot_chomp.webp", ton: "img/slot_ton.webp", wolf: "img/wolf_icon.webp" };
     const PR = [["snipe", "Sniper strike", "snipes"], ["mix", "Concrete mixer", "mixers"], ["tesla", "Tesla storm", "teslas"],
-                ["lock", "Lockdown", "locks"], ["chomp", "Chomper", "chomps"], ["ton", "Ten-ton drop", "tons"]];
+                ["lock", "Lockdown", "locks"], ["chomp", "Chomper", "chomps"], ["ton", "Ten-ton drop", "tons"], ["wolf", "Wolf call", "wolves"]];
+    const PRa = () => (S && (S.wave || 0) >= 100) ? PR : PR.filter(p => p[0] !== "wolf");   /* V446: Wolf call erst ab W100 */
     try { if (typeof SAVE_KEYS !== "undefined" && !SAVE_KEYS.includes("wolves")) SAVE_KEYS.push("wolves"); } catch (e) {}
     try { if (typeof SAVE_KEYS !== "undefined") ["banditDone", "banditNext"].forEach(k => { if (!SAVE_KEYS.includes(k)) SAVE_KEYS.push(k); }); } catch (e) {}
     const ov = document.createElement("div"); ov.id = "ovBandit"; ov.hidden = true;
@@ -8748,10 +8749,10 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
         tone(1047, 1047, 0.6, 0.16, 0.55, "triangle"); tone(1319, 1319, 0.6, 0.12, 0.55, "triangle"); tone(1568, 1568, 0.6, 0.12, 0.55, "triangle");
         for (let k = 0; k < 14; k++) tone(2400 + Math.random() * 1400, 3000 + Math.random() * 1200, 0.07, 0.07, 0.25 + k * 0.07 + Math.random() * 0.04, "sine"); try { snd("coin"); } catch (e) {} } }; const rh = i => Math.max(40, $b("bdR" + i).clientHeight || 96);
     let st = 0, prize = null, wasPaused = false, rescue = false;   // st: 0 bereit, 1 dreht, 2 gewonnen
-    const fill = (i, last) => { const s = $b("bdS" + i); let h = ""; for (let k = 0; k < LEN; k++) { const p = k === LEN - 1 && last ? last : PR[(k * 5 + i * 2 + Math.floor(Math.random() * 6)) % 6]; h += `<div><img src="${IMG[p[0]] || ""}" alt=""></div>`; }
+    const fill = (i, last) => { const s = $b("bdS" + i); let h = ""; for (let k = 0; k < LEN; k++) { const P = PRa(), p = k === LEN - 1 && last ? last : P[(k * 5 + i * 2 + Math.floor(Math.random() * 6)) % P.length]; h += `<div><img src="${IMG[p[0]] || ""}" alt=""></div>`; }
       s.innerHTML = h; s.style.transition = "none"; s.style.transform = "translateY(0)"; };
     function open(force, resc) {
-      if (!ov.hidden) return; st = 0; rescue = !!resc; prize = (rescue && PR.find(p => p[0] === "ton")) || PR[Math.floor(Math.random() * PR.length)];
+      if (!ov.hidden) return; st = 0; rescue = !!resc; prize = (rescue && PR.find(p => p[0] === "ton")) || PRa()[Math.floor(Math.random() * PRa().length)];
       [0, 1, 2].forEach(i => { fill(i, prize); $b("bdR" + i).classList.remove("hit"); });
       $b("bdResT").innerHTML = "&nbsp;"; $b("bdResS").innerHTML = "&nbsp;"; $b("bdSub").textContent = rescue ? "Mayday! The stack is high – HQ sends heavy help!" : "One spin on the house, squad!";
       $b("bdGo").textContent = "SPIN ▶"; $b("bdGo").disabled = false; $b("bdLever").classList.remove("pull");
@@ -8869,7 +8870,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
         else { s2.textContent = "HOT!"; s3.textContent = "DEAL"; mg.textContent = "MEGA DEAL"; on.textContent = "ONLY THIS WAVE!"; }
         paint(); }
       try { snd("radio"); } catch (e) {} }
-    function close(bought) { ov.classList.remove("on"); ov.hidden = true; const k = cur; cur = null; if (k === "drop") { bought = false; $a("adCard").classList.remove("drop"); } if (late) { late = false; S.intro = false; S.adOpen = false; } else try { closeIntro(); } catch (e) {}
+    function close(bought) { ov.classList.remove("on"); ov.hidden = true; const k = cur; cur = null; if (k === "drop") { bought = false; $a("adCard").classList.remove("drop"); if (window.__dropKind === "weed") { window.__dropKind = null; setTimeout(() => { try { if (S && S.started && !S.over && !S.ton) startTon(); } catch (e) {} try { (window.__dist.D.weeds || []).forEach(w => { if (w.delay > 100) w.delay = 2.5 + Math.random() * 0.4; }); } catch (e) {} }, 300); } }   /* V446 */ if (late) { late = false; S.intro = false; S.adOpen = false; } else try { closeIntro(); } catch (e) {}
       if (bought) try { toast(`${INTRO_GEAR[k][0].toUpperCase()} · ${TOWERW[k] ? "mounted on your tower" : "in your Pocket"}`, "ARMORY", 2000); } catch (e) {} }
     function buy() { const k = cur; if (window.__newsPrev) { close(false); return; } if (!k || why(k)) { paint(); return; } const p = price(k);
       if (TOWERW[k]) { const t = slotTower(); if (!t) { paint(); return; } t.w.push({ type: k, lvl: 1, cd: 0 }); }
@@ -8915,8 +8916,9 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
                  friend: { img: "img/ad_drop_free.webp", name: "A GIFT FROM A FRIEND", line: "A friend invited you to the squad and sent a Ten-ton drop. It's already in your Pocket.", met: ["+1 Ten-ton", "In your Pocket"], btn: "THANKS! ▶" },   /* V419 */
                  sweep: { img: "img/ad_drop_free.webp", name: "CLEAN SWEEP", line: "You cleared the whole field. HQ sent gold and a medal.", met: [`${gold} gold`, "+1 medal"], btn: "COLLECT ▶" },
                  med: { img: "img/ad_med_free.webp", name: "MEDKIT", line: "Doc Hazel patched you up. You can see clearly again.", met: ["Vision clear"], btn: "THANKS, DOC ▶" },
+                 weed: { img: "img/ad_drop_free.webp", name: "WEED DEFENSE DROP", line: "Weed seeds are about to land. HQ sent a Ten-ton drop – use it NOW to flatten the field before they sprout!", met: ["+1 Ten-ton", "Use it now"], btn: "DROP IT ▶" },   /* V446 */
                  rot: { img: "img/ad_drop_free.webp", name: `${o.rp || "+90°"} PACKAGE`, line: "The field is upright again. Blocks fall down as usual.", met: ["Field upright"], btn: "LET'S GO ▶" } }[kind];
-      if (!D) return; cur = "drop"; saleMode = false; isFree = true; dropBtn = D.btn; late = true; S.intro = true; S.adOpen = true;
+      if (!D) return; cur = "drop"; window.__dropKind = kind; saleMode = false; isFree = true; dropBtn = D.btn; late = true; S.intro = true; S.adOpen = true;
       const card = $a("adCard"); card.classList.remove("sale", "free"); card.classList.add("drop");
       $a("adPic").style.backgroundImage = `url(${D.img})`; $a("adPic").style.backgroundPosition = ""; $a("adTag").textContent = "✈ AIR DROP"; $a("adWave").textContent = `WAVE ${S.wave}`; $a("adPrice").textContent = "";
       $a("adName").textContent = D.name; $a("adLine").textContent = D.line; $a("adMet").innerHTML = D.met.map(x => `<span>${x}</span>`).join("");
@@ -9412,8 +9414,8 @@ try { (() => {
     if (k === "weed") { const n = WEEDN[S.wave] || 1, pool = []; for (let x = 1; x <= GW - 2; x++) pool.push(x);
       for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
       const xs = n > 1 ? pool.slice(0, n).sort((a, b) => a - b) : [2 + Math.floor(Math.random() * (GW - 4))];
-      const dl = n > 1 ? 3 : 0; if (n > 1) { try { if (!S.ton) { S.tons = (S.tons || 0) + 1; startTon(); } } catch (e) {} }   /* V425: erst Ten-ton, dann Samen */
-      D.weeds = xs.map(x => ({ x, root: null, h: 0, seedY: -1, growT: Math.random() * 1.5, waves: 0, delay: dl + Math.random() * 0.4 })); }
+      const dl = n > 1 ? 9999 : 0; D.weedAge = 0; D.weedW0 = false; if (n > 1) { try { S.tons = (S.tons || 0) + 1; if (window.__dropAd) { window.__dropAd("weed"); } else { startTon(); (D.weeds || []).forEach(w => { w.delay = 3; }); } } catch (e) {} }   /* V446: Gratis-Ten-ton als Air-Drop, Samen warten (Notfall 40 s) */
+      D.weeds = xs.map(x => ({ x, root: null, h: 0, seedY: -1, growT: Math.random() * 1.5, waves: 0, delay: dl + Math.random() * 0.4 })); if (n > 1) setTimeout(() => { try { (D.weeds || []).forEach(w => { if (w.delay > 100) w.delay = 2 + Math.random() * 0.4; }); } catch (e) {} }, 40000); }
     if (k === "thief") D.thief = { x: -0.8, t: 0, stolen: 0 };
     snd("siren"); { const nm = k === "weed" && D.weeds.length > 1 ? NAMES.weed5 : NAMES[k]; announce(nm[0], nm[1], "ALERT", 2400); }
     if (k === "thief") setTimeout(() => { try { SFX.say("thief_hello", 1.0, 1.0, 0, 0); } catch (e) {} }, 900);
@@ -9473,12 +9475,13 @@ try { (() => {
       if (p) { const cy = p.y + p.cells.reduce((a, c) => a + c[1], 0) / p.cells.length - 1; m.fy += (Math.max(0, Math.min(GH - 3, cy)) - m.fy) * Math.min(1, dt * 5); m.y = Math.round(m.fy); }   /* V335: fährt mit dem Stein mit */
       if (m.t >= m.life) { D.mag = null; toast("MAGNET GONE", "HQ", 1200); } }
     if (window.__magHum) window.__magHum(D.mag ? 1 : 0);
+    if (D.weeds.some(w => w.root != null)) { if (S.inWave && !frozen()) D.weedAge = (D.weedAge || 0) + dt; if (D.weedAge >= 60 && !D.weedW0) { D.weedW0 = true; try { weedCard(); } catch (e) {} } }   /* V446: Karte ~1 min nach dem Wurzeln */
     for (const w of D.weeds) {
       if (w.delay > 0) { w.delay -= dt; } else if (w.root == null) { w.seedY += dt * 6; const ly = landY(w.x); if (w.seedY >= ly) { w.root = ly; w.h = 1; try { tone(260, 110, 0.11, 0.035, 0, "sine", 900); tone(140, 90, 0.08, 0.02, 0.02, "triangle", 500); } catch (e) {} } }
       else { if (w.root < GH - 1 && !S.grid[(w.root + 1) * GW + w.x]) w.root++;   /* fällt nach, wenn darunter frei wird */
         if (S.inWave) w.growT += dt; if (w.growT >= 6.8) { const ny = w.root - w.h; if (ny <= 0 && !S.over) { w.growT = 0; try { fxText(w.x, 1, "WEEDS TOOK THE RING", "#ff6fb5"); } catch (e) {} gameOver("Weeds reached the ring."); } else if (ny >= 1 && weedPush(w.x, ny, p)) { w.h++; w.growT = 0; } else w.growT = 6.8; }   /* V438: Spitze im Ring = Game over */
         { const left = w.root - w.h + 1;   /* freie Zeilen zwischen Spitze und Ring (Zeile 0) */
-          if (left <= 2 && !D.weedW2) { D.weedW2 = true; try { window.__rbSay && window.__rbSay("rb_weedlast", true); } catch (e) {} try { weedCard(); } catch (e) {} }   /* V444: Karte */
+          if (left <= 2 && !D.weedW2) { D.weedW2 = true; try { window.__rbSay && window.__rbSay("rb_weedlast", true); } catch (e) {} if (!D.weedW0) { D.weedW0 = true; try { weedCard(); } catch (e) {} } }   /* V446: Karte spätestens hier */
           else if (left <= 4 && !D.weedW1) { D.weedW1 = true; try { snd("siren"); announce("WEED ALERT", "If it reaches the ring, it's over · Tesla or Sniper", "ALERT", 3000); setTimeout(() => SFX.say("weed_warn"), 500); } catch (e) {} } } } }
     if (D.thief) { const T = D.thief; T.t += dt; if (window.__thiefPos) window.__thiefPos(T);
       if (!T.stolen && !T.flee && T.t >= 10) { T.stolen = Math.floor(S.gold / 2); S.gold -= T.stolen; snd("sell"); setTimeout(() => snd("sell"), 140); try { SFX.say("thief_laugh", 1.0, 1.0, 0, 0); } catch (e) {} toast(`THIEF GRABBED ${T.stolen} GOLD!`, "ALERT", 1800); setTimeout(() => { if (D.thief === T && !T.flee) toast(S.wolves > 0 ? "QUICK! Use your WOLF CALL – he'll drop the gold!" : "Raccoons hate wolves! Get a WOLF CALL in the shop.", "HQ", 2800); }, 2100); const g = $("sGold"); if (g) { g.classList.remove("thiefHit"); void g.offsetWidth; g.classList.add("thiefHit"); } }
