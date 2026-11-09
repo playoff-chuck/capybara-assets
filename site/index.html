@@ -2790,7 +2790,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V508";
+const GAME_VER = "V509";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -5936,14 +5936,23 @@ function stepTon(dt) {
   }
 }
 const TON_IMG = new Image(); TON_IMG.src = "img/ton_weight.webp";
-const SHOCK_IMG = new Image(); SHOCK_IMG.src = "img/fx_shockwave.webp";   /* V508 */
-function drawShock(s, W) {   /* V508: Druckwelle läuft vom Aufprall nach links und rechts über die ganze Breite */
-  const T = S.ton; if (!T || !T.hit || !SHOCK_IMG.complete || !SHOCK_IMG.naturalWidth) return;
-  const th = (T.t || 0) - (T.ht || 0); if (th < 0 || th > 1.0) return;
-  const e = 1 - Math.pow(1 - Math.min(1, th / 0.5), 3), ww = W * (0.3 + 1.15 * e), ar = SHOCK_IMG.naturalHeight / SHOCK_IMG.naturalWidth, hh = ww * ar * (0.75 + 0.25 * e);
-  const y0 = (T.newTop != null ? T.newTop : T.top) * s, al = th < 0.55 ? 1 : Math.max(0, 1 - (th - 0.55) / 0.45);
-  ctx.save(); ctx.globalAlpha = al; ctx.drawImage(SHOCK_IMG, W / 2 - ww / 2, y0 - hh * 0.92, ww, hh);
-  if (th < 0.25) { ctx.globalAlpha = (0.25 - th) / 0.25 * 0.55; ctx.fillStyle = "#fff6d8"; ctx.fillRect(0, y0 - s * 0.6, W, s * 0.9); }   // kurzer heller Blitz am Boden
+const SHOCK_IMG = new Image(); SHOCK_IMG.src = "img/fx_airwave.webp";   /* V508 · V509: Luftdruck statt Sand */
+function drawShock(s, W) {   /* V509: Luftdruck – baut sich beim Fall um das Gewicht auf, platzt beim Aufprall seitlich über die ganze Breite */
+  const T = S.ton; if (!T || !SHOCK_IMG.complete || !SHOCK_IMG.naturalWidth) return;
+  const ar = SHOCK_IMG.naturalHeight / SHOCK_IMG.naturalWidth, now = performance.now() / 1000;
+  ctx.save(); ctx.globalCompositeOperation = "lighter";
+  if (!T.hit) {   // Druck aufbauen: Front unter dem Gewicht, wächst mit der Annäherung
+    const tgt = Math.max(1, T.top - 3 + 5), prog = Math.max(0, Math.min(1, (T.y + 5) / tgt)), y = (T.y + 3) * s;
+    const ww = W * (0.55 + 0.35 * prog) * (1 + Math.sin(now * 30) * 0.015), hh = ww * ar * 0.55;
+    ctx.globalAlpha = 0.25 + 0.6 * prog; ctx.translate(W / 2, y + s * 0.2); ctx.scale(1, -1);   // umgedreht: Bogen zeigt nach unten
+    ctx.drawImage(SHOCK_IMG, -ww / 2, -hh * 0.98, ww, hh);
+  } else {   // Aufprall: Front reißt seitlich auf
+    const th = (T.t || 0) - (T.ht || 0); if (th < 0 || th > 0.85) { ctx.restore(); return; }
+    const e = 1 - Math.pow(1 - Math.min(1, th / 0.45), 3), ww = W * (0.9 + 1.1 * e), hh = ww * ar * (0.55 - 0.3 * e);
+    const y0 = (T.newTop != null ? T.newTop : T.top) * s; ctx.globalAlpha = th < 0.3 ? 1 : Math.max(0, 1 - (th - 0.3) / 0.55);
+    ctx.drawImage(SHOCK_IMG, W / 2 - ww / 2, y0 - hh * 0.95, ww, hh);
+    ctx.translate(W / 2, y0); ctx.scale(1, -0.35); ctx.drawImage(SHOCK_IMG, -ww / 2, -hh * 0.95, ww, hh);   // flacher Ring am Boden
+  }
   ctx.restore(); }
 function drawTon(s, W) {
   try { drawShock(s, W); } catch (e) {}
