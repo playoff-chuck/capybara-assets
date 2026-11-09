@@ -2790,7 +2790,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V509";
+const GAME_VER = "V510";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -2917,7 +2917,7 @@ const INTRO_GEAR = {
   kan:   ["Cannon",         "Slow heavy shells with splash. Cracks brutes.",          () => [`${WEAP.kan.cost} gold`, `Damage ${WEAP.kan.dmg}`, `Range ${WEAP.kan.range}`]],
   frost: ["Frost",          "Slows everything it hits. Pair it with an MG.",          () => [`${WEAP.frost.cost} gold`, `Damage ${WEAP.frost.dmg}`, "Slows 55 %"]],
   snipe: ["Sniper strike",  "One shot: wipes a 2×2 patch, the blast splats around it.",    () => [`${SNIPE_COST} gold`, "One shot", "2×2 patch"]],
-  mix:   ["Concrete mixer", "Fills a hole up to the top block, buries monsters.",     () => [`${MIX_COST} gold`, "One shot", "Buries"]],
+  mix:   ["Concrete mixer", "Tap a block: fills every gap around it up to its top, buries monsters.",     () => [`${MIX_COST} gold`, "One shot", "Buries"]],
   tesla: ["Tesla storm",    "4×4 lightning strike. Splats count triple.",              () => [`${TESLA_COST} gold`, "4×4 strike", "Splats ×3"]],
   chomp: ["Chomper",        "Steel jaws run the ring backwards, eating everything.",  () => [`${CHOMP_COST} gold`, "Pocket", "Eats blocks too"]],
   ton:   ["Ten-ton drop",   "Crushes monsters, halves the stack. First one is free!",() => ["1 free", `${TON_COST} gold`, "Stack ÷ 2"]],
@@ -6447,7 +6447,7 @@ function renderShop() {
   rows.push([unlockedAt("snipe"), item("snipe", ICON.snipe, "Sniper strike", SNIPE_COST, unlocked("snipe") ? "One shot: 2×2 patch wiped, the blast splats around it." + (S.wave >= 90 ? " Cuts weeds" + "." : "") : lock("snipe"), unlocked("snipe") ? "BUY" : `<i class="lk">🔒 WAVE ${unlockedAt("snipe")}</i>`, !unlocked("snipe") || S.gold < SNIPE_COST, "btn-accent")]);
   rows.push([unlockedAt("tesla"), item("tesla", ICON.tesla, "Tesla storm", TESLA_COST, unlocked("tesla") ? "4×4 lightning strike, splats count triple." + (S.wave >= 90 ? " Cuts weeds" + "." : "") : lock("tesla"), unlocked("tesla") ? "BUY" : `<i class="lk">🔒 WAVE ${unlockedAt("tesla")}</i>`, !unlocked("tesla") || S.gold < TESLA_COST, "btn-accent")]);
   rows.push([WOLF_W, item("wolf", ICON.tesla, "Wolf call", WOLF_COST, (S.wave || 0) >= WOLF_W ? "A howl in the dark: the thief runs off and drops your gold." : `Locked · unlocks at wave ${WOLF_W}`, (S.wave || 0) >= WOLF_W ? "BUY" : `<i class="lk">🔒 WAVE ${WOLF_W}</i>`, (S.wave || 0) < WOLF_W || S.gold < WOLF_COST, "btn-accent")]);
-  rows.push([unlockedAt("mix"), item("mix", ICON.mix, "Concrete mixer", MIX_COST, unlocked("mix") ? "Fills a hole up to the top block, buries monsters." : lock("mix"), unlocked("mix") ? "BUY" : `<i class="lk">🔒 WAVE ${unlockedAt("mix")}</i>`, !unlocked("mix") || S.gold < MIX_COST, "btn-accent")]);
+  rows.push([unlockedAt("mix"), item("mix", ICON.mix, "Concrete mixer", MIX_COST, unlocked("mix") ? "Tap a block: fills every gap around it up to its top, buries monsters." : lock("mix"), unlocked("mix") ? "BUY" : `<i class="lk">🔒 WAVE ${unlockedAt("mix")}</i>`, !unlocked("mix") || S.gold < MIX_COST, "btn-accent")]);
   rows.push([unlockedAt("chomp"), item("chomp", ICON.chomp, "Chomper", CHOMP_COST, unlocked("chomp") ? "Steel jaws run the ring backwards: eats every monster and block in its way." : lock("chomp"), unlocked("chomp") ? "BUY" : `<i class="lk">🔒 WAVE ${unlockedAt("chomp")}</i>`, !unlocked("chomp") || S.gold < CHOMP_COST, "btn-accent")]);
   rows.push([unlockedAt("ton"), item("ton", ICON.ton, "Ten-ton drop", TON_COST, unlocked("ton") ? "Giant weight: crushes every monster above the stack, squeezes all blocks to half." : lock("ton"), unlocked("ton") ? "BUY" : `<i class="lk">🔒 WAVE ${unlockedAt("ton")}</i>`, !unlocked("ton") || S.gold < TON_COST, "btn-accent")]);
   rows.push([5, item("coach", ICON.tower, "Boss-hack coach", COACH_COST, (coachLeft() ? `You have ${coachLeft()} · play: POCKET → TRAIN` : "Boss-hack practice: 10 duels, no stake · POCKET → TRAIN"), "BUY", S.gold < COACH_COST, "btn-accent")]);
@@ -6507,26 +6507,32 @@ function snipe(x, y) {
 }
 // Betonmischwagen: füllt alle Löcher einer Spalte bis zur Oberkante des höchsten Steins
 // Regel: eingeschlossene Höhle → ganz voll; nach oben offen → alles bis zur Höhe des höchsten Steins
-function mixCells(x, y = GH - 1) {
-  let top = GH; for (let cx = Math.max(0, x - 1); cx <= Math.min(GW - 1, x + 1); cx++) for (let r = 0; r < GH; r++) if (S.grid[r * GW + cx]) { top = Math.min(top, r); break; }   /* V322: nur bis zum Block, auf den man tippt */
-  if (top === GH) top = GH - 1;
+function mixCells(x, y = GH - 1) {   /* V510: angetippter Block + alles Leere, was daran hängt, bis zu seinem höchsten Punkt */
   const p = S.piece, pc = new Set(p ? p.cells.filter(([a, b]) => p.y + b >= 0).map(([a, b]) => vIdx(p.x + a, p.y + b)) : []);
-  const free = c => !S.grid[c] && !pc.has(c);
-  let cells = [];
-  {
-    let sy = Math.max(y, top); while (sy < GH && !free(sy * GW + x)) sy++;
-    /* V414: Höhe = Oberkante des Blockstücks direkt neben dem Loch (zusammenhängend nach oben), nicht die 3-Spalten-Höhe */
-    if (sy < GH) { let lv = -1; for (const nx of [x - 1, x + 1]) { if (nx < 0 || nx > GW - 1 || !S.grid[sy * GW + nx]) continue; let r = sy; while (r > 0 && S.grid[(r - 1) * GW + nx]) r--; lv = Math.max(lv, r); }   /* niedrigere Wand = kein Überlaufen */
-      if (lv < 0) { for (let r = sy + 1; r < GH; r++) if (S.grid[r * GW + x]) { lv = r; break; } }   /* kein Nachbar: nur bis zum Boden unter dem Loch */
-      if (lv >= 0) top = Math.max(top, lv); }
-    if (sy < GH) {
-      const seen = new Uint8Array(NN), q = [sy * GW + x]; seen[q[0]] = 1;
-      while (q.length) { const c = q.pop(), cx = c % GW, cy = (c / GW) | 0; cells.push(c);
-        for (const [dx, dy] of DIRS) { const nx = cx + dx, ny = cy + dy; if (nx < 0 || nx > GW - 1 || ny < top || ny >= GH) continue; const n = ny * GW + nx; if (seen[n] || !free(n)) continue; seen[n] = 1; q.push(n); } }
-    }
-  }
-  cells.sort((a, b) => ((b / GW) | 0) - ((a / GW) | 0) || Math.abs(a % GW - x) - Math.abs(b % GW - x));
-  return cells;
+  const filled = c => !!S.grid[c], free = c => !S.grid[c] && !pc.has(c);
+  x = Math.max(0, Math.min(GW - 1, x)); y = Math.max(0, Math.min(GH - 1, y));
+  // 1) Startblock finden: angetippt, sonst darunter, sonst links/rechts (nächster)
+  let seed = -1; const at = (cx, cy) => (cx >= 0 && cx < GW && cy >= 0 && cy < GH && filled(cy * GW + cx)) ? cy * GW + cx : -1;
+  if (at(x, y) >= 0) seed = at(x, y);
+  else { let best = 1e9; for (const [dx, dy] of [[1, 0], [-1, 0], [0, -1], [0, 1]]) for (let d = 1; d < Math.max(GW, GH); d++) { const n = at(x + dx * d, y + dy * d); if (x + dx * d < 0 || x + dx * d >= GW || y + dy * d < 0 || y + dy * d >= GH) break; if (n >= 0) { if (d < best) { best = d; seed = n; } break; } } }   /* Loch angetippt: nächster Block in den 4 Richtungen */
+  if (seed < 0) return [];
+  // 2) Block = gleichfarbig zusammenhängend (Beton/TNT: nur die Zelle selbst + gleichartige)
+  const col = S.grid[seed], blk = new Set([seed]), q = [seed];
+  while (q.length) { const c = q.pop(), cx = c % GW, cy = (c / GW) | 0;
+    for (const [dx, dy] of DIRS) { const nx = cx + dx, ny = cy + dy; if (nx < 0 || nx >= GW || ny < 0 || ny >= GH) continue; const n = ny * GW + nx; if (!blk.has(n) && S.grid[n] === col) { blk.add(n); q.push(n); } } }
+  let top = GH, x0 = GW, x1 = -1; for (const c of blk) { const cx = c % GW, cy = (c / GW) | 0; top = Math.min(top, cy); x0 = Math.min(x0, cx); x1 = Math.max(x1, cx); }
+  x0 = Math.max(0, x0 - 1); x1 = Math.min(GW - 1, x1 + 1);
+  // 3) leere Felder, die am Block hängen, flutfüllen – nicht höher als die Block-Oberkante, nicht breiter als Block ±1
+  const inBox = (cx, cy) => cx >= x0 && cx <= x1 && cy >= top && cy < GH;
+  const seen = new Uint8Array(NN), st = [], cells = [];
+  for (const c of blk) { const cx = c % GW, cy = (c / GW) | 0; for (const [dx, dy] of DIRS) { const nx = cx + dx, ny = cy + dy; if (!inBox(nx, ny)) continue; const n = ny * GW + nx; if (!seen[n] && free(n)) { seen[n] = 1; st.push(n); } } }
+  while (st.length) { const c = st.pop(), cx = c % GW, cy = (c / GW) | 0; cells.push(c);
+    for (const [dx, dy] of DIRS) { const nx = cx + dx, ny = cy + dy; if (!inBox(nx, ny)) continue; const n = ny * GW + nx; if (!seen[n] && free(n)) { seen[n] = 1; st.push(n); } } }
+  // 4) nur Felder, die von unten getragen werden (Beton fließt nach unten, schwebt nicht): Spalte muss bis zum Boden/Block gefüllt werden können
+  const set = new Set(cells), keep = [];
+  for (const c of cells) { let r = ((c / GW) | 0) + 1, ok = true; const cx = c % GW; while (r < GH) { const n = r * GW + cx; if (filled(n)) break; if (!set.has(n)) { ok = false; break; } r++; } if (ok) keep.push(c); }
+  keep.sort((a, b) => ((b / GW) | 0) - ((a / GW) | 0) || Math.abs(a % GW - x) - Math.abs(b % GW - x));
+  return keep;
 }
 function concreteCellGhost(x, y) { const s = CELL; ctx.fillRect(x * s + s * 0.12, y * s + s * 0.12, s * 0.76, s * 0.76); }
 // Holzbrett (Verschalung) mit Maserung und zwei Nägeln, in lokalen Koordinaten
@@ -6553,7 +6559,7 @@ window.__mixCells = (x, y) => mixCells(x, y);
 function startMix(x, y = GH - 1) {
   x = Math.max(0, Math.min(GW - 1, x));
   const cells = mixCells(x, y);
-  if (!cells.length) { toast("TAP A HOLE", "DENIED"); snd("nope"); return; }
+  if (!cells.length) { toast("NOTHING TO FILL · tap a block with gaps", "DENIED"); snd("nope"); return; }
   const top = Math.min(...cells.map(c => (c / GW) | 0));
   S.mix = { x, cells, lvl: 0, t: 0, total: 0, phase: "drive", ty: -3.4, dest: top - 2.4, kills: 0, gold: 0, pourT: Math.max(0.8, Math.min(4, cells.length * 0.1)) };
   S.mode = null; S.aim = null; S.mixers = Math.max(0, S.mixers - 1); buddyHelp("mix");
@@ -6740,7 +6746,7 @@ $("bPocket").addEventListener("click", () => {
 function armSpecial(kind) {
   if (kind === "snipe" && S.snipes < 1 || kind === "mix" && S.mixers < 1 || kind === "tesla" && S.teslas < 1) { snd("nope"); return; }
   closeSheet(); S.mode = kind; S.aim = null; snd("buildMode");
-  toast(kind === "snipe" ? "SNIPER READY · tap the target" : kind === "tesla" ? "TESLA CHARGED · tap the target" : "MIXER READY · tap a hole", "POCKET"); SFX.say("Nice!");
+  toast(kind === "snipe" ? "SNIPER READY · tap the target" : kind === "tesla" ? "TESLA CHARGED · tap the target" : "MIXER READY · tap a block", "POCKET"); SFX.say("Nice!");
 }
 function toggleBuild() {
   if (!S.started || S.over) return;
