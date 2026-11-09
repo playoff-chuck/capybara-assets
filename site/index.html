@@ -2795,7 +2795,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V531";
+const GAME_VER = "V532";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -3101,6 +3101,7 @@ const DEVX = { model: "", osv: "" };
 try { navigator.userAgentData && navigator.userAgentData.getHighEntropyValues && navigator.userAgentData.getHighEntropyValues(["model", "platformVersion"]).then(v => { DEVX.model = v.model || ""; DEVX.osv = v.platformVersion || ""; supportFill(); }).catch(() => {}); } catch (e) {}
 function devInfo() { const ua = navigator.userAgent || ""; let os = "Other", m;
   if ((m = /Android ([\d.]+)/.exec(ua))) os = "Android " + m[1]; else if ((m = /(iPhone|iPad|iPod).*OS (\d+[_\d]*)/.exec(ua))) os = m[1] + " iOS " + m[2].replace(/_/g, "."); else if (/Macintosh/.test(ua)) os = navigator.maxTouchPoints > 1 ? "iPad (desktop mode)" : "macOS"; else if (/Windows/.test(ua)) os = "Windows"; else if (/CrOS/.test(ua)) os = "ChromeOS"; else if (/Linux/.test(ua)) os = "Linux";
+  if (DEVX.osv && /^Android/.test(os)) os = "Android " + String(DEVX.osv).split(".")[0];   /* V532 */
   const br = (m = /SamsungBrowser\/([\d]+)/.exec(ua)) ? "Samsung Internet " + m[1] : (m = /Edg\w*\/([\d]+)/.exec(ua)) ? "Edge " + m[1] : (m = /OPR\/([\d]+)/.exec(ua)) ? "Opera " + m[1] : (m = /YaBrowser\/([\d]+)/.exec(ua)) ? "Yandex " + m[1] : (m = /Firefox\/([\d]+)/.exec(ua)) ? "Firefox " + m[1] : (m = /CriOS\/([\d]+)/.exec(ua)) ? "Chrome iOS " + m[1] : (m = /Chrome\/([\d]+)/.exec(ua)) ? "Chrome " + m[1] : (m = /Version\/([\d.]+).*Safari/.exec(ua)) ? "Safari " + m[1] : "Browser";
   let app = "Web"; try { if (/^android-app:/.test(document.referrer || "") || sessionStorage.getItem("capy-twa")) { app = "Android app"; sessionStorage.setItem("capy-twa", "1"); } else if (matchMedia("(display-mode: standalone)").matches || navigator.standalone) app = "Home screen"; } catch (e) {}
   const scr = `${screen.width}×${screen.height} @${Math.round((devicePixelRatio || 1) * 100) / 100}x`, hw = [navigator.hardwareConcurrency ? navigator.hardwareConcurrency + " cores" : "", navigator.deviceMemory ? navigator.deviceMemory + " GB" : ""].filter(Boolean).join(" · ");
