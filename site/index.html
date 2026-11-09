@@ -2790,7 +2790,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V506";
+const GAME_VER = "V507";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -4589,7 +4589,8 @@ function lockPiece(dropped) {
     else if (S.lastClearT && now - S.lastClearT < 9000) praise("ON FIRE!", 2, "On fire!");
     S.lastClearT = now; S.lastClearPiece = S.pieceNo;
     let empty = true; for (let y = 0; y < GH && empty; y++) for (let x = 1; x < GW - 1; x++) if (S.grid[y * GW + x]) { empty = false; break; }
-    if (empty) { const sw = Math.round((100 + 15 * S.wave) * (G.goldMul || 1) / 0.6); S.gold += sw; S.sweeps = (S.sweeps || 0) + 1; addScore(500 + 50 * S.wave); addMedal(2, true); praise("CLEAN SWEEP!", 4, "Clean sweep!"); setTimeout(() => airDrop("CLEAN SWEEP", [["gold", "Gold", "+" + sw], ["medal", "Medal", "+1"]]), 600); }
+    if (empty) { const sw = Math.round((100 + 15 * S.wave) * (G.goldMul || 1) / 0.6); S.gold += sw; S.sweeps = (S.sweeps || 0) + 1; addScore(500 + 50 * S.wave); addMedal(2, true); if (window.__dropAd && !S.nuts) { snd("stinger", 4); try { SFX.say("Clean sweep!"); } catch (e) {} } else praise("CLEAN SWEEP!", 4, "Clean sweep!");   /* V507: kein Stempel vor dem gleichnamigen Fenster */
+      setTimeout(() => airDrop("CLEAN SWEEP", [["gold", "Gold", "+" + sw], ["medal", "Medal", "+1"]]), 600); }
   }
   if (c === 0) S.lineStreak = 0;
   S.pieceNo++;
@@ -5864,8 +5865,8 @@ function wowTick(dt) {
   // 1) SQUAD INCOMING – Gratis-Ten-ton
   if (!wowDone("ton") && wowOk() && S.inWave && WOW.wt > 18 && !S.ton) {
     const top = stackTopRow(); if (S.monsters.filter(m => !m.dead && m.y < top - 0.5).length >= 3) {
-      wowSet("ton"); WOW.tonT = performance.now(); S.wowTon = true; wowBanner("SQUAD INCOMING!", `${heroKey() === "rosie" ? "Blue" : "Rosie"} sends a free Ten-ton drop`);
-      snd("horn"); setTimeout(() => { if (!S.over) { S.tons = (S.tons || 0) + 1; if (window.__dropAd) window.__dropAd("squad"); else startTon(); } }, 1500); } }   /* V484: als Air-Drop-Karte, DROP IT löst sofort aus */
+      wowSet("ton"); WOW.tonT = performance.now(); S.wowTon = true; if (!window.__dropAd) wowBanner("SQUAD INCOMING!", `${heroKey() === "rosie" ? "Blue" : "Rosie"} sends a free Ten-ton drop`);   /* V507: kein Vorab-Banner, das Fenster sagt es */
+      snd("horn"); setTimeout(() => { if (!S.over) { S.tons = (S.tons || 0) + 1; if (window.__dropAd) window.__dropAd("squad"); else startTon(); } }, window.__dropAd ? 300 : 1500); } }   /* V484: als Air-Drop-Karte, DROP IT löst sofort aus */
   // 3) ELITE-Turm
   const eW = [6, 56, 106].find(w => S.wave >= w && S.wave <= w + 3 && !wowDone(w === 6 ? "elite" : "elite" + w));   /* V444: W6, W56, W106 */
   if (eW && WOW.wt > 10 && wowOk(eW + 3) && S.inWave && performance.now() - WOW.tonT > 8000) {   /* V389: fest W6, 10 s nach Start */
