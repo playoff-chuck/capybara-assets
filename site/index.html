@@ -2326,7 +2326,8 @@ body.inNuts #btnPRestart{display:none!important}
 .ofRow .mcCard,.ofNext .mcCard{position:relative}canvas.ofPv{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:2}
 .ofNext{display:flex;align-items:center;gap:10px;margin:0 0 8px;padding:6px 8px;border-radius:12px;background:#f3e6cc;border:2px dashed #c9a87a}.ofNext .ofSil{width:64px;flex:0 0 64px;padding:2px;cursor:pointer;overflow:hidden}.ofNext .ofSil img{width:100%;display:block;filter:brightness(0) opacity(.55)}.ofNextTx{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-width:0}.ofNextTx b{font-family:Bangers,system-ui;font-size:17px;letter-spacing:.04em;color:#3a2414}.ofNextTx small{font-size:11px;color:#8a6a4a;overflow-wrap:anywhere}.ofNextTx .shareBtn{margin:4px 0 0!important}
 #ovSettings .setRow{flex-wrap:wrap}
-#btnNzCont{position:absolute!important;left:50%!important;transform:translateX(-50%)!important;width:min(340px,calc(100% - 16px))!important;bottom:122px!important;margin:0!important;z-index:7!important;background:linear-gradient(180deg,#7a2a3a,#3a1622)!important;color:#fff!important;border-color:#ff5a6a!important}#btnNzCont .lbl{color:#ffc2cc!important}.modeBtn.nzCont{background:linear-gradient(180deg,#5a2a3a,#2a1a22)!important;color:#fff!important;border-color:#ff5a6a!important}.modeBtn.nzCont .mSub{color:#ffb3c0!important}.modeBtn.mainAlt{margin-top:8px}
+#btnNzCont{position:absolute!important;left:50%!important;transform:translateX(-50%)!important;width:min(340px,calc(100% - 16px))!important;bottom:122px!important;margin:0!important;z-index:7!important;background:linear-gradient(180deg,#7a2a3a,#3a1622)!important;color:#fff!important;border-color:#ff5a6a!important}#btnNzCont .lbl{color:#ffc2cc!important}.shopItem{position:relative}.shopItem .soldOut{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-12deg);z-index:3;pointer-events:none;padding:4px 12px;font:400 20px/1 Bangers,system-ui;letter-spacing:.06em;color:#fff;background:#d8322e;border:3px solid #fff;border-radius:6px;box-shadow:0 0 0 3px #7a1210,0 4px 0 rgba(0,0,0,.3);white-space:nowrap}
+.modeBtn.nzCont{background:linear-gradient(180deg,#5a2a3a,#2a1a22)!important;color:#fff!important;border-color:#ff5a6a!important}.modeBtn.nzCont .mSub{color:#ffb3c0!important}.modeBtn.mainAlt{margin-top:8px}
 </style>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -2791,7 +2792,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V520";
+const GAME_VER = "V521";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -6466,7 +6467,8 @@ function renderShop() {
   const CATS = [["TOWERS & WEAPONS", "Build a tower, add weapons", "cTow"], ["SPECIALS", S.nuts ? "Nuts: starter kit + air drops only · USE here" : "Buy, then USE – right here", "cSpe"], ["TRAINING", "Boss-hack practice", "cTra"]];
   const OWN = { snipe: S.snipes, tesla: S.teslas, mix: S.mixers, chomp: S.chomps, ton: S.tons, lock: S.locks, wolf: S.wolves || 0, coach: coachLeft() };
   rows.forEach(r => { const m = r[1].match(/data-shop="(\w+)"/), k = m && m[1]; if (k && k in OWN) r[1] = r[1].replace(/<\/div>\s*$/, `<button data-pocket="${k}" class="useBtn${OWN[k] > 0 ? "" : " none"}" ${OWN[k] > 0 ? "" : "disabled"}>${k === "coach" ? "TRAIN" : "USE"} ×${OWN[k] || 0}</button></div>`); });   // V178w: USE-Knopf immer da (×0 grau) – Layout springt nicht
-  if (S.nuts) rows.forEach(r => { const m = r[1].match(/data-shop="(\w+)"/), k = m && m[1]; if (k && ["snipe","tesla","wolf","mix","chomp","ton","coach","lock"].includes(k)) r[1] = r[1].replace(/<button data-shop="(\w+)" class="([^"]*)"( disabled)?>[\s\S]*?<\/button>/, `<button data-shop="$1" class="$2 off" disabled>NUTS<span class="lbl">no buying</span></button>`).replace('class="shopItem', 'class="shopItem dis'); });   /* V520 */
+  if (S.nuts) rows.forEach(r => { const m = r[1].match(/data-shop="(\w+)"/), k = m && m[1]; if (k && ["snipe","tesla","wolf","mix","chomp","ton","coach","lock"].includes(k)) r[1] = r[1].replace(/<button data-shop="(\w+)" class="([^"]*)"( disabled)?>[\s\S]*?<\/button>/, `<button data-shop="$1" class="$2 off" disabled>NUTS<span class="lbl">no buying</span></button>`).replace('class="shopItem', 'class="shopItem dis'); if (k && k in OWN && !(OWN[k] > 0)) r[1] = r[1].replace(/<\/div>\s*$/, '<i class="soldOut">SOLD OUT</i></div>'); });   /* V520/V521 */
+  if (S.nuts) for (let i = rows.length - 1; i >= 0; i--) if (/data-shop="wolf"/.test(rows[i][1])) rows.splice(i, 1);   /* V521: kein Wolf in Nuts */
   rows.sort((p, q) => p[0] - q[0]);
   CATS.forEach((c, ci) => { const rs = rows.filter(r => CAT(r[1]) === ci); if (!rs.length) return; h += `<div class="shopCat ${c[2]}"><b>${c[0]}</b><span>${c[1]}</span></div>` + rs.map(r => r[1].replace('class="shopItem', `class="shopItem ${c[2]}`)).join(""); });
   h += `<div class="shopSep">Weapon mounts: tap a tower on the field to buy or upgrade · up to ${L.weapons} per tower</div>`;
