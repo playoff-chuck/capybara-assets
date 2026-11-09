@@ -2795,7 +2795,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V543";
+const GAME_VER = "V544";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -6945,7 +6945,29 @@ function tutStart() { TUT.b = { p: S.pieceNo || 0, tw: S.towers.size, wp: [...S.
 { const b = document.createElement("button"); b.id = "bTut"; b.type = "button"; b.setAttribute("aria-label", "Tutorial"); b.hidden = true;
   b.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4 1.5 9 12 14l10.5-5z" fill="#3a2414"/><path d="M5.5 11.2v4.3c0 1.6 2.9 3 6.5 3s6.5-1.4 6.5-3v-4.3L12 14.3z" fill="#3a2414"/><path d="M21 9.3v5.2" stroke="#3a2414" stroke-width="1.6" stroke-linecap="round"/><circle cx="21" cy="15.6" r="1.4" fill="#ffd34a" stroke="#3a2414" stroke-width="1"/></svg><b>HOW TO</b>';
   document.body.appendChild(b);
-  b.addEventListener("click", () => { try { SFX.init(); snd("uiTap"); } catch (e) {} if (!S || !S.started || S.over) return; if (TUT.on) { tutEnd(true); return; } S.paused = false; tutStart(); });
+  b.addEventListener("click", () => { try { SFX.init(); snd("uiTap"); } catch (e) {} if (!S || !S.started || S.over) return; if (TUT.on) { tutEnd(true); return; } tutAsk(); });
+  /* V544: Sicherheitsabfrage im Capybara-Comic-Stil */
+  const st = document.createElement("style"); st.textContent = `#tutAsk{position:fixed;inset:0;z-index:95;display:grid;place-items:center;background:rgba(43,30,18,.45);opacity:0;transition:opacity .2s}
+#tutAsk.on{opacity:1}#tutAsk[hidden]{display:none!important}
+#tutAsk .taCard{position:relative;width:min(84vw,330px);background:#fff7e8;border:3px solid #3a2414;border-radius:24px;box-shadow:0 6px 0 #3a2414,0 14px 30px rgba(0,0,0,.4);padding:58px 18px 18px;text-align:center;transform:scale(.8) rotate(-2deg);transition:transform .32s cubic-bezier(.2,1.6,.4,1)}
+#tutAsk.on .taCard{transform:none}
+#tutAsk .taCard img{position:absolute;left:50%;top:-62px;width:112px;height:112px;object-fit:contain;transform:translateX(-50%);filter:drop-shadow(0 4px 0 rgba(58,36,20,.25))}
+#tutAsk .taHat{position:absolute;right:16px;top:12px;width:42px;height:42px;border-radius:50%;background:#ffd34a;border:2.5px solid #3a2414;display:grid;place-items:center;transform:rotate(12deg)}#tutAsk .taHat svg{width:24px;height:24px}
+#tutAsk b{display:block;font:400 26px/1.05 var(--f-display,"Bangers",sans-serif);letter-spacing:.04em;color:#3a2414;margin:4px 0 8px}
+#tutAsk p{margin:0 0 16px;font:600 15px/1.35 "Baloo 2",Nunito,system-ui,sans-serif;color:#6b4a2b}
+#tutAsk .taBtns{display:flex;gap:10px;justify-content:center}
+#tutAsk button{flex:1;min-height:0;font:400 19px/1 var(--f-display,"Bangers",sans-serif);letter-spacing:.05em;color:#3a2414;border:2.5px solid #3a2414;border-radius:16px;box-shadow:0 4px 0 #3a2414;padding:11px 8px 9px}
+#tutAsk button:active{transform:translateY(3px);box-shadow:0 1px 0 #3a2414}
+#tutAsk .taYes{background:#7fd35a!important;color:#1f3a12!important}#tutAsk .taNo{background:#fff6e6!important}`; document.head.appendChild(st);
+  const ask = document.createElement("div"); ask.id = "tutAsk"; ask.hidden = true;
+  ask.innerHTML = '<div class="taCard"><img alt=""><span class="taHat">' + b.querySelector("svg").outerHTML + '</span><b>START THE TUTORIAL AGAIN?</b><p>We show you everything from the very first step.</p><div class="taBtns"><button type="button" class="taNo">CANCEL</button><button type="button" class="taYes">YES, LET\'S GO</button></div></div>';
+  document.body.appendChild(ask);
+  function tutAskClose(go) { ask.classList.remove("on"); setTimeout(() => { ask.hidden = true; }, 200); try { snd("uiTap"); } catch (e) {} S.coachHold = false; window.__evtLast = performance.now();
+    if (go && S && S.started && !S.over && !TUT.on) { S.paused = false; tutStart(); } }
+  function tutAsk() { try { ask.querySelector("img").src = HERO_IMG[heroKey()]; } catch (e) {} S.coachHold = true; ask.hidden = false; requestAnimationFrame(() => ask.classList.add("on")); try { snd("radio"); } catch (e) {} }
+  ask.querySelector(".taYes").addEventListener("click", e => { e.stopPropagation(); tutAskClose(true); });
+  ask.querySelector(".taNo").addEventListener("click", e => { e.stopPropagation(); tutAskClose(false); });
+  ask.addEventListener("click", e => { if (e.target === ask) tutAskClose(false); });
   setInterval(() => { try { const w = document.getElementById("bWave"), r = w && w.getBoundingClientRect(), ovOpen = [...document.querySelectorAll(".overlay,#ovMap,#ovPause,#ovStart")].some(o => !o.hidden && o.getClientRects().length && getComputedStyle(o).display !== "none");
       const show = !!(r && r.width && S && S.started && !S.over && !S.nuts && !S.replay && !S.testRun && (S.wave || 1) <= 10 && !S.paused && !ovOpen); b.classList.toggle("on", !!TUT.on);
       const dk = document.querySelector(".deck"); if (dk && b.parentNode !== dk) dk.appendChild(b);
