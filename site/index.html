@@ -2790,7 +2790,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V504";
+const GAME_VER = "V505";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -10692,7 +10692,7 @@ body.wowSlow #board{filter:saturate(1.35) contrast(1.06)}
 .mNuts span{position:absolute;left:0;top:0;transform:translate(-50%,-50%) scale(var(--ik,1));width:80px!important;height:64px!important;min-width:0!important;padding:0!important;background:none!important;border:0!important;display:block;filter:drop-shadow(0 0 7px var(--nzF,rgba(120,90,140,.5)))}
 .mNuts{z-index:1}.mPin{z-index:3}   /* V449: Schilder und Pins über den Territorien */
 .mNuts .nzPin{position:absolute;left:-7px;top:30px;width:14px;height:14px;border-radius:50%;border:2.5px solid #2a1a22;background:var(--nzA,#efe6d6);box-sizing:border-box;box-shadow:0 0 8px var(--nzE,#ff8a5a),0 2px 0 rgba(42,26,34,.6);pointer-events:auto;cursor:pointer;animation:nzPin 1.6s ease-in-out infinite}
-.mNuts .nzTag{position:absolute;left:0;top:42px;transform:translateX(-50%);white-space:nowrap;font:400 14px/1 var(--f-display,"Bangers",sans-serif);letter-spacing:.06em;font-style:normal;color:#fff;background:#2a1a22;border:2.5px solid var(--nzA,#efe6d6);border-radius:10px;padding:3px 8px 2px;box-shadow:0 2px 0 #1a0f14,0 0 10px var(--nzF,rgba(120,90,140,.5));pointer-events:auto;cursor:pointer;text-align:center;display:grid;gap:1px}
+.mNuts .nzTag{position:absolute;left:0;top:54px;transform:translateX(-50%);white-space:nowrap;font:400 14px/1 var(--f-display,"Bangers",sans-serif);letter-spacing:.06em;font-style:normal;color:#fff;background:#2a1a22;border:2.5px solid var(--nzA,#efe6d6);border-radius:10px;padding:3px 8px 2px;box-shadow:0 2px 0 #1a0f14,0 0 10px var(--nzF,rgba(120,90,140,.5));pointer-events:auto;cursor:pointer;text-align:center;display:grid;gap:1px}
 .mNuts .nzTag small{font:400 9.5px/1 var(--f-display,"Bangers",sans-serif);letter-spacing:.12em;color:var(--nzA,#efe6d6)}
 .mNuts span{pointer-events:auto;cursor:pointer}.mNuts .nzL{bottom:auto;top:-12px}
 .mNuts.shake .nzTag,.mNuts.shake .nzPin{animation:nzShake .45s ease-in-out 1}
