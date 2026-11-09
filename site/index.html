@@ -32,7 +32,7 @@
 #tipArrow{position:fixed;z-index:71;width:46px;height:60px;pointer-events:none;animation:tipBob .7s ease-in-out infinite}
 @keyframes tipBob{50%{transform:translateY(-8px)}}
 </style><link rel="manifest" href="manifest.webmanifest?v=536"><meta name="theme-color" content="#2b3a22"></head><body>
-<script>try{if(localStorage.getItem("capy-reset")!=="276"){var rk=[];for(var ri=0;ri<localStorage.length;ri++){var rkk=localStorage.key(ri);if(rkk&&/^(tarnturm|capy)/.test(rkk)&&rkk!=="tarnturm-dev"&&rkk!=="capy-cloud")rk.push(rkk);}rk.forEach(function(k){localStorage.removeItem(k);});localStorage.setItem("capy-reset","276");}}catch(e){}
+<script>try{if(localStorage.getItem("capy-reset")!=="276"){var rk=[];for(var ri=0;ri<localStorage.length;ri++){var rkk=localStorage.key(ri);if(rkk&&/^(tarnturm|capy)/.test(rkk)&&rkk!=="tarnturm-dev"&&rkk!=="capy-cloud"&&rkk!=="capy-uid"&&rkk!=="capy-adm")rk.push(rkk);}rk.forEach(function(k){localStorage.removeItem(k);});localStorage.setItem("capy-reset","276");}}catch(e){}
 try{["img/d328f1a428.webp","img/b6f38631c6.webp","img/2510465d7d.webp","img/e24cf5d037.webp"].forEach(function(u){var i=new Image();i.src=u;if(i.decode)i.decode().catch(function(){});(window.__PRE0=window.__PRE0||[]).push(i);});}catch(e){}</script><link rel="preload" as="image" href="img/d328f1a428.webp"><link rel="preload" as="image" href="img/b6f38631c6.webp"><link rel="preload" as="image" href="img/2510465d7d.webp"><link rel="preload" as="image" href="img/logo_main.webp?v=496"><link rel="preload" as="image" href="img/mixer_big.webp"><link rel="preload" as="image" href="img/worldmap.webp"><link rel="preload" as="image" href="img/arrive_samerica.webp"><title>Capybara Squad</title><link rel="apple-touch-icon" href="icons/icon-192.png?v=536"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preload" href="fonts/bangers-400-latin.woff2" as="font" type="font/woff2" crossorigin>
@@ -2795,7 +2795,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V536";
+const GAME_VER = "V537";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -3106,7 +3106,7 @@ function devInfo() { const ua = navigator.userAgent || ""; let os = "Other", m;
   let app = "Web"; try { if (/^android-app:/.test(document.referrer || "") || sessionStorage.getItem("capy-twa")) { app = "Android app"; sessionStorage.setItem("capy-twa", "1"); } else if (matchMedia("(display-mode: standalone)").matches || navigator.standalone) app = "Home screen"; } catch (e) {}
   const scr = `${screen.width}×${screen.height} @${Math.round((devicePixelRatio || 1) * 100) / 100}x`, hw = [navigator.hardwareConcurrency ? navigator.hardwareConcurrency + " cores" : "", navigator.deviceMemory ? navigator.deviceMemory + " GB" : ""].filter(Boolean).join(" · ");
   return [os + (DEVX.model ? " · " + DEVX.model : ""), app + " · " + br, scr + (hw ? " · " + hw : ""), "lang " + (I18N.lang || "en") + " · " + (navigator.language || "")].join(" | "); }
-function capyMe() { try { return localStorage.getItem("tarnturm-dev") === "1" || capyUid() === "M2HL-KCQH"; } catch (e) { return false; } }   /* V534: nur Martin sieht die Version oben */
+function capyMe() { try { return localStorage.getItem("tarnturm-dev") === "1" || capyUid() === "M2HL-KCQH" || !!localStorage.getItem("capy-adm"); } catch (e) { return false; } }   /* V537: + Admin-Schlüssel */   /* V534: nur Martin sieht die Version oben */
 function supportText() { return `Capybara Squad ${GAME_VER} · player ${capyUid()} · ${devInfo()}`; }
 function supportFill() { try { const b = document.getElementById("supBox"); if (!b) return; b.querySelector(".supV").textContent = GAME_VER; b.querySelector(".supU").textContent = capyUid(); b.querySelector(".supD").textContent = devInfo().split(" | ").join("\n"); } catch (e) {} }
 function supportBox() { try { const box = document.querySelector("#ovSettings .joinBox"); if (!box || document.getElementById("supBox")) { supportFill(); return; }
@@ -9081,7 +9081,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     function clearSeq() { seqT.forEach(clearTimeout); seqT = []; }
     function at(ms, f) { seqT.push(setTimeout(f, ms)); }
     function show(m) { mode = m; mapShownAt = performance.now(); ov.classList.remove("skipOk"); clearTimeout(skipT); skipT = setTimeout(() => ov.classList.add("skipOk"), 3000); layout(); ov.hidden = false; ov.className = m === "browse" ? "browse" : "auto"; document.body.classList.add("mapUp"); }
-    function hide() { clearSeq(); try { ov.querySelector(".mapReplay").hidden = true; } catch (e) {} ov.hidden = true; mode = null; document.body.classList.remove("mapUp"); plane.classList.remove("on"); const f = seqDone; seqDone = null; if (f) f(); }
+    function hide() { clearSeq(); try { ov.querySelector(".mapReplay").hidden = true; } catch (e) {} ov.hidden = true; ov.classList.remove("fadeOut"); mode = null; document.body.classList.remove("mapUp"); plane.classList.remove("on"); const f = seqDone; seqDone = null; if (f) f(); }
     /* frei ansehen */
     function openMap(w, why) { clearSeq(); w = w || curWave(); const P = posOf(w); show("browse");
       { const st = document.getElementById("ovStart"), fs = !!(st && !st.hidden && !why); ov.classList.toggle("fromStart", fs);
@@ -9188,7 +9188,8 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
         const ak = ["samerica", "africa", "asia", "namerica", "antarctica"][P.c];
         if (ak && P.c > 0) setTimeout(() => { try { if (!seqDone) return; arrC = document.createElement("div"); arrC.className = "mapArrive"; arrC.innerHTML = `<img src="img/arrive_${ak}.webp" alt=""><div class="maTxt"><small>WORLD TOUR · CONTINENT ${P.c + 1} OF 5</small><b>${contName(P.c)}</b><span>${nice(CONTS[P.c][2][0])} · wave ${w}</span></div>`; arrOrigin(arrC); ov.appendChild(arrC); requestAnimationFrame(() => requestAnimationFrame(() => arrC.classList.add("on"))); setTimeout(() => { try { if (!seqDone) return; const vk = { africa: "welcome_africa", asia: "welcome_asia", namerica: "welcome_namerica" }[ak] || "newcont"; window.__contSaid = w; SFX.say(vk, 1, 1, SFX.reserveVoice(SFX.voiceDur(vk) * 1000 + 400)); } catch (e) {} }, 900); } catch (e) {} }, 700); setTimeout(() => fx("powerup"), 120); setTimeout(() => fx("coin"), 420); });
       
-      at(13200 - sk, hide); }   /* V536: +1,4 s für das langsamere Öffnen */   /* V316: Ankunftsbild 2,5 s, dann direkt zum Spielscreen (Martin 12:50) */
+      at(13200 - sk, () => ov.classList.add("fadeOut"));   /* V537: Blende statt Schnitt */
+      at(14000 - sk, hide); }   /* V316: Ankunftsbild 2,5 s, dann direkt zum Spielscreen (Martin 12:50) */
     function playIntro(done) { let arr = null;
       seqDone = () => { try { arr && arr.remove(); } catch (e) {} try { if (SFX.music.playing < 1) SFX.music.start(1); } catch (e) {} if (done) done(); };
       show("auto"); drawPins(-1); setMe(MAP_PTS[0][0], false); label("", "Welcome to Capybara World!", "5 continents · 30 places · 150 waves"); window.__introAt = performance.now();
@@ -9202,8 +9203,8 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
       at(6700, () => { arr = document.createElement("div"); arr.className = "mapArrive"; arr.innerHTML = `<img src="img/arrive_samerica.webp" alt=""><div class="maTxt"><small>WORLD TOUR · STOP 1 OF 30</small><b>SOUTH AMERICA</b><span>River Bank · wave 1</span></div>`;
         arrOrigin(arr); ov.appendChild(arr); requestAnimationFrame(() => requestAnimationFrame(() => arr.classList.add("on")));
         setTimeout(() => { try { if (SFX.music.playing < 1) SFX.music.start(1); } catch (e) {} }, 1500); try { SFX.say && SFX.say("welcome", 1.0, 1.0, "welcome"); } catch (e) {} });
-      at(10400, () => { try { arr && arr.classList.remove("on"); } catch (e) {} });   /* V536: Öffnen 2,8 s statt 1,4 s */
-      at(12000, hide); }
+      at(10400, () => ov.classList.add("fadeOut"));   /* V537: Bild bleibt, dann Blende in den Spielscreen (kein Zurückschrumpfen) */
+      at(11200, hide); }
     /* Einhängen vor dem Wellenstart */
     let busy = false, pendSW = null;
     const _sw2 = startWave; startWave = function () { const a = arguments, self = this;
@@ -10904,7 +10905,7 @@ header .brand .logoFull{height:54px!important;width:auto!important}
 <style id="v224">
 /* V224 Weltkarte */
 #ovMap{position:fixed;inset:0;z-index:990;background:#6faaab;overflow:hidden;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
-#ovMap[hidden]{display:none!important}
+#ovMap[hidden]{display:none!important}#ovMap.fadeOut{opacity:0;transition:opacity .8s ease;pointer-events:none}
 #ovMap .mapVp{position:absolute;inset:0;overflow:hidden}
 #ovMap .mapVp::after{content:"";position:absolute;left:-6px;right:-6px;bottom:-6px;height:calc(env(safe-area-inset-bottom,0px) + 86px);background:linear-gradient(0deg,#3a2414 0,#3a2414 calc(env(safe-area-inset-bottom,0px) + 20px),#fff7e8 calc(env(safe-area-inset-bottom,0px) + 20px),#fff7e8 calc(env(safe-area-inset-bottom,0px) + 24px),rgba(58,36,20,.55) calc(env(safe-area-inset-bottom,0px) + 24px),rgba(58,36,20,0) 100%);pointer-events:none;z-index:4}   /* V459: Rahmen unten + Ausblenden */   /* V454: Comic-Rand unten (Martin 08.11. 14:01) */
 #ovMap .mapVp::before{content:"";position:absolute;left:-6px;right:-6px;top:-6px;height:calc(env(safe-area-inset-top,0px) + 86px);background:linear-gradient(180deg,#3a2414 0,#3a2414 calc(env(safe-area-inset-top,0px) + 20px),#fff7e8 calc(env(safe-area-inset-top,0px) + 20px),#fff7e8 calc(env(safe-area-inset-top,0px) + 24px),rgba(58,36,20,.55) calc(env(safe-area-inset-top,0px) + 24px),rgba(58,36,20,0) 100%);pointer-events:none;z-index:4}   /* V459: Rahmen oben + Ausblenden */   /* dazu Ausblenden über dem Rand */

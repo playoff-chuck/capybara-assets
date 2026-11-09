@@ -37,7 +37,7 @@ EVENT_MAX_BODY = 8192
 EVENTS_PER_MIN = 20
 EVENT_KINDS = ("start", "error", "leave", "back", "wave")
 UID_RE = re.compile(r"[A-Z0-9]{4}-[A-Z0-9]{4}")
-ADMIN_UID = "M2HL-KCQH"
+ADMIN_UIDS = ("M2HL-KCQH", "BEEM-MGDC", "5478-BQ27")   # Martins Geräte (neu nach Reset 09.11.)
 PLAYER_PER_MIN = 8
 PLAYER_MAX_BODY = 6000
 PLAYER_RETENTION_DAYS = 730
@@ -487,7 +487,7 @@ class H(BaseHTTPRequestHandler):
                 if not rate_ok(self.client_ip(), "ad", 6):
                     return self.send_json(429, {"error": "too many requests"})
                 d = self.parse_json(raw, n)
-                if d.get("uid") != ADMIN_UID:
+                if d.get("uid") not in ADMIN_UIDS:
                     return self.send_json(403, {"error": "forbidden"})
                 with db() as c:
                     if c.execute("SELECT 1 FROM kv WHERE k='admin:claimed'").fetchone():
