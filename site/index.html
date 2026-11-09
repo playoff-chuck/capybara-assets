@@ -2790,7 +2790,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V499";
+const GAME_VER = "V500";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -5823,7 +5823,7 @@ function wowElite(t) {
     : ch(b, 1.0, 0, ""));
   if (spr) { const ims = [d.querySelector(".wpSpr"), d.querySelector(".wpSpr2")]; const seq = [1, 2, 3, 4, 5, 6, 5, 4, 3, 2]; let i = 0, top = 0; const iv = setInterval(() => { if (!document.body.contains(d)) { clearInterval(iv); return; } i = (i + 1) % seq.length; top = 1 - top; ims[top].src = `img/${sp}_${seq[i]}.webp`; ims[top].style.opacity = "1"; ims[1 - top].style.opacity = "0"; }, 320); }   /* V454: weich überblendet statt hartem Bildwechsel */
   document.body.appendChild(d); snd("engine");
-  setTimeout(() => { if (S.over) return; t.eliteT = 60; snd("powerup"); wowBuzz([40, 40, 90]); announce("ELITE TOWER", `${b === "rosie" ? "Rosie" : "Blue"} brings the Elite tower · 2× fire rate for 60 s`, "SQUAD", 2400); }, 3600);
+  setTimeout(() => { if (S.over) return; t.eliteT = 180; snd("powerup"); wowBuzz([40, 40, 90]); announce("ELITE TOWER", `${b === "rosie" ? "Rosie" : "Blue"} brings the Elite tower · 2× fire rate for 180 s`, "SQUAD", 2400); }, 3600);
   setTimeout(() => d.remove(), 4200);
 }
 function stackTopRow() { for (let y = 0; y < GH; y++) for (let x = 0; x < GW; x++) if (S.grid[y * GW + x]) return y; return GH; }
@@ -6323,7 +6323,7 @@ function renderManual() {
     ["ton", ICON.ton, "Ten-ton drop", `${TON_COST} gold · giant weight: crushes every monster above the stack and squeezes all blocks to half. HQ drops a free one before weed seeds land.`, "ton"],
     ["lock", ICON.lock, "Lockdown", `${LOCK_COST} gold · ${LOCK_TIME} s time stop. Free every ${LOCK_NEED} rows.`, "lock"],
     ["wolf", ICON.tesla, "Wolf call", `${WOLF_COST} gold · a howl in the dark: the raccoon thief drops your gold and runs. Also a Lucky Supply prize.`, "wolf"],
-    ["elite", "", "Elite tower", `Not for sale · your partner parachutes in with it. 60 s pink laser that burns everything on its line. Waves 6, 56 and 106.`, "elite"],
+    ["elite", "", "Elite tower", `Not for sale · your partner parachutes in with it. 180 s pink laser that burns everything on its line. Waves 6, 56 and 106.`, "elite"],
   ];   /* V452: alle Gadgets, Sprite-Icons */
   const gIcon = (k, icon) => k === "elite" ? `<img class="gIco" src="img/chute_1.webp" alt="">` : (typeof ICO_SPR !== "undefined" && ICO_SPR[k]) ? `<img class="gIco" src="${ICO_SPR[k]}" alt="">` : icon;
   const gTag = k => k === "elite" ? `<em class="elite">W6 · 56 · 106</em>` : k === "wolf" ? tag(WOLF_W) : tag(unlockedAt(k));
