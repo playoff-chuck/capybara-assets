@@ -2795,7 +2795,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V538";
+const GAME_VER = "V539";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -9187,7 +9187,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
       at(7200 - sk, () => { go(contCam(P.c), 1300); });
       at(8600 - sk, () => { setMe(MAP_PTS[P.c][0], true); label(contName(P.c), `Welcome to ${nice(contName(P.c))}!`, `First stop: ${nice(CONTS[P.c][2][0])}`); fx("tonHit");
         const ak = ["samerica", "africa", "asia", "namerica", "antarctica"][P.c];
-        if (ak && P.c > 0) setTimeout(() => { try { if (!seqDone) return; arrC = document.createElement("div"); arrC.className = "mapArrive"; arrC.innerHTML = `<img src="img/arrive_${ak}.webp" alt=""><div class="maTxt"><small>WORLD TOUR · CONTINENT ${P.c + 1} OF 5</small><b>${contName(P.c)}</b><span>${nice(CONTS[P.c][2][0])} · wave ${w}</span></div>`; arrOrigin(arrC); ov.appendChild(arrC); requestAnimationFrame(() => requestAnimationFrame(() => arrC.classList.add("on"))); setTimeout(() => { try { if (!seqDone) return; const vk = { africa: "welcome_africa", asia: "welcome_asia", namerica: "welcome_namerica" }[ak] || "newcont"; window.__contSaid = w; SFX.say(vk, 1, 1, SFX.reserveVoice(SFX.voiceDur(vk) * 1000 + 400)); } catch (e) {} }, 900); } catch (e) {} }, 700); setTimeout(() => fx("powerup"), 120); setTimeout(() => fx("coin"), 420); });
+        if (ak && P.c > 0) setTimeout(() => { try { if (!seqDone) return; arrC = document.createElement("div"); arrC.className = "mapArrive"; arrC.innerHTML = `<img src="img/arrive_${ak}.webp" alt=""><div class="maTxt"><small>WORLD TOUR · CONTINENT ${P.c + 1} OF 5</small><b>${contName(P.c)}</b><span>${nice(CONTS[P.c][2][0])} · wave ${w}</span></div>`; arrOrigin(arrC); ov.appendChild(arrC); requestAnimationFrame(() => requestAnimationFrame(() => arrC.classList.add("on"))); setTimeout(() => { try { arrC && arrC.classList.add("zin"); } catch (e) {} }, 2700);   /* V539 */ setTimeout(() => { try { if (!seqDone) return; const vk = { africa: "welcome_africa", asia: "welcome_asia", namerica: "welcome_namerica" }[ak] || "newcont"; window.__contSaid = w; SFX.say(vk, 1, 1, SFX.reserveVoice(SFX.voiceDur(vk) * 1000 + 400)); } catch (e) {} }, 900); } catch (e) {} }, 700); setTimeout(() => fx("powerup"), 120); setTimeout(() => fx("coin"), 420); });
       
       at(13200 - sk, () => ov.classList.add("fadeOut"));   /* V537: Blende statt Schnitt */
       at(14000 - sk, hide); }   /* V316: Ankunftsbild 2,5 s, dann direkt zum Spielscreen (Martin 12:50) */
@@ -9204,6 +9204,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
       at(6700, () => { arr = document.createElement("div"); arr.className = "mapArrive"; arr.innerHTML = `<img src="img/arrive_samerica.webp" alt=""><div class="maTxt"><small>WORLD TOUR · STOP 1 OF 30</small><b>SOUTH AMERICA</b><span>River Bank · wave 1</span></div>`;
         arrOrigin(arr); ov.appendChild(arr); requestAnimationFrame(() => requestAnimationFrame(() => arr.classList.add("on")));
         setTimeout(() => { try { if (SFX.music.playing < 1) SFX.music.start(1); } catch (e) {} }, 1500); try { SFX.say && SFX.say("welcome", 1.0, 1.0, "welcome"); } catch (e) {} });
+      at(9400, () => { try { arr && arr.classList.add("zin"); } catch (e) {} });   /* V539: nach dem Öffnen langsam hineinzoomen */
       at(10400, () => ov.classList.add("fadeOut"));   /* V537: Bild bleibt, dann Blende in den Spielscreen (kein Zurückschrumpfen) */
       at(11200, hide); }
     /* Einhängen vor dem Wellenstart */
@@ -11399,7 +11400,7 @@ button .lk{font-style:normal;white-space:nowrap}
 #ovMap .mapArrive.fromPt{opacity:1;clip-path:circle(0px at var(--ox,50%) var(--oy,50%));transition:clip-path 1.4s cubic-bezier(.55,0,.3,1)}
 #ovMap .mapArrive.fromPt.on{clip-path:circle(150vmax at var(--ox,50%) var(--oy,50%));transition:clip-path 2.8s cubic-bezier(.55,0,.3,1)}
 #ovMap .mapArrive.fromPt img{transform:none;transition:none}
-#ovMap .mapArrive.fromPt.on img{transform:none}
+#ovMap .mapArrive.fromPt.on img{transform:none}#ovMap .mapArrive.fromPt.on.zin img{transform:scale(1.22);transition:transform 2.2s cubic-bezier(.3,0,.7,1)}
 </style>
 
 <style id="v278free">
