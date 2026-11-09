@@ -2792,7 +2792,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V523";
+const GAME_VER = "V524";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -8999,14 +8999,19 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
       const kW = (W - 2 * mX) / Math.max(.004, (x1 - x0) * BW), kH = hh / Math.max(.004, (y1 - y0) * BW * MAP_AR), kMin = Math.max(1.6, H / (2 * BW * MAP_AR) + .1);
       const k = Math.max(kMin, Math.min(4.2, kW, kH));
       return { x: (x0 + x1) / 2, y: (y0 + y1) / 2, k, fit: 1, sy: B.top + mT + hh / 2, kmin: Math.min(k, Math.max(W / BW, H / (BW * MAP_AR))) }; }
-    function declutter() { try { const ems = [...pinsEl.querySelectorAll(".mPin em")]; ems.forEach(e => e.classList.remove("dn", "hid"));
-        const cur = pinsEl.querySelector(".mPin.cur em"), obs = [];
-        for (const sel of [".mapTop", ".mapBar", ".mapRose"]) { const el = ov.querySelector(sel); if (el && el.getClientRects().length) obs.push(el.getBoundingClientRect()); }
-        const W = vp.clientWidth, H = vp.clientHeight, placed = [];
-        const bad = r => r.left < 2 || r.right > W - 2 || r.top < 2 || r.bottom > H - 2 || obs.some(q => r.left < q.right && r.right > q.left && r.top < q.bottom && r.bottom > q.top) || placed.some(q => r.left < q.right + 4 && r.right > q.left - 4 && r.top < q.bottom + 2 && r.bottom > q.top - 2);
-        for (const e of [cur, ...ems.filter(x => x !== cur)]) { if (!e) continue; let r = e.getBoundingClientRect();
-          if (e !== cur && bad(r)) { e.classList.add("dn"); r = e.getBoundingClientRect(); if (bad(r)) { e.classList.add("hid"); continue; } }
-          placed.push(r); } } catch (e) {} }
+    function declutter() { try {   /* V524: keine Überschneidungen – jedes Schild sucht sich einen freien Platz */
+        const PC = ["dn", "lf", "rt", "hid"], all = [...pinsEl.querySelectorAll(".mPin em, .nzTag, .nzL")]; all.forEach(e => e.classList.remove(...PC));
+        const obs = []; for (const sel of [".mapTop", ".mapBar", ".mapRose"]) { const el = ov.querySelector(sel); if (el && el.getClientRects().length) obs.push(el.getBoundingClientRect()); }
+        const dots = [...pinsEl.querySelectorAll(".mPin i, .nzPin")].filter(d => d.getClientRects().length).map(d => [d, d.getBoundingClientRect()]);
+        const W = vp.clientWidth, H = vp.clientHeight, placed = [], hit = (r, q, m) => r.left < q.right + m && r.right > q.left - m && r.top < q.bottom + m && r.bottom > q.top - m;
+        const bad = (e, r, strict) => r.left < 2 || r.right > W - 2 || r.top < 2 || r.bottom > H - 2 || obs.some(q => hit(r, q, 0)) || placed.some(q => hit(r, q, 3))
+          || (strict && dots.some(([d, q]) => !e.parentNode.contains(d) && hit(r, q, 1)));
+        const cur = pinsEl.querySelector(".mPin.cur em"), nz = [...pinsEl.querySelectorAll(".nzTag, .nzL")].filter(e => e.getClientRects().length);
+        const order = [cur, ...nz, ...all.filter(e => e !== cur && !nz.includes(e) && e.matches(".mPin em"))].filter(Boolean);
+        for (const e of order) { let ok = false;
+          for (const strict of [true, false]) { for (const c of ["", "dn", "lf", "rt"]) { e.classList.remove(...PC); if (c) e.classList.add(c); const r = e.getBoundingClientRect();
+              if (!r.width || !bad(e, r, strict) || (e === cur && !c && !strict)) { placed.push(r); ok = true; break; } } if (ok) break; }
+          if (!ok) { e.classList.remove(...PC); e.classList.add("hid"); } } } catch (e) {} }
     window.__mapDeclutter = declutter;
     function worldCam() { const W = vp.clientWidth, H = vp.clientHeight; return { x: .5, y: .5, k: Math.max(1, Math.min(H / (BW * MAP_AR) * .62, 2.2)) }; }
     function go(c, ms) { cam = c; window.__camHold = ms ? performance.now() + ms : 0; apply(ms); clearTimeout(go._t); go._t = setTimeout(declutter, (ms || 0) + 80); }   /* V370: Verfolgung pausiert, solange der Schwenk läuft */
@@ -11425,6 +11430,9 @@ body.awOn #ovHs[hidden],body.awOn #ovAlbum[hidden],body.awOn #ovSquad[hidden]{di
 #ovMap .mPin.open em.sub{color:#7a6a52}
 #ovMap .mPin em.dn{top:24px!important;transform:translate(-50%,0)!important}
 #ovMap .mPin em.hid{visibility:hidden}
+#ovMap .mPin em.lf{top:0!important;left:-14px!important;transform:translate(-100%,-50%)!important}#ovMap .mPin em.rt{top:0!important;left:14px!important;transform:translate(0,-50%)!important}
+.mNuts .nzTag.dn{top:-58px!important}.mNuts .nzTag.lf{top:22px!important;left:-44px!important;transform:translate(-100%,0)!important}.mNuts .nzTag.rt{top:22px!important;left:44px!important;transform:none!important}.mNuts .nzTag.hid{visibility:hidden}
+.mNuts .nzL.dn{top:auto!important;bottom:-4px!important}.mNuts .nzL.lf{left:0!important;top:50%!important;transform:translate(-100%,-50%)!important}.mNuts .nzL.rt{left:100%!important;top:50%!important;transform:translate(0,-50%)!important}.mNuts .nzL.hid{visibility:hidden}
 /* V418: SHARE */
 .shareBtn{align-self:center!important;margin:0 0 0 10px!important;min-height:0!important;height:30px!important;width:auto!important;padding:0 14px!important;border-radius:999px!important;border:2px solid #3a2414!important;background:#ff5fa2!important;color:#fff!important;font-family:Bangers,system-ui!important;font-size:16px!important;letter-spacing:.06em!important;line-height:1!important;box-shadow:0 3px 0 #3a2414!important;display:inline-flex!important;flex-direction:row!important;align-items:center!important;justify-content:center!important;flex:0 0 auto!important;gap:0!important}
 .shareBtn::before{content:"";width:14px;height:14px;margin-right:6px;background:no-repeat center/contain url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='18' cy='5' r='3' fill='white'/%3E%3Ccircle cx='6' cy='12' r='3' fill='white'/%3E%3Ccircle cx='18' cy='19' r='3' fill='white'/%3E%3Cpath d='M8.6 13.5l6.8 4M15.4 6.5l-6.8 4' stroke='white' stroke-width='2.2'/%3E%3C/svg%3E")}
