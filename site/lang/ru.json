@@ -1903,5 +1903,8 @@
 "MAX": "МАКС",
 "LASER": "ЛАЗЕР",
 "Your Ten-ton drop is waiting in the SHOP. Tap SHOP.": "Твоя Десятитонка ждёт в МАГАЗИНЕ. Нажми МАГАЗИН.",
-"Tap USE at the Ten-ton drop. It crushes monsters and squeezes your stack to half.": "Нажми ПРИМЕНИТЬ у Десятитонки. Она давит монстров и сжимает стопку вдвое."
+"Tap USE at the Ten-ton drop. It crushes monsters and squeezes your stack to half.": "Нажми ПРИМЕНИТЬ у Десятитонки. Она давит монстров и сжимает стопку вдвое.",
+"LASER SHOW": "ЛАЗЕРНОЕ ШОУ",
+"Only the red outline shows your block": "Твой блок виден только по красному контуру",
+"watch out for fake lasers": "осторожно, фальшивые лазеры"
 }

@@ -1904,5 +1904,8 @@
 "MAX": "MAX",
 "LASER": "LASER",
 "Your Ten-ton drop is waiting in the SHOP. Tap SHOP.": "Dein Zehntonner wartet im SHOP. Tippe auf SHOP.",
-"Tap USE at the Ten-ton drop. It crushes monsters and squeezes your stack to half.": "Tippe beim Zehntonner auf NUTZEN. Er zerquetscht Monster und drückt deinen Stapel auf die Hälfte."
+"Tap USE at the Ten-ton drop. It crushes monsters and squeezes your stack to half.": "Tippe beim Zehntonner auf NUTZEN. Er zerquetscht Monster und drückt deinen Stapel auf die Hälfte.",
+"LASER SHOW": "LASERSHOW",
+"Only the red outline shows your block": "Nur die rote Kontur zeigt deinen Stein",
+"watch out for fake lasers": "Vorsicht vor falschen Lasern"
 }

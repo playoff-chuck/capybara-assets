@@ -1911,5 +1911,8 @@
 "MAX": "MÁX",
 "LASER": "LÁSER",
 "Your Ten-ton drop is waiting in the SHOP. Tap SHOP.": "Tu Diez Toneladas te espera en la TIENDA. Toca TIENDA.",
-"Tap USE at the Ten-ton drop. It crushes monsters and squeezes your stack to half.": "Toca USAR en Diez Toneladas. Aplasta monstruos y reduce tu pila a la mitad."
+"Tap USE at the Ten-ton drop. It crushes monsters and squeezes your stack to half.": "Toca USAR en Diez Toneladas. Aplasta monstruos y reduce tu pila a la mitad.",
+"LASER SHOW": "SHOW LÁSER",
+"Only the red outline shows your block": "Solo el contorno rojo muestra tu bloque",
+"watch out for fake lasers": "cuidado con los láseres falsos"
 }
