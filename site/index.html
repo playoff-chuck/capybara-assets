@@ -2793,7 +2793,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V528";
+const GAME_VER = "V529";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -10716,6 +10716,7 @@ body:has(#ovStart:not([hidden])) #btnGear,body:has(#ovStart:not([hidden])) .gear
 <style id="v217">
 #stLogo{position:fixed!important;left:50%!important;margin-left:-62px!important;top:calc(env(safe-area-inset-top,0px) + 0px)!important;width:124px!important;height:126px!important;object-fit:contain;z-index:80!important;filter:drop-shadow(0 3px 4px rgba(0,0,0,.35));cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none}
 #ovStart[hidden] #stLogo,#ovStart:not(.artReady) #stLogo{display:none!important}
+body:has(.overlay.joinOv:not([hidden])) #stMute,body:has(.overlay.joinOv:not([hidden])) #stLogo,body:has(#ovDaily:not([hidden])) #stMute{display:none!important}
 body:has(#ovStart:not([hidden])) header .brand .logoFull,body:has(#ovStart:not([hidden])) header .brand{visibility:hidden!important}
 </style>
 <style id="v218">
