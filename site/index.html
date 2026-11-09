@@ -2326,6 +2326,7 @@ body.inNuts #btnPRestart{display:none!important}
 .ofRow .mcCard,.ofNext .mcCard{position:relative}canvas.ofPv{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:2}
 .ofNext{display:flex;align-items:center;gap:10px;margin:0 0 8px;padding:6px 8px;border-radius:12px;background:#f3e6cc;border:2px dashed #c9a87a}.ofNext .ofSil{width:64px;flex:0 0 64px;padding:2px;cursor:pointer;overflow:hidden}.ofNext .ofSil img{width:100%;display:block;filter:brightness(0) opacity(.55)}.ofNextTx{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-width:0}.ofNextTx b{font-family:Bangers,system-ui;font-size:17px;letter-spacing:.04em;color:#3a2414}.ofNextTx small{font-size:11px;color:#8a6a4a;overflow-wrap:anywhere}.ofNextTx .shareBtn{margin:4px 0 0!important}
 #ovSettings .setRow{flex-wrap:wrap}
+#supBox{margin-top:12px;padding:10px 12px;border:2px dashed rgba(58,36,20,.35);border-radius:12px;text-align:left}#supBox .supGrid{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;font:500 12px/1.3 ui-monospace,Menlo,monospace;margin:6px 0 8px}#supBox .supGrid span{opacity:.65;font-family:inherit}#supBox .supGrid b{font-weight:700;white-space:pre-wrap;word-break:break-word}#supBox #supCopy{width:100%}
 #btnNzCont{position:absolute!important;left:50%!important;transform:translateX(-50%)!important;width:min(340px,calc(100% - 16px))!important;bottom:122px!important;margin:0!important;z-index:7!important;background:linear-gradient(180deg,#7a2a3a,#3a1622)!important;color:#fff!important;border-color:#ff5a6a!important}#btnNzCont .lbl{color:#ffc2cc!important}.shopItem{position:relative}.shopItem .soldOut{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-12deg);z-index:3;pointer-events:none;padding:4px 12px;font:400 20px/1 Bangers,system-ui;letter-spacing:.06em;color:#fff;background:#d8322e;border:3px solid #fff;border-radius:6px;box-shadow:0 0 0 3px #7a1210,0 4px 0 rgba(0,0,0,.3);white-space:nowrap}
 .modeBtn.nzCont{background:linear-gradient(180deg,#5a2a3a,#2a1a22)!important;color:#fff!important;border-color:#ff5a6a!important}.modeBtn.nzCont .mSub{color:#ffb3c0!important}.modeBtn.mainAlt{margin-top:8px}
 </style>
@@ -2792,7 +2793,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V524";
+const GAME_VER = "V525";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -3089,6 +3090,28 @@ function outfitSel(k) { if (FX_FORCE != null) return FX_FORCE; try { const n = +
 function heroDisco() { try { const s = window.__TT && window.__TT.S; return !!(s && s.nuts); } catch (e) { return false; } }   /* V466: Nuts = 80er-Disco-Outfit */
 function fxPref() { try { return localStorage.getItem("capy-fx"); } catch (e) { return null; } }   /* V494: on | off | auto-off | null */
 function fxOn() { const p = fxPref(); return p !== "off" && p !== "auto-off"; }
+/* V525: Spieler-Nummer + Geräte-Info für Support */
+function capyUid() { let u = ""; try { u = localStorage.getItem("capy-uid") || ""; } catch (e) {}
+  if (!/^[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(u)) { const A = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; let r; try { r = crypto.getRandomValues(new Uint8Array(8)); } catch (e) { r = Array.from({ length: 8 }, () => Math.random() * 256 | 0); }
+    u = Array.from(r, x => A[x % 32]).join(""); u = u.slice(0, 4) + "-" + u.slice(4); try { localStorage.setItem("capy-uid", u); } catch (e) {} }
+  return u; }
+const DEVX = { model: "", osv: "" };
+try { navigator.userAgentData && navigator.userAgentData.getHighEntropyValues && navigator.userAgentData.getHighEntropyValues(["model", "platformVersion"]).then(v => { DEVX.model = v.model || ""; DEVX.osv = v.platformVersion || ""; supportFill(); }).catch(() => {}); } catch (e) {}
+function devInfo() { const ua = navigator.userAgent || ""; let os = "Other", m;
+  if ((m = /Android ([\d.]+)/.exec(ua))) os = "Android " + m[1]; else if ((m = /(iPhone|iPad|iPod).*OS (\d+[_\d]*)/.exec(ua))) os = m[1] + " iOS " + m[2].replace(/_/g, "."); else if (/Macintosh/.test(ua)) os = navigator.maxTouchPoints > 1 ? "iPad (desktop mode)" : "macOS"; else if (/Windows/.test(ua)) os = "Windows"; else if (/CrOS/.test(ua)) os = "ChromeOS"; else if (/Linux/.test(ua)) os = "Linux";
+  const br = (m = /SamsungBrowser\/([\d]+)/.exec(ua)) ? "Samsung Internet " + m[1] : (m = /Edg\w*\/([\d]+)/.exec(ua)) ? "Edge " + m[1] : (m = /OPR\/([\d]+)/.exec(ua)) ? "Opera " + m[1] : (m = /YaBrowser\/([\d]+)/.exec(ua)) ? "Yandex " + m[1] : (m = /Firefox\/([\d]+)/.exec(ua)) ? "Firefox " + m[1] : (m = /CriOS\/([\d]+)/.exec(ua)) ? "Chrome iOS " + m[1] : (m = /Chrome\/([\d]+)/.exec(ua)) ? "Chrome " + m[1] : (m = /Version\/([\d.]+).*Safari/.exec(ua)) ? "Safari " + m[1] : "Browser";
+  let app = "Web"; try { if (/^android-app:/.test(document.referrer || "") || sessionStorage.getItem("capy-twa")) { app = "Android app"; sessionStorage.setItem("capy-twa", "1"); } else if (matchMedia("(display-mode: standalone)").matches || navigator.standalone) app = "Home screen"; } catch (e) {}
+  const scr = `${screen.width}×${screen.height} @${Math.round((devicePixelRatio || 1) * 100) / 100}x`, hw = [navigator.hardwareConcurrency ? navigator.hardwareConcurrency + " cores" : "", navigator.deviceMemory ? navigator.deviceMemory + " GB" : ""].filter(Boolean).join(" · ");
+  return [os + (DEVX.model ? " · " + DEVX.model : ""), app + " · " + br, scr + (hw ? " · " + hw : ""), "lang " + (I18N.lang || "en") + " · " + (navigator.language || "")].join(" | "); }
+function supportText() { return `Capybara Squad ${GAME_VER} · player ${capyUid()} · ${devInfo()}`; }
+function supportFill() { try { const b = document.getElementById("supBox"); if (!b) return; b.querySelector(".supV").textContent = GAME_VER; b.querySelector(".supU").textContent = capyUid(); b.querySelector(".supD").textContent = devInfo().split(" | ").join("\n"); } catch (e) {} }
+function supportBox() { try { const box = document.querySelector("#ovSettings .joinBox"); if (!box || document.getElementById("supBox")) { supportFill(); return; }
+    const d = document.createElement("div"); d.id = "supBox"; d.innerHTML = `<div class="hpHead">SUPPORT INFO</div><div class="supGrid"><span>Version</span><b class="supV" translate="no"></b><span>Player no.</span><b class="supU" translate="no"></b><span>Device</span><b class="supD" translate="no"></b></div><button id="supCopy" class="btn-small" type="button">COPY</button>`;
+    box.appendChild(d); supportFill();
+    d.querySelector("#supCopy").addEventListener("click", () => { const t = supportText(), ok = () => { try { snd("uiTap"); toast("COPIED · paste it into your message to us", "HQ", 2200); } catch (e) {} };
+      try { navigator.clipboard.writeText(t).then(ok, () => { fallback(); }); } catch (e) { fallback(); }
+      function fallback() { try { const ta = document.createElement("textarea"); ta.value = t; ta.style.position = "fixed"; ta.style.opacity = "0"; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove(); ok(); } catch (e) {} } }); } catch (e) {} }
+new MutationObserver(() => { const o = document.getElementById("ovSettings"); if (o && !o.hidden) supportBox(); }).observe(document.getElementById("ovSettings") || document.body, { attributes: true, attributeFilter: ["hidden"] });
 function fxLabel() { const b = $("setFx"); if (b) b.textContent = "EFFECTS: " + (fxOn() ? "ON" : fxPref() === "auto-off" ? "OFF (AUTO)" : "OFF"); }
 const FX_WEAK = (() => { try { return (navigator.hardwareConcurrency > 0 && navigator.hardwareConcurrency <= 2) || (navigator.deviceMemory > 0 && navigator.deviceMemory <= 2); } catch (e) { return false; } })();
 function fxAutoOff(why) { if (fxPref() != null || FX_FORCE != null) return; try { localStorage.setItem("capy-fx", "auto-off"); } catch (e) {} fxLabel(); try { if (S && S.fx) S.fx = S.fx.filter(f => f.type !== "ofx"); } catch (e) {} try { toast("EFFECTS OFF · smoother play on this phone", "HQ", 2400); } catch (e) {} }
@@ -8866,7 +8889,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
 })();
 
   /* V192: Versionsnummer auf Start- und Intro-Screen */
-  try { ["ovStart", "splash"].forEach(id => { const o = document.getElementById(id); if (o && !o.querySelector(".verTag")) { const t = document.createElement("div"); t.className = "verTag"; t.textContent = GAME_VER; o.appendChild(t); } }); } catch (e) {}
+  try { ["ovStart", "splash"].forEach(id => { const o = document.getElementById(id); if (o && !o.querySelector(".verTag")) { const t = document.createElement("div"); t.className = "verTag"; t.textContent = GAME_VER + "\n" + capyUid(); o.appendChild(t); } }); } catch (e) {}
   /* V192: Einblendungen während des Spiels (neues Monster, Gadget, Kontinent, Squad, Tipps …) – 2 s gesperrt, dann erscheint der Knopf */
   try {
     const LOCK_IDS = ["ovIntro", "ovJoin", "ovCamp", "ovWave", "ovLines", "ovKills", "ovTime", "ovGive", "ovOrders"];
@@ -10469,7 +10492,7 @@ body.ovUp #genAv,body.ovUp #waveNum,body.ovUp #bPauseTop,body.ovUp #bWave,body.o
 .ovLock::before{content:"";position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 18px);width:120px;height:4px;margin-left:-60px;border-radius:4px;background:#ffd75e;z-index:1;transform-origin:left;animation:ovLockBar 2s linear forwards}
 @keyframes ovLockBar{from{transform:scaleX(0)}to{transform:scaleX(1)}}
 /* V192 Versionsnummer */
-.verTag{position:absolute;top:calc(env(safe-area-inset-top,0px) + 4px);right:8px;z-index:50;font:600 10px/1 ui-monospace,Menlo,monospace;letter-spacing:.04em;color:#fff;opacity:.75;text-shadow:0 1px 2px rgba(0,0,0,.7);pointer-events:none}
+.verTag{white-space:pre;text-align:right;line-height:1.25!important;position:absolute;top:calc(env(safe-area-inset-top,0px) + 4px);right:8px;z-index:50;font:600 10px/1 ui-monospace,Menlo,monospace;letter-spacing:.04em;color:#fff;opacity:.75;text-shadow:0 1px 2px rgba(0,0,0,.7);pointer-events:none}
 /* V192 Shop-Höhe: sichtbare Bildschirmhöhe (dvh) statt 100vh – Handy-Leisten schneiden nichts mehr ab */
 body:has(#sheet:not([hidden])) #sheet{max-height:calc(100dvh - 66px - env(safe-area-inset-top,0px))!important;bottom:auto!important}
 body:has(#sheet:not([hidden])) #sheet.atBottom{top:auto!important;bottom:0!important;border-radius:22px 22px 0 0}   /* V442: Menü unten, wenn der Turm oben steht */
