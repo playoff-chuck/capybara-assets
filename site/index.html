@@ -2790,7 +2790,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V507";
+const GAME_VER = "V508";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -5936,7 +5936,17 @@ function stepTon(dt) {
   }
 }
 const TON_IMG = new Image(); TON_IMG.src = "img/ton_weight.webp";
+const SHOCK_IMG = new Image(); SHOCK_IMG.src = "img/fx_shockwave.webp";   /* V508 */
+function drawShock(s, W) {   /* V508: Druckwelle läuft vom Aufprall nach links und rechts über die ganze Breite */
+  const T = S.ton; if (!T || !T.hit || !SHOCK_IMG.complete || !SHOCK_IMG.naturalWidth) return;
+  const th = (T.t || 0) - (T.ht || 0); if (th < 0 || th > 1.0) return;
+  const e = 1 - Math.pow(1 - Math.min(1, th / 0.5), 3), ww = W * (0.3 + 1.15 * e), ar = SHOCK_IMG.naturalHeight / SHOCK_IMG.naturalWidth, hh = ww * ar * (0.75 + 0.25 * e);
+  const y0 = (T.newTop != null ? T.newTop : T.top) * s, al = th < 0.55 ? 1 : Math.max(0, 1 - (th - 0.55) / 0.45);
+  ctx.save(); ctx.globalAlpha = al; ctx.drawImage(SHOCK_IMG, W / 2 - ww / 2, y0 - hh * 0.92, ww, hh);
+  if (th < 0.25) { ctx.globalAlpha = (0.25 - th) / 0.25 * 0.55; ctx.fillStyle = "#fff6d8"; ctx.fillRect(0, y0 - s * 0.6, W, s * 0.9); }   // kurzer heller Blitz am Boden
+  ctx.restore(); }
 function drawTon(s, W) {
+  try { drawShock(s, W); } catch (e) {}
   const T0 = S.ton; if (T0 && TON_IMG.complete && TON_IMG.naturalWidth) {
     const y = T0.y * s, now = performance.now() / 1000, falling = !T0.hit, sway = falling ? Math.sin(now * 9) * s * 0.05 : 0;
     const bw = W - s * 1.4, cx = W / 2, ar = TON_IMG.naturalHeight / TON_IMG.naturalWidth, iw = Math.min(bw * 0.62, (5.2 * s) / ar), ih = iw * ar;
@@ -10089,8 +10099,9 @@ try { (() => {
       toast("TEST · Wolf ad comes in wave 99 · the thief follows in wave 100", "HQ", 3000); }
     return r; };
   let q = null; try { q = new URLSearchParams(location.search).get("test"); } catch (e) {}
-  const map = { laser: 44, laser10: 10, laser26: 26, laser74: 74, laser109: 109, laser134: 134, blk: 65, mag: 80, weed: 81, weed3: 106, weed4: 126, weed5: 136, elite: 6, peek: 3, nuts: 31, nuts2: 61, nuts3: 91, nuts4: 121, thief: 100, wolfad: 99, egg1: 2, egg2: 32, egg3: 62, egg4: 92, egg5: 122 };
-  if (q && map[q]) { const go = () => { setTimeout(() => { try { history.replaceState(null, "", location.pathname); } catch (e) {} devJump(map[q], q.replace(/\d$/, "")); if (q === "elite") { try { LS.del("capy-wow-elite"); } catch (e) {} S.testRun = false; S.gold += 200; } if (/^nuts\d?$/.test(q)) { const nc = Math.max(0, (+q.slice(4) || 1) - 1); setTimeout(() => { try { S.testRun = false; S.inWave = false; startDetour(nc); } catch (e) {} }, 1500); }   /* V479: nuts2–4 = Afrika/Asien/Nordamerika */   /* V456: Nuts direkt */   /* V439: Elite-Wow direkt in W6 testen */ }, 700); };
+  const map = { ton: 9, laser: 44, laser10: 10, laser26: 26, laser74: 74, laser109: 109, laser134: 134, blk: 65, mag: 80, weed: 81, weed3: 106, weed4: 126, weed5: 136, elite: 6, peek: 3, nuts: 31, nuts2: 61, nuts3: 91, nuts4: 121, thief: 100, wolfad: 99, egg1: 2, egg2: 32, egg3: 62, egg4: 92, egg5: 122 };
+  if (q && map[q]) { const go = () => { setTimeout(() => { try { history.replaceState(null, "", location.pathname); } catch (e) {} devJump(map[q], q.replace(/\d$/, "")); if (q === "ton") { S.tons = (S.tons || 0) + 2; LS.set("capy-tut-ton", "1"); }   /* V508 */
+        if (q === "elite") { try { LS.del("capy-wow-elite"); } catch (e) {} S.testRun = false; S.gold += 200; } if (/^nuts\d?$/.test(q)) { const nc = Math.max(0, (+q.slice(4) || 1) - 1); setTimeout(() => { try { S.testRun = false; S.inWave = false; startDetour(nc); } catch (e) {} }, 1500); }   /* V479: nuts2–4 = Afrika/Asien/Nordamerika */   /* V456: Nuts direkt */   /* V439: Elite-Wow direkt in W6 testen */ }, 700); };
     const sp = document.getElementById("splash"); if (sp) sp.addEventListener("click", go, { once: true }); else go(); }
 })(); } catch (e) { console.error("v330", e); }
 
