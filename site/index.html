@@ -2790,7 +2790,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V498";
+const GAME_VER = "V499";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -3125,6 +3125,15 @@ function ofxStep(dt) {   /* V490: Auslöser + Bewegung der Outfit-Partikel */
     if (S._ofxT > 0.11) { S._ofxT = 0; const c = S.piece.cells[Math.floor(Math.random() * S.piece.cells.length)]; if (c) ofxAdd(e[1], S.piece.x + c[0], S.piece.y + c[1] - 0.3, 1, "t"); } }
   for (const f of S.fx) { if (f.type !== "ofx" || f.t < 0) continue; f.vy += f.g * dt; f.vx *= (1 - 1.2 * dt); f.x += (f.vx + (f.sh === "leaf" || f.sh === "bubble" ? Math.sin(f.t * 5 + f.ph) * 0.8 : 0)) * dt; f.y += f.vy * dt; f.rot += f.vr * dt; }
 }
+const ELITE_PIC = {};
+function eliteBadges(s) { const L = S._eliteDraw; S._eliteDraw = null; if (!L) return;   /* V499: Partnerbild + MAX-Sticker am Elite-Turm */
+  const src = HERO_IMG[buddyKey()]; let im = ELITE_PIC[src]; if (!im) { im = new Image(); im.src = src; ELITE_PIC[src] = im; }
+  for (const [t, cx, cy] of L) { if (!(t.eliteT > 0) || !S.towers.has(t.y * GW + t.x)) continue; const al = Math.min(1, t.eliteT / 2);
+    ctx.save(); ctx.globalAlpha = al;
+    if (im.complete && im.naturalWidth) { const z = s * 0.95, k = Math.min(z / im.naturalWidth, z / im.naturalHeight), w = im.naturalWidth * k, h = im.naturalHeight * k; ctx.shadowColor = "rgba(0,0,0,.4)"; ctx.shadowBlur = s * 0.12; ctx.drawImage(im, cx + s * 0.2, cy - s * 0.5 - h * 0.85, w, h); ctx.shadowBlur = 0; }
+    ctx.translate(cx - s * 0.18, cy - s * 0.66); ctx.rotate(-0.2); const fz = Math.max(9, s * 0.34); ctx.font = `400 ${fz}px Bangers,system-ui,sans-serif`; const tw = ctx.measureText("MAX").width, pw = tw + fz * 0.7, ph = fz * 1.15;
+    ctx.fillStyle = "#ff2f8a"; ctx.strokeStyle = "#3a2414"; ctx.lineWidth = Math.max(1.5, s * 0.07); ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(-pw / 2, -ph / 2, pw, ph, ph * 0.3); else ctx.rect(-pw / 2, -ph / 2, pw, ph); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = "#fff"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText("MAX", 0, fz * 0.04); ctx.restore(); } }
 function drawOfx(f, k, s, g2) {   /* V490 · V494: g2 = eigener Kontext, x/y in px */
   const G = g2 || ctx;
   const z = s * f.sz * (f.sh === "spark" ? 0.75 + 0.35 * Math.sin(f.t * 14 + f.ph) : 1);
@@ -6005,7 +6014,8 @@ function draw() {
   for (const t of S.towers.values()) {
     const cx = C(t.x), cy = C(t.y);
     if (t.eliteT > 0) { const ph = performance.now() / 1000, a = 0.55 + 0.35 * Math.sin(ph * 6); ctx.save(); ctx.globalAlpha = Math.min(1, t.eliteT / 2) * a; const g = ctx.createRadialGradient(cx, cy, s * 0.2, cx, cy, s * 1.1); g.addColorStop(0, "rgba(255,216,77,.95)"); g.addColorStop(1, "rgba(255,216,77,0)"); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, s * 1.1, 0, 7); ctx.fill();
-      ctx.globalAlpha = Math.min(1, t.eliteT / 2); ctx.font = `700 ${Math.max(9, s * 0.36)}px system-ui,sans-serif`; ctx.textAlign = "center"; ctx.lineWidth = Math.max(2, s * 0.1); ctx.strokeStyle = "#3a2414"; ctx.strokeText("ELITE", cx, cy - s * 0.62); ctx.fillStyle = "#ffd84d"; ctx.fillText("ELITE", cx, cy - s * 0.62); ctx.restore(); }   /* V379 */
+      ctx.globalAlpha = Math.min(1, t.eliteT / 2); ctx.font = `700 ${Math.max(9, s * 0.36)}px system-ui,sans-serif`; ctx.textAlign = "center"; ctx.lineWidth = Math.max(2, s * 0.1); ctx.strokeStyle = "#3a2414"; ctx.restore(); }   /* V379 · V499: Text durch Sticker + Partnerbild ersetzt (nach dem Turm gezeichnet) */
+    if (t.eliteT > 0) S._eliteDraw = (S._eliteDraw || []).concat([[t, cx, cy]]);   /* V499 */
     if (drawTowSprite(ctx, t, cx, cy, s)) { if (heightBonus(t) >= 0.5) { const hx = cx + s * 0.34, hy = cy - s * 0.36, z = s * 0.13; ctx.fillStyle = "#f0b323"; ctx.strokeStyle = "#17150c"; ctx.lineWidth = Math.max(1, s * 0.04); ctx.beginPath(); ctx.moveTo(hx, hy - z); ctx.lineTo(hx + z, hy + z * 0.6); ctx.lineTo(hx - z, hy + z * 0.6); ctx.closePath(); ctx.fill(); ctx.stroke(); } continue; }
     ctx.fillStyle = "#1e231b"; ctx.beginPath(); ctx.arc(cx, cy, s * 0.4, 0, 7); ctx.fill();
     ctx.strokeStyle = S.sel === t ? "#ee7a2c" : "#cdbd8c"; ctx.lineWidth = Math.max(1, s * 0.07); ctx.stroke();
@@ -6021,6 +6031,7 @@ function draw() {
     if (t.w.length && heightBonus(t) >= 0.5) { const hx = cx + s * 0.34, hy = cy - s * 0.36, z = s * 0.13; ctx.fillStyle = "#f0b323"; ctx.strokeStyle = "#17150c"; ctx.lineWidth = Math.max(1, s * 0.04); ctx.beginPath(); ctx.moveTo(hx, hy - z); ctx.lineTo(hx + z, hy + z * 0.6); ctx.lineTo(hx - z, hy + z * 0.6); ctx.closePath(); ctx.fill(); ctx.stroke(); }   // Höhen-Pfeil
     if (!t.w.length) { ctx.fillStyle = "#ee7a2c"; ctx.font = `700 ${s * 0.45}px ${getComputedStyle(document.body).fontFamily}`; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText("+", cx, cy + s * 0.02); }
   }
+  try { eliteBadges(s); } catch (e) {}   /* V499 */
   // Monster
   const now = performance.now();
   for (const m of S.monsters) {
@@ -6531,7 +6542,7 @@ function renderSheet() { $("sheetIn").classList.remove("pk");
   const L = limits(Math.max(1, S.wave));
   let h = `<div class="sheetHead"><h3>TOWER ${t.id}</h3><span>Gold: ${S.gold}</span></div>`;
   if (t.eliteT > 0) {   /* V445: Elite-Turm – nichts zu kaufen */
-    h += `<div class="eliteTag"><img src="${HERO_IMG[buddyKey()]}" alt=""><div><b>ELITE TOWER</b><small>Laser active · ${Math.ceil(t.eliteT)} s left · nothing to buy here</small></div></div>`;
+    h += `<div class="eliteTag"><em class="maxSt">MAX · LASER</em><img src="${HERO_IMG[buddyKey()]}" alt=""><div><b>ELITE TOWER</b><small>Laser active · ${Math.ceil(t.eliteT)} s left · nothing to buy here</small></div></div>`;
     h += `<div class="sheetFoot"><button id="sSell">Sell · +${Math.round(towerValue(t) / 2)}</button><button id="sClose" class="btn-accent">Done</button></div>`;
     $("sheetIn").innerHTML = h; return;
   }
@@ -6836,7 +6847,30 @@ function weedCard() {
   try { snd("siren"); } catch (e) {} clearTimeout(hintT);   /* kein Auto-Ende */
 }
 window.__weedCard = weedCard;
-function hintEnd() { if (!hintKey) return; hintKey = null; try { if (S) S.coachHold = false; } catch (e) {} $("coach").hidden = true; coachHi(null); $("coachSkip").textContent = "Skip tutorial"; $("coachSkip").classList.remove("wait"); clearTimeout(hintT); }
+function hintEnd() { if (!hintKey) return; if (hintKey === "tontut") { TONTUT.st = 0; LS.set("capy-tut-ton", "1"); $("coach").classList.remove("tt2"); document.querySelectorAll(".ttPulse").forEach(x => x.classList.remove("ttPulse")); } hintKey = null; try { if (S) S.coachHold = false; } catch (e) {} $("coach").hidden = true; coachHi(null); $("coachSkip").textContent = "Skip tutorial"; $("coachSkip").classList.remove("wait"); clearTimeout(hintT); }
+/* V499: Air-Drop-Tutorial – wie setzt man den geschenkten Ten-ton ein? */
+const TONTUT = { st: 0 };
+function tonTutCard(title, sub, el) { const c = $("coach"), a = $("coachArrow"), card = c.querySelector(".coachCard"); c.hidden = false; c.classList.toggle("tt2", TONTUT.st === 2); document.querySelectorAll(".ttPulse").forEach(x => x.classList.remove("ttPulse")); if (TONTUT.st === 2 && el) el.classList.add("ttPulse");
+  $("coachStep").textContent = "AIR DROP"; $("coachT").textContent = title; $("coachS").textContent = sub; $("coachSkip").textContent = "Skip"; $("coachSkip").classList.remove("wait"); coachHi(el);
+  const br = $("board").getBoundingClientRect();
+  if (el) { const r = el.getBoundingClientRect(), below = r.top < window.innerHeight * 0.5; a.style.display = "block"; a.textContent = below ? "▲" : "▼"; a.style.left = (r.left + r.width / 2) + "px";
+    if (below) { a.style.top = (r.bottom + 4) + "px"; card.style.bottom = ""; card.style.top = (r.bottom + 40) + "px"; } else { a.style.top = (r.top - 34) + "px"; card.style.bottom = ""; card.style.top = (br.top + 6) + "px"; } }
+  else { a.style.display = "none"; card.style.bottom = ""; card.style.top = (br.top + 6) + "px"; } }
+function tonTutTick() { try {
+  if (!S || !S.started || S.over || S.nuts || S.testRun || S.replay) { if (TONTUT.st && hintKey === "tontut") { hintKey = null; S && (S.coachHold = false); $("coach").hidden = true; coachHi(null); TONTUT.st = 0; } return; }
+  if (!TONTUT.st) {
+    if (LS.get("capy-tut-ton") === "1" || !(S.tons > 0) || !S.tonGift || !Object.keys(S.tonGift).length || TUT.on || hintKey || S.ton) return;
+    if (uiWinOpen() || S.drop || S.shop || S.paused || S.mapShow || S.ordersOpen || S.intro || S.adOpen || S.mode || S.sel) return;
+    if (window.__tipBulb && window.__tipBulb.open) return;
+    hintKey = "tontut"; TONTUT.st = 1; S.coachHold = true;
+    tonTutCard("USE YOUR AIR DROP", "Your Ten-ton drop is waiting in the SHOP. Tap SHOP.", $("bBuild")); snd("radio"); return; }
+  if (S.ton) { hintEnd(); toast("NICE DROP! · keep the next one for a high stack", "HQ", 2400); try { SFX.say("Nice!"); } catch (e) {} return; }
+  const pk = S.shop && $("sheetIn").classList.contains("pk"), btn = pk ? document.querySelector('#sheetIn [data-pocket="ton"]') : null;
+  if (TONTUT.st === 1 && btn) { TONTUT.st = 2; try { btn.scrollIntoView({ block: "center" }); } catch (e) {} setTimeout(() => { if (TONTUT.st === 2) tonTutCard("DROP IT!", "Tap USE at the Ten-ton drop. It crushes monsters and squeezes your stack to half.", btn); }, 250); }
+  else if (TONTUT.st === 2 && !pk) { TONTUT.st = 1; tonTutCard("USE YOUR AIR DROP", "Your Ten-ton drop is waiting in the SHOP. Tap SHOP.", $("bBuild")); }
+} catch (e) {} }
+setInterval(tonTutTick, 400);
+window.__tonTut = { tick: tonTutTick, get st() { return TONTUT.st; } };
 function showCamp(action, label) { tutAbort();
   if (S && S.started && !S.over) { S.paused = true; S.mode = null; S.aim = null; closeSheet(); }   // altes Spiel ruht, bis Deploy
   $("ovPause").hidden = true; SFX.music.menu();
@@ -10580,7 +10614,7 @@ body.wowSlow #board{filter:saturate(1.35) contrast(1.06)}
 .wowPlane .wpChute img{position:absolute;left:-24px;top:-44px;width:48px;height:48px;max-width:none;object-fit:contain;filter:drop-shadow(0 2px 2px rgba(0,0,0,.35))}   /* V445: kein weißer Kreis */
 .eliteTag img{width:64px;height:64px;object-fit:contain;flex:0 0 auto;margin:-10px -4px -10px -6px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.3))}
 .eliteTag{display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,#ffb3d6,#e86fa3);border:3px solid #3a2414;border-radius:14px;padding:10px 12px;box-shadow:0 4px 0 #3a2414;transform:rotate(-1.5deg);margin:2px 0 4px}
-.eliteTag b{font-family:var(--f-display);font-weight:400;font-size:22px;letter-spacing:.06em;color:#3a2414;line-height:1}.eliteTag small{display:block;font:700 12px var(--f-body);color:#5a1a3a;margin-top:2px}.eliteTag i{font-style:normal;font-size:26px;line-height:1}
+.eliteTag b{font-family:var(--f-display);font-weight:400;font-size:22px;letter-spacing:.06em;color:#3a2414;line-height:1}.eliteTag small{display:block;font:700 12px var(--f-body);color:#5a1a3a;margin-top:2px}.eliteTag i{font-style:normal;font-size:26px;line-height:1}.eliteTag{position:relative}html body #coach.tt2,html body #coach.tt2 .coachCard,html body #coach.tt2 .coachArrow{visibility:visible!important}html body #coach.tt2{z-index:9999!important}html body #coach.tt2 .coachCard{background:#fff7e8!important;border:3px solid #3a2414!important;box-shadow:0 4px 0 #3a2414!important}html body #coach.tt2 #coachT{color:#3a2414!important}html body #coach.tt2 #coachS{color:#5a4030!important}.ttPulse{animation:ttP .7s ease-in-out infinite alternate;outline:3px solid #ff2f8a;outline-offset:2px}@keyframes ttP{from{transform:scale(1)}to{transform:scale(1.12)}}.eliteTag .maxSt{position:absolute;right:-8px;top:-14px;background:#ff2f8a;color:#fff;font:400 15px/1 var(--f-display,"Bangers",sans-serif);font-style:normal;letter-spacing:.05em;padding:4px 8px 3px;border:2.5px solid #3a2414;border-radius:8px;transform:rotate(8deg);box-shadow:0 2px 0 #3a2414;z-index:1}
 .wowPlane .cA{position:absolute;left:-24px;top:-70px;width:48px;height:26px;border-radius:24px 24px 4px 4px;background:repeating-linear-gradient(90deg,#ff6fb5 0 12px,#fff7e8 12px 24px);border:2px solid #3a2414}
 .wowPlane .cA::after{content:"";position:absolute;left:8px;right:8px;top:24px;height:12px;border-left:1.5px solid #3a2414;border-right:1.5px solid #3a2414}
 @keyframes wowChute{0%{opacity:1;transform:translate(var(--sx),var(--sy)) scale(.45)}14%{opacity:1;transform:translate(calc(var(--sx) + 22px),calc(var(--sy) - 46px)) scale(.6)}100%{opacity:1;transform:translate(var(--tx),var(--ty)) scale(1)}}@keyframes wowSway{from{transform:rotate(-13deg)}to{transform:rotate(13deg)}}@keyframes wowOpen{to{transform:scale(1)}}
