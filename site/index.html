@@ -2793,7 +2793,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V526";
+const GAME_VER = "V527";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -7760,16 +7760,18 @@ function dailyLeaf() {
   dailyFit(); dailyTear(el);
 }
 /* V519: altes Blatt mit grünem Häkchen abreißen */
-function dlFx(n) { try { if (SFX.muted) return; const a = new Audio("sfx/" + n + ".mp3?v=526"); a.volume = Math.min(1, Math.max(0.5, 8 * Math.pow(SFX.vol || 0.3, 2))); a.play().catch(() => {}); } catch (e) {} }   /* V522 */
+function dlPrep(n) { try { if (SFX.muted) return null; const a = new Audio("sfx/" + n + ".mp3?v=527"); a.preload = "auto"; a.volume = Math.min(1, Math.max(0.5, 8 * Math.pow(SFX.vol || 0.3, 2))); a.load(); return a; } catch (e) { return null; } }   /* V527 */
+function dlFx(n) { try { if (SFX.muted) return; const a = new Audio("sfx/" + n + ".mp3?v=527"); a.volume = Math.min(1, Math.max(0.5, 8 * Math.pow(SFX.vol || 0.3, 2))); a.play().catch(() => {}); } catch (e) {} }   /* V522 */
 function dailyTear(el) { try {
   const c = DAILY.celeb, st = document.getElementById("ovStart"); if (!c || !el || !st || st.hidden || el.querySelector(".dlOld")) return;
   if (document.body.classList.contains("awOn") || document.getElementById("splash")) return;   /* erst wenn das Startmenü wirklich sichtbar ist */
   delete DAILY.celeb; if (DL_TEST && DAILY.m) DAILY.m.done = true; if (c.day === DAILY.day) DAILY.torn = DAILY.day; if (!DL_TEST) dailySave();
   if (c.day === DAILY.day) { dailyLeaf(); el = document.getElementById("dailyLeaf"); if (!el) return; }   /* darunter schon das nächste Blatt */
   const dt = new Date(c.day + "T12:00:00"), o = document.createElement("div"); o.className = "dlOld";
-  o.innerHTML = `<i class="ring l"></i><i class="ring r"></i><div class="head">${DAILY_WD[dt.getDay()]} · ${DAILY_MON[dt.getMonth()]} ${dt.getDate()}<b>DAY ${c.dn}</b></div><div class="body"><div class="tag">DAILY MISSION</div><div class="task">${c.txt}</div><div class="dlBar"><b style="width:100%"></b></div><div class="num"><span>${c.n} / ${c.n}</span><span>done ✓</span></div></div><svg class="dlChk" viewBox="0 0 100 100"><path d="M16 50 C22 55 30 64 38 75 C46 58 62 36 86 14"/></svg>`;
-  el.appendChild(o);
-  setTimeout(() => { o.classList.add("chk"); dlFx("pen"); }, 500);
+  o.innerHTML = `<i class="ring l"></i><i class="ring r"></i><div class="head">${DAILY_WD[dt.getDay()]} · ${DAILY_MON[dt.getMonth()]} ${dt.getDate()}<b>DAY ${c.dn}</b></div><div class="body"><div class="tag">DAILY MISSION</div><div class="task">${c.txt}</div><div class="dlBar"><b style="width:100%"></b></div><div class="num"><span>${c.n} / ${c.n}</span><span>done ✓</span></div></div><svg class="dlChk" viewBox="0 0 100 100"><path class="c1" pathLength="1" d="M16 50 C22 55 30 64 38 75"/><path class="c2" pathLength="1" d="M38 75 C46 58 62 36 86 14"/></svg>`;
+  el.appendChild(o); const pen = dlPrep("pen");
+  setTimeout(() => { let go = false; const draw = () => { if (go) return; go = true; o.classList.add("chk"); };
+    if (pen) { try { pen.addEventListener("playing", draw, { once: true }); pen.play().catch(draw); } catch (e) { draw(); } setTimeout(draw, 120); } else draw(); }, 500);
   setTimeout(() => { o.classList.add("tear"); dlFx("tear"); }, 1600);
   setTimeout(() => o.remove(), 2800);
 } catch (e) {} }
@@ -7777,9 +7779,9 @@ if (DL_TEST) document.addEventListener("click", e => { if (e.target.closest && e
 { const st = document.createElement("style"); st.textContent = `
 #dailyLeaf .dlOld{position:absolute;left:0;right:0;top:0;transform-origin:50% 0;z-index:3}
 #dailyLeaf .dlChk{position:absolute;left:50%;top:50%;width:105%;height:105%;transform:translate(-50%,-50%) rotate(-4deg);opacity:0;pointer-events:none;overflow:visible;mix-blend-mode:multiply}
-#dailyLeaf .dlChk path{fill:none;stroke:#1f6b2a;stroke-opacity:.88;stroke-width:7;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:120;stroke-dashoffset:120}
+#dailyLeaf .dlChk path{fill:none;stroke:#1f6b2a;stroke-opacity:.88;stroke-width:7;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1 1;stroke-dashoffset:1}
 #dailyLeaf .dlOld.chk .dlChk{opacity:1}
-#dailyLeaf .dlOld.chk .dlChk path{stroke-dashoffset:0;transition:stroke-dashoffset .5s cubic-bezier(.5,0,.4,1) .03s}
+#dailyLeaf .dlOld.chk .dlChk path{stroke-dashoffset:0}#dailyLeaf .dlOld.chk .dlChk .c1{transition:stroke-dashoffset .13s linear}#dailyLeaf .dlOld.chk .dlChk .c2{transition:stroke-dashoffset .18s cubic-bezier(.3,0,.6,1) .13s}
 #dailyLeaf .dlOld.tear{animation:dlTear 1.15s cubic-bezier(.45,0,.8,.6) forwards}
 @keyframes dlTear{0%{transform:rotate(0)}18%{transform:rotate(-7deg) translate(-2px,2px)}35%{transform:rotate(-14deg) translate(-6px,6px);opacity:1}100%{transform:rotate(-38deg) translate(-60px,520px);opacity:0}}
 #dailyLeaf .rew.nx{opacity:.75}`; document.head.appendChild(st); }
