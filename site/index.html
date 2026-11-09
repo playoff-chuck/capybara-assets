@@ -2792,7 +2792,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V522";
+const GAME_VER = "V523";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -7705,7 +7705,7 @@ function dailyRoll() {   /* neuer Tag: Kette fortschreiben, Mission würfeln */
 function dailyDrop() { const i = dailyDay() - 1, bw = dailyBestW(); let d = DAILY_DROPS[i]; if (bw < d[3]) d = DAILY_DROPS[6]; return d; }
 const DL_TEST = /[?&]test=tear\b/.test(location.search);   /* V519 */
 if (DL_TEST) { DAILY.celeb = { day: dailyKey(), dn: Math.max(1, dailyDay()), txt: "Splat 25 monsters", n: 25 }; }
-else if (!DAILY.v522) { if (DAILY.m && DAILY.m.done && DAILY.day && !DAILY.celeb) DAILY.celeb = { day: DAILY.day, dn: dailyDay(), txt: DAILY.m.txt, n: DAILY.m.n }; DAILY.v519 = 1; DAILY.v522 = 1; }   /* schon vor V519 geschafft: einmal nachholen */
+else if (!DAILY.v523) { if (DAILY.m && DAILY.m.done && DAILY.day && !DAILY.celeb) DAILY.celeb = { day: DAILY.day, dn: dailyDay(), txt: DAILY.m.txt, n: DAILY.m.n }; DAILY.v519 = 1; DAILY.v522 = 1; DAILY.v523 = 1; }   /* schon vor V519 geschafft: einmal nachholen */
 function dailyGate() { return DL_TEST || dailyBestW() >= DAILY_DROP_W; }
 function dailyMsnGate() { return DL_TEST || dailyBestW() >= DAILY_MSN_W; }
 function dailyAdd(key, v) { try { if (!DAILY.m || DAILY.m.done || DAILY.m.k !== key || !v || v <= 0) return; if (!S || !S.started || S.over || S.testRun || S.nuts || S.replay) return;
@@ -10789,7 +10789,7 @@ body.wowSlow #board{filter:saturate(1.35) contrast(1.06)}
 .mNuts .nzPin{position:absolute;left:-7px;top:30px;width:14px;height:14px;border-radius:50%;border:2.5px solid #2a1a22;background:var(--nzA,#efe6d6);box-sizing:border-box;box-shadow:0 0 8px var(--nzE,#ff8a5a),0 2px 0 rgba(42,26,34,.6);pointer-events:auto;cursor:pointer;animation:nzPin 1.6s ease-in-out infinite}
 .mNuts .nzTag{position:absolute;left:0;top:50px;transform:translateX(-50%);white-space:nowrap;font:400 14px/1 var(--f-display,"Bangers",sans-serif);letter-spacing:.06em;font-style:normal;color:#fff;background:#2a1a22;border:2.5px solid var(--nzA,#efe6d6);border-radius:10px;padding:3px 8px 2px;box-shadow:0 2px 0 #1a0f14,0 0 10px var(--nzF,rgba(120,90,140,.5));pointer-events:auto;cursor:pointer;text-align:center;display:grid;gap:1px}
 .mNuts .nzTag small{font:400 9.5px/1 var(--f-display,"Bangers",sans-serif);letter-spacing:.12em;color:var(--nzA,#efe6d6)}
-.mNuts span{pointer-events:auto;cursor:pointer}.mNuts .nzL{bottom:auto;top:-12px}
+.mNuts span{pointer-events:auto;cursor:pointer}
 .mNuts.shake .nzTag,.mNuts.shake .nzPin{animation:nzShake .45s ease-in-out 1}
 @keyframes nzPin{0%,100%{box-shadow:0 0 6px var(--nzE,#ff8a5a),0 2px 0 rgba(42,26,34,.6)}50%{box-shadow:0 0 14px var(--nzE,#ff8a5a),0 2px 0 rgba(42,26,34,.6)}}
 @keyframes nzShake{0%,100%{translate:0 0}20%{translate:-4px 0}40%{translate:4px 0}60%{translate:-3px 0}80%{translate:3px 0}}
@@ -10807,7 +10807,7 @@ body.wowSlow #board{filter:saturate(1.35) contrast(1.06)}
 .mNuts.on .nzFog{fill:var(--nzF,rgba(255,70,170,.32))}
 .mNuts.on .nzEye{fill:#ff5fb0;animation:nzEye 1.8s steps(2) infinite}
 .mNuts.on .nzCrack{stroke:#ff5fb0}
-.mNuts .nzL{position:absolute;left:50%;bottom:-6px;transform:translateX(-50%);font:700 10px/1 system-ui,sans-serif;font-style:normal;color:#ffd0ea;background:#3a1430;border:1px solid #ff6fb5;border-radius:6px;padding:2px 5px;white-space:nowrap}
+.mNuts .nzL{position:absolute;left:50%;top:-12px;bottom:auto;height:auto;transform:translateX(-50%);font:700 10px/1 system-ui,sans-serif;font-style:normal;color:#ffd0ea;background:#3a1430;border:1px solid #ff6fb5;border-radius:6px;padding:2px 5px;white-space:nowrap}
 @keyframes nzFog{from{opacity:.6;transform:scale(.96)}to{opacity:1;transform:scale(1.05)}}
 @keyframes nzQ{50%{opacity:.35}}
 @keyframes nzEye{50%{opacity:.25}}
