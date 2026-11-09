@@ -2795,7 +2795,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V532";
+const GAME_VER = "V533";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -8717,8 +8717,14 @@ $("btnPSquad").addEventListener("click", () => { SFX.init(); $("setNick").value 
 $("btnHs").addEventListener("click", () => { try { $("hsPlaces").innerHTML = placeRecHtml(); } catch (e) {} });   /* V402 */
 $("btnHs").addEventListener("click", () => { const box = $("hsNuts"); box.innerHTML = ""; [0, 1, 2, 3].forEach(c => nzFetch(c).then(l => { if (l && l.length) box.insertAdjacentHTML("beforeend", nzBoardHtml(c, l)); })); });
 // Guide: Tutorial wiederholen
-$("btnReTut").addEventListener("click", () => { SFX.init(); snd("uiTap"); LS.del("tarnturm-tut"); $("ovInfo").hidden = true;
-  if (S && S.started && !S.over && !S.nuts) { $("ovStart").hidden = true; S.paused = false; tutStart(); } else toast("TUTORIAL · starts with your next game", "HQ", 2200); });
+let reTutArm = 0;
+$("btnReTut").addEventListener("click", () => { SFX.init(); snd("uiTap"); const b = $("btnReTut"), now = performance.now();   /* V533: immer neues Spiel ab Welle 1 */
+  let w = 0; try { const sv = JSON.parse(LS.get("tarnturm-save") || "null"); w = Math.max(S && S.started && !S.over ? S.wave || 0 : 0, sv && sv.wave || 0); } catch (e) {}
+  if (w > 3 && (!reTutArm || now - reTutArm > 3000)) { reTutArm = now; b.textContent = "Tap again · new game from wave 1"; setTimeout(() => { if (performance.now() - reTutArm >= 3000) b.textContent = "↺ Replay tutorial"; }, 3100); return; }
+  reTutArm = 0; b.textContent = "↺ Replay tutorial"; LS.del("tarnturm-tut"); LS.del("tarnturm-save");
+  for (const id of ["ovInfo", "ovPause", "ovSettings", "ovStart"]) { const o = $(id); if (o) o.hidden = true; }
+  try { if (S && S.nuts) { LS.del("capy-nz-save"); NZ.frozen = null; window.__NZF = null; document.body.classList.remove("inNuts"); } } catch (e) {}
+  try { tutAbort(); } catch (e) {} startGame(MODE); toast("TUTORIAL · new game from wave 1", "HQ", 1800); });
 
 // --- Wrapper: Härte, keine Sonderwellen, Game over im Abstecher, Tipp beim ersten Scheitern, erster Splat ---
 { const _gi = gravityInterval; gravityInterval = function () { const g = _gi.apply(this, arguments); return S && S.nuts ? Math.max(0.07, g * nutsGrav(S.nuts.lvl)) : g; }; try { window.__TT.v178.gravityInterval = gravityInterval; } catch (e) {} }
