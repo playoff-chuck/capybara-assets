@@ -2791,7 +2791,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V515";
+const GAME_VER = "V516";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -9809,6 +9809,12 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
         rm.forEach(k => localStorage.removeItem(k)); Object.entries(d.data || {}).forEach(([k, v]) => { if (/^(tarnturm|capy)-/.test(k) && typeof v === "string") localStorage.setItem(k, v); });
         localStorage.setItem("capy-cloud", c); localStorage.setItem("capy-cloudT", String(Date.now())); localStorage.setItem("capy-reset", "276"); } catch (e) { $c("cloudMsg").textContent = "Could not write the save on this device."; return; }
       $c("cloudMsg").textContent = "Restored! Restarting…"; setTimeout(() => location.reload(), 600); }
+    (async () => { try { const c = code(false); if (!c || sessionStorage.getItem("capy-pinchk")) return; sessionStorage.setItem("capy-pinchk", "1");   /* V516 */
+        const r = await fetch(API_BASE + "/pin?code=" + c, { cache: "no-store" }); if (!r.ok) return; const d = await r.json(); if (!d || !d.data) return;
+        const keep = new Set(["tarnturm-dev"]); const rm = []; for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && /^(tarnturm|capy)-/.test(k) && !keep.has(k)) rm.push(k); }
+        rm.forEach(k => localStorage.removeItem(k)); Object.entries(d.data).forEach(([k, v]) => { if (/^(tarnturm|capy)-/.test(k) && typeof v === "string") localStorage.setItem(k, v); });
+        localStorage.setItem("capy-cloud", c); localStorage.setItem("capy-reset", "276"); localStorage.setItem("capy-pinmsg", "1"); location.reload(); } catch (e) {} })();
+    setTimeout(() => { try { if (localStorage.getItem("capy-pinmsg")) { localStorage.removeItem("capy-pinmsg"); toast("SAVE RESTORED BY HQ · your progress is back", "HQ", 3500); } } catch (e) {} }, 2500);
     ov.addEventListener("click", e => { e.stopPropagation(); const b = e.target.closest("button"); if (!b) { if (e.target === ov) close(); return; }
       if (b.id === "cloudX") close(); else if (b.id === "cloudCopy") { const t = show(code(false)); try { navigator.clipboard.writeText(t).then(() => { $c("cloudStat").textContent = "Copied!"; }, () => {}); } catch (er) {} try { snd("uiTap"); } catch (er) {} }
       else if (b.id === "cloudNow") { $c("cloudStat").textContent = "Backing up…"; upload(false).then(ok => { if (!ok && !lastErr) $c("cloudStat").textContent = "Nothing to back up yet – play a wave first."; }); }
