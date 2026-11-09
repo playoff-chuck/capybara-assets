@@ -2790,7 +2790,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V500";
+const GAME_VER = "V501";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -9426,6 +9426,9 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
         if (k === 3) { if (sheetUp() && S.sel) { const armed = S.sel.w && S.sel.w.length; const b = armed ? document.getElementById("sClose") : [...document.querySelectorAll('#sheet [data-buy="mg"]')].find(x => !x.disabled && vis(x)) || document.querySelector('#sheet [data-buy="mg"]'); return vis(b);   /* V320 */ } return towerR(); }
         return null;
       }
+      if (typeof TONTUT !== "undefined" && TONTUT.st && hintKey === "tontut") {   /* V501: Air-Drop-Tutorial */
+        if (TONTUT.st === 2) return vis(document.querySelector('#sheetIn [data-pocket="ton"]'));
+        return vis(document.getElementById("bBuild")); }
       const a = null; if (a && a.style.display === "block") { const r = a.getBoundingClientRect(); return { hint: true, up: a.textContent === "▲", x: r.left + r.width / 2, y: a.textContent === "▲" ? r.top : r.bottom }; }
       return null;
     }
@@ -10614,7 +10617,7 @@ body.wowSlow #board{filter:saturate(1.35) contrast(1.06)}
 .wowPlane .wpChute img{position:absolute;left:-24px;top:-44px;width:48px;height:48px;max-width:none;object-fit:contain;filter:drop-shadow(0 2px 2px rgba(0,0,0,.35))}   /* V445: kein weißer Kreis */
 .eliteTag img{width:64px;height:64px;object-fit:contain;flex:0 0 auto;margin:-10px -4px -10px -6px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.3))}
 .eliteTag{display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,#ffb3d6,#e86fa3);border:3px solid #3a2414;border-radius:14px;padding:10px 12px;box-shadow:0 4px 0 #3a2414;transform:rotate(-1.5deg);margin:2px 0 4px}
-.eliteTag b{font-family:var(--f-display);font-weight:400;font-size:22px;letter-spacing:.06em;color:#3a2414;line-height:1}.eliteTag small{display:block;font:700 12px var(--f-body);color:#5a1a3a;margin-top:2px}.eliteTag i{font-style:normal;font-size:26px;line-height:1}.eliteTag{position:relative}html body #coach.tt2,html body #coach.tt2 .coachCard,html body #coach.tt2 .coachArrow{visibility:visible!important}html body #coach.tt2{z-index:9999!important}html body #coach.tt2 .coachCard{background:#fff7e8!important;border:3px solid #3a2414!important;box-shadow:0 4px 0 #3a2414!important}html body #coach.tt2 #coachT{color:#3a2414!important}html body #coach.tt2 #coachS{color:#5a4030!important}.ttPulse{animation:ttP .7s ease-in-out infinite alternate;outline:3px solid #ff2f8a;outline-offset:2px}@keyframes ttP{from{transform:scale(1)}to{transform:scale(1.12)}}.eliteTag .maxSt{position:absolute;right:-8px;top:-14px;background:#ff2f8a;color:#fff;font:400 15px/1 var(--f-display,"Bangers",sans-serif);font-style:normal;letter-spacing:.05em;padding:4px 8px 3px;border:2.5px solid #3a2414;border-radius:8px;transform:rotate(8deg);box-shadow:0 2px 0 #3a2414;z-index:1}
+.eliteTag b{font-family:var(--f-display);font-weight:400;font-size:22px;letter-spacing:.06em;color:#3a2414;line-height:1}.eliteTag small{display:block;font:700 12px var(--f-body);color:#5a1a3a;margin-top:2px}.eliteTag i{font-style:normal;font-size:26px;line-height:1}.eliteTag{position:relative}html body #coach.tt2,html body #coach.tt2 .coachCard{visibility:visible!important}html body #coach.tt2{z-index:9999!important}html body #coach.tt2 .coachCard{background:#fff7e8!important;border:3px solid #3a2414!important;box-shadow:0 4px 0 #3a2414!important}html body #coach.tt2 #coachT{color:#3a2414!important}html body #coach.tt2 #coachS{color:#5a4030!important}.ttPulse{animation:ttP .7s ease-in-out infinite alternate;outline:3px solid #ff2f8a;outline-offset:2px}@keyframes ttP{from{transform:scale(1)}to{transform:scale(1.12)}}.eliteTag .maxSt{position:absolute;right:-8px;top:-14px;background:#ff2f8a;color:#fff;font:400 15px/1 var(--f-display,"Bangers",sans-serif);font-style:normal;letter-spacing:.05em;padding:4px 8px 3px;border:2.5px solid #3a2414;border-radius:8px;transform:rotate(8deg);box-shadow:0 2px 0 #3a2414;z-index:1}
 .wowPlane .cA{position:absolute;left:-24px;top:-70px;width:48px;height:26px;border-radius:24px 24px 4px 4px;background:repeating-linear-gradient(90deg,#ff6fb5 0 12px,#fff7e8 12px 24px);border:2px solid #3a2414}
 .wowPlane .cA::after{content:"";position:absolute;left:8px;right:8px;top:24px;height:12px;border-left:1.5px solid #3a2414;border-right:1.5px solid #3a2414}
 @keyframes wowChute{0%{opacity:1;transform:translate(var(--sx),var(--sy)) scale(.45)}14%{opacity:1;transform:translate(calc(var(--sx) + 22px),calc(var(--sy) - 46px)) scale(.6)}100%{opacity:1;transform:translate(var(--tx),var(--ty)) scale(1)}}@keyframes wowSway{from{transform:rotate(-13deg)}to{transform:rotate(13deg)}}@keyframes wowOpen{to{transform:scale(1)}}
