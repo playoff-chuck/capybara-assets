@@ -2795,7 +2795,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V542";
+const GAME_VER = "V543";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -9969,19 +9969,20 @@ try { (() => { const ov = document.getElementById("ovPause"); if (!ov) return; n
 /* V323: drei Tipps in den ersten Runden */
 try { (() => {
   const TIPS = [
-    { w: 2, t: "SPLAT THEM WITH BLOCKS!", p: "Blocks squash monsters. Speed a block down onto them – tap DROP.", at: "bDrop" },
-    { w: 4, t: "CANNON ON THE RIGHT EDGE", p: "Mount a cannon on a block at the right edge – it gets you through the first waves with ease." },
-    { w: 5, t: "EDGES DON'T COUNT", p: "The outer squares on the left and right don't need blocks – a row clears without them." }];
+    { k: "rot", w: 2, t: "TURN YOUR BLOCKS!", p: "Tap the yellow button in the middle to turn the falling block.", at: "bRot" },   /* V543 */
+    { k: "0", w: 2, t: "SPLAT THEM WITH BLOCKS!", p: "Blocks squash monsters. Speed a block down onto them – tap DROP.", at: "bDrop" },
+    { k: "1", w: 4, t: "CANNON ON THE RIGHT EDGE", p: "Mount a cannon on a block at the right edge – it gets you through the first waves with ease." },
+    { k: "2", w: 5, t: "EDGES DON'T COUNT", p: "The outer squares on the left and right don't need blocks – a row clears without them." }];
   const card = document.createElement("div"); card.id = "tipBulb"; card.hidden = true;
   card.innerHTML = '<img src="img/tip_bulb.webp" alt=""><div><small>TIP</small><b></b><p></p><button type="button" disabled>GOT IT</button></div>'; document.body.appendChild(card);
   const arr = document.createElement("div"); arr.id = "tipArrow"; arr.hidden = true;
   arr.innerHTML = '<svg viewBox="0 0 64 84" width="46" height="60"><path d="M20 4 Q32 1 44 4 L45 44 L60 44 Q63 46 61 49 L34 81 Q32 83 30 81 L3 49 Q1 46 4 44 L19 44 Z" fill="#ffd23a" stroke="#17150c" stroke-width="4.5" stroke-linejoin="round"/></svg>'; document.body.appendChild(arr);
   const btn = card.querySelector("button"); let cur = null, armT = 0;
-  const seen = i => { try { return LS.get("tarnturm-tipb-" + i) === "1"; } catch (e) { return true; } };
+  const seen = i => { try { return LS.get("tarnturm-tipb-" + TIPS[i].k) === "1"; } catch (e) { return true; } };   /* V543: fester Schlüssel */
   function place() { if (!cur || !cur.at) { arr.hidden = true; return; } const el = document.getElementById(cur.at); if (!el || !el.offsetParent) { arr.hidden = true; return; } const r = el.getBoundingClientRect(); arr.hidden = false; arr.style.left = (r.left + r.width / 2 - 23) + "px"; arr.style.top = (r.top - 64) + "px"; }
   function close() { if (!cur) return; card.classList.remove("on"); arr.hidden = true; setTimeout(() => { card.hidden = true; }, 300); cur = null; window.__evtLast = performance.now(); }
   btn.addEventListener("click", e => { e.stopPropagation(); if (performance.now() < armT) return; try { snd("uiTap"); } catch (er) {} close(); });
-  function show(i) { const T = TIPS[i]; cur = T; try { LS.set("tarnturm-tipb-" + i, "1"); } catch (e) {}
+  function show(i) { const T = TIPS[i]; cur = T; try { LS.set("tarnturm-tipb-" + T.k, "1"); } catch (e) {}
     card.querySelector("b").textContent = T.t; card.querySelector("p").textContent = T.p; btn.disabled = true; armT = performance.now() + 3000;
     try { const bd = document.getElementById("board"); if (bd) { const br = bd.getBoundingClientRect(); card.style.top = Math.max(6, br.top + 6) + "px"; card.style.bottom = "auto"; } } catch (e) {}   /* V498: oben ins Feld */
     card.hidden = false; requestAnimationFrame(() => card.classList.add("on")); place(); try { snd("radio"); } catch (e) {}
