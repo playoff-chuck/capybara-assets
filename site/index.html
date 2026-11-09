@@ -2790,7 +2790,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V497";
+const GAME_VER = "V498";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -6803,8 +6803,8 @@ function tutPlace() {
   const st = TUT_STEPS[TUT.step], el = $(st.at), a = $("coachArrow"), c = $("coach"); if (!el) return; coachHi(el);
   const r = el.getBoundingClientRect(), card = c.querySelector(".coachCard");
   const below = r.top < window.innerHeight * 0.5;            // Ziel oben → Karte darunter, Pfeil zeigt nach oben
-  if (st.at === "board" || st.at === "sheet") { const br = $("board").getBoundingClientRect(); card.style.bottom = ""; card.style.top = (br.top + (st.at === "sheet" ? 10 : br.height * 0.5 - 70)) + "px"; a.style.display = "none"; }
-  else { const dk = document.querySelector(".deck").getBoundingClientRect(); a.style.display = "block"; a.textContent = below ? "▲" : "▼"; a.style.left = (r.left + r.width / 2) + "px"; if (below) { a.style.top = (r.bottom + 4) + "px"; card.style.bottom = ""; card.style.top = (r.bottom + 40) + "px"; } else { a.style.top = (dk.top - 32) + "px"; if (r.top > dk.top + 40) a.style.display = "none"; const br = $("board").getBoundingClientRect(); card.style.bottom = ""; card.style.top = (br.top + br.height * 0.5 - 70) + "px"; /* Karte in der Feldmitte: oben bleibt das fallende Teil, unten die Landestelle sichtbar */ } }
+  if (st.at === "board" || st.at === "sheet") { const br = $("board").getBoundingClientRect(); card.style.bottom = ""; card.style.top = (br.top + (st.at === "sheet" ? 10 : 6)) + "px"; a.style.display = "none"; }
+  else { const dk = document.querySelector(".deck").getBoundingClientRect(); a.style.display = "block"; a.textContent = below ? "▲" : "▼"; a.style.left = (r.left + r.width / 2) + "px"; if (below) { a.style.top = (r.bottom + 4) + "px"; card.style.bottom = ""; card.style.top = (r.bottom + 40) + "px"; } else { a.style.top = (dk.top - 32) + "px"; if (r.top > dk.top + 40) a.style.display = "none"; const br = $("board").getBoundingClientRect(); card.style.bottom = ""; card.style.top = (br.top + 6) + "px"; /* Karte in der Feldmitte: oben bleibt das fallende Teil, unten die Landestelle sichtbar */ } }
 }
 function tutTick(dt) {
   if (!TUT.on) return;
@@ -6822,8 +6822,8 @@ function hint(key, title, sub, at) {
   try { if (uiWinOpen() || (S && (S.ordersOpen || S.mapShow || S.drop || S.paused))) { setTimeout(() => hint(key, title, sub, at), 1500); return; } } catch (e) {}   /* V318 */ LS.set("tarnturm-hint-" + key, "1"); hintKey = key; try { if (S && S.started && !S.over) S.coachHold = true; } catch (e) {}   /* V367: Spiel steht, solange der General erklärt */
   const c = $("coach"); c.hidden = false; $("coachStep").textContent = "NEW"; $("coachT").textContent = title; $("coachS").textContent = sub; $("coachSkip").textContent = "Got it"; coachArm();
   const el = $(at), a = $("coachArrow"), card = c.querySelector(".coachCard"); coachHi(el);
-  if (el && at !== "board") { const r = el.getBoundingClientRect(), below = r.top < window.innerHeight * 0.5, dk = document.querySelector(".deck").getBoundingClientRect(); a.style.display = "block"; a.textContent = below ? "▲" : "▼"; a.style.left = (r.left + r.width / 2) + "px"; if (below) { a.style.top = (r.bottom + 4) + "px"; card.style.bottom = ""; card.style.top = (r.bottom + 40) + "px"; } else { a.style.top = (dk.top - 32) + "px"; if (r.top > dk.top + 40) a.style.display = "none"; const br = $("board").getBoundingClientRect(); card.style.bottom = ""; card.style.top = (br.top + br.height * 0.5 - 70) + "px"; /* Karte in der Feldmitte: oben bleibt das fallende Teil, unten die Landestelle sichtbar */ } }
-  else { const br = $("board").getBoundingClientRect(); a.style.display = "none"; card.style.bottom = ""; card.style.top = (br.top + br.height * 0.5 - 70) + "px"; }
+  if (el && at !== "board") { const r = el.getBoundingClientRect(), below = r.top < window.innerHeight * 0.5, dk = document.querySelector(".deck").getBoundingClientRect(); a.style.display = "block"; a.textContent = below ? "▲" : "▼"; a.style.left = (r.left + r.width / 2) + "px"; if (below) { a.style.top = (r.bottom + 4) + "px"; card.style.bottom = ""; card.style.top = (r.bottom + 40) + "px"; } else { a.style.top = (dk.top - 32) + "px"; if (r.top > dk.top + 40) a.style.display = "none"; const br = $("board").getBoundingClientRect(); card.style.bottom = ""; card.style.top = (br.top + 6) + "px"; /* Karte in der Feldmitte: oben bleibt das fallende Teil, unten die Landestelle sichtbar */ } }
+  else { const br = $("board").getBoundingClientRect(); a.style.display = "none"; card.style.bottom = ""; card.style.top = (br.top + 6) + "px"; }
   snd("radio"); clearTimeout(hintT); hintT = setTimeout(hintEnd, 5500);
 }
 /* V444: eindringliche Unkraut-Warnung von Blue – wie eine Tipp-Karte, Spiel steht bis «Got it» */
@@ -6832,7 +6832,7 @@ function weedCard() {
   const c = $("coach"); c.hidden = false; $("coachStep").textContent = "ALERT"; $("coachT").innerHTML = `<img src="${HERO_IMG.blue}" alt="" style="width:64px;height:64px;object-fit:contain;vertical-align:middle;margin:-10px 6px -6px -4px">WEED ALERT!`;
   $("coachS").textContent = "Blue: It's almost at the ring! If the weed grows into the top row of the ring, it's GAME OVER. Cut it NOW – Tesla storm or Sniper strike.";
   $("coachSkip").textContent = "Got it"; coachArm(); const a = $("coachArrow"), card = c.querySelector(".coachCard"); coachHi(null); a.style.display = "none";
-  const br = $("board").getBoundingClientRect(); card.style.bottom = ""; card.style.top = (br.top + br.height * 0.5 - 90) + "px";
+  const br = $("board").getBoundingClientRect(); card.style.bottom = ""; card.style.top = (br.top + 6) + "px";
   try { snd("siren"); } catch (e) {} clearTimeout(hintT);   /* kein Auto-Ende */
 }
 window.__weedCard = weedCard;
@@ -9735,6 +9735,7 @@ try { (() => {
   btn.addEventListener("click", e => { e.stopPropagation(); if (performance.now() < armT) return; try { snd("uiTap"); } catch (er) {} close(); });
   function show(i) { const T = TIPS[i]; cur = T; try { LS.set("tarnturm-tipb-" + i, "1"); } catch (e) {}
     card.querySelector("b").textContent = T.t; card.querySelector("p").textContent = T.p; btn.disabled = true; armT = performance.now() + 3000;
+    try { const bd = document.getElementById("board"); if (bd) { const br = bd.getBoundingClientRect(); card.style.top = Math.max(6, br.top + 6) + "px"; card.style.bottom = "auto"; } } catch (e) {}   /* V498: oben ins Feld */
     card.hidden = false; requestAnimationFrame(() => card.classList.add("on")); place(); try { snd("radio"); } catch (e) {}
     setTimeout(() => { if (cur === T) btn.disabled = false; }, 3000); }
   window.__tipBulb = { show, close, get open() { return !!cur; } };
