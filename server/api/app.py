@@ -36,6 +36,26 @@ EVENT_RETENTION_DAYS = 90
 EVENT_MAX_BODY = 8192
 EVENTS_PER_MIN = 20
 EVENT_KINDS = ("start", "error", "leave", "back", "wave")
+UID_RE = re.compile(r"[A-Z0-9]{4}-[A-Z0-9]{4}")
+ADMIN_UID = "M2HL-KCQH"
+PLAYER_PER_MIN = 8
+PLAYER_MAX_BODY = 6000
+PLAYER_RETENTION_DAYS = 730
+import hmac
+def clean_profile(v, depth=0):
+    """Nur einfache Werte: Zahlen, kurze Texte, kleine Listen/Objekte (max. 2 Ebenen)."""
+    if isinstance(v, bool): return v
+    if isinstance(v, (int, float)):
+        return max(-1e12, min(1e12, v)) if v == v else 0
+    if isinstance(v, str): return clean_text(v, 120)
+    if depth >= 2: return None
+    if isinstance(v, list): return [clean_profile(x, depth + 1) for x in v[:12]]
+    if isinstance(v, dict):
+        out = {}
+        for k, x in list(v.items())[:40]:
+            if isinstance(k, str) and re.fullmatch(r"[A-Za-z0-9_]{1,16}", k): out[k] = clean_profile(x, depth + 1)
+        return out
+    return None
 
 # ---------- database ----------
 SCHEMA = """
@@ -67,6 +87,8 @@ CREATE TABLE IF NOT EXISTS squads(
   code TEXT PRIMARY KEY, t INTEGER NOT NULL, n INTEGER NOT NULL DEFAULT 0, last INTEGER);
 CREATE TABLE IF NOT EXISTS squad_joins(h TEXT PRIMARY KEY, t INTEGER NOT NULL);
 CREATE TABLE IF NOT EXISTS kv(k TEXT PRIMARY KEY, v TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS players(uid TEXT PRIMARY KEY, first INTEGER NOT NULL, last INTEGER NOT NULL, n INTEGER NOT NULL DEFAULT 0, data TEXT NOT NULL);
+CREATE INDEX IF NOT EXISTS players_first ON players(first);
 """
 
 class _DB:
@@ -317,6 +339,16 @@ class H(BaseHTTPRequestHandler):
                 if not r:
                     return self.send_json(404, {"error": "unknown code"})
                 return self.send_json(200, {"ok": True, "n": r["n"]})
+            if p == "/pin":   # einmalig von HQ hinterlegter Spielstand (Reparatur), wird nach Abruf gelöscht
+                if not rate_ok(self.client_ip(), "r", SAVE_READS_PER_MIN):
+                    return self.send_json(429, {"error": "too many requests"})
+                k = save_key(qs.get("code", [""])[0])
+                with db() as c:
+                    r = c.execute("SELECT v FROM kv WHERE k=?", ("pin:" + k,)).fetchone()
+                    if r: c.execute("DELETE FROM kv WHERE k=?", ("pin:" + k,))
+                if not r:
+                    return self.send_json(404, {"error": "none"})
+                return self.send_json(200, {"ok": True, "data": json.loads(r["v"])})
             if p == "/save":
                 if not rate_ok(self.client_ip(), "r", SAVE_READS_PER_MIN):
                     return self.send_json(429, {"error": "too many requests"})
@@ -433,6 +465,53 @@ class H(BaseHTTPRequestHandler):
                 if not rate_ok(self.client_ip(), "s", SAVES_PER_MIN):
                     return self.send_json(429, {"error": "too many requests"})
                 return self.post_save(self.parse_json(raw, n, SAVE_MAX_BODY))
+            if self.route()[0] == "/player":   # V536: Spielprofil je Gerät
+                if not rate_ok(self.client_ip(), "pl", PLAYER_PER_MIN):
+                    return self.send_json(429, {"error": "too many requests"})
+                d = self.parse_json(raw, n, PLAYER_MAX_BODY)
+                uid = d.get("uid")
+                if not (isinstance(uid, str) and UID_RE.fullmatch(uid)):
+                    raise Bad("bad uid")
+                prof = clean_profile({k: v for k, v in d.items() if k not in ("uid", "start")})
+                blob = json.dumps(prof, ensure_ascii=False, separators=(",", ":"))
+                if len(blob) > PLAYER_MAX_BODY:
+                    raise Bad("profile too large")
+                t = now_ms(); inc = 1 if d.get("start") is True else 0
+                with db() as c:
+                    if c.execute("SELECT 1 FROM players WHERE uid=?", (uid,)).fetchone():
+                        c.execute("UPDATE players SET last=?, n=n+?, data=? WHERE uid=?", (t, inc, blob, uid))
+                    else:
+                        c.execute("INSERT INTO players(uid,first,last,n,data) VALUES(?,?,?,?,?)", (uid, t, t, max(1, inc), blob))
+                return self.send_json(200, {"ok": True})
+            if self.route()[0] == "/admin/claim":   # V536: einmalig für Martins Gerät
+                if not rate_ok(self.client_ip(), "ad", 6):
+                    return self.send_json(429, {"error": "too many requests"})
+                d = self.parse_json(raw, n)
+                if d.get("uid") != ADMIN_UID:
+                    return self.send_json(403, {"error": "forbidden"})
+                with db() as c:
+                    if c.execute("SELECT 1 FROM kv WHERE k='admin:claimed'").fetchone():
+                        return self.send_json(403, {"error": "already claimed"})
+                    tok = secrets.token_urlsafe(32)
+                    c.execute("INSERT OR REPLACE INTO kv(k,v) VALUES('admin:hash',?)", (hashlib.sha256(tok.encode()).hexdigest(),))
+                    c.execute("INSERT OR REPLACE INTO kv(k,v) VALUES('admin:claimed',?)", (str(now_ms()),))
+                return self.send_json(200, {"ok": True, "token": tok})
+            if self.route()[0] == "/admin/players":   # V536: Spielerliste nur mit Admin-Schlüssel
+                if not rate_ok(self.client_ip(), "ad", 30):
+                    return self.send_json(429, {"error": "too many requests"})
+                d = self.parse_json(raw, n)
+                tok = d.get("token")
+                with db() as c:
+                    r = c.execute("SELECT v FROM kv WHERE k='admin:hash'").fetchone()
+                    if not (r and isinstance(tok, str) and hmac.compare_digest(r["v"], hashlib.sha256(tok.encode()).hexdigest())):
+                        return self.send_json(403, {"error": "forbidden"})
+                    rows = c.execute("SELECT uid, first, last, n, data FROM players ORDER BY first, uid").fetchall()
+                lst = []
+                for i, x in enumerate(rows):
+                    try: dd = json.loads(x["data"])
+                    except Exception: dd = {}
+                    lst.append({"no": i + 1, "uid": x["uid"], "first": x["first"], "last": x["last"], "n": x["n"], "d": dd})
+                return self.send_json(200, {"ok": True, "now": now_ms(), "list": lst})
             if self.route()[0] == "/events":
                 if not rate_ok(self.client_ip(), "e", EVENTS_PER_MIN):
                     return self.send_json(429, {"error": "too many requests"})
@@ -581,6 +660,7 @@ def purge_old_entries():
     with db() as c:
         c.execute("DELETE FROM scores WHERE t < ?", (cutoff,))
         c.execute("DELETE FROM nuts WHERE t < ?", (cutoff,))
+        c.execute("DELETE FROM players WHERE last < ?", (int(time.time() * 1000) - PLAYER_RETENTION_DAYS * 86400 * 1000,))
 
 def janitor():
     while True:
