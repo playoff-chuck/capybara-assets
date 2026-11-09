@@ -2791,7 +2791,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V512";
+const GAME_VER = "V514";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -2918,7 +2918,7 @@ const INTRO_GEAR = {
   kan:   ["Cannon",         "Slow heavy shells with splash. Cracks brutes.",          () => [`${WEAP.kan.cost} gold`, `Damage ${WEAP.kan.dmg}`, `Range ${WEAP.kan.range}`]],
   frost: ["Frost",          "Slows everything it hits. Pair it with an MG.",          () => [`${WEAP.frost.cost} gold`, `Damage ${WEAP.frost.dmg}`, "Slows 55 %"]],
   snipe: ["Sniper strike",  "One shot: wipes a 2×2 patch, the blast splats around it.",    () => [`${SNIPE_COST} gold`, "One shot", "2×2 patch"]],
-  mix:   ["Concrete mixer", "Tap a block: fills every gap around it up to its top, buries monsters.",     () => [`${MIX_COST} gold`, "One shot", "Buries"]],
+  mix:   ["Concrete mixer", "Tap a gap: fills it between the walls up to their highest point, buries monsters.",     () => [`${MIX_COST} gold`, "One shot", "Buries"]],
   tesla: ["Tesla storm",    "4×4 lightning strike. Splats count triple.",              () => [`${TESLA_COST} gold`, "4×4 strike", "Splats ×3"]],
   chomp: ["Chomper",        "Steel jaws run the ring backwards, eating everything.",  () => [`${CHOMP_COST} gold`, "Pocket", "Eats blocks too"]],
   ton:   ["Ten-ton drop",   "Crushes monsters, halves the stack. First one is free!",() => ["1 free", `${TON_COST} gold`, "Stack ÷ 2"]],
@@ -5937,23 +5937,39 @@ function stepTon(dt) {
   }
 }
 const TON_IMG = new Image(); TON_IMG.src = "img/ton_weight.webp";
-const SHOCK_IMG = new Image(); SHOCK_IMG.src = "img/fx_airwave.webp";   /* V508 · V509: Luftdruck statt Sand */
-function drawShock(s, W) {   /* V509: Luftdruck – baut sich beim Fall um das Gewicht auf, platzt beim Aufprall seitlich über die ganze Breite */
+const SHOCK_IMG = new Image(); SHOCK_IMG.src = "img/fx_airwave_seq.webp";   /* V508 · V509 · V513: 4 Phasen à 640×320, Bodenlinie y=200 */
+const SHK = { cw: 640, ch: 320, by: 200, sp: [] };
+function shkFrame(f, cx, gy, w, al) {   /* Phase f (0–3) mit Breite w, Bodenlinie bei gy */
+  if (al <= 0.01) return; const k = w / SHK.cw, h = SHK.ch * k;
+  ctx.globalAlpha = Math.min(1, al); ctx.drawImage(SHOCK_IMG, f * SHK.cw, 0, SHK.cw, SHK.ch, cx - w / 2, gy - SHK.by * k, w, h); }
+function drawShock(s, W) {   /* V513: animierte Luftdruck-Welle */
   const T = S.ton; if (!T || !SHOCK_IMG.complete || !SHOCK_IMG.naturalWidth) return;
-  const ar = SHOCK_IMG.naturalHeight / SHOCK_IMG.naturalWidth, now = performance.now() / 1000;
-  ctx.save(); ctx.globalCompositeOperation = "lighter";
-  if (!T.hit) {   // Druck aufbauen: Front unter dem Gewicht, wächst mit der Annäherung
-    const tgt = Math.max(1, T.top - 3 + 5), prog = Math.max(0, Math.min(1, (T.y + 5) / tgt)), y = (T.y + 3) * s;
-    const ww = W * (0.55 + 0.35 * prog) * (1 + Math.sin(now * 30) * 0.015), hh = ww * ar * 0.55;
-    ctx.globalAlpha = 0.25 + 0.6 * prog; ctx.translate(W / 2, y + s * 0.2); ctx.scale(1, -1);   // umgedreht: Bogen zeigt nach unten
-    ctx.drawImage(SHOCK_IMG, -ww / 2, -hh * 0.98, ww, hh);
-  } else {   // Aufprall: Front reißt seitlich auf
-    const th = (T.t || 0) - (T.ht || 0); if (th < 0 || th > 0.85) { ctx.restore(); return; }
-    const e = 1 - Math.pow(1 - Math.min(1, th / 0.45), 3), ww = W * (0.9 + 1.1 * e), hh = ww * ar * (0.55 - 0.3 * e);
-    const y0 = (T.newTop != null ? T.newTop : T.top) * s; ctx.globalAlpha = th < 0.3 ? 1 : Math.max(0, 1 - (th - 0.3) / 0.55);
-    ctx.drawImage(SHOCK_IMG, W / 2 - ww / 2, y0 - hh * 0.95, ww, hh);
-    ctx.translate(W / 2, y0); ctx.scale(1, -0.35); ctx.drawImage(SHOCK_IMG, -ww / 2, -hh * 0.95, ww, hh);   // flacher Ring am Boden
-  }
+  const now = performance.now() / 1000, cx = W / 2;
+  ctx.save(); ctx.globalCompositeOperation = "screen";
+  if (!T.hit) {   // Druck baut sich unter dem Gewicht auf
+    const tgt = Math.max(1, T.top - 3 + 5), prog = Math.max(0, Math.min(1, (T.y + 5) / tgt)), gy = (T.y + 3.25) * s;
+    const pulse = 1 + Math.sin(now * 26) * 0.05 * (0.4 + prog), w = W * (0.28 + 0.42 * prog) * pulse;
+    ctx.translate(0, gy * 2); ctx.scale(1, -1);   // Kuppel zeigt nach unten (vor dem Gewicht her)
+    shkFrame(0, cx, gy, w, 0.2 + 0.35 * prog); shkFrame(1, cx, gy, w * 1.1, Math.max(0, prog - 0.55) * 0.9);
+    ctx.restore(); return; }
+  const th = (T.t || 0) - (T.ht || 0); if (th < 0 || th > 1.15) { ctx.restore(); return; }
+  const gy = (T.newTop != null ? T.newTop : T.top) * s;
+  // Bildfolge mit Überblenden: 0 → 1 → 2 → 3
+  const K = [0, 0.1, 0.28, 0.6, 1.15], ease = x => 1 - Math.pow(1 - x, 3);
+  const wAt = t => W * (0.55 + 1.6 * ease(Math.min(1, t / 0.75)));   // wird breiter
+  for (let f = 0; f < 4; f++) { const a0 = K[f], a1 = K[f + 1];
+    let al = 0; if (th >= a0 - 0.08 && th <= a1 + 0.12) al = th < a0 ? (th - a0 + 0.08) / 0.08 : th > a1 ? 1 - (th - a1) / 0.12 : 1;
+    if (f === 3) al *= Math.max(0, 1 - Math.max(0, th - 0.75) / 0.4);
+    const jit = 1 + Math.sin(now * 40 + f) * 0.012; shkFrame(f, cx, gy, wAt(th) * (f === 0 ? 0.55 : f === 1 ? 0.8 : 1) * jit, al); }
+  // Druckringe, die nach außen laufen
+  ctx.globalAlpha = 1; for (let r = 0; r < 3; r++) { const t = th - r * 0.09; if (t <= 0 || t > 0.7) continue; const e = ease(t / 0.7), rx = W * (0.1 + 0.95 * e), ry = s * (0.5 + 0.9 * e);
+    ctx.strokeStyle = `rgba(235,246,255,${(1 - e) * (0.75 - r * 0.18)})`; ctx.lineWidth = Math.max(1, s * 0.22 * (1 - e) + 1); ctx.beginPath(); ctx.ellipse(cx, gy, rx, ry, 0, 0, Math.PI * 2); ctx.stroke(); }
+  // Funken / Luftschlieren
+  if (!T.spk) { T.spk = []; for (let n = 0; n < 26; n++) { const a = (Math.random() < 0.5 ? Math.PI : 0) + (Math.random() - 0.5) * 0.9; T.spk.push({ a, v: 2 + Math.random() * 5, l: 0.25 + Math.random() * 0.5, up: Math.random() * 1.5 }); } }
+  for (const p of T.spk) { if (th > p.l) continue; const k = th / p.l, d = p.v * s * th * 3, x = cx + Math.cos(p.a) * d, y = gy - p.up * s * k - Math.abs(Math.sin(p.a)) * d * 0.3;
+    ctx.globalAlpha = (1 - k) * 0.9; ctx.strokeStyle = "#f2f9ff"; ctx.lineWidth = Math.max(1, s * 0.07); ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - Math.cos(p.a) * s * 0.6 * (1 - k), y); ctx.stroke(); }
+  // kurzer Blitz am Boden
+  if (th < 0.14) { ctx.globalAlpha = (0.14 - th) / 0.14 * 0.5; ctx.fillStyle = "#ffffff"; ctx.fillRect(0, gy - s * 0.5, W, s * 0.8); }
   ctx.restore(); }
 function drawTon(s, W) {
   try { drawShock(s, W); } catch (e) {}
@@ -6448,7 +6464,7 @@ function renderShop() {
   rows.push([unlockedAt("snipe"), item("snipe", ICON.snipe, "Sniper strike", SNIPE_COST, unlocked("snipe") ? "One shot: 2×2 patch wiped, the blast splats around it." + (S.wave >= 90 ? " Cuts weeds" + "." : "") : lock("snipe"), unlocked("snipe") ? "BUY" : `<i class="lk">🔒 WAVE ${unlockedAt("snipe")}</i>`, !unlocked("snipe") || S.gold < SNIPE_COST, "btn-accent")]);
   rows.push([unlockedAt("tesla"), item("tesla", ICON.tesla, "Tesla storm", TESLA_COST, unlocked("tesla") ? "4×4 lightning strike, splats count triple." + (S.wave >= 90 ? " Cuts weeds" + "." : "") : lock("tesla"), unlocked("tesla") ? "BUY" : `<i class="lk">🔒 WAVE ${unlockedAt("tesla")}</i>`, !unlocked("tesla") || S.gold < TESLA_COST, "btn-accent")]);
   rows.push([WOLF_W, item("wolf", ICON.tesla, "Wolf call", WOLF_COST, (S.wave || 0) >= WOLF_W ? "A howl in the dark: the thief runs off and drops your gold." : `Locked · unlocks at wave ${WOLF_W}`, (S.wave || 0) >= WOLF_W ? "BUY" : `<i class="lk">🔒 WAVE ${WOLF_W}</i>`, (S.wave || 0) < WOLF_W || S.gold < WOLF_COST, "btn-accent")]);
-  rows.push([unlockedAt("mix"), item("mix", ICON.mix, "Concrete mixer", MIX_COST, unlocked("mix") ? "Tap a block: fills every gap around it up to its top, buries monsters." : lock("mix"), unlocked("mix") ? "BUY" : `<i class="lk">🔒 WAVE ${unlockedAt("mix")}</i>`, !unlocked("mix") || S.gold < MIX_COST, "btn-accent")]);
+  rows.push([unlockedAt("mix"), item("mix", ICON.mix, "Concrete mixer", MIX_COST, unlocked("mix") ? "Tap a gap: fills it between the walls up to their highest point, buries monsters." : lock("mix"), unlocked("mix") ? "BUY" : `<i class="lk">🔒 WAVE ${unlockedAt("mix")}</i>`, !unlocked("mix") || S.gold < MIX_COST, "btn-accent")]);
   rows.push([unlockedAt("chomp"), item("chomp", ICON.chomp, "Chomper", CHOMP_COST, unlocked("chomp") ? "Steel jaws run the ring backwards: eats every monster and block in its way." : lock("chomp"), unlocked("chomp") ? "BUY" : `<i class="lk">🔒 WAVE ${unlockedAt("chomp")}</i>`, !unlocked("chomp") || S.gold < CHOMP_COST, "btn-accent")]);
   rows.push([unlockedAt("ton"), item("ton", ICON.ton, "Ten-ton drop", TON_COST, unlocked("ton") ? "Giant weight: crushes every monster above the stack, squeezes all blocks to half." : lock("ton"), unlocked("ton") ? "BUY" : `<i class="lk">🔒 WAVE ${unlockedAt("ton")}</i>`, !unlocked("ton") || S.gold < TON_COST, "btn-accent")]);
   rows.push([5, item("coach", ICON.tower, "Boss-hack coach", COACH_COST, (coachLeft() ? `You have ${coachLeft()} · play: POCKET → TRAIN` : "Boss-hack practice: 10 duels, no stake · POCKET → TRAIN"), "BUY", S.gold < COACH_COST, "btn-accent")]);
@@ -6508,30 +6524,28 @@ function snipe(x, y) {
 }
 // Betonmischwagen: füllt alle Löcher einer Spalte bis zur Oberkante des höchsten Steins
 // Regel: eingeschlossene Höhle → ganz voll; nach oben offen → alles bis zur Höhe des höchsten Steins
-function mixCells(x, y = GH - 1) {   /* V510: angetippter Block + alles Leere, was daran hängt, bis zu seinem höchsten Punkt */
+function mixCells(x, y = GH - 1) {   /* V514: Lücke zwischen zwei Wänden bis zum höchsten Punkt der Wände füllen */
   const p = S.piece, pc = new Set(p ? p.cells.filter(([a, b]) => p.y + b >= 0).map(([a, b]) => vIdx(p.x + a, p.y + b)) : []);
-  const filled = c => !!S.grid[c], free = c => !S.grid[c] && !pc.has(c);
+  const filled = (cx, cy) => cx >= 0 && cx < GW && cy >= 0 && cy < GH && !!S.grid[cy * GW + cx];
+  const free = (cx, cy) => cx >= 0 && cx < GW && cy >= 0 && cy < GH && !S.grid[cy * GW + cx] && !pc.has(cy * GW + cx);
   x = Math.max(0, Math.min(GW - 1, x)); y = Math.max(0, Math.min(GH - 1, y));
-  // 1) Startblock finden: angetippt, sonst darunter, sonst links/rechts (nächster)
-  let seed = -1; const at = (cx, cy) => (cx >= 0 && cx < GW && cy >= 0 && cy < GH && filled(cy * GW + cx)) ? cy * GW + cx : -1;
-  if (at(x, y) >= 0) seed = at(x, y);
-  else { let best = 1e9; for (const [dx, dy] of [[1, 0], [-1, 0], [0, -1], [0, 1]]) for (let d = 1; d < Math.max(GW, GH); d++) { const n = at(x + dx * d, y + dy * d); if (x + dx * d < 0 || x + dx * d >= GW || y + dy * d < 0 || y + dy * d >= GH) break; if (n >= 0) { if (d < best) { best = d; seed = n; } break; } } }   /* Loch angetippt: nächster Block in den 4 Richtungen */
-  if (seed < 0) return [];
-  // 2) Block = gleichfarbig zusammenhängend (Beton/TNT: nur die Zelle selbst + gleichartige)
-  const col = S.grid[seed], blk = new Set([seed]), q = [seed];
-  while (q.length) { const c = q.pop(), cx = c % GW, cy = (c / GW) | 0;
-    for (const [dx, dy] of DIRS) { const nx = cx + dx, ny = cy + dy; if (nx < 0 || nx >= GW || ny < 0 || ny >= GH) continue; const n = ny * GW + nx; if (!blk.has(n) && S.grid[n] === col) { blk.add(n); q.push(n); } } }
-  let top = GH, x0 = GW, x1 = -1; for (const c of blk) { const cx = c % GW, cy = (c / GW) | 0; top = Math.min(top, cy); x0 = Math.min(x0, cx); x1 = Math.max(x1, cx); }
-  x0 = Math.max(0, x0 - 1); x1 = Math.min(GW - 1, x1 + 1);
-  // 3) leere Felder, die am Block hängen, flutfüllen – nicht höher als die Block-Oberkante, nicht breiter als Block ±1
-  const inBox = (cx, cy) => cx >= x0 && cx <= x1 && cy >= top && cy < GH;
-  const seen = new Uint8Array(NN), st = [], cells = [];
-  for (const c of blk) { const cx = c % GW, cy = (c / GW) | 0; for (const [dx, dy] of DIRS) { const nx = cx + dx, ny = cy + dy; if (!inBox(nx, ny)) continue; const n = ny * GW + nx; if (!seen[n] && free(n)) { seen[n] = 1; st.push(n); } } }
+  while (y > 0 && filled(x, y)) y--;   // auf einen Block getippt → Lücke darüber
+  if (!free(x, y)) return [];
+  let r0 = y; while (r0 + 1 < GH && free(x, r0 + 1)) r0++;   // Boden der Lücke
+  // Wände links/rechts auf Höhe des Lückenbodens, dann wie hoch sie hinaufreichen (zusammenhängend)
+  const wall = (dir, row) => { let cx = x + dir; while (cx >= 0 && cx < GW && free(cx, row)) cx += dir; if (cx < 0 || cx >= GW || !filled(cx, row)) return null;
+    let t = row; while (t > 0 && filled(cx, t - 1)) t--; return { x: cx, top: t }; };
+  let L = null, R = null; for (let row = y; row <= r0 && !L && !R; row++) { L = wall(-1, row); R = wall(1, row); }   // von der angetippten Höhe abwärts die ersten Wände
+  if (!L && !R) return [];
+  const level = Math.min(L ? L.top : GH, R ? R.top : GH), x0 = L ? L.x + 1 : 0, x1 = R ? R.x - 1 : GW - 1;
+  if (level > r0) return [];
+  // alles Leere, was mit der Lücke zusammenhängt, zwischen den Wänden, bis zur Höhe des höchsten Wandpunkts
+  const seen = new Uint8Array(NN), st = [r0 * GW + x], cells = []; seen[st[0]] = 1;
   while (st.length) { const c = st.pop(), cx = c % GW, cy = (c / GW) | 0; cells.push(c);
-    for (const [dx, dy] of DIRS) { const nx = cx + dx, ny = cy + dy; if (!inBox(nx, ny)) continue; const n = ny * GW + nx; if (!seen[n] && free(n)) { seen[n] = 1; st.push(n); } } }
-  // 4) nur Felder, die von unten getragen werden (Beton fließt nach unten, schwebt nicht): Spalte muss bis zum Boden/Block gefüllt werden können
+    for (const [dx, dy] of DIRS) { const nx = cx + dx, ny = cy + dy; if (nx < x0 || nx > x1 || ny < level || ny >= GH || !free(nx, ny)) continue; const n = ny * GW + nx; if (!seen[n]) { seen[n] = 1; st.push(n); } } }
+  // Beton schwebt nicht: nur Felder, unter denen bis zum Boden/Block alles mitgefüllt wird
   const set = new Set(cells), keep = [];
-  for (const c of cells) { let r = ((c / GW) | 0) + 1, ok = true; const cx = c % GW; while (r < GH) { const n = r * GW + cx; if (filled(n)) break; if (!set.has(n)) { ok = false; break; } r++; } if (ok) keep.push(c); }
+  for (const c of cells) { const cx = c % GW; let r = ((c / GW) | 0) + 1, ok = true; while (r < GH) { if (filled(cx, r)) break; if (!set.has(r * GW + cx)) { ok = false; break; } r++; } if (ok) keep.push(c); }
   keep.sort((a, b) => ((b / GW) | 0) - ((a / GW) | 0) || Math.abs(a % GW - x) - Math.abs(b % GW - x));
   return keep;
 }
@@ -6560,7 +6574,7 @@ window.__mixCells = (x, y) => mixCells(x, y);
 function startMix(x, y = GH - 1) {
   x = Math.max(0, Math.min(GW - 1, x));
   const cells = mixCells(x, y);
-  if (!cells.length) { toast("NOTHING TO FILL · tap a block with gaps", "DENIED"); snd("nope"); return; }
+  if (!cells.length) { toast("NOTHING TO FILL · tap a gap between blocks", "DENIED"); snd("nope"); return; }
   const top = Math.min(...cells.map(c => (c / GW) | 0));
   S.mix = { x, cells, lvl: 0, t: 0, total: 0, phase: "drive", ty: -3.4, dest: top - 2.4, kills: 0, gold: 0, pourT: Math.max(0.8, Math.min(4, cells.length * 0.1)) };
   S.mode = null; S.aim = null; S.mixers = Math.max(0, S.mixers - 1); buddyHelp("mix");
@@ -6747,7 +6761,7 @@ $("bPocket").addEventListener("click", () => {
 function armSpecial(kind) {
   if (kind === "snipe" && S.snipes < 1 || kind === "mix" && S.mixers < 1 || kind === "tesla" && S.teslas < 1) { snd("nope"); return; }
   closeSheet(); S.mode = kind; S.aim = null; snd("buildMode");
-  toast(kind === "snipe" ? "SNIPER READY · tap the target" : kind === "tesla" ? "TESLA CHARGED · tap the target" : "MIXER READY · tap a block", "POCKET"); SFX.say("Nice!");
+  toast(kind === "snipe" ? "SNIPER READY · tap the target" : kind === "tesla" ? "TESLA CHARGED · tap the target" : "MIXER READY · tap a gap", "POCKET"); SFX.say("Nice!");
 }
 function toggleBuild() {
   if (!S.started || S.over) return;
@@ -8611,8 +8625,8 @@ function nutsEnd(why) {
 $("nrBack").addEventListener("click", () => { SFX.init(); snd("uiTap"); nutsResume(ovRes._c, ovRes._cleared, ovRes._first); });
 /* V512: Nuts-Stand im Menü */
 function nzHasSave() {   /* liefert Untertitel oder "" */
-  try { if (S && S.nuts && S.started && !S.over && !NZ.ending) return `${nzWord(S.nuts.c)} · level ${Math.max(1, S.nuts.lvl || 1)} of ${NZ_MAX}`;
-    const d = JSON.parse(LS.get("capy-nz-save") || "null"); if (d && d.frame && d.main && d.nuts) return `${nzWord(d.nuts.c)} · level ${Math.max(1, d.nuts.lvl || 1)} of ${NZ_MAX}`; } catch (e) {}
+  try { if (S && S.nuts && S.started && !S.over && !NZ.ending) return `${nzWord(S.nuts.c)} · level ${Math.min(NZ_MAX, (S.nuts.cleared || 0) + 1)} of ${NZ_MAX}`;
+    const d = JSON.parse(LS.get("capy-nz-save") || "null"); if (d && d.frame && d.main && d.nuts) return `${nzWord(d.nuts.c)} · level ${Math.min(NZ_MAX, (d.nuts.cleared || 0) + 1)} of ${NZ_MAX}`; } catch (e) {}
   return ""; }
 function nutsContinue() {
   SFX.init(); snd("confirm");
@@ -8622,7 +8636,7 @@ function nutsContinue() {
   NZ.frozen = d.main; window.__NZF = d.main; NZ.first = !!d.first; NZ.ending = false;
   if (!loadGame(d.frame)) { LS.del("capy-nz-save"); NZ.frozen = null; window.__NZF = null; renderModes(); return; }
   S.nuts = d.nuts; S.cpRun = true; S.ff = false; S.dirty = true; rebuild(); nzBadgeSync(); lvLabel(); try { TP.key = null; } catch (e) {}
-  setTimeout(() => toast(`BACK IN THE NUTS · ${nzWord(S.nuts.c)} · level ${Math.max(1, S.nuts.lvl || 1)}`, "NUTS", 2400), 900); }
+  setTimeout(() => toast(`BACK IN THE NUTS · ${nzWord(S.nuts.c)} · level ${Math.min(NZ_MAX, (S.nuts.cleared || 0) + 1)}`, "NUTS", 2400), 900); }
 document.addEventListener("click", e => { const b = e.target.closest && e.target.closest("[data-nzcont]"); if (b) { e.stopPropagation(); nutsContinue(); } }, true);
 window.__nzCont = { has: () => nzHasSave(), go: () => nutsContinue() };
 function nutsResume(c, cleared, first) {
