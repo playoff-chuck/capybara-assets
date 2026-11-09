@@ -2795,7 +2795,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V545";
+const GAME_VER = "V546";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -10259,7 +10259,7 @@ try { (() => {
       toast("TEST · Wolf ad comes in wave 99 · the thief follows in wave 100", "HQ", 3000); }
     return r; };
   let q = null; try { q = new URLSearchParams(location.search).get("test"); } catch (e) {}
-  const map = { shock: 9, ton: 9, laser: 44, laser10: 10, laser26: 26, laser74: 74, laser109: 109, laser134: 134, blk: 65, mag: 80, weed: 81, weed3: 106, weed4: 126, weed5: 136, elite: 6, peek: 3, nuts: 31, nuts2: 61, nuts3: 91, nuts4: 121, thief: 100, wolfad: 99, egg1: 2, egg2: 32, egg3: 62, egg4: 92, egg5: 122 };
+  const map = { shock: 9, ton: 9, laser: 44, laser10: 10, laser26: 26, laser74: 74, laser109: 109, laser134: 134, blk: 65, mag: 80, weed: 81, weed3: 106, weed4: 126, weed5: 136, elite: 6, peek: 3, nuts: 31, nuts2: 61, nuts3: 91, nuts4: 121, fly: 31, fly2: 61, fly3: 91, fly4: 121, thief: 100, wolfad: 99, egg1: 2, egg2: 32, egg3: 62, egg4: 92, egg5: 122 };
   if (q && map[q]) { const go = () => { setTimeout(() => { try { history.replaceState(null, "", location.pathname); } catch (e) {} devJump(map[q], q.replace(/\d$/, "")); if (q === "ton") { S.tons = (S.tons || 0) + 2; LS.set("capy-tut-ton", "1"); }   /* V508 */
         if (q === "shock") { LS.set("capy-tut-ton", "1"); S.lives = 99; toast("TEST · Ten-ton drops every 5 s", "HQ", 2600);   /* V515: Druckwelle vorführen */
           const iv = setInterval(() => { try { if (!S || S.over || !S.started) { clearInterval(iv); return; } if (S.ton || S.paused || frozen()) return; S.tons = Math.max(1, S.tons || 0); startTon(); } catch (e) {} }, 5000); }
