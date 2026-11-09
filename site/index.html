@@ -2790,7 +2790,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V510";
+const GAME_VER = "V511";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -7296,7 +7296,7 @@ const TRK_FILE = { skullgrog: "nz_skullgrog", gorkazar: "nz_gorkazar", frostgnaw
 const TRK_ORDER = ["andes", "jungle", "copacabana", "rumba", "samba", "loungedisco", "chilldisco", "airport"];
 const TRK_NZ = ["skullgrog", "gorkazar", "frostgnaw", "grumblefang"], TRK_NZ_ALL = "nutsanthem";   /* V457: Nuts-Musik je Kontinent + Anthem */
 const TRK_AF = ["oasis", "savanna", "dune", "dune2", "pyramid"], TRK_AS = ["taiga", "frozen", "steppe", "iceport", "icepalace"], TRK_NA = ["dorian", "midtown", "oddphased", "miami", "gameloop", "cartoon"], TRK_AN = ["icea", "frozenretro", "iceb", "glide"];   /* V400 */
-function trkPool(wave) { if (!wave) return ["airport"]; try { if (typeof S !== "undefined" && S && S.nuts) return [TRK_NZ[S.nuts.c] || TRK_NZ[0], TRK_NZ_ALL]; } catch (e) {}   /* V457 */ const p = Math.floor(((wave - 1) % 30) / 5);
+function trkPool(wave) { if (!wave) return ["airport"]; try { if (typeof S !== "undefined" && S && S.nuts) return (S.nuts.c | 0) === 0 ? [TRK_NZ_ALL, TRK_NZ[0]] : [TRK_NZ[S.nuts.c] || TRK_NZ[0], TRK_NZ_ALL]; }   /* V511: Südamerika – Skullgrog Rush zuletzt */ catch (e) {}   /* V457 */ const p = Math.floor(((wave - 1) % 30) / 5);
   if (wave >= 31 && wave <= 60) return [0, 1, 2].map(i => TRK_AF[(p + i) % 5]); if (wave >= 61 && wave <= 90) return [0, 1, 2].map(i => TRK_AS[(p + i) % 5]);
   if (wave >= 91 && wave <= 120) return [0, 1, 2].map(i => TRK_NA[(p + i) % 6]); if (wave >= 121) return [0, 1, 2].map(i => TRK_AN[(p + i) % 4]);   /* V403 */
   return TRK_ORDER.slice(p, p + 3); }   // je Ort 3 Stücke, eines wechselt pro Ort
