@@ -2793,7 +2793,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V525";
+const GAME_VER = "V526";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -7728,7 +7728,7 @@ function dailyRoll() {   /* neuer Tag: Kette fortschreiben, Mission würfeln */
 function dailyDrop() { const i = dailyDay() - 1, bw = dailyBestW(); let d = DAILY_DROPS[i]; if (bw < d[3]) d = DAILY_DROPS[6]; return d; }
 const DL_TEST = /[?&]test=tear\b/.test(location.search);   /* V519 */
 if (DL_TEST) { DAILY.celeb = { day: dailyKey(), dn: Math.max(1, dailyDay()), txt: "Splat 25 monsters", n: 25 }; }
-else if (!DAILY.v523) { if (DAILY.m && DAILY.m.done && DAILY.day && !DAILY.celeb) DAILY.celeb = { day: DAILY.day, dn: dailyDay(), txt: DAILY.m.txt, n: DAILY.m.n }; DAILY.v519 = 1; DAILY.v522 = 1; DAILY.v523 = 1; }   /* schon vor V519 geschafft: einmal nachholen */
+else if (!DAILY.v526) { if (DAILY.m && DAILY.m.done && DAILY.day && !DAILY.celeb) DAILY.celeb = { day: DAILY.day, dn: dailyDay(), txt: DAILY.m.txt, n: DAILY.m.n }; DAILY.v519 = 1; DAILY.v522 = 1; DAILY.v523 = 1; DAILY.v526 = 1; }   /* schon vor V519 geschafft: einmal nachholen */
 function dailyGate() { return DL_TEST || dailyBestW() >= DAILY_DROP_W; }
 function dailyMsnGate() { return DL_TEST || dailyBestW() >= DAILY_MSN_W; }
 function dailyAdd(key, v) { try { if (!DAILY.m || DAILY.m.done || DAILY.m.k !== key || !v || v <= 0) return; if (!S || !S.started || S.over || S.testRun || S.nuts || S.replay) return;
@@ -7760,7 +7760,7 @@ function dailyLeaf() {
   dailyFit(); dailyTear(el);
 }
 /* V519: altes Blatt mit grünem Häkchen abreißen */
-function dlFx(n) { try { if (SFX.muted) return; const a = new Audio("sfx/" + n + ".mp3"); a.volume = Math.min(1, Math.max(0.5, 8 * Math.pow(SFX.vol || 0.3, 2))); a.play().catch(() => {}); } catch (e) {} }   /* V522 */
+function dlFx(n) { try { if (SFX.muted) return; const a = new Audio("sfx/" + n + ".mp3?v=526"); a.volume = Math.min(1, Math.max(0.5, 8 * Math.pow(SFX.vol || 0.3, 2))); a.play().catch(() => {}); } catch (e) {} }   /* V522 */
 function dailyTear(el) { try {
   const c = DAILY.celeb, st = document.getElementById("ovStart"); if (!c || !el || !st || st.hidden || el.querySelector(".dlOld")) return;
   if (document.body.classList.contains("awOn") || document.getElementById("splash")) return;   /* erst wenn das Startmenü wirklich sichtbar ist */
