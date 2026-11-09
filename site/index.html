@@ -2795,7 +2795,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V540";
+const GAME_VER = "V541";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -9182,15 +9182,16 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
       const end = sk ? (() => {}) : celebrate(`${contName(oc)} CLEARED!`, `Continent ${P.c} of 5 · the world tour goes on`);
       at(2400 - sk, end);
       at(3300 - sk, () => { me.classList.remove("on"); go({ ...worldCam(), x: MAP_PTS[oc][5][0], y: MAP_PTS[oc][5][1] }, 1300);   /* V317: auf den Abflugort */ });
-      at(4400 - sk, () => { label("", "Flying to " + nice(contName(P.c)), ""); flyPlane(MAP_PTS[oc][5], MAP_PTS[P.c][0], 3000); });
+      at(4400 - sk, () => { label("", "Flying to " + nice(contName(P.c)), `First stop: ${nice(CONTS[P.c][2][0])}`); flyPlane(MAP_PTS[oc][5], MAP_PTS[P.c][0], 3000, true); });   /* V541: ohne Zielpfeil */
+      at(5000 - sk, () => { const a = MAP_PTS[oc][5], b = MAP_PTS[P.c][0]; go({ x: (a[0] + b[0]) / 2, y: (a[1] + b[1]) / 2, k: worldCam().k * 1.3 }, 1800); });   /* V541: im Flug mitzoomen wie im Intro */
       at(7420 - sk, () => { setMe(MAP_PTS[P.c][0], true); });
-      at(7200 - sk, () => { go(contCam(P.c), 1300); });
+      at(6900 - sk, () => { const b = MAP_PTS[P.c][0]; go({ x: b[0] + .02, y: b[1] - .06, k: Math.min(4.2, worldCam().k * 3) }, 1300); });   /* V541: nah auf den ersten Ort wie im Intro */
       at(8600 - sk, () => { setMe(MAP_PTS[P.c][0], true); label(contName(P.c), `Welcome to ${nice(contName(P.c))}!`, `First stop: ${nice(CONTS[P.c][2][0])}`); fx("tonHit");
         const ak = ["samerica", "africa", "asia", "namerica", "antarctica"][P.c];
         if (ak && P.c > 0) setTimeout(() => { try { if (!seqDone) return; arrC = document.createElement("div"); arrC.className = "mapArrive"; arrC.innerHTML = `<img src="img/arrive_${ak}.webp" alt=""><div class="maTxt"><small>WORLD TOUR · CONTINENT ${P.c + 1} OF 5</small><b>${contName(P.c)}</b><span>${nice(CONTS[P.c][2][0])} · wave ${w}</span></div>`; arrOrigin(arrC); ov.appendChild(arrC); requestAnimationFrame(() => requestAnimationFrame(() => arrC.classList.add("on"))); setTimeout(() => { try { arrC && arrC.classList.add("zin"); } catch (e) {} }, 60);   /* V540: Zoom startet mit dem Aufgehen */ setTimeout(() => { try { if (!seqDone) return; const vk = { africa: "welcome_africa", asia: "welcome_asia", namerica: "welcome_namerica" }[ak] || "newcont"; window.__contSaid = w; SFX.say(vk, 1, 1, SFX.reserveVoice(SFX.voiceDur(vk) * 1000 + 400)); } catch (e) {} }, 900); } catch (e) {} }, 700); setTimeout(() => fx("powerup"), 120); setTimeout(() => fx("coin"), 420); });
       
-      at(13200 - sk, () => ov.classList.add("fadeOut"));   /* V537: Blende statt Schnitt */
-      at(14000 - sk, hide); }   /* V316: Ankunftsbild 2,5 s, dann direkt zum Spielscreen (Martin 12:50) */
+      at(12900 - sk, () => ov.classList.add("fadeOut"));   /* V537/V541: Blende statt Schnitt, Zeiten wie im Intro */
+      at(13700 - sk, hide); }   /* V316: Ankunftsbild 2,5 s, dann direkt zum Spielscreen (Martin 12:50) */
     function playIntro(done) { let arr = null;
       seqDone = () => { try { arr && arr.remove(); } catch (e) {} try { if (SFX.music.playing < 1) SFX.music.start(1); } catch (e) {} if (done) done(); };
       show("auto"); drawPins(-1); setMe(MAP_PTS[0][0], false); label("", "Welcome to Capybara World!", "5 continents · 30 places · 150 waves"); window.__introAt = performance.now();
@@ -11386,7 +11387,7 @@ button .lk{font-style:normal;white-space:nowrap}
 </style>
 
 <style id="v263plane">
-#ovMap .mapPlane{filter:none!important;backface-visibility:hidden}
+#ovMap .mapPlane{filter:none!important;backface-visibility:hidden}#ovMap .mapPlane{z-index:60!important}#ovMap .mapMe{z-index:40}
 #ovMap .mapPlane .biPlane{transform:scaleX(var(--fx,1)) translateZ(0);filter:none!important;animation:biBob 1.4s ease-in-out infinite;will-change:transform}
 #ovMap .mapPlane .biPlane::before{content:"";position:absolute;left:14%;right:10%;bottom:-16%;height:20%;border-radius:50%;background:radial-gradient(ellipse at center,rgba(0,0,0,.28),rgba(0,0,0,0) 70%)}
 @media (prefers-reduced-motion:reduce){#ovMap .mapPlane .biPlane{animation:none}}
