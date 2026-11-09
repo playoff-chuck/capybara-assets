@@ -2793,7 +2793,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V529";
+const GAME_VER = "V530";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -7753,10 +7753,10 @@ function dailyLeaf() {
   const now = new Date(Date.now() + (nx ? 864e5 : 0)), day = nx ? dailyDay() % 7 + 1 : dailyDay(), d = dailyDrop(), m = dailyMsnGate() ? (nx ? { txt: "New mission tomorrow", p: 0, n: 1, nx: 1 } : DAILY.m) : null, shieldDay = (() => { try { const s = new Date(DAILY.shieldUsed); if (DAILY.shieldWk === dailyWeek() && !isNaN(s)) return ((DAILY.streak - Math.round((now - s) / 864e5)) - 1) % 7 + 1; } catch (e) {} return 0; })();
   const dots = [1, 2, 3, 4, 5, 6, 7].map(i => `<i class="${i < day ? "on" : i === day ? "now" : ""}${i === shieldDay ? " shield" : ""}">${i < day ? "✓" : i === shieldDay ? "🛡" : i}</i>`).join("");
   el.innerHTML = `<i class="ring l"></i><i class="ring r"></i><div class="head">${DAILY_WD[now.getDay()]} · ${DAILY_MON[now.getMonth()]} ${now.getDate()}<b>DAY ${day}</b></div><div class="body">`
-    + (m ? `<div class="tag">DAILY MISSION</div><div class="task">${m.txt}</div><div class="dlBar"><b style="width:${Math.round(100 * Math.min(1, (m.p || 0) / m.n))}%"></b></div>${m.nx ? `<div class="num"><span>today ✓ done</span><span>tomorrow</span></div>` : `<div class="num"><span>${m.p || 0} / ${m.n}</span><span>${m.done ? "done ✓" : "today"}</span></div>`}` : `<div class="tag">DAILY MISSION</div><div class="task dim">Opens at wave ${DAILY_MSN_W}</div>`)
+    + (m ? `<div class="tag">DAILY MISSION</div><div class="task">${m.txt}</div>${m.nx ? "" : `<div class="dlBar"><b style="width:${Math.round(100 * Math.min(1, (m.p || 0) / m.n))}%"></b></div>`}${m.nx ? "" : `<div class="num"><span>${m.p || 0} / ${m.n}</span><span>${m.done ? "done ✓" : "today"}</span></div>`}` : `<div class="tag">DAILY MISSION</div><div class="task dim">Opens at wave ${DAILY_MSN_W}</div>`)
     + (() => { const r = dailyRew(day), ico = r.ton ? `<img src="${(typeof ICO_SPR !== "undefined" && ICO_SPR.ton) || ""}" alt="">` : `<b class="dlCoin">★</b>`;   /* V474 */
         return `<div class="rew${DAILY.claimed ? " got" : ""}${nx ? " nx" : ""}">${ico}<span>${DAILY.claimed ? `+${r.gold} gold<br>${DAILY.pend || DAILY.pendGold ? "in your next run" : "collected"}` : `+${r.xp} XP${r.ton ? " · Ten-ton" : ""}<br>+${r.gold} gold · tap`}</span></div>`; })()
-    + `<div class="streak">${dots}</div><div class="sub">7-day chain · 1 shield day</div><i class="corner"></i></div>`;
+    + `<div class="streak">${dots}</div><i class="corner"></i></div>`;
   dailyFit(); dailyTear(el);
 }
 /* V519: altes Blatt mit grünem Häkchen abreißen */
