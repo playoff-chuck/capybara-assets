@@ -2795,7 +2795,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V534";
+const GAME_VER = "V535";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -6945,10 +6945,11 @@ function tutStart() { TUT.b = { p: S.pieceNo || 0, tw: S.towers.size, wp: [...S.
 { const b = document.createElement("button"); b.id = "bTut"; b.type = "button"; b.setAttribute("aria-label", "Tutorial"); b.hidden = true;
   b.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4 1.5 9 12 14l10.5-5z" fill="#3a2414"/><path d="M5.5 11.2v4.3c0 1.6 2.9 3 6.5 3s6.5-1.4 6.5-3v-4.3L12 14.3z" fill="#3a2414"/><path d="M21 9.3v5.2" stroke="#3a2414" stroke-width="1.6" stroke-linecap="round"/><circle cx="21" cy="15.6" r="1.4" fill="#ffd34a" stroke="#3a2414" stroke-width="1"/></svg><b>HOW TO</b>';
   document.body.appendChild(b);
-  b.addEventListener("click", () => { try { SFX.init(); snd("uiTap"); } catch (e) {} if (!S || !S.started || S.over || TUT.on) return; S.paused = false; tutStart(); b.hidden = true; });
+  b.addEventListener("click", () => { try { SFX.init(); snd("uiTap"); } catch (e) {} if (!S || !S.started || S.over) return; if (TUT.on) { tutEnd(true); return; } S.paused = false; tutStart(); });
   setInterval(() => { try { const w = document.getElementById("bWave"), r = w && w.getBoundingClientRect(), ovOpen = [...document.querySelectorAll(".overlay,#ovMap,#ovPause,#ovStart")].some(o => !o.hidden && o.getClientRects().length && getComputedStyle(o).display !== "none");
-      const show = !!(r && r.width && S && S.started && !S.over && !S.nuts && !S.replay && !S.testRun && (S.wave || 1) <= 10 && !TUT.on && !S.paused && !ovOpen);
-      if (b.hidden === show) b.hidden = !show; if (show) { b.style.left = Math.round(r.right + 10) + "px"; b.style.top = Math.round(r.top + r.height / 2 - 26) + "px"; } } catch (e) {} }, 300); }
+      const show = !!(r && r.width && S && S.started && !S.over && !S.nuts && !S.replay && !S.testRun && (S.wave || 1) <= 10 && !S.paused && !ovOpen); b.classList.toggle("on", !!TUT.on);
+      const dk = document.querySelector(".deck"); if (dk && b.parentNode !== dk) dk.appendChild(b);
+      if (b.hidden === show) b.hidden = !show; if (show && dk) { const q = dk.getBoundingClientRect(); b.style.left = Math.round(r.right + 4 - q.left) + "px"; b.style.top = Math.round(r.top + r.height / 2 - 20 - q.top) + "px"; } } catch (e) {} }, 300); }
 function tutEnd(skipped) { TUT.on = false; S.coachHold = false; $("coachSkip").textContent = "Skip tutorial"; $("coach").hidden = true; coachHi(null); LS.set("tarnturm-tut", "1"); if (!skipped) { toast("TUTORIAL DONE · good luck, squad", "HQ", 1800); SFX.say("Nice!"); } }
 function tutShow() { const st = TUT_STEPS[TUT.step]; $("coachStep").textContent = `${TUT.step + 1}/${TUT_STEPS.length}`; $("coachT").textContent = st.t; $("coachS").textContent = st.s; const last = TUT.step === TUT_STEPS.length - 1; S.coachHold = false; $("coachSkip").textContent = last ? "Got it" : "Skip tutorial"; if (last) coachArm(); else { clearTimeout(coachArm.t); $("coachSkip").classList.remove("wait"); }   /* V483: Spiel läuft auch bei Schritt 5 weiter */ snd("radio"); tutPlace(); }
 function coachHi(el) { document.querySelectorAll(".coachHi").forEach(x => { if (x !== el) x.classList.remove("coachHi"); }); if (el && el.id !== "board" && el.id !== "sheet") el.classList.add("coachHi"); }
@@ -10512,7 +10513,7 @@ body.ovUp #genAv,body.ovUp #waveNum,body.ovUp #bPauseTop,body.ovUp #bWave,body.o
 .ovLock::before{content:"";position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 18px);width:120px;height:4px;margin-left:-60px;border-radius:4px;background:#ffd75e;z-index:1;transform-origin:left;animation:ovLockBar 2s linear forwards}
 @keyframes ovLockBar{from{transform:scaleX(0)}to{transform:scaleX(1)}}
 /* V192 Versionsnummer */
-.verTag[hidden]{display:none!important}#bTut{position:fixed;z-index:58;width:52px;height:52px;min-height:0;padding:0;border-radius:50%;background:#fff6e6;border:3px solid #3a2414;box-shadow:0 4px 0 #3a2414;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0}#bTut[hidden]{display:none!important}#bTut svg{width:28px;height:28px;margin-top:2px}#bTut b{font:400 9px/1 Bangers,system-ui;letter-spacing:.04em;color:#3a2414;margin-top:-1px}.verTag{white-space:pre;text-align:right;line-height:1.25!important;position:absolute;top:calc(env(safe-area-inset-top,0px) + 4px);right:8px;z-index:50;font:600 10px/1 ui-monospace,Menlo,monospace;letter-spacing:.04em;color:#fff;opacity:.75;text-shadow:0 1px 2px rgba(0,0,0,.7);pointer-events:none}
+.verTag[hidden]{display:none!important}#bTut{position:absolute;z-index:2;width:40px;height:40px;min-height:0;padding:0;border-radius:50%;background:#fff6e6;border:3px solid #3a2414;box-shadow:0 3px 0 #3a2414;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;border-width:2.5px}#bTut[hidden]{display:none!important}#bTut.on{background:#ffd34a}#bTut svg{width:21px;height:21px;margin-top:1px}#bTut b{font:400 7px/1 Bangers,system-ui;letter-spacing:.04em;color:#3a2414;margin-top:-1px}.verTag{white-space:pre;text-align:right;line-height:1.25!important;position:absolute;top:calc(env(safe-area-inset-top,0px) + 4px);right:8px;z-index:50;font:600 10px/1 ui-monospace,Menlo,monospace;letter-spacing:.04em;color:#fff;opacity:.75;text-shadow:0 1px 2px rgba(0,0,0,.7);pointer-events:none}
 /* V192 Shop-Höhe: sichtbare Bildschirmhöhe (dvh) statt 100vh – Handy-Leisten schneiden nichts mehr ab */
 body:has(#sheet:not([hidden])) #sheet{max-height:calc(100dvh - 66px - env(safe-area-inset-top,0px))!important;bottom:auto!important}
 body:has(#sheet:not([hidden])) #sheet.atBottom{top:auto!important;bottom:0!important;border-radius:22px 22px 0 0}   /* V442: Menü unten, wenn der Turm oben steht */
