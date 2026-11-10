@@ -2796,7 +2796,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V555";
+const GAME_VER = "V556";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -2818,7 +2818,7 @@ function T(t) {
   if (t == null) return t; const raw = String(t); const key = i18nNorm(raw); if (!key || !/[A-Za-zÀ-ÿ]{2}/.test(key)) return raw;
   if (I18N.audit) I18N.seen.add(key);
   if (!I18N.dict) return raw;
-  let v = I18N.cache.get(key); if (v === undefined) { v = i18nLookup(key); if (v == null) v = i18nCI(key); if (v == null) { if (!(I18N.rev && (I18N.rev.has(key) || I18N.rev.has(key.replace(I18N_NUM, "#"))))) I18N.miss.add(key); v = null; } I18N.cache.set(key, v); }   /* V460: Rückübersetztes nicht als fehlend zählen */
+  let v = I18N.cache.get(key); if (v === undefined) { v = i18nLookup(key); if (v == null) v = i18nCI(key); if (v == null) v = i18nSym(key); if (v == null) { if (!(I18N.rev && (I18N.rev.has(key) || I18N.rev.has(key.replace(I18N_NUM, "#"))))) I18N.miss.add(key); v = null; } I18N.cache.set(key, v); }   /* V460: Rückübersetztes nicht als fehlend zählen */
   if (v == null) return raw;
   const lead = raw.match(/^\s*/)[0], tail = raw.match(/\s*$/)[0]; return lead + v + tail; }
 const I18N_SKIP = new Set(["SCRIPT", "STYLE", "TEXTAREA", "INPUT", "CODE"]), I18N_ATTR = ["placeholder", "aria-label", "title"], i18nDone = new WeakMap();
@@ -2831,6 +2831,10 @@ function i18nCI(key) {   /* V555: Text ohne Rücksicht auf Groß-/Kleinschreibun
   if (I18N.upD !== D) { const U = {}; for (const k in D) { const u = k.toUpperCase(); if (!(u in U)) U[u] = D[k]; } I18N.up = U; I18N.upD = D; }
   const v = i18nLookup(key.toUpperCase(), I18N.up); if (v == null) return null;
   return key === key.toUpperCase() ? String(v).toUpperCase() : v; }
+function i18nSym(key) {   /* V556: Symbol vorne/hinten abtrennen, Kern übersetzen */
+  const m = key.match(/^([\s▲▼▶►◀•★☆✈♥☠⚡✉🔒🎟👁\p{Extended_Pictographic}\uFE0F]+)?(.*?)([\s▶›]+)?$/u);
+  if (!m || !(m[1] || m[3]) || !m[2] || !/[A-Za-z]{2}/.test(m[2])) return null;
+  let c = i18nLookup(m[2]); if (c == null) c = i18nCI(m[2]); return c == null ? null : (m[1] || "") + c + (m[3] || ""); }
 function i18nApplyAll() { try { i18nEl(document.body); } catch (e) {} }
 (function () { const obs = new MutationObserver(ms => { for (const m of ms) { if (m.type === "characterData") { i18nText(m.target); continue; } if (m.type === "attributes") { i18nEl(m.target); continue; } m.addedNodes.forEach(n => { if (n.nodeType === 3) i18nText(n); else i18nEl(n); }); } });
   const start = () => obs.observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: I18N_ATTR }); if (document.body) start(); else document.addEventListener("DOMContentLoaded", start); })();
