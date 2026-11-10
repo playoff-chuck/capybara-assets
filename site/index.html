@@ -2796,7 +2796,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V573";
+const GAME_VER = "V574";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -7025,10 +7025,10 @@ setTimeout(() => { try { const _toK = toast; toast = function () { try { if (TUT
 /* V572: Vollbild-Werbung «Coach Ollie» nach dem ersten Boss-Hack */
 try { (() => {
   const ov = document.createElement("div"); ov.id = "ovCoachAd"; ov.hidden = true;
-  ov.innerHTML = '<div class="caBg"></div><div class="caTop"><span class="caK">⚡ BOSS HACK · TRAINING ⚡</span><h2>COACH OLLIE</h2><p class="caSub">Get ready for the next boss!</p></div>'
-    + '<div class="caCard"><img class="caOllie" alt=""><p class="caWhy">Every boss challenges you to a wire duel. Win it and you take the boss\'s stake – lose it and the gold is gone. Ollie trains you for it.</p>'
-    + '<ul><li><b>10</b><span>10 practice duels – no stake, no risk</span></li><li><b>💡</b><span>A tip from the coach after every round</span></li><li><b>🛒</b><span>Train any time – straight from the SHOP</span></li></ul>'
-    + '<button type="button" class="caBuy" disabled><span class="caBuyT">BOOK FOR 99 GOLD</span></button><button type="button" class="caLater" disabled>LATER</button><div class="caLock"><i></i><span>3</span></div></div>';
+  ov.innerHTML = '<div class="caBg"></div><div class="caTop"><span class="caK">BOSS HACK · TRAINING</span><h2>COACH OLLIE</h2><p class="caSub">Bosses challenge you to a wire duel – train and take their stake!</p></div>'
+    + '<div class="caMid"><img class="caOllie" alt=""></div>'
+    + '<div class="caCard"><div class="caPros"><div><b>10</b><span>practice duels without risk</span></div><div><b>💡</b><span>a tip after every round</span></div></div>'
+    + '<button type="button" class="caBuy" disabled><span class="caBuyT">BOOK FOR 99 GOLD</span></button><button type="button" class="caLater" disabled>LATER</button><div class="caLock"><i></i><span>3</span></div></div>';   /* V574: kompakt */
   document.body.appendChild(ov);
   const buy = ov.querySelector(".caBuy"), later = ov.querySelector(".caLater"), lock = ov.querySelector(".caLock");
   let tI = 0;
@@ -12219,4 +12219,21 @@ body.tutBarOn #toast,body.tutBarOn #alert{display:none!important}
 @keyframes caRing{from{transform:rotate(0)}to{transform:rotate(360deg);opacity:0}}
 </style>
 <style id="v573">#tutPieceCv{position:fixed;left:0;top:0;width:100vw;height:100vh;z-index:907;pointer-events:none}</style>
+<style id="v574">
+#ovCoachAd .caTop{padding-top:max(18px,env(safe-area-inset-top))!important}
+#ovCoachAd h2{margin:8px 0 4px!important;font-size:clamp(38px,12vw,54px)!important}
+#ovCoachAd .caSub{max-width:330px;margin:0 auto!important;font-size:15px!important;line-height:1.25!important}
+#ovCoachAd .caMid{position:relative;flex:1 1 auto;min-height:0;display:flex;align-items:flex-end;justify-content:center;padding-top:6px}
+#ovCoachAd .caMid .caOllie{position:static!important;width:auto!important;height:auto!important;max-height:100%;max-width:62vw;object-fit:contain;filter:drop-shadow(0 8px 10px rgba(0,0,0,.55));margin-bottom:-26px;animation:caBob 2.4s ease-in-out infinite}
+@keyframes caBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+#ovCoachAd .caCard{padding:30px 14px 12px!important;flex:0 0 auto}
+#ovCoachAd .caPros{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+#ovCoachAd .caPros>div{display:flex;align-items:center;gap:8px;background:#f3e3b8;border-radius:12px;padding:8px;font:800 13px/1.15 "Baloo 2",sans-serif}
+#ovCoachAd .caPros b{flex:0 0 32px;height:32px;display:grid;place-items:center;border-radius:50%;background:#58cc02;color:#fff;font:400 18px/1 Bangers,sans-serif;border:2px solid #2f7d0a}
+#ovCoachAd .caBuy{padding:16px 10px 14px!important;font-size:27px!important;animation:caPulse 1.4s ease-in-out infinite}
+#ovCoachAd .caBuy:disabled{animation:none}
+@keyframes caPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.035)}}
+#ovCoachAd .caLater{margin-top:6px!important;font-size:13px!important;padding:6px 10px!important;background:none!important;border:0!important;box-shadow:none!important}
+#ovCoachAd .caLock{top:10px;bottom:auto!important;right:10px}
+</style>
 </body></html>
