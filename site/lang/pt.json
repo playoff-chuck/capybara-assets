@@ -1942,5 +1942,7 @@
 "fresh start": "recomeço",
 "STACK TOO HIGH · fill rows to clear them": "PILHA ALTA DEMAIS · complete fileiras para limpá-las",
 "STACK SQUEEZED · fresh start": "PILHA ESMAGADA · recomeço",
-"BUILD A TOWER TO SPLAT MONSTERS!": "CONSTRUA UMA TORRE PARA ESMAGAR MONSTROS!"
+"BUILD A TOWER TO SPLAT MONSTERS!": "CONSTRUA UMA TORRE PARA ESMAGAR MONSTROS!",
+"Your stack is too high! HQ sends a Ten-ton. Confirm and it falls right now – it flattens the stack.": "Sua pilha está alta demais! O QG manda uma Dez Toneladas. Confirme e ela cai agora mesmo: achata a pilha.",
+"TUTORIAL": "TUTORIAL"
 }

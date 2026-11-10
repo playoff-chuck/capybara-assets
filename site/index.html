@@ -2796,7 +2796,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V549";
+const GAME_VER = "V550";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -9491,7 +9491,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
         else { s2.textContent = "HOT!"; s3.textContent = "DEAL"; mg.textContent = "MEGA DEAL"; on.textContent = "ONLY THIS WAVE!"; }
         paint(); }
       try { snd("radio"); } catch (e) {} }
-    function close(bought) { ov.classList.remove("on"); ov.hidden = true; const k = cur; cur = null; if (k === "drop") { bought = false; $a("adCard").classList.remove("drop"); if (window.__dropKind === "squad") { window.__dropKind = null; setTimeout(() => { try { if (S && S.started && !S.over && !S.ton) startTon(); } catch (e) {} }, 400); }   /* V484 */
+    function close(bought) { ov.classList.remove("on"); ov.hidden = true; const k = cur; cur = null; if (k === "drop") { bought = false; $a("adCard").classList.remove("drop"); if (window.__dropKind === "squad" || window.__dropKind === "tut") { window.__dropKind = null; setTimeout(() => { try { if (S && S.started && !S.over && !S.ton) startTon(); } catch (e) {} }, 400); }   /* V484 */
       else if (window.__dropKind === "weed") { window.__dropKind = null; setTimeout(() => { try { if (S && S.started && !S.over && !S.ton) startTon(); } catch (e) {} try { (window.__dist.D.weeds || []).forEach(w => { if (w.delay > 100) w.delay = 2.5 + Math.random() * 0.4; }); } catch (e) {} }, 300); } }   /* V446 */ if (late) { late = false; S.intro = false; S.adOpen = false; } else try { closeIntro(); } catch (e) {}
       if (bought) try { toast(`${INTRO_GEAR[k][0].toUpperCase()} · ${TOWERW[k] ? "mounted on your tower" : "in your Pocket"}`, "ARMORY", 2000); } catch (e) {} }
     function buy() { const k = cur; if (window.__newsPrev) { close(false); return; } if (!k || why(k)) { paint(); return; } const p = price(k);
@@ -9539,15 +9539,16 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
                  sweep: { img: "img/ad_drop_free.webp", name: "CLEAN SWEEP", line: "You cleared the whole field. HQ sent gold and a medal.", met: [`${gold} gold`, "+1 medal"], btn: "COLLECT ▶" },
                  med: { img: "img/ad_med_free.webp", name: "MEDKIT", line: "Doc Hazel patched you up. You can see clearly again.", met: ["Vision clear"], btn: "THANKS, DOC ▶" },
                  squad: { img: "img/ad_drop_free.webp", name: "SQUAD INCOMING", line: "Your partner sends a free Ten-ton drop. Confirm it and it falls right now – flattens the whole stack!", met: ["+1 Ten-ton", "Drops now"], btn: "DROP IT ▶" },   /* V484 */
+                 tut: { img: "img/ad_drop_free.webp", name: "TEN-TON DROP", line: "Your stack is too high! HQ sends a Ten-ton. Confirm and it falls right now – it flattens the stack.", met: ["+1 Ten-ton", "Drops now"], btn: "DROP IT ▶" },   /* V550 */
                  weed: { img: "img/ad_drop_free.webp", name: "WEED DEFENSE DROP", line: "Weed seeds are about to land. HQ sent a Ten-ton drop – use it NOW to flatten the field before they sprout!", met: ["+1 Ten-ton", "Use it now"], btn: "DROP IT ▶" },   /* V446 */
                  rot: { img: "img/ad_drop_free.webp", name: `${o.rp || "+90°"} PACKAGE`, line: "The field is upright again. Blocks fall down as usual.", met: ["Field upright"], btn: "LET'S GO ▶" } }[kind];
       if (!D) return; cur = "drop"; window.__dropKind = kind; saleMode = false; isFree = true; dropBtn = D.btn; late = true; S.intro = true; S.adOpen = true;
       const card = $a("adCard"); card.classList.remove("sale", "free"); card.classList.add("drop");
-      $a("adPic").style.backgroundImage = `url(${D.img})`; $a("adPic").style.backgroundPosition = ""; $a("adTag").textContent = "✈ AIR DROP"; $a("adWave").textContent = `WAVE ${S.wave}`; $a("adPrice").textContent = "";
+      $a("adPic").style.backgroundImage = `url(${D.img})`; $a("adPic").style.backgroundPosition = ""; $a("adTag").textContent = "✈ AIR DROP"; $a("adWave").textContent = S.wave ? `WAVE ${S.wave}` : "TUTORIAL"; $a("adPrice").textContent = "";
       $a("adName").textContent = D.name; $a("adLine").textContent = D.line; $a("adMet").innerHTML = D.met.map(x => `<span>${x}</span>`).join("");
       paint(); window.__adLast = performance.now(); $("ovIntro").hidden = true; ov.hidden = false; requestAnimationFrame(() => ov.classList.add("on"));
-      try { const vl = { ton: "ad_drop", friend: "ad_drop", squad: "ad_drop", sweep: "ad_sweep", med: "ad_med", rot: "ad_upright" }[kind]; if (vl) setTimeout(() => { try { if (!ov.hidden) SFX.say(vl, 1.0, 1.0, 0, 0); } catch (e) {} }, 700); } catch (e) {}
-      try { snd("crate"); if (kind === "sweep" || kind === "ton" || kind === "friend" || kind === "squad") [0.5, 0.8].forEach(d => setTimeout(() => snd("coin"), d * 1000)); } catch (e) {} }
+      try { const vl = { ton: "ad_drop", friend: "ad_drop", squad: "ad_drop", tut: "ad_drop", sweep: "ad_sweep", med: "ad_med", rot: "ad_upright" }[kind]; if (vl) setTimeout(() => { try { if (!ov.hidden) SFX.say(vl, 1.0, 1.0, 0, 0); } catch (e) {} }, 700); } catch (e) {}
+      try { snd("crate"); if (kind === "sweep" || kind === "ton" || kind === "friend" || kind === "squad" || kind === "tut") [0.5, 0.8].forEach(d => setTimeout(() => snd("coin"), d * 1000)); } catch (e) {} }
     const dropQ = []; let dropWait = false;
     function pumpDrop() { if (dropWait || !dropQ.length) return; dropWait = true;
       window.__whenCalm(() => { if (!ov.hidden || (window.__playScreen && !window.__playScreen()) || S.nuts) { dropWait = false; setTimeout(pumpDrop, 1000); return; }
@@ -10039,7 +10040,8 @@ try { (() => {
     if (GH - stackHeight() <= 4 && warnW !== S.wave && LS.get("tarnturm-tipb-stack") === "1" && !(window.__tipBulb && window.__tipBulb.open)) { warnW = S.wave; toast("STACK TOO HIGH · fill rows to clear them", "HQ", 2600); }
   } catch (e) {} }, 500);
   const _te = tutEnd; tutEnd = function () { const r = _te.apply(this, arguments);
-    try { if (S && S.started && !S.over) { let k = 0; while (k < 3 && stackHeight() >= GH - 8) { tonCompress(); k++; } if (k) { snd("tonFall"); toast("STACK SQUEEZED · fresh start", "HQ", 2200); } } } catch (e) {}
+    try { if (S && S.started && !S.over && !S.nuts && stackHeight() >= GH - 8 && window.__TT && window.__TT.ad) { S.tons = (S.tons || 0) + 1;   /* V550: Air-Drop statt stillem Zusammendrücken */
+      setTimeout(() => { try { if (!S || !S.started || S.over) return; const ov = document.getElementById("ovAd"); if (ov && ov.hidden) window.__TT.ad.showDrop("tut"); else if (window.__dropAd) window.__dropAd("tut"); } catch (e) {} }, 700); } } catch (e) {}
     return r; };
 })(); } catch (e) { console.error("v548", e); }
 

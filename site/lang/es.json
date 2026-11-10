@@ -1949,5 +1949,7 @@
 "fresh start": "nuevo comienzo",
 "STACK TOO HIGH · fill rows to clear them": "PILA MUY ALTA · llena filas para borrarlas",
 "STACK SQUEEZED · fresh start": "PILA APLASTADA · nuevo comienzo",
-"BUILD A TOWER TO SPLAT MONSTERS!": "¡CONSTRUYE UNA TORRE Y APLASTA MONSTRUOS!"
+"BUILD A TOWER TO SPLAT MONSTERS!": "¡CONSTRUYE UNA TORRE Y APLASTA MONSTRUOS!",
+"Your stack is too high! HQ sends a Ten-ton. Confirm and it falls right now – it flattens the stack.": "¡Tu pila está muy alta! El cuartel te manda una Diez Toneladas. Confírmala y cae ahora mismo: aplasta la pila.",
+"TUTORIAL": "TUTORIAL"
 }
