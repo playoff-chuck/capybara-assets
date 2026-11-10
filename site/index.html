@@ -2796,7 +2796,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V581";
+const GAME_VER = "V582";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -9887,7 +9887,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
       if (ib) ib.addEventListener("click", e => { e.stopPropagation(); LS.set("tarnturm-devnointro", LS.get("tarnturm-devnointro") === "1" ? "0" : "1"); paint(); try { snd("uiTap"); } catch (er) {} });
       if (fr) fr.addEventListener("click", e => { e.stopPropagation(); try { snd("uiTap"); } catch (er) {}
         if (!arm) { arm = 1; fr.textContent = "Tap again"; fr.classList.add("armed"); clearTimeout(armT); armT = setTimeout(() => { arm = 0; fr.textContent = "Street player"; fr.classList.remove("armed"); }, 3000); return; }
-        try { const keep = ["tarnturm-dev"]; const ks = []; for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && /^(tarnturm|capy)/.test(k) && !keep.includes(k)) ks.push(k); } ks.forEach(k => localStorage.removeItem(k)); } catch (er) {}
+        try { const keep = ["tarnturm-dev", "capy-adm"]; const ks = [];   /* V582: Admin-Schlüssel bleibt */ for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && /^(tarnturm|capy)/.test(k) && !keep.includes(k)) ks.push(k); } ks.forEach(k => localStorage.removeItem(k)); } catch (er) {}
         try { LS.set = function () {}; Storage.prototype.setItem = function () {}; } catch (er) {}   // nichts mehr zurückschreiben (Spielstand beim Verlassen)
         location.reload(); });
       const _si = showIntro; showIntro = function (q) { if (introsOff()) { try { S.seen = S.seen || {}; S.seen[q.t === "mon" ? q.k : "g:" + q.k] = true; if (q.t === "gear" && q.k === "ton" && !S.tonIntroGift) { S.tonIntroGift = true; S.tons = (S.tons || 0) + 1; } } catch (e) {} return; } return _si.apply(this, arguments); };
