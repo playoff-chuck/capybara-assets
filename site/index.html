@@ -2796,7 +2796,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V579";
+const GAME_VER = "V580";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -7059,11 +7059,12 @@ try { (() => {
     ox.clearRect(0, 0, W, H); shown = true;
     const card = coach.querySelector(".coachCard"), cr = card && card.getBoundingClientRect(); if (!cr || !cr.width) return;
     const r = cv.getBoundingClientRect(), sx = cv.width / r.width, sy = cv.height / r.height, p = S.piece;
-    const now = performance.now(); if (p !== EN.p) { EN.p = p; EN.t = now; let top = 1e9, cs = 20; for (const [x, y] of p.cells) { const [gx, gy] = v2g(p.x + x, p.y + y); const q = cvPt(gx, gy); top = Math.min(top, q.y); cs = q.cs || cs; } EN.d = Math.max(0, top + cs); let gi = 0.8; try { gi = gravityInterval(); } catch (e) {} EN.ms = Math.min(1400, Math.max(500, EN.d / cs * gi * 1000)); }   /* V577: Einflug von ganz oben */
-    const k = Math.min(1, (now - EN.t) / EN.ms), off = -EN.d * (1 - k);
+    const k = 1, off = 0;   /* V580: kein Einflug mehr – Block fällt ganz normal */
+    const tb = document.getElementById("tutBar"), br = tb && !tb.hidden ? tb.getBoundingClientRect() : null;
+    const over = (x0, y0, w, h, q) => q && q.width && !(x0 + w < q.left || x0 > q.right || y0 + h < q.top || y0 > q.bottom);
     for (const [x, y] of p.cells) { const [gx, gy] = v2g(p.x + x, p.y + y); if (gy < 0) continue;
       const a = cvPt(gx, gy), b = cvPt(gx + 1, gy + 1), x0 = Math.min(a.x, b.x), y0 = Math.min(a.y, b.y), w = Math.abs(b.x - a.x), h = Math.abs(b.y - a.y);
-      if (k >= 1 && (x0 + w < cr.left || x0 > cr.right || y0 + h < cr.top || y0 > cr.bottom)) continue;   // nach dem Einflug nur dort, wo die Karte drüberliegt
+      if (!over(x0, y0, w, h, cr) && !over(x0, y0, w, h, br)) continue;   // V580: nur dort, wo Karte oder Kurs-Streifen drüberliegen
       ox.drawImage(cv, (x0 - r.left) * sx, (y0 - r.top) * sy, w * sx, h * sy, x0 * dpr, (y0 + off) * dpr, w * dpr, h * dpr); }
   } catch (e) {} }
   requestAnimationFrame(frame);
@@ -10581,7 +10582,7 @@ try { (() => {
 try { (() => {
   const ROSIE_K = ["rb_room", "rb_ceiling", "rb_triple", "rb_four", "rb_fancy", "rb_bigone", "rb_byebig", "rb_pancake", "rb_bags"];
   let lastSay = -1e9, bT = 0; const lastKey = {};
-  function bubble(key) { const el = document.getElementById("buddy"); if (!el) return; const who = "blue";   // V366: Martins Stimme = immer Blue
+  function bubble(key) { if (typeof TUT !== "undefined" && TUT.on) return;   /* V580: bis zum Diplom nur Stimme, kein Bild */ const el = document.getElementById("buddy"); if (!el) return; const who = "blue";   // V366: Martins Stimme = immer Blue
     el.className = Math.random() < 0.5 ? "l" : "r"; el.querySelector("img").src = HERO_IMG[who];
     el.querySelector(".say").innerHTML = `${VOICE_TEXT[key]}<small>${who === "rosie" ? "ROSIE" : "BLUE"}</small>`;
     void el.offsetWidth; el.classList.add("on"); clearTimeout(bT); const mine = String((+el.dataset.bn || 0) + 1); el.dataset.bn = mine; bT = setTimeout(() => { if (el.dataset.bn === mine) el.classList.remove("on"); }, 2800); }   /* V464: übersetzter Text bricht den Vergleich nicht mehr */
