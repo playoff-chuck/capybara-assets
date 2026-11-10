@@ -2796,7 +2796,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V592";
+const GAME_VER = "V593";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -9996,7 +9996,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
       if (r.hint) { x = r.x; up = r.up; y = up ? r.y : r.y - 84; }
       else if (r.side) { x = Math.max(44, r.left - 44); y = r.top + r.height / 2 - 42; up = false; }
       else { x = r.left + r.width / 2; up = r.top < 96; y = up ? r.bottom + 2 : r.top - 86 + (r.deep ? r.height * 0.22 : 0); }   /* V565: Dreh-Pfeil höher */
-      if (!r.side) x = Math.max(34, Math.min(innerWidth - 34, x));
+      if (!r.side) x = Math.max(6, Math.min(innerWidth - 6, x));   /* V593: Spitze genau auf die Blockmitte, auch am Rand */
       const key = Math.round(x) + "," + Math.round(y) + up + (r.side ? "s" : "");
       if (key !== last) { ca.style.display = "block"; ca.classList.toggle("up", up); ca.classList.toggle("side", !!r.side); ca.style.left = x + "px"; ca.style.top = y + "px"; last = key; }
     }
