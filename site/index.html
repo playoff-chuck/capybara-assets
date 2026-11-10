@@ -2796,7 +2796,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V584";
+const GAME_VER = "V585";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -6913,7 +6913,7 @@ window.addEventListener("pagehide", saveGame);
 const API_BASE = /(^|\.)playcapybarasquad\.com$/.test(location.hostname) ? "/api" : "https://2-29-147-164.sslip.io/api";   // V180: eigener Server (Hetzner), nur wenn claude.use("db") fehlt
 const HS_API = API_BASE + "/scores";
 function apiPid() { let p = LS.get("tarnturm-pid"); if (!p) { p = Math.random().toString(36).slice(2, 12) + Date.now().toString(36); LS.set("tarnturm-pid", p); } return p; }
-const apiNick = n => (String(n || "").replace(/[^A-Za-z0-9 _-]/g, "").trim().slice(0, 16) || "Anonymous").padEnd(2, "_");
+const apiNick = n => (String(n || "").replace(/[^\p{L}0-9 _-]/gu, "").replace(/\s+/g, " ").trim().slice(0, 16) || "Anonymous").padEnd(2, "_")   /* V585: auch kyrillisch */;
 const GHS = { chill: null, pro: null, nuts: null };               // zuletzt geholte globale Listen
 // Gemeinsame Bestenliste über die Artefakt-Datenbank (funktioniert ohne eigenen Server): ein Eintrag pro Spieler, bestes Ergebnis je Modus, nur Rufzeichen
 let HSDB = null, HSUID = null;
@@ -8645,7 +8645,9 @@ function nzFirstOpen(c) { return nzReached(c) && !((S.nutsDone || {})[c] >= 0); 
 const NZ = { frozen: null, first: false, ending: false };
 // Spaß-Rufzeichen (erfunden, nie echte Namen)
 const FN_A = ["Captain", "Lucky", "Turbo", "Sunny", "Mighty", "Brave", "Sneaky", "Happy", "Rocket", "Fuzzy", "Major", "Super"], FN_B = ["Mudpaw", "Fluff", "Pebble", "Noodle", "Biscuit", "Coconut", "Mango", "Splash", "Bubbles", "Waffle", "Pickle", "Muffin"];
-function funNick() { for (let i = 0; i < 20; i++) { const n = FN_A[Math.random() * FN_A.length | 0] + " " + FN_B[Math.random() * FN_B.length | 0]; if (n.length <= 14) return n; } return "Capy " + (100 + Math.random() * 900 | 0); }
+const FN_RU_A = ["Капитан", "Майор", "Сержант", "Лихой", "Шустрый", "Хитрый", "Бравый", "Весёлый", "Ловкий", "Удалой", "Смелый", "Мудрый", "Турбо", "Супер"], FN_RU_B = ["Пряник", "Бублик", "Кекс", "Пончик", "Сырник", "Орешек", "Кокос", "Манго", "Вареник", "Огурчик", "Блинчик", "Пельмень", "Барсук", "Плюх"];   /* V585 */
+function funNick() { const ru = (I18N.lang || "") === "ru", A = ru ? FN_RU_A : FN_A, B = ru ? FN_RU_B : FN_B;
+  for (let i = 0; i < 30; i++) { const n = A[Math.random() * A.length | 0] + " " + B[Math.random() * B.length | 0]; if (n.length <= 14) return n; } return (ru ? "Капи " : "Capy ") + (100 + Math.random() * 900 | 0); }
 $("joinDice").addEventListener("click", e => { e.preventDefault(); SFX.init(); snd("uiTap"); $("joinNick").value = funNick(); });
 
 // --- Oberflächen ---
