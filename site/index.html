@@ -2796,7 +2796,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V548";
+const GAME_VER = "V549";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -10001,7 +10001,7 @@ try { (() => {
     { k: "1", w: 4, t: "CANNON ON THE RIGHT EDGE", p: "Mount a cannon on a block at the right edge – it gets you through the first waves with ease." },
     { k: "2", w: 5, t: "EDGES DON'T COUNT", p: "The outer squares on the left and right don't need blocks – a row clears without them." },
     { k: "row", c: () => S.wave >= 2 && S.wave <= 12 && !(S.lines | 0) && stackHeight() >= 4, t: "FILL A ROW – IT DISAPPEARS!", p: "Fill a whole row with blocks and it clears. You get gold and room to breathe." },   /* V548 */
-    { k: "gold", c: () => S.wave >= 2 && S.wave <= 15 && (S.gold | 0) >= 300 && S.towers.size <= 2, t: "SPEND YOUR GOLD!", p: "You have gold to spare. Tap the shop and build more towers – you can have several at once.", at: "bBuild" },   /* V548 */
+    { k: "gold", c: () => S.wave >= 2 && S.wave <= 15 && (S.gold | 0) >= 300 && S.towers.size <= 2, t: "BUILD A TOWER TO SPLAT MONSTERS!", p: "You have gold to spare. Tap the shop and build more towers – you can have several at once.", at: "bBuild" },   /* V548 */
     { k: "lost", c: () => !!S.towerLost && S.wave <= 40, t: "TOWER LOST? NO PROBLEM!", p: "A tower can fall when its block disappears. Just build a new one – you can have several towers at the same time." }];   /* V548 */
   const card = document.createElement("div"); card.id = "tipBulb"; card.hidden = true;
   card.innerHTML = '<img src="img/tip_bulb.webp" alt=""><div><small>TIP</small><b></b><p></p><button type="button" disabled>GOT IT</button></div>'; document.body.appendChild(card);
