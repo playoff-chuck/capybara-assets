@@ -2796,7 +2796,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V572";
+const GAME_VER = "V573";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -7048,6 +7048,24 @@ try { (() => {
     if (!S || !S.started || S.over || S.nuts || (typeof TUT !== "undefined" && TUT.on) || window.__tutSumOpen || uiWinOpen() || S.shop || S.sel || S.drop || S.mapShow) return;
     open(); } catch (e) {} }, 500);
 })(); } catch (e) { console.error("v572 coachAd", e); }
+
+/* V573: fallender Block über der Tutorial-Karte */
+try { (() => {
+  const oc = document.createElement("canvas"); oc.id = "tutPieceCv"; document.body.appendChild(oc); const ox = oc.getContext("2d"); let shown = false;
+  function frame() { requestAnimationFrame(frame); try {
+    const coach = document.getElementById("coach"), on = typeof TUT !== "undefined" && TUT.on && S && S.started && !S.over && S.piece && coach && !coach.hidden && !cv.classList.contains("rot") && !cv.classList.contains("rotR") && !S.rotMode;
+    if (!on) { if (shown) { ox.clearRect(0, 0, oc.width, oc.height); shown = false; } return; }
+    const dpr = window.devicePixelRatio || 1, W = Math.round(innerWidth * dpr), H = Math.round(innerHeight * dpr); if (oc.width !== W || oc.height !== H) { oc.width = W; oc.height = H; }
+    ox.clearRect(0, 0, W, H); shown = true;
+    const card = coach.querySelector(".coachCard"), cr = card && card.getBoundingClientRect(); if (!cr || !cr.width) return;
+    const r = cv.getBoundingClientRect(), sx = cv.width / r.width, sy = cv.height / r.height, p = S.piece;
+    for (const [x, y] of p.cells) { const [gx, gy] = v2g(p.x + x, p.y + y); if (gy < 0) continue;
+      const a = cvPt(gx, gy), b = cvPt(gx + 1, gy + 1), x0 = Math.min(a.x, b.x), y0 = Math.min(a.y, b.y), w = Math.abs(b.x - a.x), h = Math.abs(b.y - a.y);
+      if (x0 + w < cr.left || x0 > cr.right || y0 + h < cr.top || y0 > cr.bottom) continue;   // nur dort, wo die Karte drüberliegt
+      ox.drawImage(cv, (x0 - r.left) * sx, (y0 - r.top) * sy, w * sx, h * sy, x0 * dpr, y0 * dpr, w * dpr, h * dpr); }
+  } catch (e) {} }
+  requestAnimationFrame(frame);
+})(); } catch (e) { console.error("v573", e); }
 const TUT_SNAP = () => ({ lines: S.lines | 0, sp: S.splatN | 0, k: S.kills | 0, tw: S.towers.size, wp: [...S.towers.values()].reduce((a, t) => a + t.w.length, 0), sn: S.snipes | 0 });
 /* V570: Kurs-Streifen (Duolingo-Stil, Capybara-Design) */
 try { (() => {
@@ -12200,4 +12218,5 @@ body.tutBarOn #toast,body.tutBarOn #alert{display:none!important}
 #ovCoachAd .caLock.go i{animation:caRing 3s linear forwards}
 @keyframes caRing{from{transform:rotate(0)}to{transform:rotate(360deg);opacity:0}}
 </style>
+<style id="v573">#tutPieceCv{position:fixed;left:0;top:0;width:100vw;height:100vh;z-index:907;pointer-events:none}</style>
 </body></html>
