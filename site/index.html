@@ -2796,7 +2796,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V562";
+const GAME_VER = "V563";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -8999,7 +8999,12 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
   const grab = () => SEL.map(q => { const e = document.querySelector(q); return e ? e.scrollTop : 0; });
   const put = v => SEL.forEach((q, i) => { const e = document.querySelector(q); if (e && v[i]) e.scrollTop = v[i]; });
   const _rs = renderShop;
-  renderShop = function () { const v = grab(); const r = _rs.apply(this, arguments); put(v); requestAnimationFrame(() => put(v)); setTimeout(() => put(v), 60); return r; };
+  /* V563: Anker – die zuletzt angetippte Karte bleibt an ihrer Bildschirmstelle */
+  let anc = null; document.addEventListener("pointerdown", e => { const b = e.target.closest && e.target.closest("#sheet [data-shop],#sheet [data-pocket]"); anc = b ? { sel: b.dataset.shop ? `[data-shop="${b.dataset.shop}"]` : `[data-pocket="${b.dataset.pocket}"]`, t: performance.now() } : null; }, true);
+  const fix = (sel, top0) => { try { const el = document.querySelector("#sheet " + sel); const sc = document.querySelector("#sheet .shopTiles") || document.querySelector("#sheet .shopGrid"); if (!el || !sc) return; const d = el.getBoundingClientRect().top - top0; if (Math.abs(d) > 1) sc.scrollTop += d; } catch (e) {} };
+  renderShop = function () { const v = grab(); let a = null; if (anc && performance.now() - anc.t < 3000) { const el = document.querySelector("#sheet " + anc.sel); if (el) a = { sel: anc.sel, top: el.getBoundingClientRect().top }; }
+    const r = _rs.apply(this, arguments); put(v); if (a) fix(a.sel, a.top);
+    requestAnimationFrame(() => { put(v); if (a) fix(a.sel, a.top); }); setTimeout(() => { put(v); if (a) fix(a.sel, a.top); }, 60); setTimeout(() => { if (a) fix(a.sel, a.top); }, 400); return r; };
 })();
 
   /* V192: Versionsnummer auf Start- und Intro-Screen */
