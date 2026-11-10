@@ -2796,7 +2796,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V563";
+const GAME_VER = "V564";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -4117,7 +4117,7 @@ const SFX = (() => {
       MUSIC.duck(dur);
       // Funkgerät: Bandpass 350–3200 Hz, leichte Verzerrung, Rauschen, Squelch-Klick am Anfang und Ende
       const src = ac.createBufferSource(), g = ac.createGain(), hp = ac.createBiquadFilter(), lp = ac.createBiquadFilter(), pk = ac.createBiquadFilter();
-      src.buffer = buf; hp.type = "highpass"; hp.frequency.value = 420; hp.Q.value = 1.1; lp.type = "lowpass"; lp.frequency.value = 2700; lp.Q.value = 1.6; pk.type = "peaking"; pk.frequency.value = 1700; pk.gain.value = 8; pk.Q.value = 1.2;
+      src.buffer = buf; hp.type = "highpass"; hp.frequency.value = 420; hp.Q.value = 1.1; lp.type = "lowpass"; lp.frequency.value = 2700; lp.Q.value = 1.6; pk.type = "peaking"; pk.frequency.value = 1700; pk.gain.value = 8; pk.Q.value = 1.2; if (/^thief_/.test(String(text))) { hp.frequency.value = 75; lp.frequency.value = 5200; pk.frequency.value = 230; pk.gain.value = 5; }   /* V564: Dieb – tiefe Stimme, kein Funkfilter */
       const ws = ac.createWaveShaper(), cu = new Float32Array(512); for (let i = 0; i < 512; i++) { const x = i / 255.5 - 1; cu[i] = Math.tanh(x * 3.4) / Math.tanh(3.4); } ws.curve = cu;
       const comp = ac.createDynamicsCompressor(); comp.threshold.value = -24; comp.ratio.value = 8; comp.attack.value = 0.002; comp.release.value = 0.08;
       g.gain.value = 0.324 * [1, 0.72, 0.42, 0.14][Math.min(3, deg)]; src.connect(hp); src.__g = g; hp.connect(pk); pk.connect(lp); lp.connect(ws); ws.connect(comp);
@@ -6442,7 +6442,7 @@ try { (() => { const sh = $("sheet"); let held = false, tm = 0;
   const _cs = closeSheet; closeSheet = function () { end(); return _cs.apply(this, arguments); };
 })(); } catch (e) { console.error("v441", e); }
 const SNIPE_COST = 200, MIX_COST = 350, TESLA_COST = 500, WOLF_COST = 500, WOLF_W = 100;   /* V394: Wolf call */
-function playWolf() { try { if (SFX.muted) return; const a = new Audio("sfx/wolf.mp3"); a.volume = Math.min(1, Math.max(0.6, 8 * Math.pow(SFX.vol || 0.3, 2))); a.play().catch(() => {}); } catch (e) {} }
+function playWolf() { try { if (SFX.muted) return; const a = new Audio("sfx/wolf.mp3"); a.volume = 0.5 * Math.min(1, Math.max(0.6, 8 * Math.pow(SFX.vol || 0.3, 2)));   /* V564: −50 % (Martin 10.11.) */ a.play().catch(() => {}); } catch (e) {} }
 function wolfCall() { const D = window.__dist && window.__dist.D, T = D && D.thief;
   if (!(S.wolves > 0)) { snd("nope"); return; }
   if (!T) { S.wolves--; S.mode = null; S.aim = null; playWolf(); setTimeout(() => toast("AWOOO! · no thief around – howl wasted", "POCKET", 2000), 600); return; }
@@ -7005,13 +7005,14 @@ let pendingStart = null;
 const TUT = { on: false, step: 0, t: 0 };
 { const _rotT = rotate; rotate = function () { try { if (TUT.on) TUT.rot = (TUT.rot || 0) + 1; } catch (e) {} return _rotT.apply(this, arguments); }; }   /* V545: Drehungen zählen */
 const TUT_STEPS = [
-  { t: "DROP A BLOCK", s: "Tap DROP. Blocks are your ground.", at: "bDrop", done: () => S.pieceNo >= ((TUT.b && TUT.b.p) || 0) + 1 },
+  { t: "DROP A BLOCK", s: "Tap DROP. Blocks are your ground.", at: "bDrop", done: () => (TUT.dropTap || 0) > 0 },   /* V564: nur echter Tipp zählt */
   { t: "BUILD A TOWER", s: "Tap SHOP, then PLACE.", at: "bBuild", done: () => S.mode === "build" || S.towers.size > ((TUT.b && TUT.b.tw) || 0) },
   { t: "PICK A BLOCK", s: "Tap one of your landed blocks.", at: "board", done: () => S.towers.size > ((TUT.b && TUT.b.tw) || 0) },
   { t: "ARM IT", s: "Buy the MG. Then tap Done.", at: "sheet", done: () => [...S.towers.values()].reduce((a, t) => a + t.w.length, 0) > ((TUT.b && TUT.b.wp) || 0) && !S.sel },
-  { t: "TURN YOUR BLOCKS!", s: "Tap the yellow button in the middle to turn the falling block.", at: "bRot", rot: 1, done: () => (TUT.rot || 0) > (TUT.rb || 0) || TUT.t >= 15 },   /* V545 */   /* V367: «Got it» · V483: Spiel läuft dabei weiter · V488: nach 10 s von selbst zu (Martin 09.11.) */
+  { t: "TURN YOUR BLOCKS!", s: "Tap the yellow button in the middle to turn the falling block.", at: "bRot", rot: 1, done: () => (TUT.rot || 0) > (TUT.rb || 0) || TUT.t >= 15 },
+  { t: "MONSTERS RUN THE RING", s: "They run around the field. Each one that gets all the way round costs a ♥ life – towers and falling blocks splat them.", at: "board", done: () => TUT.t >= 12 || (S.kills | 0) > ((TUT.b && TUT.b.k) || 0) + 2 },   /* V564: Ring-Schritt zurück */   /* V545 */   /* V367: «Got it» · V483: Spiel läuft dabei weiter · V488: nach 10 s von selbst zu (Martin 09.11.) */
 ];
-function tutStart() { TUT.b = { p: S.pieceNo || 0, tw: S.towers.size, wp: [...S.towers.values()].reduce((a, t) => a + t.w.length, 0) }; TUT.on = true; TUT.step = 0; TUT.t = 0; $("coach").hidden = false; tutShow(); }
+function tutStart() { TUT.dropTap = 0; TUT.b = { k: S.kills | 0, p: S.pieceNo || 0, tw: S.towers.size, wp: [...S.towers.values()].reduce((a, t) => a + t.w.length, 0) }; TUT.on = true; TUT.step = 0; TUT.t = 0; $("coach").hidden = false; tutShow(); }
 /* V534: Tutorial-Knopf bis Welle 10 */
 { const b = document.createElement("button"); b.id = "bTut"; b.type = "button"; b.setAttribute("aria-label", "Tutorial"); b.hidden = true;
   b.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4 1.5 9 12 14l10.5-5z" fill="#3a2414"/><path d="M5.5 11.2v4.3c0 1.6 2.9 3 6.5 3s6.5-1.4 6.5-3v-4.3L12 14.3z" fill="#3a2414"/><path d="M21 9.3v5.2" stroke="#3a2414" stroke-width="1.6" stroke-linecap="round"/><circle cx="21" cy="15.6" r="1.4" fill="#ffd34a" stroke="#3a2414" stroke-width="1"/></svg><b>HOW TO</b>';
@@ -7043,7 +7044,7 @@ function tutStart() { TUT.b = { p: S.pieceNo || 0, tw: S.towers.size, wp: [...S.
       const show = !!(r && r.width && S && S.started && !S.over && !S.nuts && !S.replay && !S.testRun && (S.wave || 1) <= 10 && !S.paused && !ovOpen); b.classList.toggle("on", !!TUT.on);
       const dk = document.querySelector(".deck"); if (dk && b.parentNode !== dk) dk.appendChild(b);
       if (b.hidden === show) b.hidden = !show; if (show && dk) { const q = dk.getBoundingClientRect(); b.style.left = Math.round(r.right + 4 - q.left) + "px"; b.style.top = Math.round(r.top + r.height / 2 - 20 - q.top) + "px"; } } catch (e) {} }, 300); }
-function tutEnd(skipped) { TUT.on = false; S.coachHold = false; $("coachSkip").textContent = "Skip tutorial"; $("coach").hidden = true; coachHi(null); LS.set("tarnturm-tut", "1"); if (!skipped) { toast("TUTORIAL DONE · good luck, squad", "HQ", 1800); SFX.say("Nice!"); } }
+function tutEnd(skipped) { TUT.on = false; S.coachHold = false; $("coachSkip").textContent = "Skip tutorial"; $("coach").hidden = true; coachHi(null); LS.set("tarnturm-tut", "1"); if (!skipped) { toast("TUTORIAL DONE · good luck, squad", "HQ", 1800); SFX.say("Nice!"); window.__tutSumPend = performance.now(); } }   /* V564: Abschlusskarte am Wellenende */
 function tutShow() { const st = TUT_STEPS[TUT.step]; if (st.rot) { TUT.rb = TUT.rot || 0; try { LS.set("tarnturm-tipb-rot", "1"); } catch (e) {} }   /* V545 */ $("coachStep").textContent = `${TUT.step + 1}/${TUT_STEPS.length}`; $("coachT").textContent = st.t; $("coachS").textContent = st.s; const last = TUT.step >= 4;   /* V545: Schritt 5 und 6 mit GOT IT */ S.coachHold = false; $("coachSkip").textContent = last ? "Got it" : "Skip tutorial"; if (last) coachArm(); else { clearTimeout(coachArm.t); $("coachSkip").classList.remove("wait"); }   /* V483: Spiel läuft auch bei Schritt 5 weiter */ snd("radio"); tutPlace(); }
 function coachHi(el) { document.querySelectorAll(".coachHi").forEach(x => { if (x !== el) x.classList.remove("coachHi"); }); if (el && el.id !== "board" && el.id !== "sheet") el.classList.add("coachHi"); }
 function tutPlace() {
@@ -7056,8 +7057,8 @@ function tutPlace() {
 function tutTick(dt) {
   if (!TUT.on) return;
   const st = TUT_STEPS[TUT.step]; TUT.t += dt;
-  if (TUT.step < 4) { S.waveCD = Math.max(S.waveCD, 6); S.inWave = false; }   /* V320: Welle wartet im Tutorial · V483: Blöcke fallen weiter (Martin 08.11.) */   // Welle wartet, bis die Grundlagen sitzen
-  if (st.done()) { TUT.step++; if (TUT.step >= TUT_STEPS.length) { tutEnd(false); return; } TUT.t = 0; if (TUT.step === 4) S.waveCD = 2; tutShow(); }
+  if (TUT.step < 5) { S.waveCD = Math.max(S.waveCD, 6); S.inWave = false; }   /* V564: Welle erst mit dem Ring-Schritt */   /* V320: Welle wartet im Tutorial · V483: Blöcke fallen weiter (Martin 08.11.) */   // Welle wartet, bis die Grundlagen sitzen
+  if (TUT.t >= 4 && st.done()) { TUT.step++; if (TUT.step >= TUT_STEPS.length) { tutEnd(false); return; } TUT.t = 0; if (TUT.step === 5) S.waveCD = 2; tutShow(); }   /* V564: jeder Schritt mind. 4 s */
   else tutPlace();
 }
 function coachArm() { const b = $("coachSkip"); b.classList.add("wait"); clearTimeout(coachArm.t); coachArm.t = setTimeout(() => b.classList.remove("wait"), 3000); }   /* V497: «Got it» erst nach 3 s zeigen */
@@ -7083,30 +7084,114 @@ function weedCard() {
   try { snd("siren"); } catch (e) {} clearTimeout(hintT);   /* kein Auto-Ende */
 }
 window.__weedCard = weedCard;
-function hintEnd() { if (!hintKey) return; if (hintKey === "tontut") { TONTUT.st = 0; LS.set("capy-tut-ton", "1"); $("coach").classList.remove("tt2"); document.querySelectorAll(".ttPulse").forEach(x => x.classList.remove("ttPulse")); } hintKey = null; try { if (S) S.coachHold = false; } catch (e) {} $("coach").hidden = true; coachHi(null); $("coachSkip").textContent = "Skip tutorial"; $("coachSkip").classList.remove("wait"); clearTimeout(hintT); }
+function hintEnd() { if (!hintKey) return; if (hintKey === "tontut") { TONTUT.st = 0; LS.set("capy-tut-ton", "1"), LS.set("capy-tut-sp", "1"); $("coach").classList.remove("tt2"); document.querySelectorAll(".ttPulse").forEach(x => x.classList.remove("ttPulse")); } hintKey = null; try { if (S) S.coachHold = false; } catch (e) {} $("coach").hidden = true; coachHi(null); $("coachSkip").textContent = "Skip tutorial"; $("coachSkip").classList.remove("wait"); clearTimeout(hintT); }
 /* V499: Air-Drop-Tutorial – wie setzt man den geschenkten Ten-ton ein? */
-const TONTUT = { st: 0 };
+const TONTUT = { st: 0, k: null, base: null, bS: null };
+const SP_KEYS = ["ton", "mix", "snipe", "tesla", "chomp", "lock", "wolf"];
+const SP_CNT = k => { try { return ({ ton: S.tons, mix: S.mixers, snipe: S.snipes, tesla: S.teslas, chomp: S.chomps, lock: S.locks, wolf: S.wolves }[k] | 0); } catch (e) { return 0; } };
+const SP_SUB = { ton: "Tap USE at the Ten-ton drop. It crushes monsters and squeezes your stack to half.", mix: "Tap USE at the Concrete mixer, then tap a hole in your stack – it gets filled.", snipe: "Tap USE at the Sniper strike, then tap a spot – a 2×2 patch is wiped.", tesla: "Tap USE at the Tesla storm, then tap a spot – lightning wipes 4×4.", chomp: "Tap USE at the Chomper – it runs the ring backwards and eats everything.", lock: "Tap USE at the Lockdown – time stops for a few seconds.", wolf: "Tap USE at the Wolf call – the thief runs off and drops your gold." };
 function tonTutCard(title, sub, el) { const c = $("coach"), a = $("coachArrow"), card = c.querySelector(".coachCard"); c.hidden = false; c.classList.toggle("tt2", TONTUT.st === 2); document.querySelectorAll(".ttPulse").forEach(x => x.classList.remove("ttPulse")); if (TONTUT.st === 2 && el) el.classList.add("ttPulse");
-  $("coachStep").textContent = "AIR DROP"; $("coachT").textContent = title; $("coachS").textContent = sub; $("coachSkip").textContent = "Skip"; $("coachSkip").classList.remove("wait"); coachHi(el);
+  $("coachStep").textContent = "SPECIAL"; $("coachT").textContent = title; $("coachS").textContent = sub; $("coachSkip").textContent = "Skip"; $("coachSkip").classList.remove("wait"); coachHi(el);
   const br = $("board").getBoundingClientRect();
   if (el) { const r = el.getBoundingClientRect(), below = r.top < window.innerHeight * 0.5; a.style.display = "block"; a.textContent = below ? "▲" : "▼"; a.style.left = (r.left + r.width / 2) + "px";
     if (below) { a.style.top = (r.bottom + 4) + "px"; card.style.bottom = ""; card.style.top = (r.bottom + 40) + "px"; } else { a.style.top = (r.top - 34) + "px"; card.style.bottom = ""; card.style.top = (br.top + 6) + "px"; } }
   else { a.style.display = "none"; card.style.bottom = ""; card.style.top = (br.top + 6) + "px"; } }
+/* V564: Special-Tutorial für das erste Special, egal woher (Lucky Supply, Air Drop, Geschenk) – Spiel steht, Pfeil SHOP → USE */
 function tonTutTick() { try {
-  if (!S || !S.started || S.over || S.nuts || S.testRun || S.replay) { if (TONTUT.st && hintKey === "tontut") { hintKey = null; S && (S.coachHold = false); $("coach").hidden = true; coachHi(null); TONTUT.st = 0; } return; }
+  if (!S || !S.started || S.over || S.nuts || S.testRun || S.replay) { if (TONTUT.st && hintKey === "tontut") { hintKey = null; S && (S.coachHold = false); $("coach").hidden = true; coachHi(null); TONTUT.st = 0; } TONTUT.base = null; return; }
+  if (TONTUT.bS !== S) { TONTUT.bS = S; TONTUT.base = null; }
+  if (!TONTUT.base) { TONTUT.base = {}; SP_KEYS.forEach(k => TONTUT.base[k] = SP_CNT(k)); return; }
   if (!TONTUT.st) {
-    if (LS.get("capy-tut-ton") === "1" || !(S.tons > 0) || !S.tonGift || !Object.keys(S.tonGift).length || TUT.on || hintKey || S.ton) return;
-    if (uiWinOpen() || S.drop || S.shop || S.paused || S.mapShow || S.ordersOpen || S.intro || S.adOpen || S.mode || S.sel) return;
+    if (LS.get("capy-tut-sp") === "1") return;
+    if (S.shop) { SP_KEYS.forEach(k => TONTUT.base[k] = SP_CNT(k)); return; }   // selbst gekauft: kennt den Laden schon
+    SP_KEYS.forEach(q => { if (SP_CNT(q) < TONTUT.base[q]) TONTUT.base[q] = SP_CNT(q); });
+    const k = SP_KEYS.find(q => SP_CNT(q) > TONTUT.base[q]); if (!k) return;
+    if (TUT.on || hintKey || S.ton || window.__tutSumOpen) return;
+    if (uiWinOpen() || S.drop || S.paused || S.mapShow || S.ordersOpen || S.intro || S.adOpen || S.mode || S.sel) return;
     if (window.__tipBulb && window.__tipBulb.open) return;
-    hintKey = "tontut"; TONTUT.st = 1; S.coachHold = true;
-    tonTutCard("USE YOUR AIR DROP", "Your Ten-ton drop is waiting in the SHOP. Tap SHOP.", $("bBuild")); snd("radio"); return; }
-  if (S.ton) { hintEnd(); toast("NICE DROP! · keep the next one for a high stack", "HQ", 2400); try { SFX.say("Nice!"); } catch (e) {} return; }
-  const pk = S.shop && $("sheetIn").classList.contains("pk"), btn = pk ? document.querySelector('#sheetIn [data-pocket="ton"]') : null;
-  if (TONTUT.st === 1 && btn) { TONTUT.st = 2; try { btn.scrollIntoView({ block: "center" }); } catch (e) {} setTimeout(() => { if (TONTUT.st === 2) tonTutCard("DROP IT!", "Tap USE at the Ten-ton drop. It crushes monsters and squeezes your stack to half.", btn); }, 250); }
-  else if (TONTUT.st === 2 && !pk) { TONTUT.st = 1; tonTutCard("USE YOUR AIR DROP", "Your Ten-ton drop is waiting in the SHOP. Tap SHOP.", $("bBuild")); }
+    hintKey = "tontut"; TONTUT.st = 1; TONTUT.k = k; TONTUT.n0 = SP_CNT(k); S.coachHold = true;
+    tonTutCard("USE YOUR SPECIAL", "A special is waiting for you in the SHOP. Tap SHOP.", $("bBuild")); snd("radio"); return; }
+  const k = TONTUT.k || "ton";
+  if (SP_CNT(k) < TONTUT.n0 || (k === "ton" && S.ton) || (["mix", "snipe", "tesla"].includes(k) && S.mode === k)) { hintEnd(); toast("NICE! · specials wait in the SHOP – use them any time", "HQ", 2400); try { SFX.say("Nice!"); } catch (e) {} return; }
+  const pk = S.shop && $("sheetIn").classList.contains("pk"), btn = pk ? document.querySelector(`#sheetIn [data-pocket="${k}"]`) : null;
+  if (TONTUT.st === 1 && btn) { TONTUT.st = 2; try { btn.scrollIntoView({ block: "center" }); } catch (e) {} setTimeout(() => { if (TONTUT.st === 2) tonTutCard("TAP USE!", SP_SUB[k] || SP_SUB.ton, btn); }, 250); }
+  else if (TONTUT.st === 2 && !pk) { TONTUT.st = 1; tonTutCard("USE YOUR SPECIAL", "A special is waiting for you in the SHOP. Tap SHOP.", $("bBuild")); }
 } catch (e) {} }
 setInterval(tonTutTick, 400);
 window.__tonTut = { tick: tonTutTick, get st() { return TONTUT.st; } };
+/* V564: Tutorial-Ausbau (Martin 10.11.) */
+try { (() => {
+  window.__TUTT = { get T() { return TUT; }, start: () => tutStart(), get TON() { return TONTUT; } };   /* Test-Hook */
+  /* 1: Schritt 1 zählt nur einen echten Tipp auf DROP */
+  const _hd = hardDrop; hardDrop = function () { try { if (TUT.on && TUT.step === 0 && S && !S.duel) TUT.dropTap = (TUT.dropTap || 0) + 1; } catch (e) {} return _hd.apply(this, arguments); };
+  /* 5: Missions- und Beförderungs-Meldungen warten im Tutorial und in W1–W2 bis zur Wellenpause */
+  const _to = toast, HOLD = []; let relT = 0;
+  const holdNow = () => { try { return !!(S && S.started && !S.over && (TUT.on || window.__tutSumOpen || ((S.wave || 1) <= 2 && S.inWave))); } catch (e) { return false; } };
+  toast = function (msg, tag, hold) { if ((tag === "SQUAD" || tag === "PROMOTION") && holdNow()) { HOLD.push([msg, tag, hold]); return; } return _to.apply(this, arguments); };
+  setInterval(() => { if (!HOLD.length) return; try { if (!S || !S.started || S.over) { HOLD.length = 0; return; } } catch (e) { return; } if (holdNow() || performance.now() - relT < 3200) return; relT = performance.now(); _to.apply(null, HOLD.shift()); }, 400);
+  /* 8: erste geräumte Reihe, erster TNT-Block */
+  let rowAsk = false, tntAsk = false;
+  setInterval(() => { try { if (!S || !S.started || S.over || S.nuts || S.testRun || S.replay || TUT.on || hintKey || window.__tutSumOpen) return;
+      if (!rowAsk && (S.lines | 0) > 0 && LS.get("tarnturm-hint-row1") !== "1") { rowAsk = true; hint("row1", "ROW CLEARED!", "Full rows disappear and pay gold. Keep filling them – it also keeps your stack low.", "board"); return; }
+      if (!tntAsk && S.piece && S.piece.tnt && LS.get("tarnturm-hint-tnt") !== "1") { tntAsk = true; hint("tnt", "TNT BLOCK!", "It blows up 3×3 when its row clears or a monster bites it. Put it where the monsters run.", "board"); } } catch (e) {} }, 500);
+  /* 10: Abschlusskarte am Ende von Welle 1 (bzw. der Welle, in der das Tutorial endet) */
+  const st = document.createElement("style"); st.textContent = `#tutSum{position:fixed;inset:0;z-index:96;display:grid;place-items:center;background:rgba(43,30,18,.5);opacity:0;transition:opacity .2s}
+#tutSum.on{opacity:1}#tutSum[hidden]{display:none!important}
+#tutSum .tsCard{position:relative;width:min(88vw,340px);background:#fff7e8;border:3px solid #3a2414;border-radius:24px;box-shadow:0 6px 0 #3a2414,0 14px 30px rgba(0,0,0,.4);padding:60px 16px 16px;text-align:center;transform:scale(.8) rotate(-2deg);transition:transform .32s cubic-bezier(.2,1.6,.4,1)}
+#tutSum.on .tsCard{transform:none}
+#tutSum .tsCard>img{position:absolute;left:50%;top:-62px;width:112px;height:112px;object-fit:contain;transform:translateX(-50%);filter:drop-shadow(0 4px 0 rgba(58,36,20,.25))}
+#tutSum small{display:inline-block;font:700 12px/1 "Baloo 2",Nunito,system-ui,sans-serif;letter-spacing:.12em;color:#fff;background:#3f9a3a;border:2px solid #3a2414;border-radius:999px;padding:4px 10px 3px}
+#tutSum b{display:block;font:400 27px/1.05 var(--f-display,"Bangers",sans-serif);letter-spacing:.04em;color:#3a2414;margin:8px 0 10px}
+#tutSum ul{list-style:none;margin:0 0 14px;padding:0;text-align:left;display:grid;gap:8px}
+#tutSum li{display:flex;gap:10px;align-items:center;background:#fff;border:2px solid #e3cfae;border-radius:14px;padding:8px 10px}
+#tutSum li i{font-style:normal;font-size:24px;line-height:1;flex:0 0 auto}
+#tutSum li span{font:600 14.5px/1.3 "Baloo 2",Nunito,system-ui,sans-serif;color:#5a3d22}
+#tutSum button{width:100%;min-height:0;font:400 21px/1 var(--f-display,"Bangers",sans-serif);letter-spacing:.05em;background:#7fd35a!important;color:#1f3a12!important;border:2.5px solid #3a2414;border-radius:16px;box-shadow:0 4px 0 #3a2414;padding:12px 8px 10px;transition:opacity .3s}
+#tutSum button:disabled{opacity:.45}
+#tutSum button:active{transform:translateY(3px);box-shadow:0 1px 0 #3a2414}
+#comicArrow.side svg{transform:rotate(-90deg)}#comicArrow.side{transform:translate(-50%,0)}
+#tipArrow.side svg{transform:rotate(-90deg)}
+#hkTrial{display:block;width:100%;margin:6px 0 4px;font:400 18px/1 var(--f-display,"Bangers",sans-serif);letter-spacing:.05em;background:#ffd23a!important;color:#3a2414!important;border:2.5px solid #3a2414;border-radius:14px;box-shadow:0 4px 0 #3a2414;padding:10px 8px 8px}
+#hkTrialP{margin:2px 0 0;font:600 13px/1.3 "Baloo 2",Nunito,system-ui,sans-serif;color:#6b4a2b;text-align:center}
+#hkTip{position:absolute;left:12px;right:12px;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:30;background:#fff7e8;border:2.5px solid #3a2414;border-radius:16px;box-shadow:0 4px 0 #3a2414;padding:9px 12px;font:600 14px/1.3 "Baloo 2",Nunito,system-ui,sans-serif;color:#3a2414;text-align:center;pointer-events:none}
+#hkTip[hidden]{display:none!important}#hkTip em{display:block;font:400 15px/1 var(--f-display,"Bangers",sans-serif);letter-spacing:.06em;color:#c8161b;font-style:normal;margin-bottom:4px}`;
+  document.head.appendChild(st);
+  const sum = document.createElement("div"); sum.id = "tutSum"; sum.hidden = true;
+  sum.innerHTML = '<div class="tsCard"><img alt=""><small>TUTORIAL</small><b>TUTORIAL DONE!</b><ul><li><i>🧱</i><span>Blocks are your ground – full rows disappear and pay gold.</span></li><li><i>🏰</i><span>Towers shoot the monsters on the ring – each one that gets round costs a ♥ life.</span></li><li><i>🎁</i><span>Specials wait in the SHOP – tap USE.</span></li></ul><button type="button" disabled>LET\'S GO!</button></div>';
+  document.body.appendChild(sum); const sb = sum.querySelector("button");
+  function sumClose() { sum.classList.remove("on"); setTimeout(() => { sum.hidden = true; }, 220); window.__tutSumOpen = false; try { S.coachHold = false; snd("uiTap"); } catch (e) {} window.__evtLast = performance.now(); }
+  sb.addEventListener("click", e => { e.stopPropagation(); if (!sb.disabled) sumClose(); });
+  setInterval(() => { try {
+    const p = window.__tutSumPend; if (!p || window.__tutSumOpen) return;
+    if (!S || !S.started || S.over || S.nuts) { window.__tutSumPend = 0; return; }
+    const we = window.__waveEndT || 0; if (S.inWave || we < p || performance.now() - we < 2500) return;
+    if (hintKey || TUT.on || uiWinOpen() || S.drop || S.paused || S.shop || S.sel || S.duel || S.mapShow || (window.__tipBulb && window.__tipBulb.open)) return;
+    { const cr = document.getElementById("crate"), gv = document.getElementById("ovGive"); if ((cr && !cr.hidden) || (gv && !gv.hidden)) return; }
+    window.__tutSumPend = 0; window.__tutSumOpen = true; S.coachHold = true;
+    try { sum.querySelector(".tsCard>img").src = HERO_IMG[heroKey()]; } catch (e) {}
+    sb.disabled = true; setTimeout(() => { sb.disabled = false; }, 1500);
+    sum.hidden = false; requestAnimationFrame(() => sum.classList.add("on")); try { snd("powerup"); } catch (e) {}
+  } catch (e) {} }, 400);
+  /* 9: erster Boss-Hack – kostenlose Proberunde gegen einen leichten Gegner, dann das echte Duell */
+  const ov = document.getElementById("ovHack"), bet = document.getElementById("hackBet");
+  if (ov && bet) {
+    const tb = document.createElement("button"); tb.id = "hkTrial"; tb.type = "button"; tb.textContent = "FREE PRACTICE ROUND ▶"; tb.hidden = true;
+    const tp = document.createElement("p"); tp.id = "hkTrialP"; tp.textContent = "First time? Try it once – no stake, easy opponent."; tp.hidden = true;
+    const row = bet.querySelector(".hkRow") || bet.lastElementChild; bet.insertBefore(tp, row); bet.insertBefore(tb, tp);
+    const tip = document.createElement("div"); tip.id = "hkTip"; tip.hidden = true; tip.innerHTML = "<em>PRACTICE ROUND</em><span></span>"; ov.appendChild(tip);
+    const offer = () => { try { return LS.get("capy-hk-trial") !== "1" && !HK.coach && !HK.trial && !(S && (S.nuts || S.testRun)); } catch (e) { return false; } };
+    new MutationObserver(() => { const on = !ov.hidden && !bet.hidden && offer(); tb.hidden = !on; tp.hidden = !on; }).observe(bet, { attributes: true, attributeFilter: ["hidden"] });
+    new MutationObserver(() => { const on = !ov.hidden && !bet.hidden && offer(); tb.hidden = !on; tp.hidden = !on; }).observe(ov, { attributes: true, attributeFilter: ["hidden"] });
+    tb.addEventListener("click", e => { e.stopPropagation(); try { snd("uiTap"); } catch (er) {} HK.trial = true; HK.coach = true; HK.stake = 0; HK.type = "S"; tb.hidden = true; tp.hidden = true; startDuel(true); });
+    setInterval(() => { try { const on = !!HK.trial && !ov.hidden && ["pick", "count", "duel"].includes(HK.phase); if (on) { const t = HK.phase === "duel" ? "Tap YOUR buttons: a lit wire claims a core cell. More than 6 of 12 wins!" : "Pick the side with more ∞ and Y, then tap START."; const sp = tip.querySelector("span"); if (sp.dataset.k !== t) { sp.dataset.k = t; sp.textContent = t; } } if (tip.hidden === on) tip.hidden = !on; } catch (e) {} }, 200);
+    const _fin = hkFinish; hkFinish = function () { const tr = !!HK.trial; const r = _fin.apply(this, arguments);
+      if (tr && HK.phase === "done") { try { $("hkResTag").textContent = "PRACTICE ROUND"; $("hkGoldV").textContent = "NOW FOR REAL"; $("hkGoldS").textContent = "Now the real duel – with your stake."; $("hkAgain").hidden = true; $("hkBack").textContent = "TO THE REAL HACK ▶"; } catch (e) {} } return r; };
+    document.addEventListener("click", e => { if (!HK.trial || !e.target.closest || !e.target.closest("#hkBack")) return; e.stopImmediatePropagation(); e.preventDefault();
+      HK.trial = false; HK.coach = false; LS.set("capy-hk-trial", "1"); try { snd("uiTap"); } catch (er) {}
+      $("hackRes").hidden = true; $("hackCv").hidden = true; HK.phase = "bet"; snd("arcade", false); $("hkBack").textContent = "Back to the game"; $("hackBet").hidden = false; try { hkStakeUI(); } catch (er) {} }, true);
+  }
+})(); } catch (e) { console.error("v564", e); }
+
 function showCamp(action, label) { tutAbort();
   if (S && S.started && !S.over) { S.paused = true; S.mode = null; S.aim = null; closeSheet(); }   // altes Spiel ruht, bis Deploy
   $("ovPause").hidden = true; SFX.music.menu();
@@ -7593,7 +7678,7 @@ function albTry() {
   if (!albQ.length || !$("ovGive").hidden) return;
   if (typeof S !== "undefined" && S && S.won) { if (!$("ovOver").hidden) finMedals(albQ.splice(0)); return; }   // V244: Finale zuerst, Orden stehen auf der Karte
   if (performance.now() - (window.__waveEndT || 0) < 1600) return;   // erst schauen, ob Feldpost kommt
-  if (performance.now() - (window.__waveEndT || 0) < 9000 && typeof S !== "undefined" && S && S.started && !S.over) { const ms = albTake(); if (ms.length === 1) announce("🎖 NEW MEDAL: " + ms[0].name.toUpperCase(), ms[0].line + " · well deserved!", "HQ", 2800); else announce(`🎖 ${ms.length} NEW MEDALS`, ms.map(x => x.name).join(" · ") + " · well deserved!", "HQ", 3200); try { medalHello(); } catch (e) {} return; }
+  if (performance.now() - (window.__waveEndT || 0) < 9000 && typeof S !== "undefined" && S && S.started && !S.over) { const ms = albTake(); if (ms.length === 1) announce("🎖 NEW MEDAL", ms[0].name + " · " + ms[0].line + " · well deserved!", "HQ", 2800); else announce(`🎖 ${ms.length} NEW MEDALS`, ms.map(x => x.name).join(" · ") + " · well deserved!", "HQ", 3200); try { medalHello(); } catch (e) {} return; }
   { const cr = $("crate"); if (cr && !cr.hidden && cr.classList.contains("gift")) {   // Sammelmeldung: Orden in die Feldpost des Generals
       const lt = $("crateLoot"); for (const m of albTake()) { const d = document.createElement("div"); d.className = "fpMedal " + (m.tint || ""); d.innerHTML = `<img src="${MED_IMG[m.img]}" alt=""><span>${m.name}</span>`; lt.appendChild(d); } try { medalHello(); } catch (e) {} return; }
     if (cr && !cr.hidden) return; }
@@ -9725,15 +9810,19 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
       const c = document.getElementById("coach"); if (!c || c.hidden || document.body.classList.contains("mapUp") || (S && S.paused) || document.hidden) return null;
       if (typeof TUT !== "undefined" && TUT.on) {
         const k = TUT.step;
-        if (k === 0) return vis(document.getElementById("bDrop"));
-        if (k === 4) return vis(document.getElementById("bRot"));   /* V545 · V551: jetzt Schritt 5 (Index 4) */
-        if (k === 1) { if (sheetUp() && S.shop) { const b = btnTxt(/PLACE/); if (b) return vis(b); } return vis(document.getElementById("bBuild")); }
-        if (k === 2) { if (S.mode === "build") return block(); if (sheetUp() && S.shop) { const b = btnTxt(/PLACE/); if (b) return vis(b); } return vis(document.getElementById("bBuild")); }
+        if (k === 0) { const r = vis(document.getElementById("bDrop")); return r ? { left: r.left, right: r.right, top: r.top, bottom: r.bottom, width: r.width, height: r.height, side: 1 } : null; }   /* V564: von links, nicht über dem gelben Knopf */
+        if (k === 4) { const r = vis(document.getElementById("bRot")); return r ? { left: r.left, right: r.right, top: r.top, bottom: r.bottom, width: r.width, height: r.height, deep: 1 } : null; }
+        if (k === 5) { const bd = document.getElementById("board"); if (!bd) return null; const b = bd.getBoundingClientRect(); let x = b.right - 16, y = b.top + b.height * 0.32;   /* V564: Pfeil auf ein Monster im Ring (die Karte oben deckt die Leben-Anzeige) */
+          try { const m = S.monsters.find(q => q && !q.dead && q.cy >= 1); if (m) { const pt = cvPt(m.cx + 0.5, m.cy + 0.5); if (pt && pt.y > b.top + 110) { x = pt.x; y = pt.y; } } } catch (e) {}
+          return { left: x - 10, right: x + 10, top: y - 12, bottom: y + 12, width: 20, height: 24 }; }   /* V545 · V551: jetzt Schritt 5 (Index 4) */
+        const place = () => document.querySelector('#sheet button[data-shop="tower"]');   /* V564: sprachunabhängig (RU «ПОСТАВИТЬ») */
+        if (k === 1) { if (sheetUp() && S.shop) { const b = place(); if (b && vis(b)) return vis(b); return null; } return vis(document.getElementById("bBuild")); }
+        if (k === 2) { if (S.mode === "build") return block(); if (sheetUp() && S.shop) { const b = place(); if (b && vis(b)) return vis(b); return null; } return vis(document.getElementById("bBuild")); }
         if (k === 3) { if (sheetUp() && S.sel) { const armed = S.sel.w && S.sel.w.length; const b = armed ? document.getElementById("sClose") : [...document.querySelectorAll('#sheet [data-buy="mg"]')].find(x => !x.disabled && vis(x)) || document.querySelector('#sheet [data-buy="mg"]'); return vis(b);   /* V320 */ } return towerR(); }
         return null;
       }
       if (typeof TONTUT !== "undefined" && TONTUT.st && hintKey === "tontut") {   /* V501: Air-Drop-Tutorial */
-        if (TONTUT.st === 2) return vis(document.querySelector('#sheetIn [data-pocket="ton"]'));
+        if (TONTUT.st === 2) return vis(document.querySelector(`#sheetIn [data-pocket="${TONTUT.k || "ton"}"]`));
         return vis(document.getElementById("bBuild")); }
       const a = null; if (a && a.style.display === "block") { const r = a.getBoundingClientRect(); return { hint: true, up: a.textContent === "▲", x: r.left + r.width / 2, y: a.textContent === "▲" ? r.top : r.bottom }; }
       return null;
@@ -9744,10 +9833,11 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
       if (!r) { if (last !== "none") { ca.style.display = "none"; last = "none"; } return; }
       let x, y, up;
       if (r.hint) { x = r.x; up = r.up; y = up ? r.y : r.y - 84; }
-      else { x = r.left + r.width / 2; up = r.top < 96; y = up ? r.bottom + 2 : r.top - 86; }
-      x = Math.max(34, Math.min(innerWidth - 34, x));
-      const key = Math.round(x) + "," + Math.round(y) + up;
-      if (key !== last) { ca.style.display = "block"; ca.classList.toggle("up", up); ca.style.left = x + "px"; ca.style.top = y + "px"; last = key; }
+      else if (r.side) { x = Math.max(44, r.left - 44); y = r.top + r.height / 2 - 42; up = false; }
+      else { x = r.left + r.width / 2; up = r.top < 96; y = up ? r.bottom + 2 : r.top - 86 + (r.deep ? r.height * 0.5 : 0); }
+      if (!r.side) x = Math.max(34, Math.min(innerWidth - 34, x));
+      const key = Math.round(x) + "," + Math.round(y) + up + (r.side ? "s" : "");
+      if (key !== last) { ca.style.display = "block"; ca.classList.toggle("up", up); ca.classList.toggle("side", !!r.side); ca.style.left = x + "px"; ca.style.top = y + "px"; last = key; }
     }
     setInterval(tick, 120);
     window.__TT && (window.__TT.comicArrow = tick);
@@ -10084,7 +10174,10 @@ try { (() => {
   arr.innerHTML = '<svg viewBox="0 0 64 84" width="46" height="60"><path d="M20 4 Q32 1 44 4 L45 44 L60 44 Q63 46 61 49 L34 81 Q32 83 30 81 L3 49 Q1 46 4 44 L19 44 Z" fill="#ffd23a" stroke="#17150c" stroke-width="4.5" stroke-linejoin="round"/></svg>'; document.body.appendChild(arr);
   const btn = card.querySelector("button"); let cur = null, armT = 0;
   const seen = i => { try { return LS.get("tarnturm-tipb-" + TIPS[i].k) === "1"; } catch (e) { return true; } };   /* V543: fester Schlüssel */
-  function place() { if (!cur || !cur.at) { arr.hidden = true; return; } const el = document.getElementById(cur.at); if (!el || !el.offsetParent) { arr.hidden = true; return; } const r = el.getBoundingClientRect(); arr.hidden = false; arr.style.left = (r.left + r.width / 2 - 23) + "px"; arr.style.top = (r.top - 64) + "px"; }
+  function place() { if (!cur || !cur.at) { arr.hidden = true; return; } const el = document.getElementById(cur.at); if (!el || !el.offsetParent) { arr.hidden = true; return; } const r = el.getBoundingClientRect(); arr.hidden = false;
+    const side = cur.at === "bDrop"; arr.classList.toggle("side", side);   /* V564: DROP von links, Drehen mit Spitze im Knopf */
+    if (side) { arr.style.left = Math.max(2, r.left - 66) + "px"; arr.style.top = (r.top + r.height / 2 - 30) + "px"; }
+    else { arr.style.left = (r.left + r.width / 2 - 23) + "px"; arr.style.top = (r.top - 64 + (cur.at === "bRot" ? r.height * 0.5 : 0)) + "px"; } }
   function close() { if (!cur) return; card.classList.remove("on"); arr.hidden = true; setTimeout(() => { card.hidden = true; }, 300); cur = null; window.__evtLast = performance.now(); }
   btn.addEventListener("click", e => { e.stopPropagation(); if (performance.now() < armT) return; try { snd("uiTap"); } catch (er) {} close(); });
   function show(i) { const T = TIPS[i]; cur = T; try { LS.set("tarnturm-tipb-" + T.k, "1"); } catch (e) {}
@@ -10372,8 +10465,8 @@ try { (() => {
   let q = null; try { q = new URLSearchParams(location.search).get("test"); } catch (e) {}
   const map = { shock: 9, ton: 9, laser: 44, laser10: 10, laser26: 26, laser74: 74, laser109: 109, laser134: 134, hack: 5, blk: 65, mag: 80, weed: 81, weed3: 106, weed4: 126, weed5: 136, elite: 6, peek: 3, nuts: 31, nuts2: 61, nuts3: 91, nuts4: 121, fly: 31, fly2: 61, fly3: 91, fly4: 121, thief: 100, wolfad: 99, egg1: 2, egg2: 32, egg3: 62, egg4: 92, egg5: 122 };
   if (q && /^w\d{1,3}$/.test(q) && +q.slice(1) >= 1 && +q.slice(1) <= 150) map[q] = +q.slice(1);   /* V553: Aufnahme-Links */
-  if (q && map[q]) { try { document.body.classList.add("testLink"); } catch (e) {} const go = () => { setTimeout(() => { try { document.body.classList.remove("testLink"); } catch (e) {} try { history.replaceState(null, "", location.pathname); } catch (e) {} const bak = LS.get("tarnturm-save"); devJump(map[q], /^w\d/.test(q) ? "" : q.replace(/\d$/, "")); try { if (bak) LS.set("tarnturm-save", bak); } catch (e) {} if (q === "ton") { S.tons = (S.tons || 0) + 2; LS.set("capy-tut-ton", "1"); }   /* V508 */
-        if (q === "shock") { LS.set("capy-tut-ton", "1"); S.lives = 99; toast("TEST · Ten-ton drops every 5 s", "HQ", 2600);   /* V515: Druckwelle vorführen */
+  if (q && map[q]) { try { document.body.classList.add("testLink"); } catch (e) {} const go = () => { setTimeout(() => { try { document.body.classList.remove("testLink"); } catch (e) {} try { history.replaceState(null, "", location.pathname); } catch (e) {} const bak = LS.get("tarnturm-save"); devJump(map[q], /^w\d/.test(q) ? "" : q.replace(/\d$/, "")); try { if (bak) LS.set("tarnturm-save", bak); } catch (e) {} if (q === "ton") { S.tons = (S.tons || 0) + 2; LS.set("capy-tut-ton", "1"), LS.set("capy-tut-sp", "1"); }   /* V508 */
+        if (q === "shock") { LS.set("capy-tut-ton", "1"), LS.set("capy-tut-sp", "1"); S.lives = 99; toast("TEST · Ten-ton drops every 5 s", "HQ", 2600);   /* V515: Druckwelle vorführen */
           const iv = setInterval(() => { try { if (!S || S.over || !S.started) { clearInterval(iv); return; } if (S.ton || S.paused || frozen()) return; S.tons = Math.max(1, S.tons || 0); startTon(); } catch (e) {} }, 5000); }
         if (q === "elite") { try { LS.del("capy-wow-elite"); } catch (e) {} S.testRun = false; S.gold += 200; } if (/^nuts\d?$/.test(q)) { const nc = Math.max(0, (+q.slice(4) || 1) - 1); setTimeout(() => { try { S.testRun = false; S.inWave = false; startDetour(nc); } catch (e) {} }, 1500); }   /* V479: nuts2–4 = Afrika/Asien/Nordamerika */   /* V456: Nuts direkt */   /* V439: Elite-Wow direkt in W6 testen */ }, 250); };
     const sp = document.getElementById("splash"); if (sp) sp.addEventListener("click", go, { once: true }); else go(); }
@@ -10392,8 +10485,9 @@ try { (() => {
     const tryIt = () => { const now = performance.now();
       if (!S || !S.started || (S.over && key !== "rb_tea")) return;
       if (now - (lastKey[key] || -1e9) < 240000) return;
+      if (key === "rb_tower1" && typeof TUT !== "undefined" && TUT.on) return;   /* V564: im Tutorial sagt die Karte das schon */
       if (!force && now - lastSay < 20000) return;
-      const bb = document.getElementById("buddy"), busy = SFX.voiceBusy || !!(bb && bb.classList.contains("on")) || (!force && (uiWinOpen() || S.paused || S.drop || S.intro || S.eggOpen || S.tiltCard));
+      const bb = document.getElementById("buddy"), busy = SFX.voiceBusy || !!(bb && bb.classList.contains("on")) || !!(S.sel || S.shop) || (!force && (uiWinOpen() || S.paused || S.drop || S.intro || S.eggOpen || S.tiltCard));   /* V564: nie über offenem Turm-Menü/Laden */
       if (busy) { if (now - t0 < 8000) setTimeout(tryIt, 700); return; }
       lastSay = now; lastKey[key] = now; bubble(key); try { SFX.say(key); } catch (e) {} };
     setTimeout(tryIt, delay); }
