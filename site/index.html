@@ -2796,7 +2796,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V591";
+const GAME_VER = "V592";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -4975,8 +4975,8 @@ function speedMul() { return S && S.spT > 0 ? Math.max(1, (S.spW || 0) / S.spT) 
 function calcScore() { return Math.round(Math.max(0, S.wave) * S.lines * S.kills * speedMul() * (S.nuts ? 1 : 1 + Math.min(120, S.nutsBonus || 0) / 100)) + (S.bonusPts | 0); }   /* V566: Bonuspunkte (Tutorial-Urkunde) */   // V180: +1 % je Nuts-Level (erster Versuch je Kontinent)
 const SCORE_MARKS = [500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000, 500000, 1000000];
 function checkScore() {
-  const sc = calcScore(); S.score = sc;
-  for (const m of SCORE_MARKS) if (sc >= m && (S.scoreMark || 0) < m) { S.scoreMark = m; bookkeeper(sc, m); break; }
+  const sc = calcScore(); S.score = sc; const base = Math.max(0, sc - (S.bonusPts | 0));   /* V592: Urkunden-Bonus zählt nicht für den Buchhalter */
+  for (const m of SCORE_MARKS) if (base >= m && (S.scoreMark || 0) < m) { S.scoreMark = m; bookkeeper(base, m); break; }
 }
 function spawnMonster() {
   let i = 0; while (i < PL && S.grid[PER[i][1] * GW + PER[i][0]]) i++;
@@ -6497,7 +6497,7 @@ const ICON = {
   kan: `<svg viewBox="0 0 48 48"><rect x="2" y="18" width="34" height="12" rx="4" fill="#ff8b3d" stroke="#17150c" stroke-width="2"/><circle cx="36" cy="24" r="10" fill="#3b4430" stroke="#17150c" stroke-width="2"/><circle cx="36" cy="24" r="4" fill="#ff8b3d"/></svg>`,
   frost: `<svg viewBox="0 0 48 48"><path d="M24 4v40M7 14l34 20M7 34l34-20" stroke="#94d6ff" stroke-width="4" stroke-linecap="round"/><circle cx="24" cy="24" r="5" fill="#eaf7ff" stroke="#17150c" stroke-width="2"/></svg>`,
 };
-function openShop() { S.lsay = ((S.lsay || 0) + 1 + Math.floor(Math.random() * 9)) % 10; S.sel = null; S.shop = true; renderShop(); $("sheet").hidden = false; }
+function openShop() { S.lsay = ((S.lsay || 0) + 1 + Math.floor(Math.random() * 9)) % 10; S.sel = null; S.shop = true; renderShop(); $("sheet").hidden = false; try { if (TUT.on && (TUT_STEPS[TUT.step] || {}).ar !== "spec") { const top0 = () => document.querySelectorAll("#sheet .shopTiles, #sheetIn").forEach(e => { e.scrollTop = 0; }); top0(); requestAnimationFrame(top0); } } catch (e) {} }   /* V592: im Tutorial oben öffnen */
 // Feldhandbuch: Gegner und Waffen mit Freischalt-Welle
 function monFrom(k) { return { norm: 1, fast: G.fastFrom, heavy: G.heavyFrom, munch: G.munchFrom, runner: G.runnerFrom, kiefer: G.kieferFrom, bomber: G.bomberFrom, volt: G.voltFrom, jaguar: G.jaguarFrom, mummy: G.mummyFrom, tiger: G.tigerFrom, bear: G.bearFrom }[k] || 1; }
 const RULE_CARDS = [
@@ -7086,6 +7086,7 @@ try { (() => {
 /* V587: Zipfel der Aufgabenkarte zeigt auf den General im Streifen */
 setInterval(() => { try { if (!document.body.classList.contains("tutBarOn")) return; const card = document.querySelector("#coach .coachCard"), lg = document.querySelector("#tutBar .tbLogo"); if (!card || !lg) return;
   const c = card.getBoundingClientRect(), l = lg.getBoundingClientRect(); if (!c.width) return; const x = Math.max(10, Math.min(c.width - 34, l.left + l.width / 2 - c.left - 12)); card.style.setProperty("--tbTail", Math.round(x) + "px"); } catch (e) {} }, 250);
+setInterval(() => { try { document.body.classList.toggle("tutRun", !!(typeof TUT !== "undefined" && TUT.on)); } catch (e) {} }, 300);   /* V592: Markierung fürs CSS */
 /* V584: neue Aufgabe – 3 s alles dunkel außer Kurs-Streifen und Aufgabenkarte */
 try { (() => { const d = document.createElement("div"); d.id = "tutDim"; document.body.appendChild(d);
   const st = document.createElement("style"); st.textContent = "#tutDim{position:fixed;inset:0;z-index:903;background:rgba(12,7,3,.8);opacity:0;pointer-events:none;transition:opacity .35s ease}#tutDim.on{opacity:1}"; document.head.appendChild(st);
@@ -7111,10 +7112,13 @@ try { (() => {
     /* V581: Einflug vom oberen Bildschirmrand, Reihe für Reihe, über Streifen und Karte */
     if (p !== EN.p) { EN.p = p; EN.st = p.y === 0 ? "wait" : ""; EN.c = []; }
     else if (EN.st === "wait") { EN.c = []; let bot = 0, cs = 0;
-      for (const [x, y] of p.cells) { const [gx, gy] = v2g(p.x + x, p.y + y); if (gy < 0) continue;
+      p.cells.forEach(([x, y], i) => { const [gx, gy] = v2g(p.x + x, p.y + y);
         const a = cvPt(gx, gy), b = cvPt(gx + 1, gy + 1), x0 = Math.min(a.x, b.x), y0 = Math.min(a.y, b.y), w = Math.abs(b.x - a.x), h = Math.abs(b.y - a.y);
-        const im = document.createElement("canvas"); im.width = Math.max(1, Math.round(w * sx)); im.height = Math.max(1, Math.round(h * sy)); im.getContext("2d").drawImage(cv, (x0 - r.left) * sx, (y0 - r.top) * sy, w * sx, h * sy, 0, 0, im.width, im.height);
-        EN.c.push({ im, x0, y0, w, h }); bot = Math.max(bot, y0 + h); cs = Math.max(cs, h); }
+        const im = document.createElement("canvas"), S2 = CELL; im.width = im.height = Math.max(1, Math.round(S2)); const g = im.getContext("2d");   /* V592: selbst malen statt kopieren */
+        try { if (i === p.tnt) tntCell(0, 0, g, S2, 0, 0); else { g.fillStyle = patterns[p.col] || "#555"; g.fillRect(0, 0, S2, S2); const e = Math.max(1, S2 * 0.12);
+          g.fillStyle = "rgba(255,248,220,.22)"; g.fillRect(0, 0, S2, e); g.fillRect(0, 0, e, S2); g.fillStyle = "rgba(0,0,0,.38)"; g.fillRect(0, S2 - e, S2, e); g.fillRect(S2 - e, 0, e, S2);
+          g.strokeStyle = "rgba(10,14,8,.8)"; g.lineWidth = Math.max(1, S2 * 0.04); g.strokeRect(0.5, 0.5, S2 - 1, S2 - 1); } } catch (er) {}
+        EN.c.push({ im, x0, y0, w, h }); bot = Math.max(bot, y0 + h); cs = Math.max(cs, h); });
       if (!EN.c.length || !cs) EN.st = ""; else { let gi = 0.8; try { gi = gravityInterval(); } catch (e) {}
         EN.n = Math.ceil(bot / cs); EN.step = Math.max(80, Math.min(250, gi * 1000 / 3)); EN.t0 = now; EN.sig = sig; S.tutEnter = now + EN.n * EN.step; EN.st = "in"; } }
     if (EN.st === "in") { if (sig !== EN.sig || now >= (S.tutEnter || 0)) { EN.st = ""; S.tutEnter = 0; }
@@ -7123,6 +7127,7 @@ try { (() => {
     const over = (x0, y0, w, h, q) => q && q.width && !(x0 + w < q.left || x0 > q.right || y0 + h < q.top || y0 > q.bottom);
     for (const [x, y] of p.cells) { const [gx, gy] = v2g(p.x + x, p.y + y); if (gy < 0) continue;
       const a = cvPt(gx, gy), b = cvPt(gx + 1, gy + 1), x0 = Math.min(a.x, b.x), y0 = Math.min(a.y, b.y), w = Math.abs(b.x - a.x), h = Math.abs(b.y - a.y);
+      if (S.coachHold && over(x0, y0, w, h, cr)) continue;   /* V592: Karte lesbar, solange das Spiel steht */
       if (!dimNow && !over(x0, y0, w, h, cr) && !over(x0, y0, w, h, br)) continue;   // V580: nur dort, wo Karte oder Kurs-Streifen drüberliegen
       ox.drawImage(cv, (x0 - r.left) * sx, (y0 - r.top) * sy, w * sx, h * sy, x0 * dpr, (y0 + off) * dpr, w * dpr, h * dpr); }
   } catch (e) {} }
@@ -9971,7 +9976,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
         if (k === 4) { const r = vis(document.getElementById("bRot")); return r ? { left: r.left, right: r.right, top: r.top, bottom: r.bottom, width: r.width, height: r.height, deep: 1 } : null; }
         if (k === 5) { if ((TUT.t || 0) >= 5) return null;   /* V586: Pfeil aufs Monster nach 5 s weg */ const bd = document.getElementById("board"); if (!bd) return null; const b = bd.getBoundingClientRect(); let x = b.right - 16, y = b.top + b.height * 0.32;   /* V564: Pfeil auf ein Monster im Ring (die Karte oben deckt die Leben-Anzeige) */
           return { left: x - 10, right: x + 10, top: y - 12, bottom: y + 12, width: 20, height: 24 }; }   /* V545 · V551: jetzt Schritt 5 (Index 4) */
-        const place = () => document.querySelector('#sheet button[data-shop="tower"]');   /* V564: sprachunabhängig (RU «ПОСТАВИТЬ») */
+        const place = () => { const b = document.querySelector('#sheet button[data-shop="tower"]'); try { if (b) { const q = b.getBoundingClientRect(), sc = b.closest(".shopTiles"), z = sc ? sc.getBoundingClientRect() : { top: 70, bottom: innerHeight - 70 }; if (q.height && (q.top < z.top + 6 || q.bottom > z.bottom - 6)) b.scrollIntoView({ block: "center" }); } } catch (e) {} return b; };   /* V592 */   /* V564: sprachunabhängig (RU «ПОСТАВИТЬ») */
         if (k === 1) { if (sheetUp() && S.shop) { const b = place(); if (b && vis(b)) return vis(b); return null; } return vis(document.getElementById("bBuild")); }
         if (k === 2) { if (S.mode === "build") return block(); if (sheetUp() && S.shop) { const b = place(); if (b && vis(b)) return vis(b); return null; } return vis(document.getElementById("bBuild")); }
         if (k === 3) { if (sheetUp() && S.sel) { const armed = S.sel.w && S.sel.w.length; const b = armed ? document.getElementById("sClose") : [...document.querySelectorAll('#sheet [data-buy="mg"]')].find(x => !x.disabled && vis(x)) || document.querySelector('#sheet [data-buy="mg"]'); return vis(b);   /* V320 */ } return towerR(); }
@@ -12378,5 +12383,8 @@ body.tutBarOn #coach.genTalk{animation:none!important}
 .nutsRes::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(18,10,30,0) 0%,rgba(18,10,30,0) 38%,rgba(18,10,30,.55) 62%,rgba(18,10,30,.8) 100%);pointer-events:none}
 .nutsRes .nutsResBox{position:relative;max-height:62vh!important;padding-top:12px!important}
 .nutsRes .nrPic{display:none!important}
+</style>
+<style id="v592">
+body.tutRun .ledgerTop{display:none!important}
 </style>
 </body></html>
