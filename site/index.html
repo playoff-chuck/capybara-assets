@@ -2796,7 +2796,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V557";
+const GAME_VER = "V558";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -6513,7 +6513,7 @@ function renderManual() {
     ["mix", ICON.mix, "Concrete mixer", `${MIX_COST} gold · one load: fills a cavity or everything up to the top block. Buried monsters count four times.`, "mix"],
     ["tesla", ICON.tesla, "Tesla storm", `${TESLA_COST} gold · wonder weapon: lightning wipes a 4×4 target. Splats count three times.`, "tesla"],
     ["chomp", ICON.chomp, "Chomper", `${CHOMP_COST} gold · steel jaws run the ring backwards and eat every monster and block in their way.`, "chomp"],
-    ["ton", ICON.ton, "Ten-ton drop", `${TON_COST} gold · giant weight: crushes every monster above the stack and squeezes all blocks to half. HQ drops a free one before weed seeds land.`, "ton"],
+    ["ton", ICON.ton, "Ten-ton drop", `${TON_COST} gold · giant weight: crushes every monster above the stack and squeezes all blocks to half.`, "ton"],
     ["lock", ICON.lock, "Lockdown", `${LOCK_COST} gold · ${LOCK_TIME} s time stop. Free every ${LOCK_NEED} rows.`, "lock"],
     ["wolf", ICON.tesla, "Wolf call", `${WOLF_COST} gold · a howl in the dark: the raccoon thief drops your gold and runs. Also a Lucky Supply prize.`, "wolf"],
     ["elite", "", "Elite tower", `Not for sale · your partner parachutes in with it. 180 s pink laser that burns everything on its line. Waves 6, 56 and 106.`, "elite"],
@@ -9608,7 +9608,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
                  med: { img: "img/ad_med_free.webp", name: "MEDKIT", line: "Doc Hazel patched you up. You can see clearly again.", met: ["Vision clear"], btn: "THANKS, DOC ▶" },
                  squad: { img: "img/ad_drop_free.webp", name: "SQUAD INCOMING", line: "Your partner sends a free Ten-ton drop. Confirm it and it falls right now – flattens the whole stack!", met: ["+1 Ten-ton", "Drops now"], btn: "DROP IT ▶" },   /* V484 */
                  tut: { img: "img/ad_drop_free.webp", name: "TEN-TON DROP", line: "Your stack is too high! HQ sends a Ten-ton. Confirm and it falls right now – it flattens the stack.", met: ["+1 Ten-ton", "Drops now"], btn: "DROP IT ▶" },   /* V550 */
-                 weed: { img: "img/ad_drop_free.webp", name: "WEED DEFENSE DROP", line: "Weed seeds are about to land. HQ sent a Ten-ton drop – use it NOW to flatten the field before they sprout!", met: ["+1 Ten-ton", "Use it now"], btn: "DROP IT ▶" },   /* V446 */
+                 weed: { img: "img/ad_drop_free.webp", name: "TEN-TON DROP", line: "HQ sends you a Ten-ton drop. Confirm and it falls right now.", met: ["+1 Ten-ton", "Drops now"], btn: "DROP IT ▶" },   /* V446 */
                  rot: { img: "img/ad_drop_free.webp", name: `${o.rp || "+90°"} PACKAGE`, line: "The field is upright again. Blocks fall down as usual.", met: ["Field upright"], btn: "LET'S GO ▶" } }[kind];
       if (!D) return; cur = "drop"; window.__dropKind = kind; saleMode = false; isFree = true; dropBtn = D.btn; late = true; S.intro = true; S.adOpen = true;
       const card = $a("adCard"); card.classList.remove("sale", "free"); card.classList.add("drop");

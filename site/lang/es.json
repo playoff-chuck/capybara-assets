@@ -1951,5 +1951,8 @@
 "STACK SQUEEZED · fresh start": "PILA APLASTADA · nuevo comienzo",
 "BUILD A TOWER TO SPLAT MONSTERS!": "¡CONSTRUYE UNA TORRE Y APLASTA MONSTRUOS!",
 "Your stack is too high! HQ sends a Ten-ton. Confirm and it falls right now – it flattens the stack.": "¡Tu pila está muy alta! El cuartel te manda una Diez Toneladas. Confírmala y cae ahora mismo: aplasta la pila.",
-"TUTORIAL": "TUTORIAL"
+"TUTORIAL": "TUTORIAL",
+"HQ sends you a Ten-ton drop. Confirm and it falls right now.": "El cuartel te manda una Diez Toneladas. Confirma y cae ahora mismo.",
+"+1 Ten-ton": "+1 Diez Toneladas",
+"# gold · giant weight: crushes every monster above the stack and squeezes all blocks to half.": "# oro · peso gigante: aplasta a todos los monstruos sobre la pila y comprime los bloques a la mitad."
 }

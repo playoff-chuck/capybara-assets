@@ -1944,5 +1944,8 @@
 "STACK SQUEEZED · fresh start": "PILHA ESMAGADA · recomeço",
 "BUILD A TOWER TO SPLAT MONSTERS!": "CONSTRUA UMA TORRE PARA ESMAGAR MONSTROS!",
 "Your stack is too high! HQ sends a Ten-ton. Confirm and it falls right now – it flattens the stack.": "Sua pilha está alta demais! O QG manda uma Dez Toneladas. Confirme e ela cai agora mesmo: achata a pilha.",
-"TUTORIAL": "TUTORIAL"
+"TUTORIAL": "TUTORIAL",
+"HQ sends you a Ten-ton drop. Confirm and it falls right now.": "O QG te manda um Dez Toneladas. Confirme e ele cai agora mesmo.",
+"+1 Ten-ton": "+1 Dez Toneladas",
+"# gold · giant weight: crushes every monster above the stack and squeezes all blocks to half.": "# ouro · peso gigante: esmaga todo monstro acima da pilha e comprime os blocos pela metade."
 }
