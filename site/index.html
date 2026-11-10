@@ -2796,7 +2796,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V569";
+const GAME_VER = "V570";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -4971,7 +4971,7 @@ function spawnMonster() {
   const baseHp = G.hpBase * (1 + (G.hpLin || 0) * (w - 1)) * Math.pow(G.hpGrow, w - 1);
   const hp = ordv("monHpMul") * (S.nuts ? (w >= 50 ? 1.25 : w >= 20 ? 1.15 : 1) * baseHp : lin("hp", w) * (((w - 1) % 30 < 3 && w > 30) || (w >= 2 && w <= 4) ? 0.75 : 1)) * ({ heavy: 2.6, fast: 0.6, munch: 1.5, runner: 2.2, bomber: 1.3, kiefer: 3.2, volt: 1.8, jaguar: 1.4, mummy: 2.4, tiger: 2.2, bear: 3.0, norm: 1 }[kind]);   /* V487: Grizzly ×4 → ×3 */
   const sp = ordv("monSpdMul") * (S.nuts ? Math.min(G.spMax, G.spBase + G.spGrow * w) : lin("sp", w)) * ({ fast: 1.5, heavy: 0.7, munch: 0.85, runner: 1.75, bomber: 0.9, kiefer: 1.0, volt: 0.8, jaguar: 1.25, mummy: 0.6, tiger: 1.3, bear: 0.7, norm: 1 }[kind]);
-  const spF = ffOn() ? sp * 1.7 : sp;
+  const spF = (ffOn() ? sp * 1.7 : sp) * (S.nuts ? 1 : (w => w <= 10 ? 1 + 0.05 * Math.max(0, w) : w <= 20 ? 1 + 0.05 * (20 - w) : 1)(S.wave | 0));   /* V570: W1–10 +5 % je Welle, W11–20 wieder −5 % je Welle */
   const rew = ({ heavy: 14, munch: 11, runner: 22, bomber: 16, kiefer: 40, volt: 26, jaguar: 18, mummy: 24, tiger: 30, bear: 45 }[kind] ?? G.killBase) + w;
   S.monsters.push({ x, y, cx: x, cy: y, prog: i, trav: 0, hp, max: hp, speed: spF, kind, slowT: 0, next: null, chew: false, dead: false, reward: Math.max(1, Math.round(rew * (G.goldMul || 1) * goldTaper())), dir: 0, ph: Math.random() * 6.283, hits: 0 });
   snd(EATER(kind) ? "nom" : "spawn");
@@ -7004,15 +7004,45 @@ let pendingStart = null;
 // ---------- Tutorial: erstes Spiel, fünf Schritte, überspringbar ----------
 const TUT = { on: false, step: 0, t: 0 };
 { const _rotT = rotate; rotate = function () { try { if (TUT.on) TUT.rot = (TUT.rot || 0) + 1; } catch (e) {} return _rotT.apply(this, arguments); }; }   /* V545: Drehungen zählen */
-const TUT_STEPS = [
-  { t: "DROP A BLOCK", s: "Tap DROP. Blocks are your ground.", at: "bDrop", done: () => (TUT.dropTap || 0) > 0 },   /* V564: nur echter Tipp zählt */
-  { t: "BUILD A TOWER", s: "Tap SHOP, then PLACE.", at: "bBuild", done: () => S.mode === "build" || S.towers.size > ((TUT.b && TUT.b.tw) || 0) },
-  { t: "PICK A BLOCK AT THE EDGE", s: "Tap a block at the edge of the field – a tower there reaches the monsters on the ring.", at: "board", done: () => S.towers.size > ((TUT.b && TUT.b.tw) || 0) },
-  { t: "ARM IT", s: "Buy the MG. Then tap Done.", at: "sheet", done: () => [...S.towers.values()].reduce((a, t) => a + t.w.length, 0) > ((TUT.b && TUT.b.wp) || 0) && !S.sel },
-  { t: "TURN YOUR BLOCKS!", s: "Tap the yellow button in the middle to turn the falling block.", at: "bRot", rot: 1, done: () => (TUT.rot || 0) > (TUT.rb || 0) || TUT.t >= 15 },
-  { t: "MONSTERS RUN THE RING", s: "They run around the field. Each one that gets all the way round costs a ♥ life – towers and falling blocks splat them.", at: "board", done: () => TUT.t >= 12 || (S.kills | 0) > ((TUT.b && TUT.b.k) || 0) + 2 },   /* V564: Ring-Schritt zurück */   /* V545 */   /* V367: «Got it» · V483: Spiel läuft dabei weiter · V488: nach 10 s von selbst zu (Martin 09.11.) */
+const TUT_STEPS = [   /* V570: Kurs mit 10 Lektionen */
+  { t: "DROP A BLOCK", s: "Tap DROP. Blocks are your ground.", at: "bDrop", ar: "drop", done: () => (TUT.dropTap || 0) > 0 },
+  { t: "TURN YOUR BLOCKS!", s: "Tap the yellow button in the middle to turn the falling block.", at: "bRot", ar: "rot", rot: 1, done: () => (TUT.rot || 0) > (TUT.rb || 0) || TUT.t >= 15 },
+  { t: "FILL A ROW – IT DISAPPEARS!", s: "A full row vanishes and pays gold. The outer squares at the left and right edge don't count – leave them free.", at: "board", got: 1, done: () => (S.lines | 0) > TUT.e.lines || TUT.t >= 40 },
+  { t: "BUILD A TOWER", s: "Tap SHOP, then PLACE.", at: "bBuild", ar: "build", fast: 1, done: () => S.mode === "build" || S.towers.size > TUT.b.tw },
+  { t: "PICK A BLOCK AT THE EDGE", s: "Tap a block at the edge of the field – a tower there reaches the monsters on the ring.", at: "board", ar: "edge", fast: 1, done: () => S.towers.size > TUT.b.tw },
+  { t: "ARM IT", s: "Buy the MG. Then tap Done.", at: "sheet", ar: "arm", fast: 1, done: () => [...S.towers.values()].reduce((a, t) => a + t.w.length, 0) > TUT.b.wp && !S.sel },
+  { t: "MONSTERS RUN THE RING", s: "They run around the field. Each one that gets all the way round costs a ♥ life – towers and falling blocks splat them.", at: "board", ar: "ring", got: 1, wave: 1, done: () => TUT.t >= 12 || (S.kills | 0) > TUT.e.k + 2 },
+  { t: "SPLAT THEM WITH BLOCKS!", s: "Blocks squash monsters. Drop a block right onto them – tap DROP.", at: "bDrop", ar: "splat", got: 1, done: () => (S.splatN | 0) > TUT.e.sp || TUT.t >= 35 },
+  { t: "USE A SPECIAL", s: "HQ gives you a Sniper strike. Tap SHOP, then USE – then tap a spot on the field.", at: "bBuild", ar: "spec", enter: () => { S.snipes = (S.snipes | 0) + 1; TUT.e.sn = S.snipes; }, done: () => (S.snipes | 0) < TUT.e.sn || TUT.t >= 60 },
+  { t: "BUILD A SECOND TOWER", s: "Towers can fall when their block disappears – then just build a new one. Two towers at the edge hold the ring much better.", at: "bBuild", ar: "tower2", fast: 1, enter: () => { try { S.gold = Math.max(S.gold | 0, TOWER_COST + ((WEAP.mg && WEAP.mg.cost) | 0)); } catch (e) {} }, done: () => S.towers.size > TUT.e.tw || TUT.t >= 45 },
 ];
-function tutStart() { TUT.dropTap = 0; TUT.b = { k: S.kills | 0, p: S.pieceNo || 0, tw: S.towers.size, wp: [...S.towers.values()].reduce((a, t) => a + t.w.length, 0) }; TUT.on = true; TUT.step = 0; TUT.t = 0; $("coach").hidden = false; tutShow(); }
+const TUT_SNAP = () => ({ lines: S.lines | 0, sp: S.splatN | 0, k: S.kills | 0, tw: S.towers.size, wp: [...S.towers.values()].reduce((a, t) => a + t.w.length, 0), sn: S.snipes | 0 });
+/* V570: Kurs-Streifen (Duolingo-Stil, Capybara-Design) */
+try { (() => {
+  const N = TUT_STEPS.length, bar = document.createElement("div"); bar.id = "tutBar"; bar.hidden = true;
+  let dots = ""; for (let i = 0; i < N; i++) dots += '<span class="tbDot" data-i="' + i + '" style="background-image:url(img/tut_ic' + i + '.webp?v=570)">' + (i + 1) + '</span>';
+  bar.innerHTML = '<div class="tbMain"><div class="tbHead"><div class="tbLogo"></div><b>TUTORIAL</b><span class="tbCnt"></span></div><div class="tbTrack"><div class="tbLine"><i></i></div>' + dots + '</div></div>';
+  document.body.appendChild(bar);
+  const pr = document.createElement("div"); pr.id = "tutPraise"; pr.innerHTML = '<img alt=""><span></span>'; document.body.appendChild(pr);
+  const PRAISE = ["GREAT!", "NICE ONE!", "WELL DONE!", "SUPER!", "PERFECT!", "THAT'S IT!", "TOP!", "BRAVO!", "AWESOME!", "YOU GOT IT!"];
+  let doneN = 0, prT = 0;
+  const D = i => bar.querySelector('.tbDot[data-i="' + i + '"]');
+  function paint(cur) { for (let i = 0; i < N; i++) { const d = D(i); d.classList.toggle("ok", i < doneN); d.classList.toggle("cur", i === cur && i >= doneN); }
+    bar.querySelector(".tbLine i").style.width = (Math.min(doneN, N - 1) / (N - 1) * 100) + "%"; bar.querySelector(".tbCnt").textContent = doneN + "/" + N; }
+  function fit() { try { const bd = document.getElementById("board"); if (bd) { const top = bd.getBoundingClientRect().top; if (top > 40) bar.style.minHeight = Math.round(top - 2) + "px"; } document.body.style.setProperty("--tbH", bar.offsetHeight + "px"); bar.classList.toggle("away", !!(S && (S.shop || S.sel))); } catch (e) {} }
+  function show() { if (!bar.hidden && bar.classList.contains("on")) return; bar.hidden = false; try { const lg = document.getElementById("logoHero"); bar.querySelector(".tbLogo").style.backgroundImage = 'url("' + ((lg && lg.src) || "icons/icon-192.png") + '")'; } catch (e) {} fit(); document.body.classList.add("tutBarOn"); requestAnimationFrame(() => bar.classList.add("on")); }
+  window.__tutBar = {
+    set(i) { if (i === 0) doneN = 0; show(); paint(i); },
+    done(i) { doneN = Math.max(doneN, i + 1); paint(i + 1); const d = D(i); if (d) { d.classList.remove("pop"); void d.offsetWidth; d.classList.add("pop"); }
+      try { snd("powerup"); } catch (e) {}
+      pr.querySelector("img").src = "img/tut_cheer.webp?v=570";
+      pr.querySelector("span").textContent = PRAISE[i % PRAISE.length];
+      pr.style.top = Math.round(window.innerHeight * 0.42) + "px"; pr.classList.add("on"); clearTimeout(prT); prT = setTimeout(() => pr.classList.remove("on"), 1300); },
+    hide() { bar.classList.remove("on"); document.body.classList.remove("tutBarOn"); setTimeout(() => { if (!bar.classList.contains("on")) bar.hidden = true; }, 400); }
+  };
+  setInterval(() => { try { if (!bar.hidden && (typeof TUT === "undefined" || !TUT.on || !S || !S.started || S.over)) window.__tutBar.hide(); else if (!bar.hidden) fit(); } catch (e) {} }, 500);
+})(); } catch (e) { console.error("v570 bar", e); }
+function tutStart() { TUT.dropTap = 0; TUT.e = TUT_SNAP(); TUT.b = { k: S.kills | 0, p: S.pieceNo || 0, tw: S.towers.size, wp: [...S.towers.values()].reduce((a, t) => a + t.w.length, 0) }; TUT.on = true; TUT.step = 0; TUT.t = 0; $("coach").hidden = false; tutShow(); }
 /* V534: Tutorial-Knopf bis Welle 10 */
 { const b = document.createElement("button"); b.id = "bTut"; b.type = "button"; b.setAttribute("aria-label", "Tutorial"); b.hidden = true;
   b.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4 1.5 9 12 14l10.5-5z" fill="#3a2414"/><path d="M5.5 11.2v4.3c0 1.6 2.9 3 6.5 3s6.5-1.4 6.5-3v-4.3L12 14.3z" fill="#3a2414"/><path d="M21 9.3v5.2" stroke="#3a2414" stroke-width="1.6" stroke-linecap="round"/><circle cx="21" cy="15.6" r="1.4" fill="#ffd34a" stroke="#3a2414" stroke-width="1"/></svg><b>HOW TO</b>';
@@ -7044,8 +7074,8 @@ function tutStart() { TUT.dropTap = 0; TUT.b = { k: S.kills | 0, p: S.pieceNo ||
       const show = !!(r && r.width && S && S.started && !S.over && !S.nuts && !S.replay && !S.testRun && (S.wave || 1) <= 10 && !S.paused && !ovOpen); b.classList.toggle("on", !!TUT.on);
       const dk = document.querySelector(".deck"); if (dk && b.parentNode !== dk) dk.appendChild(b);
       if (b.hidden === show) b.hidden = !show; if (show && dk) { const q = dk.getBoundingClientRect(); b.style.left = Math.round(r.right + 4 - q.left) + "px"; b.style.top = Math.round(r.top + r.height / 2 - 20 - q.top) + "px"; } } catch (e) {} }, 300); }
-function tutEnd(skipped) { TUT.on = false; S.coachHold = false; $("coachSkip").textContent = "Skip tutorial"; $("coach").hidden = true; coachHi(null); LS.set("tarnturm-tut", "1"); if (!skipped) { toast("TUTORIAL DONE · good luck, squad", "HQ", 1800); SFX.say("Nice!"); window.__tutSumPend = performance.now(); } }   /* V564: Abschlusskarte am Wellenende */
-function tutShow() { const st = TUT_STEPS[TUT.step]; if (st.rot) { TUT.rb = TUT.rot || 0; try { LS.set("tarnturm-tipb-rot", "1"); } catch (e) {} }   /* V545 */ $("coachStep").textContent = `${TUT.step + 1}/${TUT_STEPS.length}`; $("coachT").textContent = st.t; $("coachS").textContent = st.s; const last = TUT.step >= 4;   /* V545: Schritt 5 und 6 mit GOT IT */ S.coachHold = false; $("coachSkip").textContent = last ? "Got it" : "Skip tutorial"; if (last) coachArm(); else { clearTimeout(coachArm.t); $("coachSkip").classList.remove("wait"); }   /* V483: Spiel läuft auch bei Schritt 5 weiter */ snd("radio"); tutPlace(); }
+function tutEnd(skipped) { if (!skipped) { try { ["rot", "0", "row", "gold", "lost", "1", "2"].forEach(k => LS.set("tarnturm-tipb-" + k, "1")); LS.set("tarnturm-hint-row1", "1"); LS.set("capy-tut-sp", "1"); } catch (e) {} } try { window.__tutBar && window.__tutBar.hide(skipped); } catch (e) {} TUT.on = false; S.coachHold = false; $("coachSkip").textContent = "Skip tutorial"; $("coach").hidden = true; coachHi(null); LS.set("tarnturm-tut", "1"); if (!skipped) { toast("TUTORIAL DONE · good luck, squad", "HQ", 1800); SFX.say("Nice!"); window.__tutSumPend = performance.now(); } }   /* V564: Abschlusskarte am Wellenende */
+function tutShow() { const st = TUT_STEPS[TUT.step]; TUT.e = TUT_SNAP(); try { if (st.enter) st.enter(); } catch (e) {} try { window.__tutBar && window.__tutBar.set(TUT.step); } catch (e) {} if (st.rot) { TUT.rb = TUT.rot || 0; try { LS.set("tarnturm-tipb-rot", "1"); } catch (e) {} }   /* V545 */ $("coachStep").textContent = `${TUT.step + 1}/${TUT_STEPS.length}`; $("coachT").textContent = st.t; $("coachS").textContent = st.s; const last = !!st.got;   /* V570: «Got it» bei Lektionen ohne Pflicht-Aktion */ S.coachHold = false; $("coachSkip").textContent = last ? "Got it" : "Skip tutorial"; if (last) coachArm(); else { clearTimeout(coachArm.t); $("coachSkip").classList.remove("wait"); }   /* V483: Spiel läuft auch bei Schritt 5 weiter */ snd("radio"); tutPlace(); }
 function coachHi(el) { document.querySelectorAll(".coachHi").forEach(x => { if (x !== el) x.classList.remove("coachHi"); }); if (el && el.id !== "board" && el.id !== "sheet") el.classList.add("coachHi"); }
 function tutPlace() {
   const st = TUT_STEPS[TUT.step], el = $(st.at), a = $("coachArrow"), c = $("coach"); if (!el) return; coachHi(el);
@@ -7054,19 +7084,20 @@ function tutPlace() {
   if (st.at === "board" || st.at === "sheet") { const br = $("board").getBoundingClientRect(); card.style.bottom = ""; card.style.top = (br.top + (st.at === "sheet" ? 10 : 6)) + "px"; a.style.display = "none"; }
   else { const dk = document.querySelector(".deck").getBoundingClientRect(); a.style.display = "block"; a.textContent = below ? "▲" : "▼"; a.style.left = (r.left + r.width / 2) + "px"; if (below) { a.style.top = (r.bottom + 4) + "px"; card.style.bottom = ""; card.style.top = (r.bottom + 40) + "px"; } else { a.style.top = (dk.top - 32) + "px"; if (r.top > dk.top + 40) a.style.display = "none"; const br = $("board").getBoundingClientRect(); card.style.bottom = ""; card.style.top = (br.top + 6) + "px"; /* Karte in der Feldmitte: oben bleibt das fallende Teil, unten die Landestelle sichtbar */ } }
 }
+function tutNext() { try { window.__tutBar && window.__tutBar.done(TUT.step); } catch (e) {} TUT.step++; if (TUT.step >= TUT_STEPS.length) { tutEnd(false); return; } TUT.t = 0; if (TUT_STEPS[TUT.step].wave) S.waveCD = 2; tutShow(); }   /* V570 */
 function tutTick(dt) {
   if (!TUT.on) return;
   const st = TUT_STEPS[TUT.step]; TUT.t += dt;
-  if (TUT.step < 5) { S.waveCD = Math.max(S.waveCD, 6); S.inWave = false; }   /* V564: Welle erst mit dem Ring-Schritt */   /* V320: Welle wartet im Tutorial · V483: Blöcke fallen weiter (Martin 08.11.) */   // Welle wartet, bis die Grundlagen sitzen
-  if ((TUT.t >= 4 || (TUT.step >= 1 && TUT.step <= 3)) && st.done()) {   /* V565: Bau-Schritte sofort weiter, sonst hinkt der Pfeil */ TUT.step++; if (TUT.step >= TUT_STEPS.length) { tutEnd(false); return; } TUT.t = 0; if (TUT.step === 5) S.waveCD = 2; tutShow(); }   /* V564: jeder Schritt mind. 4 s */
+  if (TUT.step < 6) { S.waveCD = Math.max(S.waveCD, 6); S.inWave = false; }   /* V564: Welle erst mit dem Ring-Schritt */   /* V320: Welle wartet im Tutorial · V483: Blöcke fallen weiter (Martin 08.11.) */   // Welle wartet, bis die Grundlagen sitzen
+  if ((TUT.t >= 4 || st.fast) && st.done()) {   /* V565: Bau-Schritte sofort weiter, sonst hinkt der Pfeil */ tutNext(); }   /* V564: jeder Schritt mind. 4 s */
   else tutPlace();
 }
 function coachArm() { const b = $("coachSkip"); b.classList.add("wait"); clearTimeout(coachArm.t); coachArm.t = setTimeout(() => b.classList.remove("wait"), 3000); }   /* V497: «Got it» erst nach 3 s zeigen */
-$("coachSkip").addEventListener("click", () => { if ($("coachSkip").classList.contains("wait")) return; if (TUT.on) { if (TUT.step === 4 && TUT_STEPS.length > 5) { TUT.step = 5; TUT.t = 0; tutShow(); return; } tutEnd(TUT.step < 4); } else hintEnd(); });   /* V545 */
+$("coachSkip").addEventListener("click", () => { if ($("coachSkip").classList.contains("wait")) return; if (TUT.on) { if (TUT_STEPS[TUT.step].got) { tutNext(); return; } tutEnd(true); } else hintEnd(); });   /* V545 */
 // Erstes-Mal-Hinweise: einmal pro Gerät, 5 s, antippen schließt
 let hintT = null, hintKey = null;
 function hint(key, title, sub, at) {
-  if (TUT.on || LS.get("tarnturm-hint-" + key) === "1" || hintKey) return;
+  if (key === "tnt" || TUT.on || LS.get("tarnturm-hint-" + key) === "1" || hintKey) return;   /* V570: TNT ohne Hinweis */
   try { if (uiWinOpen() || (S && (S.ordersOpen || S.mapShow || S.drop || S.paused))) { setTimeout(() => hint(key, title, sub, at), 1500); return; } } catch (e) {}   /* V318 */ LS.set("tarnturm-hint-" + key, "1"); hintKey = key; try { if (S && S.started && !S.over) S.coachHold = true; } catch (e) {}   /* V367: Spiel steht, solange der General erklärt */
   const c = $("coach"); c.hidden = false; $("coachStep").textContent = "NEW"; $("coachT").textContent = title; $("coachS").textContent = sub; $("coachSkip").textContent = "Got it"; coachArm();
   const el = $(at), a = $("coachArrow"), card = c.querySelector(".coachCard"); coachHi(el);
@@ -9813,7 +9844,9 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     function target() {
       const c = document.getElementById("coach"); if (!c || c.hidden || document.body.classList.contains("mapUp") || (S && S.paused) || document.hidden) return null;
       if (typeof TUT !== "undefined" && TUT.on) {
-        const k = TUT.step;
+        const ar = (TUT_STEPS[TUT.step] || {}).ar; if (!ar) return null;   /* V570: Pfeil je Lektion */
+        if (ar === "spec") { const pk = S.shop && document.getElementById("sheetIn") && document.getElementById("sheetIn").classList.contains("pk"); if (pk) return vis(document.querySelector('#sheetIn [data-pocket="snipe"]')); if (S.mode === "snipe" || sheetUp()) return null; return vis(document.getElementById("bBuild")); }
+        const k = { drop: 0, splat: 0, build: 1, edge: 2, tower2: 2, arm: 3, rot: 4, ring: 5 }[ar];
         if (k === 0) { const r = vis(document.getElementById("bDrop")); return r ? { left: r.left, right: r.right, top: r.top, bottom: r.bottom, width: r.width, height: r.height, side: 1 } : null; }   /* V564: von links, nicht über dem gelben Knopf */
         if (k === 4) { const r = vis(document.getElementById("bRot")); return r ? { left: r.left, right: r.right, top: r.top, bottom: r.bottom, width: r.width, height: r.height, deep: 1 } : null; }
         if (k === 5) { const bd = document.getElementById("board"); if (!bd) return null; const b = bd.getBoundingClientRect(); let x = b.right - 16, y = b.top + b.height * 0.32;   /* V564: Pfeil auf ein Monster im Ring (die Karte oben deckt die Leben-Anzeige) */
@@ -12066,5 +12099,30 @@ body.inNuts header .djBox img{filter:brightness(1.3) drop-shadow(0 0 10px rgba(2
 #ovOver .aarStats>div{min-width:0}
 #ovOver .aarStats span{font-size:10px!important;letter-spacing:.1em!important;white-space:nowrap}
 #ovOver .hsEntry label{font-size:10px!important;letter-spacing:.1em!important;line-height:1.35!important}
+</style>
+<style id="v570bar">
+#tutBar{position:fixed;left:0;right:0;top:0;z-index:904;padding:6px 10px 7px;box-sizing:border-box;background:#f3dfae url("img/tut_plank.webp?v=570") center/cover;border-bottom:3px solid #3a2414;box-shadow:0 4px 0 rgba(58,36,20,.3);font-family:Bangers,system-ui,sans-serif;transform:translateY(-115%);transition:transform .35s cubic-bezier(.2,1.4,.4,1)}
+#tutBar.on{transform:none}
+#tutBar.away{transform:translateY(-115%)}
+#tutBar .tbMain{min-width:0}
+#tutBar .tbHead{display:flex;align-items:center;gap:8px;color:#3a2414;line-height:1}
+#tutBar .tbLogo{flex:0 0 auto;width:30px;height:30px;border-radius:9px;border:2.5px solid #3a2414;background:#7fc04a center/cover no-repeat;box-shadow:0 2px 0 #3a2414}
+#tutBar .tbHead b{flex:1;font-weight:400;font-size:21px;letter-spacing:.07em;text-shadow:0 1px 0 #fff6dc}
+#tutBar .tbHead span{font-size:16px;letter-spacing:.04em;color:#fff;background:#58cc02;border:2px solid #2f7d0a;border-radius:999px;padding:3px 9px 2px;box-shadow:0 2px 0 #2f7d0a}
+#tutBar .tbTrack{position:relative;display:flex;justify-content:space-between;align-items:center;margin-top:7px;height:36px}
+#tutBar .tbLine{position:absolute;left:14px;right:14px;top:50%;height:8px;margin-top:-4px;border-radius:4px;background:#e2cfa0;border:2px solid #3a2414;box-sizing:border-box;overflow:hidden}
+#tutBar .tbLine i{display:block;height:100%;width:0;background:linear-gradient(180deg,#8fe04a,#58cc02);transition:width .5s ease}
+#tutBar .tbDot{position:relative;z-index:1;width:30px;height:30px;border-radius:50%;box-sizing:border-box;background:#fff6dc center/100% 100% no-repeat;filter:grayscale(1) brightness(1.08);opacity:.62;font-size:0;transition:transform .25s,filter .25s,opacity .25s}
+#tutBar .tbDot.cur{filter:none;opacity:1;transform:scale(1.28);animation:tbPulse 1s ease-in-out infinite alternate}
+#tutBar .tbDot.ok{filter:none;opacity:1}
+#tutBar .tbDot.ok::after{content:"✓";position:absolute;right:-4px;bottom:-4px;width:15px;height:15px;border-radius:50%;background:#58cc02;border:2px solid #fff;color:#fff;font:700 10px/15px system-ui,sans-serif;text-align:center;box-shadow:0 1px 0 #2f7d0a}
+#tutBar .tbDot.pop{animation:tbPop .55s ease}
+@keyframes tbPulse{from{box-shadow:0 0 0 0 rgba(255,210,58,.9)}to{box-shadow:0 0 0 7px rgba(255,210,58,0)}}
+@keyframes tbPop{0%{transform:scale(1)}40%{transform:scale(1.7) rotate(-12deg)}100%{transform:scale(1)}}
+body.tutBarOn header,body.tutBarOn #genAv,body.tutBarOn .score,body.tutBarOn #hud,body.tutBarOn #waveNum,body.tutBarOn #bPauseTop,body.tutBarOn .djBox,body.tutBarOn #djSong,body.tutBarOn #hkMiss,body.tutBarOn #hackPill,body.tutBarOn #awBar,body.tutBarOn #nutsBadge{visibility:hidden!important}
+body.tutBarOn #coach.genTalk .coachCard{top:max(var(--gtT,0px),calc(var(--tbH,86px) + 8px))!important}
+#tutPraise{position:fixed;left:50%;z-index:906;transform:translate(-50%,-14px) scale(.7);opacity:0;pointer-events:none;display:flex;align-items:center;gap:6px;padding:4px 18px 4px 4px;border-radius:999px;background:#58cc02;border:3px solid #2f7d0a;box-shadow:0 4px 0 #2f7d0a;color:#fff;font:400 24px/1 Bangers,system-ui,sans-serif;letter-spacing:.06em;text-shadow:0 2px 0 #2f7d0a;transition:opacity .2s,transform .3s cubic-bezier(.2,1.6,.4,1)}
+#tutPraise.on{opacity:1;transform:translate(-50%,0) scale(1)}
+#tutPraise img{width:54px;height:54px;margin:-14px 0 -8px -8px;object-fit:contain;filter:drop-shadow(0 2px 0 rgba(0,0,0,.25))}
 </style>
 </body></html>

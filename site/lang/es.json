@@ -2000,5 +2000,21 @@
 "excellent": "excelente",
 "PASSED": "APROBADO",
 "+# POINTS": "+# PUNTOS",
-"ACCEPT": "ACEPTAR"
+"ACCEPT": "ACEPTAR",
+"A full row vanishes and pays gold. The outer squares at the left and right edge don't count – leave them free.": "Una fila completa desaparece y da oro. Las casillas de los bordes izquierdo y derecho no cuentan: déjalas libres.",
+"Blocks squash monsters. Drop a block right onto them – tap DROP.": "Los bloques aplastan monstruos. Suelta un bloque justo encima: pulsa SOLTAR.",
+"USE A SPECIAL": "USA UN ESPECIAL",
+"HQ gives you a Sniper strike. Tap SHOP, then USE – then tap a spot on the field.": "El cuartel te regala un disparo de francotirador. Pulsa TIENDA, luego USAR y toca un punto del campo.",
+"BUILD A SECOND TOWER": "CONSTRUYE UNA SEGUNDA TORRE",
+"Towers can fall when their block disappears – then just build a new one. Two towers at the edge hold the ring much better.": "Una torre cae si desaparece su bloque: construye otra. Dos torres en el borde defienden el anillo mucho mejor.",
+"GREAT!": "¡GENIAL!",
+"NICE ONE!": "¡BIEN HECHO!",
+"WELL DONE!": "¡MUY BIEN!",
+"SUPER!": "¡SÚPER!",
+"PERFECT!": "¡PERFECTO!",
+"THAT'S IT!": "¡ASÍ SE HACE!",
+"TOP!": "¡TOP!",
+"BRAVO!": "¡BRAVO!",
+"AWESOME!": "¡INCREÍBLE!",
+"YOU GOT IT!": "¡LO TIENES!"
 }

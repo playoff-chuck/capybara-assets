@@ -1,0 +1,19 @@
+{
+"A full row vanishes and pays gold. The outer squares at the left and right edge don't count – leave them free.": "Полный ряд исчезает и приносит золото. Крайние клетки слева и справа не считаются – их можно не заполнять.",
+"Blocks squash monsters. Drop a block right onto them – tap DROP.": "Блоки давят монстров. Сбрось блок прямо на них – жми «СБРОС».",
+"USE A SPECIAL": "ПРИМЕНИ СПЕЦСРЕДСТВО",
+"HQ gives you a Sniper strike. Tap SHOP, then USE – then tap a spot on the field.": "Штаб дарит тебе снайперский выстрел. Жми МАГАЗИН, потом «В ДЕЛО» – и нажми на место на поле.",
+"BUILD A SECOND TOWER": "ПОСТРОЙ ВТОРУЮ БАШНЮ",
+"Towers can fall when their block disappears – then just build a new one. Two towers at the edge hold the ring much better.": "Башня падает, если исчезает её блок, – тогда просто построй новую. Две башни у края держат кольцо гораздо лучше.",
+"TUTORIAL": "ОБУЧЕНИЕ",
+"GREAT!": "ОТЛИЧНО!",
+"NICE ONE!": "КЛАСС!",
+"WELL DONE!": "МОЛОДЕЦ!",
+"SUPER!": "СУПЕР!",
+"PERFECT!": "ИДЕАЛЬНО!",
+"THAT'S IT!": "ВОТ ТАК!",
+"TOP!": "ТОП!",
+"BRAVO!": "БРАВО!",
+"AWESOME!": "ШИКАРНО!",
+"YOU GOT IT!": "ТЫ ПОНЯЛ!"
+}
