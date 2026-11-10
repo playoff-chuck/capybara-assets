@@ -2796,7 +2796,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V582";
+const GAME_VER = "V583";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -10773,9 +10773,10 @@ try { (() => {
       lv: (() => { try { return sqLevel(); } catch (e) { return 1; } })(), xp: (() => { try { return sqXP(); } catch (e) { return 0; } })(), ms: msnD, dly,
       fr: +localStorage.getItem("capy-squad-n") || 0, k: L.k || 0, l: L.l || 0, w: L.w || 0, r: L.r || 0, t: Math.round(L.t || 0),
       scrT: +localStorage.getItem("capy-scr") || 0, d: D.n || 0, dnz: D.nz || 0, dby: D.by || {}, dlw: D.lw || 0,
-      tut: localStorage.getItem("tarnturm-tut") === "1" ? 1 : 0, dev: localStorage.getItem("tarnturm-dev") === "1" ? 1 : 0, cs: !!localStorage.getItem("capy-cloudT") }; }
+      tut: localStorage.getItem("tarnturm-tut") === "1" ? 1 : 0, dev: localStorage.getItem("tarnturm-dev") === "1" ? 1 : 0, cs: !!localStorage.getItem("capy-cloudT"),
+      team: (() => { try { return capyMe() ? 1 : 0; } catch (e) { return 0; } })() }; }   /* V583 */
   let lastSend = 0;
-  function profSend(start, force) { try { if (!force && !start && Date.now() - lastSend < 60000) return; lastSend = Date.now(); const b = profBuild(); if (start) b.start = true;
+  function profSend(start, force) { try { if (navigator.webdriver) return;   /* V583: Test-Browser zählen nicht */ if (!force && !start && Date.now() - lastSend < 60000) return; lastSend = Date.now(); const b = profBuild(); if (start) b.start = true;
       fetch(API_BASE + "/player", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(b), keepalive: true }).catch(() => {}); } catch (e) {} }
   setTimeout(() => profSend(true), 6000);
   setInterval(() => { if (!document.hidden && playing()) profSend(false); }, 120000);
@@ -10818,7 +10819,7 @@ body:has(.overlay.joinOv:not([hidden])) #stAdm,body:has(#ovDaily:not([hidden])) 
   document.body.appendChild(ov); document.body.appendChild(btn);
   setInterval(() => { try { const so = document.getElementById("ovStart"); btn.hidden = !(so && !so.hidden) || !ov.hidden; } catch (e) {} }, 300);
   const body = ov.querySelector(".aBody"), info = ov.querySelector(".aInfo"), back = ov.querySelector(".aBack");
-  let LIST = [], NOW = Date.now(), scrollY = 0;
+  let LIST = [], NOW = Date.now(), scrollY = 0, SHOWALL = false;   /* V583 */
   const esc = v => String(v == null ? "" : v).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
   const num = n => (+n || 0).toLocaleString("de-DE");
   const dur = sec => { sec = Math.round(+sec || 0); const h = Math.floor(sec / 3600), m = Math.round((sec % 3600) / 60); return h ? `${h} h ${m} min` : `${m} min`; };
@@ -10837,14 +10838,21 @@ body:has(.overlay.joinOv:not([hidden])) #stAdm,body:has(#ovDaily:not([hidden])) 
       if (r.status === 403 && !load.re) { load.re = 1; try { localStorage.removeItem("capy-adm"); } catch (e) {} return load(); }   /* V576: alter Schlüssel → neu holen */
       if (r.status === 403) { info.textContent = "kein Zugang"; body.innerHTML = '<div class="aMsg">Admin-Schlüssel ungültig.<br>Bitte Claude Bescheid geben.</div>'; return; }
       const j = await r.json(); LIST = (j && j.list) || []; NOW = (j && j.now) || Date.now(); renderList(); } catch (e) { info.textContent = "offline"; body.innerHTML = '<div class="aMsg">Server nicht erreichbar.</div>'; } }
-  function renderList() { back.hidden = true; const L = LIST.slice().sort((a, b) => b.last - a.last);
-    const today = LIST.filter(p => NOW - p.last < 86400000).length, week = LIST.filter(p => NOW - p.last < 7 * 86400000).length, now = LIST.filter(p => NOW - p.last < 600000).length;
-    info.textContent = `${LIST.length} Spieler · groß = beste Welle · neueste oben`;
-    let h = `<div class="aSum"><div><b>${LIST.length}</b><small>gesamt</small></div><div><b>${now}</b><small>jetzt aktiv</small></div><div><b>${today}</b><small>heute</small></div><div><b>${week}</b><small>7 Tage</small></div></div>`;
+  function renderList() { back.hidden = true;
+    /* V583: Tests und Team ausblenden */
+    const model = p => devShort(p.d || {}), teamM = new Set(LIST.filter(p => (p.d || {}).team || (p.d || {}).dev).map(model).filter(m => / · /.test(m)));
+    const isTest = p => { const d = p.d || {}; return !!d.bot || (!(Math.max(d.bw || 0, (d.cur && d.cur.w) || 0, d.cp || 0) > 0) && !((d.t || 0) > 60) && NOW - p.last > 600000); };   // Test-Browser oder nur geöffnet, nie gespielt
+    const isTeam = p => { const d = p.d || {}; return !!d.team || !!d.dev || teamM.has(model(p)); };
+    const REAL = LIST.filter(p => !isTest(p) && !isTeam(p)), hid = LIST.length - REAL.length, SRC = SHOWALL ? LIST : REAL;
+    const L = SRC.slice().sort((a, b) => b.last - a.last);
+    const today = REAL.filter(p => NOW - p.last < 86400000).length, week = REAL.filter(p => NOW - p.last < 7 * 86400000).length, now = REAL.filter(p => NOW - p.last < 600000).length;
+    info.textContent = `${REAL.length} echte Spieler · groß = beste Welle · neueste oben`;
+    let h = `<div class="aSum"><div><b>${REAL.length}</b><small>echte</small></div><div><b>${now}</b><small>jetzt aktiv</small></div><div><b>${today}</b><small>heute</small></div><div><b>${week}</b><small>7 Tage</small></div></div>`;
+    if (hid) h += `<button type="button" class="aAll" style="display:block;width:100%;margin:0 0 10px;padding:8px;border:2px solid #3a2414;border-radius:12px;background:#fff6e3;font:inherit;color:#3a2414">${SHOWALL ? "Nur echte Spieler zeigen" : `+ ${hid} Tests/Team/nur geöffnet zeigen`}</button>`;
     if (!L.length) h += '<div class="aMsg">Noch keine Spieler gemeldet.<br>Geräte melden sich ab Version V536 beim nächsten Öffnen.</div>';
     h += L.map(p => { const d = p.d || {}, w = nowWave(d), live = NOW - p.last < 600000 ? "on" : NOW - p.last < 86400000 ? "day" : "";
       const nz = d.cur && d.cur.nz ? ` · im Nuts L${d.cur.lv}` : "", bw = Math.max(d.bw || 0, (d.cur && d.cur.w) || 0);
-      return `<button class="aRow" type="button" data-uid="${esc(p.uid)}"><span class="aNo">#${p.no}</span><span class="aNm">${esc(d.nm || "– ohne Namen –")}${p.uid === "M2HL-KCQH" ? " (du)" : ""}</span><span class="aW">W${bw}</span>
+      return `<button class="aRow" type="button" data-uid="${esc(p.uid)}"><span class="aNo">#${p.no}</span><span class="aNm">${esc(d.nm || "– ohne Namen –")}${isTeam(p) ? " (Team)" : isTest(p) ? " (Test)" : ""}</span><span class="aW">W${bw}</span>
         <span class="aSub"><i class="aDot ${live}"></i>${esc(where(w || bw))}${nz}${d.d ? ` · ${d.d}× gestorben` : ""}</span><span class="aSub">${esc(devShort(d) || "Gerät unbekannt")} · ${ago(p.last)} · ${dur(d.t)} gespielt</span></button>`; }).join("");
     body.innerHTML = h; body.scrollTop = scrollY; }
   function renderOne(uid) { const p = LIST.find(x => x.uid === uid); if (!p) return; scrollY = body.scrollTop; back.hidden = false; const d = p.d || {}, w = nowWave(d);
@@ -10862,7 +10870,7 @@ body:has(.overlay.joinOv:not([hidden])) #stAdm,body:has(#ovDaily:not([hidden])) 
       kv("Tode Hauptspiel", num(d.d) + (d.dlw ? ` · zuletzt in Welle ${d.dlw}` : "")), kv("Tode Nuts", num(d.dnz)), kv("Todesursachen", esc(byT))]);
     h += sec("GERÄT", [kv("System", esc(d.os || "–")), kv("App / Browser", esc(d.app || "–")), kv("Bildschirm", esc(d.scr || "–")), kv("Sprache Gerät", esc(d.loc || "–")), kv("Zeitzone", esc(d.tz || "–")), kv("Dev-Modus", d.dev ? "an" : "aus")]);
     body.innerHTML = h; body.scrollTop = 0; }
-  body.addEventListener("click", e => { const r = e.target.closest(".aRow"); if (r) { try { snd("uiTap"); } catch (er) {} renderOne(r.dataset.uid); } });
+  body.addEventListener("click", e => { const a = e.target.closest(".aAll"); if (a) { SHOWALL = !SHOWALL; renderList(); return; } const r = e.target.closest(".aRow"); if (r) { try { snd("uiTap"); } catch (er) {} renderOne(r.dataset.uid); } });
   back.addEventListener("click", () => { try { snd("uiTap"); } catch (e) {} renderList(); });
   ov.querySelector(".aRef").addEventListener("click", () => { try { snd("uiTap"); } catch (e) {} scrollY = 0; load(); });
   ov.querySelector(".aX").addEventListener("click", () => { try { snd("uiTap"); } catch (e) {} ov.hidden = true; });
