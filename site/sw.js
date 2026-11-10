@@ -2,7 +2,7 @@
    index.html: erst Netz (damit Updates sofort ankommen), sonst Speicher.
    Alles andere: erst Speicher, sonst Netz (und dann speichern). /api/ nie speichern.
    Liste aller Dateien: offline.json (tools/make_offline.py). Musik/Audio mit Range-Antworten (206). */
-const CACHE = "capy-offline-v2";   /* V357: neuer Name → alter Speicher (V332 u. a.) wird beim Aktivieren gelöscht */
+const CACHE = "capy-offline-v2";   /* V559 */   /* V357: neuer Name → alter Speicher (V332 u. a.) wird beim Aktivieren gelöscht */
 const CORE = ["/", "/index.html", "/manifest.webmanifest", "/offline.json"];
 self.addEventListener("install", e => { self.skipWaiting(); e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE)).then(() => fillAll(false)).catch(() => {})); });
 self.addEventListener("activate", e => { e.waitUntil((async () => { for (const k of await caches.keys()) if (k !== CACHE) await caches.delete(k); await self.clients.claim(); })()); });
@@ -43,7 +43,9 @@ self.addEventListener("fetch", e => {
       return Promise.race([net.then(r => r.clone()), new Promise(r => setTimeout(() => { servedOld = true; r(old); }, 3500))]).catch(() => { servedOld = true; return old; }); })());
     return; }
   e.respondWith((async () => { const c = await caches.open(CACHE); const key = u.pathname + u.search;
-    let hit = await c.match(key) || await c.match(key, { ignoreSearch: true });
+    const strict = !!u.search;   /* V559: versionierte Anfrage (?v=) → keine ältere Fassung aus dem Speicher, außer offline */
+    let hit = await c.match(key) || (strict ? null : await c.match(key, { ignoreSearch: true }));
     if (hit) return ranged(req, hit);
-    try { const res = await fetch(new Request(key, { cache: "no-cache" })); if (res.ok && res.status === 200) { c.put(key, res.clone()); return ranged(req, res); } return res; } catch (er) { return Response.error(); } })());
+    try { const res = await fetch(new Request(key, { cache: "no-cache" })); if (res.ok && res.status === 200) { c.put(key, res.clone()); return ranged(req, res); } if (strict) { const old = await c.match(key, { ignoreSearch: true }); if (old) return ranged(req, old); } return res; }
+    catch (er) { const old = strict ? await c.match(key, { ignoreSearch: true }) : null; return old ? ranged(req, old) : Response.error(); } })());
 });
