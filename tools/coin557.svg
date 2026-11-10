@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <radialGradient id="face" cx="38%" cy="32%" r="75%">
+      <stop offset="0" stop-color="#fff6c2"/>
+      <stop offset=".35" stop-color="#ffd84a"/>
+      <stop offset=".75" stop-color="#f2a91b"/>
+      <stop offset="1" stop-color="#c97a06"/>
+    </radialGradient>
+    <linearGradient id="rim" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffe680"/>
+      <stop offset=".5" stop-color="#e79a12"/>
+      <stop offset="1" stop-color="#9c5a00"/>
+    </linearGradient>
+    <linearGradient id="inner" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#e99a10"/>
+      <stop offset="1" stop-color="#ffd54a"/>
+    </linearGradient>
+  </defs>
+  <!-- Schatten/Dicke -->
+  <ellipse cx="256" cy="282" rx="214" ry="206" fill="#3a2414"/>
+  <ellipse cx="256" cy="270" rx="200" ry="194" fill="#a55f00"/>
+  <!-- Rand -->
+  <circle cx="256" cy="248" r="214" fill="#3a2414"/>
+  <circle cx="256" cy="248" r="198" fill="url(#rim)"/>
+  <!-- Riffelung am Rand -->
+  <g stroke="#b56d03" stroke-width="7" stroke-linecap="round" opacity=".55">
+    <path d="M256 58v18M256 420v18M66 248h18M428 248h18M122 114l13 13M377 369l13 13M122 382l13-13M377 127l13-13M164 78l7 16M341 402l7 16M92 160l16 7M404 329l16 7M92 336l16-7M404 167l16-7M164 418l7-16M341 94l7-16"/>
+  </g>
+  <!-- Gesicht -->
+  <circle cx="256" cy="248" r="160" fill="#3a2414"/>
+  <circle cx="256" cy="248" r="150" fill="url(#face)"/>
+  <circle cx="256" cy="248" r="122" fill="none" stroke="url(#inner)" stroke-width="10" opacity=".9"/>
+  <!-- Stern -->
+  <path d="M256 150l28 60 66 7-49 45 14 65-59-34-59 34 14-65-49-45 66-7z" fill="#3a2414"/>
+  <path d="M256 166l23 49 54 6-40 37 11 53-48-28-48 28 11-53-40-37 54-6z" fill="#ffe06a"/>
+  <path d="M256 166l23 49 54 6-40 37-37-38z" fill="#fff4b8" opacity=".85"/>
+  <!-- Glanz -->
+  <path d="M150 170c18-48 64-80 116-84" fill="none" stroke="#fffbe0" stroke-width="18" stroke-linecap="round" opacity=".9"/>
+  <circle cx="134" cy="214" r="10" fill="#fffbe0" opacity=".9"/>
+  <path d="M378 110l8 20 20 8-20 8-8 20-8-20-20-8 20-8z" fill="#fffef2"/>
+</svg>

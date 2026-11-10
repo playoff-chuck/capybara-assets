@@ -2796,7 +2796,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V556";
+const GAME_VER = "V557";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -2822,7 +2822,12 @@ function T(t) {
   if (v == null) return raw;
   const lead = raw.match(/^\s*/)[0], tail = raw.match(/\s*$/)[0]; return lead + v + tail; }
 const I18N_SKIP = new Set(["SCRIPT", "STYLE", "TEXTAREA", "INPUT", "CODE"]), I18N_ATTR = ["placeholder", "aria-label", "title"], i18nDone = new WeakMap();
-function i18nText(n) { if (!I18N.dict) return;   /* V471: vor dem Laden nichts als erledigt merken */ const d = n.data; if (!d || !d.trim()) return; const p = n.parentNode; if (!p || I18N_SKIP.has(p.nodeName)) return; if (p.closest && p.closest("[translate=no]")) return;   /* V469 */ const m = i18nDone.get(n); if (m && m.out === d && m.lang === I18N.lang) return; const src = (m && m.out === d) ? m.src : d; const out = T(src); i18nDone.set(n, { src, out, lang: I18N.lang }); if (out !== d) n.data = out; }   /* V457: Original merken */
+function i18nText(n) { if (!I18N.dict) return;   /* V471: vor dem Laden nichts als erledigt merken */ const d = n.data; if (!d || !d.trim()) return; const p = n.parentNode; if (!p || I18N_SKIP.has(p.nodeName)) return; if (p.closest && p.closest("[translate=no]")) return;   /* V469 */ const m = i18nDone.get(n); if (m && m.out === d && m.lang === I18N.lang) return; const src = (m && m.out === d) ? m.src : d; const out = T(src); i18nDone.set(n, { src, out, lang: I18N.lang }); if (out !== d) n.data = out; if (out.indexOf("\uE000") >= 0) queueMicrotask(() => { if (n.parentNode && n.data === out) i18nCoin(n, out); }); }   /* erst nach dem Durchlauf tauschen, sonst bricht der TreeWalker ab */
+function i18nCoin(n, out) {   /* V557: Münz-Zeichen → Bild */
+  const p = n.parentNode; if (!p) return; const f = document.createDocumentFragment(); const parts = out.split("\uE000");
+  parts.forEach((t, i) => { if (t) { const tn = document.createTextNode(t); i18nDone.set(tn, { src: t, out: t, lang: I18N.lang }); f.appendChild(tn); }
+    if (i < parts.length - 1) { const im = document.createElement("img"); im.className = "coinI"; im.src = "img/coin64.webp"; im.alt = "🪙"; im.draggable = false; f.appendChild(im); } });
+  p.replaceChild(f, n); }   /* V457: Original merken */
 function i18nAttr(el, a) { if (!I18N.dict) return; const v = el.getAttribute(a), k = "a:" + a, m = i18nDone.get(el) || {}; if (m[k] === v && m[k + ":l"] === I18N.lang) return; const src = m[k] === v ? m[k + ":s"] : v; const o = T(src); m[k] = o; m[k + ":s"] = src; m[k + ":l"] = I18N.lang; i18nDone.set(el, m); if (o !== v) el.setAttribute(a, o); }
 function i18nEl(el) { if (!el || el.nodeType !== 1 || I18N_SKIP.has(el.nodeName)) return; for (const a of I18N_ATTR) if (el.hasAttribute(a)) i18nAttr(el, a);
   const w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT, null); let n; while ((n = w.nextNode())) { if (n.nodeType === 3) i18nText(n); else if (n.nodeType === 1 && !I18N_SKIP.has(n.nodeName)) { for (const a of I18N_ATTR) if (n.hasAttribute(a)) i18nAttr(n, a); } } }
@@ -2839,7 +2844,8 @@ function i18nApplyAll() { try { i18nEl(document.body); } catch (e) {} }
 (function () { const obs = new MutationObserver(ms => { for (const m of ms) { if (m.type === "characterData") { i18nText(m.target); continue; } if (m.type === "attributes") { i18nEl(m.target); continue; } m.addedNodes.forEach(n => { if (n.nodeType === 3) i18nText(n); else i18nEl(n); }); } });
   const start = () => obs.observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: I18N_ATTR }); if (document.body) start(); else document.addEventListener("DOMContentLoaded", start); })();
 (function () { try { const P = CanvasRenderingContext2D.prototype, ft = P.fillText, st = P.strokeText, mt = P.measureText;
-  P.fillText = function (t) { arguments[0] = T(t); return ft.apply(this, arguments); }; P.strokeText = function (t) { arguments[0] = T(t); return st.apply(this, arguments); }; P.measureText = function (t) { return mt.call(this, T(t)); }; } catch (e) {} })();
+  const TC = t => { const v = T(t); return typeof v === "string" && v.indexOf("\uE000") >= 0 ? v.replace(/\uE000/g, "🪙") : v; };   /* V557 */
+  P.fillText = function (t) { arguments[0] = TC(t); return ft.apply(this, arguments); }; P.strokeText = function (t) { arguments[0] = TC(t); return st.apply(this, arguments); }; P.measureText = function (t) { return mt.call(this, TC(t)); }; } catch (e) {} })();
 function i18nLoad(lang, cb) {
   I18N.lang = lang; I18N.cache.clear(); I18N.miss.clear(); try { localStorage.setItem("capy-lang", lang); } catch (e) {} document.documentElement.lang = lang;
   fetch(`lang/${lang}.json?v=${GAME_VER}`).then(r => r.ok ? r.json() : {}).catch(() => ({})).then(d => { I18N.dict = d || {}; I18N.rev = new Set(Object.values(I18N.dict)); I18N.names = Object.keys(I18N.dict).filter(k => /^[A-Z][A-Za-z' -]{2,24}$/.test(k) && !k.includes("#")).sort((a, b) => b.length - a.length); I18N.ready = true; i18nApplyAll();
@@ -11079,6 +11085,10 @@ html[lang=ru] .stamp{max-width:calc(100vw - 28px)!important;white-space:normal!i
 html[lang=ru] .stamp.t4{font-size:clamp(22px,7.4vw,36px)!important}
 html[lang=ru] .mayday span{font-size:12px;letter-spacing:.03em;white-space:nowrap}
 html[lang=ru] .mayday i{font-size:10px;letter-spacing:.04em;white-space:nowrap}
+img.coinI{display:inline-block!important;width:1.15em!important;height:1.15em!important;max-width:none!important;vertical-align:-.22em!important;margin:0 .04em 0 .08em!important;padding:0!important;border:0!important;background:none!important;filter:drop-shadow(0 1px 0 rgba(58,36,20,.35));pointer-events:none}
+html[lang=ru] #sheet #sheetIn .shopTiles .shopItem button .lbl{font-size:13px!important;letter-spacing:.02em!important}
+html[lang=ru] #sheet #sheetIn .shopTiles .shopItem button{min-height:42px!important}
+#sheetIn .slotRow button small img.coinI{width:1.25em!important;height:1.25em!important}
 #ovMap{position:fixed;inset:0;z-index:990;background:#6faaab;overflow:hidden;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
 #ovMap[hidden]{display:none!important}#ovMap.fadeOut{opacity:0;transition:opacity .8s ease;pointer-events:none}
 #ovMap .mapVp{position:absolute;inset:0;overflow:hidden}
