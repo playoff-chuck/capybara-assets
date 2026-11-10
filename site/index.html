@@ -2796,7 +2796,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V576";
+const GAME_VER = "V577";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -7051,7 +7051,7 @@ try { (() => {
 
 /* V573: fallender Block über der Tutorial-Karte */
 try { (() => {
-  const oc = document.createElement("canvas"); oc.id = "tutPieceCv"; document.body.appendChild(oc); const ox = oc.getContext("2d"); let shown = false;
+  const EN = { p: null, t: 0, d: 0, ms: 600 }; const oc = document.createElement("canvas"); oc.id = "tutPieceCv"; document.body.appendChild(oc); const ox = oc.getContext("2d"); let shown = false;
   function frame() { requestAnimationFrame(frame); try {
     const coach = document.getElementById("coach"), on = typeof TUT !== "undefined" && TUT.on && S && S.started && !S.over && S.piece && coach && !coach.hidden && !cv.classList.contains("rot") && !cv.classList.contains("rotR") && !S.rotMode;
     if (!on) { if (shown) { ox.clearRect(0, 0, oc.width, oc.height); shown = false; } return; }
@@ -7059,10 +7059,12 @@ try { (() => {
     ox.clearRect(0, 0, W, H); shown = true;
     const card = coach.querySelector(".coachCard"), cr = card && card.getBoundingClientRect(); if (!cr || !cr.width) return;
     const r = cv.getBoundingClientRect(), sx = cv.width / r.width, sy = cv.height / r.height, p = S.piece;
+    const now = performance.now(); if (p !== EN.p) { EN.p = p; EN.t = now; let top = 1e9, cs = 20; for (const [x, y] of p.cells) { const [gx, gy] = v2g(p.x + x, p.y + y); const q = cvPt(gx, gy); top = Math.min(top, q.y); cs = q.cs || cs; } EN.d = Math.max(0, top + cs); let gi = 0.8; try { gi = gravityInterval(); } catch (e) {} EN.ms = Math.min(1400, Math.max(500, EN.d / cs * gi * 1000)); }   /* V577: Einflug von ganz oben */
+    const k = Math.min(1, (now - EN.t) / EN.ms), off = -EN.d * (1 - k);
     for (const [x, y] of p.cells) { const [gx, gy] = v2g(p.x + x, p.y + y); if (gy < 0) continue;
       const a = cvPt(gx, gy), b = cvPt(gx + 1, gy + 1), x0 = Math.min(a.x, b.x), y0 = Math.min(a.y, b.y), w = Math.abs(b.x - a.x), h = Math.abs(b.y - a.y);
-      if (x0 + w < cr.left || x0 > cr.right || y0 + h < cr.top || y0 > cr.bottom) continue;   // nur dort, wo die Karte drüberliegt
-      ox.drawImage(cv, (x0 - r.left) * sx, (y0 - r.top) * sy, w * sx, h * sy, x0 * dpr, y0 * dpr, w * dpr, h * dpr); }
+      if (k >= 1 && (x0 + w < cr.left || x0 > cr.right || y0 + h < cr.top || y0 > cr.bottom)) continue;   // nach dem Einflug nur dort, wo die Karte drüberliegt
+      ox.drawImage(cv, (x0 - r.left) * sx, (y0 - r.top) * sy, w * sx, h * sy, x0 * dpr, (y0 + off) * dpr, w * dpr, h * dpr); }
   } catch (e) {} }
   requestAnimationFrame(frame);
 })(); } catch (e) { console.error("v573", e); }
@@ -10570,6 +10572,7 @@ try { (() => {
     el.querySelector(".say").innerHTML = `${VOICE_TEXT[key]}<small>${who === "rosie" ? "ROSIE" : "BLUE"}</small>`;
     void el.offsetWidth; el.classList.add("on"); clearTimeout(bT); const mine = String((+el.dataset.bn || 0) + 1); el.dataset.bn = mine; bT = setTimeout(() => { if (el.dataset.bn === mine) el.classList.remove("on"); }, 2800); }   /* V464: übersetzter Text bricht den Vergleich nicht mehr */
   function rbSay(key, delay = 0, force = false) {
+    try { if (!force && S && (S.wave | 0) <= 10 && Math.random() < 0.3) return; } catch (e) {}   /* V577: W1–10 30 % weniger */
     const t0 = performance.now() + delay;
     const tryIt = () => { const now = performance.now();
       if (!S || !S.started || (S.over && key !== "rb_tea")) return;
@@ -12251,5 +12254,16 @@ body.tutBarOn #toast,body.tutBarOn #alert{display:none!important}
 #ovCoachAd .caPros b{flex-basis:min(32px,4.2vh)!important;height:min(32px,4.2vh)!important;font-size:min(18px,2.4vh)!important}
 #ovCoachAd .caBuy{font-size:min(27px,3.6vh)!important;padding:1.9vh 10px 1.6vh!important}
 #ovCoachAd .caLater{font-size:min(13px,1.8vh)!important;margin-top:.6vh!important;padding:.8vh 10px!important}
+</style>
+<style id="v577">
+#adBuy{display:flex!important;flex-direction:row!important;align-items:center;justify-content:center;gap:6px;flex-wrap:nowrap;line-height:1!important;padding:0 10px!important;font-size:min(19px,5.2vw)!important;overflow:hidden}
+.adCard.sale #adBuy{font-size:min(21px,5.6vw)!important}
+#adBuy *{display:inline-block!important;vertical-align:middle;margin:0!important;line-height:1!important;position:static!important;flex:0 0 auto}
+#adBuy img,#adBuy .coin,#adBuy i,#adBuy svg{width:1.05em!important;height:1.05em!important}
+.adCard.sale .saleHead{margin:-2px 0 8px!important}
+.adCard.sale #adName{margin-top:2px!important}
+.adCard.sale .salePrice{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:4px 8px;max-width:100%;padding:0 4px;box-sizing:border-box}
+.adCard.sale .salePrice>*{flex:0 0 auto;max-width:100%}
+.adCard .adBody{overflow:hidden}
 </style>
 </body></html>
