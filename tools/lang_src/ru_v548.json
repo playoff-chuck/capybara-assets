@@ -1,0 +1,16 @@
+{
+"YOUR STACK IS TOO HIGH!": "СТОПКА СЛИШКОМ ВЫСОКАЯ!",
+"If the blocks reach the top, the game is over. Fill rows to clear them – drop blocks into the gaps.": "Если блоки дойдут до верха – игра окончена. Заполняй ряды, чтобы они исчезали: бросай блоки в дырки.",
+"FILL A ROW – IT DISAPPEARS!": "ЗАПОЛНИ РЯД – ОН ИСЧЕЗНЕТ!",
+"Fill a whole row with blocks and it clears. You get gold and room to breathe.": "Заполни весь ряд блоками – и он исчезнет. Получишь золото и свободное место.",
+"SPEND YOUR GOLD!": "ТРАТЬ ЗОЛОТО!",
+"You have gold to spare. Tap the shop and build more towers – you can have several at once.": "У тебя есть лишнее золото. Открой магазин и построй ещё башни – их может быть несколько сразу.",
+"TOWER LOST? NO PROBLEM!": "БАШНЯ ПРОПАЛА? НЕ БЕДА!",
+"A tower can fall when its block disappears. Just build a new one – you can have several towers at the same time.": "Башня падает, когда исчезает её блок. Просто построй новую – башен может быть несколько одновременно.",
+"STACK TOO HIGH": "СТОПКА СЛИШКОМ ВЫСОКАЯ",
+"fill rows to clear them": "заполняй ряды, чтобы они исчезали",
+"STACK SQUEEZED": "СТОПКА СЖАТА",
+"fresh start": "новый старт",
+"STACK TOO HIGH · fill rows to clear them": "СТОПКА СЛИШКОМ ВЫСОКАЯ · заполняй ряды, чтобы они исчезали",
+"STACK SQUEEZED · fresh start": "СТОПКА СЖАТА · новый старт"
+}

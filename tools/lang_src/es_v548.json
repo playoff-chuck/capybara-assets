@@ -1,0 +1,16 @@
+{
+"YOUR STACK IS TOO HIGH!": "¡TU PILA ESTÁ MUY ALTA!",
+"If the blocks reach the top, the game is over. Fill rows to clear them – drop blocks into the gaps.": "Si los bloques llegan arriba, se acaba el juego. Llena filas para que desaparezcan: tira bloques en los huecos.",
+"FILL A ROW – IT DISAPPEARS!": "¡LLENA UNA FILA Y DESAPARECE!",
+"Fill a whole row with blocks and it clears. You get gold and room to breathe.": "Llena toda una fila con bloques y se borra. Ganas oro y espacio para respirar.",
+"SPEND YOUR GOLD!": "¡GASTA TU ORO!",
+"You have gold to spare. Tap the shop and build more towers – you can have several at once.": "Te sobra oro. Toca la tienda y construye más torres: puedes tener varias a la vez.",
+"TOWER LOST? NO PROBLEM!": "¿PERDISTE UNA TORRE? ¡NO PASA NADA!",
+"A tower can fall when its block disappears. Just build a new one – you can have several towers at the same time.": "Una torre puede caer cuando su bloque desaparece. Construye otra: puedes tener varias torres al mismo tiempo.",
+"STACK TOO HIGH": "PILA MUY ALTA",
+"fill rows to clear them": "llena filas para borrarlas",
+"STACK SQUEEZED": "PILA APLASTADA",
+"fresh start": "nuevo comienzo",
+"STACK TOO HIGH · fill rows to clear them": "PILA MUY ALTA · llena filas para borrarlas",
+"STACK SQUEEZED · fresh start": "PILA APLASTADA · nuevo comienzo"
+}
