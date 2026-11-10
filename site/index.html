@@ -2796,7 +2796,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V559";
+const GAME_VER = "V560";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -9419,7 +9419,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     const IMG = { snipe: "img/slot_snipe.webp", mix: "img/slot_mix.webp", tesla: "img/slot_tesla.webp", lock: "img/slot_lock.webp", chomp: "img/slot_chomp.webp", ton: "img/slot_ton.webp", wolf: "img/wolf_icon.webp" };
     const PR = [["snipe", "Sniper strike", "snipes"], ["mix", "Concrete mixer", "mixers"], ["tesla", "Tesla storm", "teslas"],
                 ["lock", "Lockdown", "locks"], ["chomp", "Chomper", "chomps"], ["ton", "Ten-ton drop", "tons"], ["wolf", "Wolf call", "wolves"]];
-    const PRa = () => (S && (S.wave || 0) >= 100) ? PR : PR.filter(p => p[0] !== "wolf");   /* V446: Wolf call erst ab W100 */
+    const PRa = () => { let L = (S && (S.wave || 0) >= 100) ? PR : PR.filter(p => p[0] !== "wolf"); if (S && S.rotMode) L = L.filter(p => p[0] !== "ton"); return L; };   /* V560: keine Zehntonne im gekippten Feld */   /* V446: Wolf call erst ab W100 */
     try { if (typeof SAVE_KEYS !== "undefined" && !SAVE_KEYS.includes("wolves")) SAVE_KEYS.push("wolves"); } catch (e) {}
     try { if (typeof SAVE_KEYS !== "undefined") ["banditDone", "banditNext"].forEach(k => { if (!SAVE_KEYS.includes(k)) SAVE_KEYS.push(k); }); } catch (e) {}
     const ov = document.createElement("div"); ov.id = "ovBandit"; ov.hidden = true;
@@ -9490,7 +9490,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     const db = document.getElementById("devBandit");
     if (db) db.addEventListener("click", e => { e.stopPropagation(); if (S && S.started && !S.over) open(true); else { try { devJump(3); } catch (er) {} setTimeout(() => open(true), 2500); } });
     /* V316: Rettungs-Lucky-Supply ab Welle 30, wenn der Stapel 5 Felder unter die Decke reicht */
-    setInterval(() => { try { if (!ov.hidden || !S || !S.started || S.over || S.nuts || S.won || (S.wave || 0) < 30 || S.ton) return;
+    setInterval(() => { try { if (!ov.hidden || !S || !S.started || S.over || S.nuts || S.won || (S.wave || 0) < 30 || S.ton || S.rotMode) return;   /* V560: nicht im gekippten Feld */
         if ((S.wave || 0) < (S.rescueW || -99) + 12) return;   /* V422 */ if (stackTopRow() > 5) return;
         if (!window.__playScreen() || performance.now() - (window.__evtLast || -1e9) < 5000) return;
         if (S.adOpen || S.intro || S.drop || S.ordersOpen || S.duel || S.mapShow || S.mapFly || S.signOpen || S.joinOpen || (typeof uiWinOpen === "function" && uiWinOpen())) return;   /* V409: nie über ein offenes Fenster (Wolf-Werbung) */
@@ -9620,6 +9620,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     const dropQ = []; let dropWait = false;
     function pumpDrop() { if (dropWait || !dropQ.length) return; dropWait = true;
       window.__whenCalm(() => { if (!ov.hidden || (window.__playScreen && !window.__playScreen()) || S.nuts) { dropWait = false; setTimeout(pumpDrop, 1000); return; }
+        if (S.rotMode && ["tut", "squad", "weed"].includes(dropQ[0][0])) { dropWait = false; setTimeout(pumpDrop, 2000); return; }   /* V560: Sofort-Zehntonne erst nach dem Kippen */
         const [k, o] = dropQ.shift(); dropWait = false; showDrop(k, o); const iv = setInterval(() => { if (ov.hidden) { clearInterval(iv); setTimeout(pumpDrop, 300); } }, 300); }, 5000); }
     window.__dropAd = (k, o) => { dropQ.push([k, o]); pumpDrop(); };
     window.__TT && (window.__TT.ad = { show, close, showDrop });
@@ -10358,7 +10359,7 @@ try { (() => {
   const _dj = devJump; devJump = function (w, kind) { const r = _dj.apply(this, arguments);
     if (DK.includes(kind)) { S.snipes = (S.snipes || 0) + 2; S.teslas = (S.teslas || 0) + 2; S.waveCD = 3; S.testLongW = w; S.testKind = kind; S.testLongUntil = performance.now() + 300000;
       if (kind === "egg") toast(`TEST · EASTER EGG: push a block ${5 + wherePos(S.wave).c}× into the left or right wall`, "HQ", 3500);
-      else if (kind === "thief") toast(`TEST · THIEF comes a few seconds into wave ${w} · buy a WOLF CALL in the shop`, "HQ", 3000);
+      else if (kind === "thief") { S.wolves = Math.max(1, S.wolves || 0); toast(`TEST · THIEF comes a few seconds into wave ${w} · WOLF CALL is in your Pocket`, "HQ", 3000); }   /* V560: Wolf für die Aufnahme schon in der Tasche */
       else toast(`TEST · ${kind.toUpperCase()} starts a few seconds into wave ${w} · 2 Sniper + 2 Tesla in Pocket`, "HQ", 3000); }
     if (kind === "wolfad") { S.gold = Math.max(S.gold, 900); S.wolves = 0; let n = 0; const tick = () => { if (++n > 120) return; if (S.inWave && window.__wolfAd && window.__wolfAd()) return; setTimeout(tick, 500); }; setTimeout(tick, 1500);
       toast("TEST · Wolf ad comes in wave 99 · the thief follows in wave 100", "HQ", 3000); }
