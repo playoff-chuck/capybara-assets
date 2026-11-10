@@ -2796,7 +2796,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V590";
+const GAME_VER = "V591";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -2953,6 +2953,7 @@ function queueIntros(w) { if (S.nuts) return;
 }
 let introT = null;
 function showIntro(q) {
+  try { if (typeof TUT !== "undefined" && TUT.on) { S.introQ = S.introQ || []; S.introQ.unshift(q); return; } } catch (e) {}   /* V591: im Tutorial keine Vorstellung – kommt später */
   const mon = q.t === "mon", d = mon ? INTRO_MON[q.k] : INTRO_GEAR[q.k];
   if (!mon && q.k === "ton" && !S.tonIntroGift) { S.tonIntroGift = true; S.tons = (S.tons || 0) + 1; }   // V178v: Ten-ton gratis bei der Vorstellung
   S.seen[mon ? q.k : "g:" + q.k] = true; S.intro = true; S.introWave = S.wave;
@@ -4439,6 +4440,7 @@ function uiWinOpen() { try { const v = id => { const e = document.getElementById
   return !!(window.__tipBulb && window.__tipBulb.open) || v("ovTilt") || v("ovIntro") || v("ovHack") || !!(S && (S.duel || S.hackAdOpen)) || document.body.classList.contains("introWin") || v("ovAd") || v("ovBandit") || v("ovJoin") || document.body.classList.contains("mapUp") || v("ovOrders") || !!(S && (S.joinOpen || S.signOpen || S.banditOpen || S.ordersOpen)); } catch (e) { return false; } }
 window.__msgDbg = () => ({ q: MSGQ.map(x => x.title), busy: Math.round(msgBusy - performance.now()), win: uiWinOpen() });
 function msgPush(m) {
+  try { if (typeof TUT !== "undefined" && TUT.on) { if (S.tutGreet) return; S.tutGreet = 1; } else if (S) S.tutGreet = 0; } catch (e) {}   /* V591: im Tutorial nur eine Begrüßung vom General */
   const last = MSGQ[MSGQ.length - 1]; if (last && last.title === m.title && last.sub === m.sub) return;   // gleiche Meldung nicht doppelt
   m.at = performance.now(); if (!m.low) { const i = MSGQ.findIndex(x => x.low); if (i >= 0) MSGQ.splice(i, 0, m); else MSGQ.push(m); } else MSGQ.push(m);
   while (MSGQ.length > 5) { const i = MSGQ.findIndex(x => x.kind === "toast"); if (i < 0) break; MSGQ.splice(i, 1); }   // Stau: alte Kleinmeldungen fallen weg
@@ -5201,7 +5203,7 @@ function update(dt) {
   if (S.mix) stepMix(dt);
   stepTon(dt); stepChomp(dt);
   if (frozen() || S.ton) return;   // während das Gewicht fällt, steht alles
-  if (!(S.lockT > 0) && !(S.tutEnter > performance.now()) && !(S.tutDimT > performance.now())) S.gravT += dt;   // Lockdown: nichts fällt   /* V581: Tutorial-Einflug */
+  if (!(S.lockT > 0) && !(S.tutEnter > performance.now())) S.gravT += dt;   /* V591: im Dunkeln fällt alles normal */   // Lockdown: nichts fällt   /* V581: Tutorial-Einflug */
   if (S.gravT >= gravityInterval()) { S.gravT = 0; const p = S.piece; if (!collide(p.cells, p.x, p.y + 1)) p.y++; else lockPiece(); if (S.over) return; }
   if (S.dirty) { rebuild(); relocateMonsters(); }
   if (!S.inWave) { S.waveCD -= dt; if (S.waveCD <= 0) startWave(); }
@@ -7089,7 +7091,7 @@ try { (() => { const d = document.createElement("div"); d.id = "tutDim"; documen
   const st = document.createElement("style"); st.textContent = "#tutDim{position:fixed;inset:0;z-index:903;background:rgba(12,7,3,.8);opacity:0;pointer-events:none;transition:opacity .35s ease}#tutDim.on{opacity:1}"; document.head.appendChild(st);
   const place = () => { try { const k = document.querySelector(".deck"), r = k && k.getBoundingClientRect(); d.style.bottom = r && r.height ? Math.max(0, Math.round(innerHeight - r.top)) + "px" : "0px"; } catch (e) {} };   /* V586: Bedienfeld bleibt hell */
   addEventListener("resize", place);
-  let t = null; window.__tutDim = () => { clearTimeout(t); d.classList.add("on"); try { S.tutDimT = performance.now() + 5000; } catch (e) {} place(); t = setTimeout(() => d.classList.remove("on"), 5000); };   /* V586: 5 s */
+  let t = null; window.__tutDim = () => { return;   /* V591: kein Abdunkeln mehr */ clearTimeout(t); d.classList.add("on"); try { S.tutDimT = performance.now() + 5000; } catch (e) {} place(); t = setTimeout(() => d.classList.remove("on"), 5000); };   /* V586: 5 s */
   let last = -1; setInterval(() => { const on = typeof TUT !== "undefined" && TUT.on; const sh = document.getElementById("sheet"), shopUp = !!(S && (S.shop || S.sel)) || !!(sh && !sh.hidden);
     if (on && shopUp) { if (d.classList.contains("on")) { clearTimeout(t); d.classList.remove("on"); } try { S.tutDimT = 0; } catch (e) {} last = TUT.step; return; }   /* V588: im Laden nie dunkel */
     if (!on) { last = -1; if (d.classList.contains("on")) { clearTimeout(t); d.classList.remove("on"); } return; }
@@ -9787,7 +9789,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     function paint() { if (isFree) { $a("adAct").innerHTML = `<button class="btn-accent" id="adFree">${cur === "drop" ? dropBtn : cur === "elite" ? "AWESOME! · LET'S GO ▶" : "AWESOME! · IT'S FREE ▶"}</button>`; $a("adLater").textContent = ""; $a("adLater").hidden = true; return; } $a("adLater").hidden = false; const k = cur, w = why(k), act = $a("adAct"), sale = $a("adCard").classList.contains("sale");
       act.innerHTML = w ? `<div class="adNote">${w}</div>` : `<button class="btn-accent" id="adBuy">${sale ? "I WANT IT!" : k === "ton" ? "BUY ANOTHER" : "BUY NOW"} · ${price(k)} GOLD ▶</button>`;
       $a("adLater").textContent = sale ? "No thanks" : w || k === "ton" ? "Got it" : "Later"; }
-    function show(k, sale) { const free = sale === "free"; if (free) sale = true; cur = k; saleMode = !!sale; isFree = free; const a = AD[k], d = INTRO_GEAR[k];
+    function show(k, sale) { try { if (typeof TUT !== "undefined" && TUT.on) return; } catch (e) {} const free = sale === "free";   /* V591: keine Werbung im Tutorial */ if (free) sale = true; cur = k; saleMode = !!sale; isFree = free; const a = AD[k], d = INTRO_GEAR[k];
       { const card = $a("adCard"); card.classList.toggle("sale", sale); [1, 2, 3].forEach(n => { const el = card.querySelector(".saleSt.s" + n); if (el && a.st) { const PS = k === "elite" ? [[80, 30], [14, 30], [80, 72]] : [[14, 40], [14, 76], [52, 86]]; let x = PS[n - 1][0], y = PS[n - 1][1]; el.style.left = x + "%"; el.style.top = y + "%"; } });
         if (sale) { const p = price(k), up = 0.4 + Math.random() * 3.6, was = Math.ceil(p * (1 + up) / 10) * 10, pct = Math.round((1 - p / was) * 100);
           $a("saleWas").textContent = `${was} GOLD`; $a("salePct").textContent = `−${pct}%`; $a("saleS1").textContent = `−${pct}%`; $a("saleNow").textContent = `${p} GOLD`; } }
