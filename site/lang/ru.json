@@ -8,7 +8,7 @@
 "# GOLD": "# ",
 "# MISSIONS FOR YOU": "# МИССИЙ ДЛЯ ТЕБЯ",
 "# SPLATS": "# СПЛЭТОВ",
-"# TOWERS": "# БАШЕН",
+"# TOWERS": "БАШНИ #",
 "# best score": "# лучший счёт",
 "# boss hacks won with gold at stake": "# взломов босса на золото выиграно",
 "# bosses hacked": "# боссов взломано",
@@ -2242,5 +2242,9 @@
 "radio online": "рация в сети",
 "TEST · THIEF comes a few seconds into wave # · WOLF CALL is in your Pocket": "ТЕСТ · ВОРИШКА придёт через пару секунд волны # · ВОЛЧИЙ ВОЙ уже в кармане",
 "10 duels · no risk": "10 дуэлей · без риска",
-"10 duels · no stake": "10 дуэлей · без ставки"
+"10 duels · no stake": "10 дуэлей · без ставки",
+"NUTS LEVEL #": "УРОВЕНЬ ДУРДОМА #",
+"Stop news #": "Стоп новости #",
+"NUTS LEVEL # CLEARED": "УРОВЕНЬ ДУРДОМА # ПРОЙДЕН",
+"# GOLD ▶": "#  ▶"
 }
