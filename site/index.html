@@ -2796,7 +2796,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V560";
+const GAME_VER = "V561";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -11090,6 +11090,17 @@ img.coinI{display:inline-block!important;width:1.15em!important;height:1.15em!im
 html[lang=ru] #sheet #sheetIn .shopTiles .shopItem button .lbl{font-size:13px!important;letter-spacing:.02em!important}
 html[lang=ru] #sheet #sheetIn .shopTiles .shopItem button{min-height:42px!important}
 #sheetIn .slotRow button small img.coinI{width:1.25em!important;height:1.25em!important}
+#sheet #sheetIn .ledgerTop{flex-shrink:0!important;height:auto!important;max-height:none!important;min-height:0!important;margin-bottom:12px!important;align-items:flex-start!important}
+html[lang=ru] .coachAd .k{letter-spacing:.06em!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html[lang=ru] .coachAd .h{font-size:clamp(18px,5.4vw,23px)!important;white-space:nowrap}
+html[lang=ru] .coachAd .s{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html[lang=ru] .coachAd .ad3 .p.cta{min-width:0!important;width:auto!important;padding:5px 9px 6px!important;display:grid!important;grid-template-columns:auto auto;align-items:center;justify-items:center;column-gap:3px}
+html[lang=ru] .coachAd .ad3 .p.cta em{grid-column:1 / -1;font-size:0!important;margin-bottom:1px!important}
+html[lang=ru] .coachAd .ad3 .p.cta em::after{content:"КУПИТЬ";font-size:11px;letter-spacing:.06em}
+html[lang=ru] .coachAd .ad3 .p.cta b{font-size:26px!important}
+html[lang=ru] .coachAd .ad3 .p.cta i{font-size:0!important;line-height:0!important}
+html[lang=ru] .coachAd .ad3 .p.cta i::after{content:"";display:block;width:20px;height:20px;background:url(img/coin64.webp) center/contain no-repeat}
+html[lang=ru] .coachAd .ad3 .ad, html[lang=ru] .coachAd .ad3{padding-right:96px!important}
 #ovMap{position:fixed;inset:0;z-index:990;background:#6faaab;overflow:hidden;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
 #ovMap[hidden]{display:none!important}#ovMap.fadeOut{opacity:0;transition:opacity .8s ease;pointer-events:none}
 #ovMap .mapVp{position:absolute;inset:0;overflow:hidden}
