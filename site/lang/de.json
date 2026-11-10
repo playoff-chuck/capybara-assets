@@ -1974,5 +1974,9 @@
 "excellent": "sehr gut",
 "PASSED": "BESTANDEN",
 "+# POINTS": "+# PUNKTE",
-"ACCEPT": "ANNEHMEN"
+"ACCEPT": "ANNEHMEN",
+"SKIP THE TUTORIAL?": "TUTORIAL ÜBERSPRINGEN?",
+"You can start it again any time with this hat button (until wave 10).": "Du kannst es jederzeit mit diesem Hut-Knopf neu starten (bis Welle 10).",
+"KEEP LEARNING": "WEITER LERNEN",
+"SKIP TUTORIAL": "ÜBERSPRINGEN"
 }
