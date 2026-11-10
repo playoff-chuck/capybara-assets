@@ -2796,7 +2796,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V580";
+const GAME_VER = "V581";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -5169,7 +5169,7 @@ function update(dt) {
   if (S.mix) stepMix(dt);
   stepTon(dt); stepChomp(dt);
   if (frozen() || S.ton) return;   // während das Gewicht fällt, steht alles
-  if (!(S.lockT > 0)) S.gravT += dt;   // Lockdown: nichts fällt
+  if (!(S.lockT > 0) && !(S.tutEnter > performance.now())) S.gravT += dt;   // Lockdown: nichts fällt   /* V581: Tutorial-Einflug */
   if (S.gravT >= gravityInterval()) { S.gravT = 0; const p = S.piece; if (!collide(p.cells, p.x, p.y + 1)) p.y++; else lockPiece(); if (S.over) return; }
   if (S.dirty) { rebuild(); relocateMonsters(); }
   if (!S.inWave) { S.waveCD -= dt; if (S.waveCD <= 0) startWave(); }
@@ -6190,7 +6190,7 @@ function draw() {
     let gy = p.y; while (!collide(p.cells, p.x, gy + 1)) gy++;
     ctx.strokeStyle = TH.ghost; ctx.lineWidth = Math.max(1, s * 0.06);
     for (const [x, y] of p.cells) if (gy + y >= 0) { const [a, b] = v2g(p.x + x, gy + y); ctx.strokeRect(a * s + 2, b * s + 2, s - 4, s - 4); }
-    p.cells.forEach(([x, y], i) => { if (p.y + y >= 0) { const [a, b] = v2g(p.x + x, p.y + y); if (i === p.tnt) tntCell(a, b); else block(a, b, p.col); } });
+    if (!(S.tutEnter > performance.now())) p.cells.forEach(([x, y], i) => { if (p.y + y >= 0) { const [a, b] = v2g(p.x + x, p.y + y); if (i === p.tnt) tntCell(a, b); else block(a, b, p.col); } });   /* V581 */
   ctx.restore(); }
   // Reichweite
   if (S.sel) {
@@ -7054,12 +7054,23 @@ try { (() => {
   const EN = { p: null, t: 0, d: 0, ms: 600 }; const oc = document.createElement("canvas"); oc.id = "tutPieceCv"; document.body.appendChild(oc); const ox = oc.getContext("2d"); let shown = false;
   function frame() { requestAnimationFrame(frame); try {
     const coach = document.getElementById("coach"), on = typeof TUT !== "undefined" && TUT.on && S && S.started && !S.over && S.piece && coach && !coach.hidden && !cv.classList.contains("rot") && !cv.classList.contains("rotR") && !S.rotMode;
-    if (!on) { if (shown) { ox.clearRect(0, 0, oc.width, oc.height); shown = false; } return; }
+    if (!on) { try { if (S) S.tutEnter = 0; } catch (e) {} EN.st = ""; if (shown) { ox.clearRect(0, 0, oc.width, oc.height); shown = false; } return; }
     const dpr = window.devicePixelRatio || 1, W = Math.round(innerWidth * dpr), H = Math.round(innerHeight * dpr); if (oc.width !== W || oc.height !== H) { oc.width = W; oc.height = H; }
     ox.clearRect(0, 0, W, H); shown = true;
     const card = coach.querySelector(".coachCard"), cr = card && card.getBoundingClientRect(); if (!cr || !cr.width) return;
     const r = cv.getBoundingClientRect(), sx = cv.width / r.width, sy = cv.height / r.height, p = S.piece;
-    const k = 1, off = 0;   /* V580: kein Einflug mehr – Block fällt ganz normal */
+    const off = 0, now = performance.now(), sig = p.x + "," + p.y + "," + JSON.stringify(p.cells);
+    /* V581: Einflug vom oberen Bildschirmrand, Reihe für Reihe, über Streifen und Karte */
+    if (p !== EN.p) { EN.p = p; EN.st = p.y === 0 ? "wait" : ""; EN.c = []; }
+    else if (EN.st === "wait") { EN.c = []; let bot = 0, cs = 0;
+      for (const [x, y] of p.cells) { const [gx, gy] = v2g(p.x + x, p.y + y); if (gy < 0) continue;
+        const a = cvPt(gx, gy), b = cvPt(gx + 1, gy + 1), x0 = Math.min(a.x, b.x), y0 = Math.min(a.y, b.y), w = Math.abs(b.x - a.x), h = Math.abs(b.y - a.y);
+        const im = document.createElement("canvas"); im.width = Math.max(1, Math.round(w * sx)); im.height = Math.max(1, Math.round(h * sy)); im.getContext("2d").drawImage(cv, (x0 - r.left) * sx, (y0 - r.top) * sy, w * sx, h * sy, 0, 0, im.width, im.height);
+        EN.c.push({ im, x0, y0, w, h }); bot = Math.max(bot, y0 + h); cs = Math.max(cs, h); }
+      if (!EN.c.length || !cs) EN.st = ""; else { let gi = 0.8; try { gi = gravityInterval(); } catch (e) {}
+        EN.n = Math.ceil(bot / cs); EN.step = Math.max(80, Math.min(250, gi * 1000 / 3)); EN.t0 = now; EN.sig = sig; S.tutEnter = now + EN.n * EN.step; EN.st = "in"; } }
+    if (EN.st === "in") { if (sig !== EN.sig || now >= (S.tutEnter || 0)) { EN.st = ""; S.tutEnter = 0; }
+      else { const rem = Math.max(0, EN.n - Math.floor((now - EN.t0) / EN.step)); for (const c of EN.c) { const yy = c.y0 - rem * c.h; if (yy + c.h < 0) continue; ox.drawImage(c.im, c.x0 * dpr, yy * dpr, c.w * dpr, c.h * dpr); } return; } }
     const tb = document.getElementById("tutBar"), br = tb && !tb.hidden ? tb.getBoundingClientRect() : null;
     const over = (x0, y0, w, h, q) => q && q.width && !(x0 + w < q.left || x0 > q.right || y0 + h < q.top || y0 > q.bottom);
     for (const [x, y] of p.cells) { const [gx, gy] = v2g(p.x + x, p.y + y); if (gy < 0) continue;
@@ -10582,7 +10593,7 @@ try { (() => {
 try { (() => {
   const ROSIE_K = ["rb_room", "rb_ceiling", "rb_triple", "rb_four", "rb_fancy", "rb_bigone", "rb_byebig", "rb_pancake", "rb_bags"];
   let lastSay = -1e9, bT = 0; const lastKey = {};
-  function bubble(key) { if (typeof TUT !== "undefined" && TUT.on) return;   /* V580: bis zum Diplom nur Stimme, kein Bild */ const el = document.getElementById("buddy"); if (!el) return; const who = "blue";   // V366: Martins Stimme = immer Blue
+  function bubble(key) { if ((typeof TUT !== "undefined" && TUT.on) || window.__tutSumPend || window.__tutSumNow || window.__tutSumOpen) return;   /* V580/V581: bis zum Diplom nur Stimme, kein Bild */ const el = document.getElementById("buddy"); if (!el) return; const who = "blue";   // V366: Martins Stimme = immer Blue
     el.className = Math.random() < 0.5 ? "l" : "r"; el.querySelector("img").src = HERO_IMG[who];
     el.querySelector(".say").innerHTML = `${VOICE_TEXT[key]}<small>${who === "rosie" ? "ROSIE" : "BLUE"}</small>`;
     void el.offsetWidth; el.classList.add("on"); clearTimeout(bT); const mine = String((+el.dataset.bn || 0) + 1); el.dataset.bn = mine; bT = setTimeout(() => { if (el.dataset.bn === mine) el.classList.remove("on"); }, 2800); }   /* V464: übersetzter Text bricht den Vergleich nicht mehr */
