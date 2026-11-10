@@ -2796,7 +2796,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V564";
+const GAME_VER = "V565";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -7007,7 +7007,7 @@ const TUT = { on: false, step: 0, t: 0 };
 const TUT_STEPS = [
   { t: "DROP A BLOCK", s: "Tap DROP. Blocks are your ground.", at: "bDrop", done: () => (TUT.dropTap || 0) > 0 },   /* V564: nur echter Tipp zählt */
   { t: "BUILD A TOWER", s: "Tap SHOP, then PLACE.", at: "bBuild", done: () => S.mode === "build" || S.towers.size > ((TUT.b && TUT.b.tw) || 0) },
-  { t: "PICK A BLOCK", s: "Tap one of your landed blocks.", at: "board", done: () => S.towers.size > ((TUT.b && TUT.b.tw) || 0) },
+  { t: "PICK A BLOCK AT THE EDGE", s: "Tap a block at the edge of the field – a tower there reaches the monsters on the ring.", at: "board", done: () => S.towers.size > ((TUT.b && TUT.b.tw) || 0) },
   { t: "ARM IT", s: "Buy the MG. Then tap Done.", at: "sheet", done: () => [...S.towers.values()].reduce((a, t) => a + t.w.length, 0) > ((TUT.b && TUT.b.wp) || 0) && !S.sel },
   { t: "TURN YOUR BLOCKS!", s: "Tap the yellow button in the middle to turn the falling block.", at: "bRot", rot: 1, done: () => (TUT.rot || 0) > (TUT.rb || 0) || TUT.t >= 15 },
   { t: "MONSTERS RUN THE RING", s: "They run around the field. Each one that gets all the way round costs a ♥ life – towers and falling blocks splat them.", at: "board", done: () => TUT.t >= 12 || (S.kills | 0) > ((TUT.b && TUT.b.k) || 0) + 2 },   /* V564: Ring-Schritt zurück */   /* V545 */   /* V367: «Got it» · V483: Spiel läuft dabei weiter · V488: nach 10 s von selbst zu (Martin 09.11.) */
@@ -7058,7 +7058,7 @@ function tutTick(dt) {
   if (!TUT.on) return;
   const st = TUT_STEPS[TUT.step]; TUT.t += dt;
   if (TUT.step < 5) { S.waveCD = Math.max(S.waveCD, 6); S.inWave = false; }   /* V564: Welle erst mit dem Ring-Schritt */   /* V320: Welle wartet im Tutorial · V483: Blöcke fallen weiter (Martin 08.11.) */   // Welle wartet, bis die Grundlagen sitzen
-  if (TUT.t >= 4 && st.done()) { TUT.step++; if (TUT.step >= TUT_STEPS.length) { tutEnd(false); return; } TUT.t = 0; if (TUT.step === 5) S.waveCD = 2; tutShow(); }   /* V564: jeder Schritt mind. 4 s */
+  if ((TUT.t >= 4 || (TUT.step >= 1 && TUT.step <= 3)) && st.done()) {   /* V565: Bau-Schritte sofort weiter, sonst hinkt der Pfeil */ TUT.step++; if (TUT.step >= TUT_STEPS.length) { tutEnd(false); return; } TUT.t = 0; if (TUT.step === 5) S.waveCD = 2; tutShow(); }   /* V564: jeder Schritt mind. 4 s */
   else tutPlace();
 }
 function coachArm() { const b = $("coachSkip"); b.classList.add("wait"); clearTimeout(coachArm.t); coachArm.t = setTimeout(() => b.classList.remove("wait"), 3000); }   /* V497: «Got it» erst nach 3 s zeigen */
@@ -7106,7 +7106,7 @@ function tonTutTick() { try {
     if (S.shop) { SP_KEYS.forEach(k => TONTUT.base[k] = SP_CNT(k)); return; }   // selbst gekauft: kennt den Laden schon
     SP_KEYS.forEach(q => { if (SP_CNT(q) < TONTUT.base[q]) TONTUT.base[q] = SP_CNT(q); });
     const k = SP_KEYS.find(q => SP_CNT(q) > TONTUT.base[q]); if (!k) return;
-    if (TUT.on || hintKey || S.ton || window.__tutSumOpen) return;
+    if (TUT.on || hintKey || S.ton || window.__tutSumOpen || window.__tutSumPend) return;   /* V565: erst nach der Abschlusskarte */
     if (uiWinOpen() || S.drop || S.paused || S.mapShow || S.ordersOpen || S.intro || S.adOpen || S.mode || S.sel) return;
     if (window.__tipBulb && window.__tipBulb.open) return;
     hintKey = "tontut"; TONTUT.st = 1; TONTUT.k = k; TONTUT.n0 = SP_CNT(k); S.coachHold = true;
@@ -7185,7 +7185,7 @@ try { (() => {
     tb.addEventListener("click", e => { e.stopPropagation(); try { snd("uiTap"); } catch (er) {} HK.trial = true; HK.coach = true; HK.stake = 0; HK.type = "S"; tb.hidden = true; tp.hidden = true; startDuel(true); });
     setInterval(() => { try { const on = !!HK.trial && !ov.hidden && ["pick", "count", "duel"].includes(HK.phase); if (on) { const t = HK.phase === "duel" ? "Tap YOUR buttons: a lit wire claims a core cell. More than 6 of 12 wins!" : "Pick the side with more ∞ and Y, then tap START."; const sp = tip.querySelector("span"); if (sp.dataset.k !== t) { sp.dataset.k = t; sp.textContent = t; } } if (tip.hidden === on) tip.hidden = !on; } catch (e) {} }, 200);
     const _fin = hkFinish; hkFinish = function () { const tr = !!HK.trial; const r = _fin.apply(this, arguments);
-      if (tr && HK.phase === "done") { try { $("hkResTag").textContent = "PRACTICE ROUND"; $("hkGoldV").textContent = "NOW FOR REAL"; $("hkGoldS").textContent = "Now the real duel – with your stake."; $("hkAgain").hidden = true; $("hkBack").textContent = "TO THE REAL HACK ▶"; } catch (e) {} } return r; };
+      if (tr && HK.phase === "done") { try { $("hkResTag").textContent = "PRACTICE ROUND"; $("hkGoldV").textContent = "FOR REAL!"; $("hkGoldS").textContent = "Now the real duel – with your stake."; $("hkAgain").hidden = true; $("hkBack").textContent = "TO THE REAL HACK ▶"; } catch (e) {} } return r; };
     document.addEventListener("click", e => { if (!HK.trial || !e.target.closest || !e.target.closest("#hkBack")) return; e.stopImmediatePropagation(); e.preventDefault();
       HK.trial = false; HK.coach = false; LS.set("capy-hk-trial", "1"); try { snd("uiTap"); } catch (er) {}
       $("hackRes").hidden = true; $("hackCv").hidden = true; HK.phase = "bet"; snd("arcade", false); $("hkBack").textContent = "Back to the game"; $("hackBet").hidden = false; try { hkStakeUI(); } catch (er) {} }, true);
@@ -9803,7 +9803,8 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     const vis = el => { if (!el) return null; const r = el.getBoundingClientRect(); return r.width > 2 && r.height > 2 && r.bottom > 0 && r.top < innerHeight ? r : null; };
     const btnTxt = (re) => [...document.querySelectorAll("#sheet button")].find(b => re.test(b.textContent) && vis(b));
     const sheetUp = () => { const sh = document.getElementById("sheet"); return sh && !sh.hidden && vis(sh) && (S.shop || S.sel); };
-    function block() { try { let best = -1; for (let i = 0; i < S.grid.length; i++) { if (!S.grid[i] || S.towers.has(i) || (typeof TNT !== "undefined" && S.grid[i] === TNT)) continue; const x = i % GW, y = (i / GW) | 0; if (best < 0) best = i; else { const by = (best / GW) | 0, bx = best % GW; if (y < by || (y === by && Math.abs(x - 5.5) < Math.abs(bx - 5.5))) best = i; } }
+    function block() { try { let best = -1, bs = 1e9; for (let i = 0; i < S.grid.length; i++) { if (!S.grid[i] || S.towers.has(i) || (typeof TNT !== "undefined" && S.grid[i] === TNT)) continue; const x = i % GW, y = (i / GW) | 0; if (y > 0 && S.grid[i - GW]) continue;   /* V565: oberster Block einer Spalte, möglichst am Rand */
+        const sc = Math.min(x, GW - 1 - x) * 100 + y; if (sc < bs) { bs = sc; best = i; } }
         if (best < 0) return null; const p = cvPt(best % GW + 0.5, ((best / GW) | 0) + 0.5), cs = p.cs || 20; return { left: p.x - cs / 2, right: p.x + cs / 2, top: p.y - cs / 2, bottom: p.y + cs / 2, width: cs, height: cs }; } catch (e) { return null; } }
     function towerR() { try { for (const t of S.towers.values()) if (!t.w.length) { const p = cvPt(t.x + 0.5, t.y + 0.5), cs = p.cs || 20; return { left: p.x - cs / 2, right: p.x + cs / 2, top: p.y - cs / 2, bottom: p.y + cs / 2, width: cs, height: cs }; } } catch (e) {} return null; }
     function target() {
@@ -9834,12 +9835,12 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
       let x, y, up;
       if (r.hint) { x = r.x; up = r.up; y = up ? r.y : r.y - 84; }
       else if (r.side) { x = Math.max(44, r.left - 44); y = r.top + r.height / 2 - 42; up = false; }
-      else { x = r.left + r.width / 2; up = r.top < 96; y = up ? r.bottom + 2 : r.top - 86 + (r.deep ? r.height * 0.5 : 0); }
+      else { x = r.left + r.width / 2; up = r.top < 96; y = up ? r.bottom + 2 : r.top - 86 + (r.deep ? r.height * 0.22 : 0); }   /* V565: Dreh-Pfeil höher */
       if (!r.side) x = Math.max(34, Math.min(innerWidth - 34, x));
       const key = Math.round(x) + "," + Math.round(y) + up + (r.side ? "s" : "");
       if (key !== last) { ca.style.display = "block"; ca.classList.toggle("up", up); ca.classList.toggle("side", !!r.side); ca.style.left = x + "px"; ca.style.top = y + "px"; last = key; }
     }
-    setInterval(tick, 120);
+    setInterval(tick, 60);   /* V565 */
     window.__TT && (window.__TT.comicArrow = tick);
   })(); } catch (e) { console.error("comicArrow", e); }
 
@@ -10177,7 +10178,7 @@ try { (() => {
   function place() { if (!cur || !cur.at) { arr.hidden = true; return; } const el = document.getElementById(cur.at); if (!el || !el.offsetParent) { arr.hidden = true; return; } const r = el.getBoundingClientRect(); arr.hidden = false;
     const side = cur.at === "bDrop"; arr.classList.toggle("side", side);   /* V564: DROP von links, Drehen mit Spitze im Knopf */
     if (side) { arr.style.left = Math.max(2, r.left - 66) + "px"; arr.style.top = (r.top + r.height / 2 - 30) + "px"; }
-    else { arr.style.left = (r.left + r.width / 2 - 23) + "px"; arr.style.top = (r.top - 64 + (cur.at === "bRot" ? r.height * 0.5 : 0)) + "px"; } }
+    else { arr.style.left = (r.left + r.width / 2 - 23) + "px"; arr.style.top = (r.top - 64 + (cur.at === "bRot" ? r.height * 0.22 : 0)) + "px"; } }
   function close() { if (!cur) return; card.classList.remove("on"); arr.hidden = true; setTimeout(() => { card.hidden = true; }, 300); cur = null; window.__evtLast = performance.now(); }
   btn.addEventListener("click", e => { e.stopPropagation(); if (performance.now() < armT) return; try { snd("uiTap"); } catch (er) {} close(); });
   function show(i) { const T = TIPS[i]; cur = T; try { LS.set("tarnturm-tipb-" + T.k, "1"); } catch (e) {}
@@ -10207,7 +10208,7 @@ try { (() => {
     if (GH - stackHeight() <= 4 && warnW !== S.wave && LS.get("tarnturm-tipb-stack") === "1" && !(window.__tipBulb && window.__tipBulb.open)) { warnW = S.wave; toast("STACK TOO HIGH · fill rows to clear them", "HQ", 2600); }
   } catch (e) {} }, 500);
   const _te = tutEnd; tutEnd = function () { const r = _te.apply(this, arguments);
-    try { if (S && S.started && !S.over && !S.nuts && stackHeight() >= GH - 8 && window.__TT && window.__TT.ad) { S.tons = (S.tons || 0) + 1;   /* V550: Air-Drop statt stillem Zusammendrücken */
+    try { if (S && S.started && !S.over && !S.nuts && stackHeight() > 6 && window.__TT && window.__TT.ad) {   /* V565: ab 7 Reihen */ S.tons = (S.tons || 0) + 1;   /* V550: Air-Drop statt stillem Zusammendrücken */
       setTimeout(() => { try { if (!S || !S.started || S.over) return; const ov = document.getElementById("ovAd"); if (ov && ov.hidden) window.__TT.ad.showDrop("tut"); else if (window.__dropAd) window.__dropAd("tut"); } catch (e) {} }, 700); } } catch (e) {}
     return r; };
 })(); } catch (e) { console.error("v548", e); }
