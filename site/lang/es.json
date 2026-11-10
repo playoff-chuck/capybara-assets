@@ -679,7 +679,7 @@
 "LAKE": "LAGO",
 "LAKES": "LAGOS",
 "LAST LIFE!": "¡ÚLTIMA VIDA!",
-"LATER": "LUEGO",
+"LATER": "MÁS TARDE",
 "LEFT": "IZQUIERDA",
 "LET'S GO ▶": "¡VAMOS! ▶",
 "LEVER": "PALANCA",
@@ -2019,5 +2019,13 @@
 "YOU GOT IT!": "¡LO TIENES!",
 "Towers can fall when their block disappears – then just build a new one. Build a second tower at the edge and arm it.": "Una torre cae si desaparece su bloque: construye otra. Construye una segunda torre en el borde y ármala.",
 "AIM AT A SPOT!": "¡APUNTA!",
-"Tap a spot on the field: the sniper splats every monster there and clears a 2×2 patch of blocks.": "Toca un punto del campo: el francotirador aplasta a todos los monstruos allí y quita un área de bloques de 2×2."
+"Tap a spot on the field: the sniper splats every monster there and clears a 2×2 patch of blocks.": "Toca un punto del campo: el francotirador aplasta a todos los monstruos allí y quita un área de bloques de 2×2.",
+"⚡ BOSS HACK · TRAINING ⚡": "⚡ HACKEO DEL JEFE · ENTRENAMIENTO ⚡",
+"Get ready for the next boss!": "¡Prepárate para el próximo jefe!",
+"Every boss challenges you to a wire duel. Win it and you take the boss's stake – lose it and the gold is gone. Ollie trains you for it.": "Cada jefe te reta a un duelo de cables. Si ganas, te llevas su apuesta; si pierdes, el oro se va. Ollie te entrena para ganar.",
+"10 practice duels – no stake, no risk": "10 duelos de práctica: sin apuesta, sin riesgo",
+"A tip from the coach after every round": "Un consejo del entrenador tras cada ronda",
+"Train any time – straight from the SHOP": "Entrena cuando quieras, desde la TIENDA",
+"BOOK FOR 99 GOLD": "CONTRATAR POR 99 DE ORO",
+"NOT ENOUGH GOLD YET": "AÚN NO TIENES ORO SUFICIENTE"
 }
