@@ -2796,7 +2796,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V554";
+const GAME_VER = "V555";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -2806,19 +2806,19 @@ const I18N = { lang: "en", dict: null, cache: new Map(), miss: new Set(), seen: 
   try { const l = localStorage.getItem("capy-lang"); if (l && LANGS[l]) I18N.lang = l; else if (l) localStorage.setItem("capy-lang", "en"); } catch (e) {} })();   /* V482: abgeschaltete Sprache → Englisch */
 const I18N_NUM = /[-−]?\d[\d.,:/]*\d|[-−]?\d/g, I18N_WS = /\s+/g;
 function i18nNorm(t) { return String(t).replace(I18N_WS, " ").trim(); }
-function i18nLookup(key) {   /* exakt → Zahlen-Muster → Namens-Muster → Teile an « · » */
-  const D = I18N.dict; if (!D) return null;
+function i18nLookup(key, DD) {   /* exakt → Zahlen-Muster → Namens-Muster → Teile an « · » */
+  const D = DD || I18N.dict; if (!D) return null;
   if (D[key] != null) return D[key];
   const nums = key.match(I18N_NUM); if (nums) { const pat = key.replace(I18N_NUM, "#"); const v = D[pat]; if (v != null) { let i = 0; return v.replace(/#/g, () => nums[i++] ?? "#"); } }
   for (const nm of I18N.names) { if (nm && key.includes(nm)) { const pat = key.split(nm).join("@"), v = D[pat]; if (v != null) return v.split("@").join(D[nm] != null ? D[nm] : nm); } }
-  if (key.includes(" · ")) { const parts = key.split(" · "); let hit = false; const out = parts.map(p => { const k = i18nNorm(p); const v = k ? i18nLookup(k) : null; if (v != null) hit = true; return v != null ? v : p; }); if (hit) return out.join(" · "); }
-  if (key.includes(": ")) { const i = key.indexOf(": "), a = key.slice(0, i), b = key.slice(i + 2); const va = i18nLookup(a), vb = i18nLookup(b); if (va != null && vb != null) return va + ": " + vb; }   /* V468 */
+  if (key.includes(" · ")) { const parts = key.split(" · "); let hit = false; const out = parts.map(p => { const k = i18nNorm(p); const v = k ? i18nLookup(k, DD) : null; if (v != null) hit = true; return v != null ? v : p; }); if (hit) return out.join(" · "); }
+  if (key.includes(": ")) { const i = key.indexOf(": "), a = key.slice(0, i), b = key.slice(i + 2); const va = i18nLookup(a, DD), vb = i18nLookup(b, DD); if (va != null && vb != null) return va + ": " + vb; }   /* V468 */
   return null; }
 function T(t) {
   if (t == null) return t; const raw = String(t); const key = i18nNorm(raw); if (!key || !/[A-Za-zÀ-ÿ]{2}/.test(key)) return raw;
   if (I18N.audit) I18N.seen.add(key);
   if (!I18N.dict) return raw;
-  let v = I18N.cache.get(key); if (v === undefined) { v = i18nLookup(key); if (v == null) { if (!(I18N.rev && (I18N.rev.has(key) || I18N.rev.has(key.replace(I18N_NUM, "#"))))) I18N.miss.add(key); v = null; } I18N.cache.set(key, v); }   /* V460: Rückübersetztes nicht als fehlend zählen */
+  let v = I18N.cache.get(key); if (v === undefined) { v = i18nLookup(key); if (v == null) v = i18nCI(key); if (v == null) { if (!(I18N.rev && (I18N.rev.has(key) || I18N.rev.has(key.replace(I18N_NUM, "#"))))) I18N.miss.add(key); v = null; } I18N.cache.set(key, v); }   /* V460: Rückübersetztes nicht als fehlend zählen */
   if (v == null) return raw;
   const lead = raw.match(/^\s*/)[0], tail = raw.match(/\s*$/)[0]; return lead + v + tail; }
 const I18N_SKIP = new Set(["SCRIPT", "STYLE", "TEXTAREA", "INPUT", "CODE"]), I18N_ATTR = ["placeholder", "aria-label", "title"], i18nDone = new WeakMap();
@@ -2826,6 +2826,11 @@ function i18nText(n) { if (!I18N.dict) return;   /* V471: vor dem Laden nichts a
 function i18nAttr(el, a) { if (!I18N.dict) return; const v = el.getAttribute(a), k = "a:" + a, m = i18nDone.get(el) || {}; if (m[k] === v && m[k + ":l"] === I18N.lang) return; const src = m[k] === v ? m[k + ":s"] : v; const o = T(src); m[k] = o; m[k + ":s"] = src; m[k + ":l"] = I18N.lang; i18nDone.set(el, m); if (o !== v) el.setAttribute(a, o); }
 function i18nEl(el) { if (!el || el.nodeType !== 1 || I18N_SKIP.has(el.nodeName)) return; for (const a of I18N_ATTR) if (el.hasAttribute(a)) i18nAttr(el, a);
   const w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT, null); let n; while ((n = w.nextNode())) { if (n.nodeType === 3) i18nText(n); else if (n.nodeType === 1 && !I18N_SKIP.has(n.nodeName)) { for (const a of I18N_ATTR) if (n.hasAttribute(a)) i18nAttr(n, a); } } }
+function i18nCI(key) {   /* V555: Text ohne Rücksicht auf Groß-/Kleinschreibung suchen (Code schreibt oft GROSS) */
+  const D = I18N.dict; if (!D || !/[A-Za-z]{2}/.test(key)) return null;
+  if (I18N.upD !== D) { const U = {}; for (const k in D) { const u = k.toUpperCase(); if (!(u in U)) U[u] = D[k]; } I18N.up = U; I18N.upD = D; }
+  const v = i18nLookup(key.toUpperCase(), I18N.up); if (v == null) return null;
+  return key === key.toUpperCase() ? String(v).toUpperCase() : v; }
 function i18nApplyAll() { try { i18nEl(document.body); } catch (e) {} }
 (function () { const obs = new MutationObserver(ms => { for (const m of ms) { if (m.type === "characterData") { i18nText(m.target); continue; } if (m.type === "attributes") { i18nEl(m.target); continue; } m.addedNodes.forEach(n => { if (n.nodeType === 3) i18nText(n); else i18nEl(n); }); } });
   const start = () => obs.observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: I18N_ATTR }); if (document.body) start(); else document.addEventListener("DOMContentLoaded", start); })();
@@ -3214,6 +3219,25 @@ window.__fmBanner = (v, w) => { if (v === "A") { fmInfo(FM.next() >= 0 ? FM.next
   let b = document.getElementById("fmBand"); if (!b) { b = document.createElement("div"); b.id = "fmBand"; b.setAttribute("role", "button"); document.body.appendChild(b); b.addEventListener("click", e => { e.stopPropagation(); b.classList.remove("on"); fmInfo(FM.next() >= 0 ? FM.next() : 2); }); }
   b.innerHTML = `<i>🔒</i><span><b>${w >= 60 ? "FREE TOUR ENDS HERE" : `${60 - w} WAVES TO ASIA`}</b><small>From ${FM.one} or 2 friends</small></span><em>▶</em>`; try { i18nApplyAll(); } catch (e) {}
   b.classList.add("on"); clearTimeout(b.__t); b.__t = setTimeout(() => b.classList.remove("on"), 9000); };
+/* V555: Streifen ab W41 und W51 – schwebt oben, nicht wegdrückbar, blinkt immer stärker; Antippen = Info-Karte. Ende W60 = große Karte. */
+const FM_BAND_W = [41, 51];
+function fmBandEl() { let b = document.getElementById("fmBand"); if (!b) { b = document.createElement("div"); b.id = "fmBand"; b.setAttribute("role", "button"); document.body.appendChild(b);
+    b.addEventListener("click", e => { e.stopPropagation(); try { S.fmTap = +b.dataset.t || 0; saveGame(); } catch (er) {} b.classList.remove("on", "blink"); fmInfo(FM.next() >= 0 ? FM.next() : 2); }); } return b; }
+setInterval(() => { try {
+  const b = document.getElementById("fmBand");
+  if (!FM.on || typeof S === "undefined" || !S || !S.started || S.over || S.nuts || S.replay || S.testRun || FM.next() < 0) { if (b) b.classList.remove("on", "blink"); return; }
+  const w = S.wave || 0, t = w >= FM_BAND_W[1] ? FM_BAND_W[1] : w >= FM_BAND_W[0] ? FM_BAND_W[0] : 0;
+  if (w >= 60 && !S.inWave && !S.fmEnd60) { S.fmEnd60 = 1; if (b) b.classList.remove("on", "blink"); window.__fmBanner("A", 60); return; }
+  const busy = document.body.classList.contains("mapUp") || !!document.querySelector("#ovFm:not([hidden])");
+  if (!t || S.fmTap === t || busy) { if (b) b.classList.remove("on", "blink"); return; }
+  const el = fmBandEl(); if (!el.classList.contains("on") || el.dataset.t !== String(t)) { el.dataset.t = t; el.__t0 = performance.now();
+    el.innerHTML = `<i>🔒</i><span><b>${60 - Math.min(59, w) === 1 ? "LAST FREE WAVE" : `${60 - w} WAVES TO ASIA`}</b><small>From ${FM.one} or 2 friends</small></span><em>▶</em>`; el.classList.add("on"); }
+  else { const bb = el.querySelector("b"), txt = 60 - w <= 1 ? "LAST FREE WAVE" : `${60 - w} WAVES TO ASIA`; if (bb && bb.dataset.src !== txt) { bb.dataset.src = txt; bb.textContent = txt; } }
+  /* Blinkstärke 0–5: Wellen seit Start + Minuten ignoriert, ab W51 eine Stufe mehr */
+  const lvl = Math.min(5, (t === FM_BAND_W[1] ? 1 : 0) + Math.floor((w - t) / 2) + Math.floor((performance.now() - (el.__t0 || 0)) / 90000));
+  el.style.setProperty("--fmBl", [2.6, 2.0, 1.5, 1.1, 0.8, 0.55][lvl] + "s"); el.style.setProperty("--fmGl", (0.35 + lvl * 0.13).toFixed(2)); el.classList.add("blink");
+} catch (e) {} }, 1000);
+try { if (typeof SAVE_KEYS !== "undefined") ["fmTap", "fmEnd60"].forEach(k => { if (!SAVE_KEYS.includes(k)) SAVE_KEYS.push(k); }); } catch (e) {}
 { let dn = null; document.addEventListener("pointerdown", e => { const t = e.target.closest && e.target.closest(".mLock"); dn = t ? { lc: t.dataset.lc, x: e.clientX, y: e.clientY, t: performance.now() } : null; }, true);
   document.addEventListener("pointerup", e => { if (!dn) return; const d = dn; dn = null; if (Math.hypot(e.clientX - d.x, e.clientY - d.y) > 10 || performance.now() - d.t > 700) return; setTimeout(() => fmInfo(d.lc), 30); }, true); }
 const CONTS = [["samerica", "SOUTH AMERICA", ["RIVER BANK", "MANGROVE", "JUNGLE", "WATERFALL", "RUINS", "JUNGLE TEMPLE"]],
@@ -11016,8 +11040,8 @@ header .brand .logoFull{height:54px!important;width:auto!important}
 #ovFm .fmTag{position:absolute;left:10px;top:10px;background:#ffc93c;border:2px solid #3a2414;border-radius:10px;padding:2px 9px;font:400 17px/1.2 Bangers,Oswald,system-ui;letter-spacing:.05em}
 #ovFm .fmLockN{position:absolute;right:10px;bottom:10px;background:#3a2414;color:#fff6e6;border-radius:10px;padding:2px 9px;font:400 16px/1.2 Bangers,Oswald,system-ui;letter-spacing:.05em}
 #ovFm .fmBody{padding:12px 14px 14px;text-align:center}
-#ovFm h2{margin:0 0 4px;font:400 30px/1 Bangers,Oswald,system-ui;letter-spacing:.04em}
-#ovFm p{margin:0 0 10px;font:600 14px/1.3 "Baloo 2",Nunito,system-ui}
+#ovFm h2{margin:0 0 6px;font:400 26px/1.05 Bangers,Oswald,system-ui;letter-spacing:.04em}
+#ovFm p{margin:0 0 10px;text-align:left;font:600 14px/1.3 "Baloo 2",Nunito,system-ui}
 #ovFm .fmOpt{display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:center;text-align:left;background:#fffaf0;border:2px solid #3a2414;border-radius:14px;padding:8px 10px;box-shadow:0 2px 0 #3a2414}
 #ovFm .fmOpt b{font:400 18px/1.1 Bangers,Oswald,system-ui;letter-spacing:.04em}
 #ovFm .fmOpt small{grid-column:1;font:600 12px/1.25 "Baloo 2",Nunito,system-ui;color:#6b4a2b}
@@ -11031,11 +11055,26 @@ header .brand .logoFull{height:54px!important;width:auto!important}
 #ovFm .fmOk{margin:12px auto 0;display:block;min-height:0;padding:8px 22px;background:transparent!important;box-shadow:none!important;border:2px solid #3a2414;border-radius:12px;color:#3a2414;font:400 18px/1 Bangers,Oswald,system-ui;letter-spacing:.05em}
 #fmBand{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 132px);box-sizing:border-box;cursor:pointer;z-index:960;display:flex;align-items:center;gap:10px;width:min(340px,calc(100% - 32px));min-height:0;margin:0;padding:8px 12px;background:#3a2414;color:#fff6e6;border:2px solid #ffc93c;border-radius:16px;box-shadow:0 4px 0 rgba(0,0,0,.35);text-align:left;transform:translate(-50%,-160%);opacity:0;transition:transform .45s cubic-bezier(.2,1.4,.4,1),opacity .3s;pointer-events:none}
 #fmBand.on{transform:translate(-50%,0);opacity:1;pointer-events:auto}
+#fmBand.blink{animation:fmBlink var(--fmBl,2.6s) ease-in-out infinite}
+@keyframes fmBlink{0%,100%{box-shadow:0 4px 0 rgba(0,0,0,.35),0 0 0 0 rgba(255,201,60,0);border-color:#ffc93c}50%{box-shadow:0 4px 0 rgba(0,0,0,.35),0 0 22px 6px rgba(255,201,60,var(--fmGl,.35));border-color:#fff3b0}}
 #fmBand i{font-style:normal;font-size:26px}
 #fmBand span{flex:1;display:flex;flex-direction:column}
 #fmBand b{font:400 19px/1.05 Bangers,Oswald,system-ui;letter-spacing:.05em;color:#ffc93c}
 #fmBand small{font:600 12px/1.2 "Baloo 2",Nunito,system-ui}
 #fmBand em{font-style:normal;font:400 20px/1 Bangers,Oswald,system-ui;background:#ff5fa2;border:2px solid #fff6e6;border-radius:10px;padding:5px 9px}
+html[lang=ru] #sheet #sheetIn .shopTiles .shopItem button{flex-direction:column!important;white-space:normal!important;line-height:1.05!important;gap:0!important;padding:3px 4px!important;font-size:11.5px!important;letter-spacing:.02em!important;min-height:38px!important}
+html[lang=ru] #sheet #sheetIn .shopTiles .shopItem button *{white-space:nowrap!important;font-size:10px!important;letter-spacing:0!important}
+html[lang=ru] #sheet #sheetIn .shopTiles .shopItem .useBtn{font-size:11px!important;flex-direction:row!important;min-height:28px!important}
+html[lang=ru] #sheet #sheetIn .shopTiles .shopItem:has(.useBtn){grid-template-columns:34px 1fr!important}
+html[lang=ru] #sheet #sheetIn .shopTiles .shopItem:has(.useBtn) button:not(.useBtn){grid-column:1 / -1!important;grid-row:2!important}
+html[lang=ru] #sheet #sheetIn .shopTiles .shopItem:has(.useBtn) .useBtn{grid-column:1 / -1!important;grid-row:3!important}
+html[lang=ru] #sheet .ledgerBubble span{font-size:12.5px!important;line-height:1.2!important}
+html[lang=ru] #sheetIn .slotRow button span{font-size:13px!important;letter-spacing:0!important}
+html[lang=ru] #sheetIn .slotRow button small{font-size:9.5px!important}
+html[lang=ru] .stamp{max-width:calc(100vw - 28px)!important;white-space:normal!important;text-align:center;font-size:clamp(20px,6.6vw,32px)!important;line-height:1.05!important}
+html[lang=ru] .stamp.t4{font-size:clamp(22px,7.4vw,36px)!important}
+html[lang=ru] .mayday span{font-size:12px;letter-spacing:.03em;white-space:nowrap}
+html[lang=ru] .mayday i{font-size:10px;letter-spacing:.04em;white-space:nowrap}
 #ovMap{position:fixed;inset:0;z-index:990;background:#6faaab;overflow:hidden;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
 #ovMap[hidden]{display:none!important}#ovMap.fadeOut{opacity:0;transition:opacity .8s ease;pointer-events:none}
 #ovMap .mapVp{position:absolute;inset:0;overflow:hidden}
