@@ -2796,7 +2796,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V553";
+const GAME_VER = "V554";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -3182,10 +3182,11 @@ window.__ofx = { fx: outfitFx, add: ofxAdd, pv: (c, k, n) => ofPreview(c, k, n),
 setTimeout(() => { fxLabel(); if (FX_WEAK) fxAutoOff("hw"); }, 1500); setInterval(() => { const o = $("ovSettings"); if (o && !o.hidden) fxLabel(); }, 700);
 const HERO_IMG = { get blue() { return heroDisco() ? "img/outfit_blue_disco.webp" : outfitImg("blue", outfitSel("blue")); }, get rosie() { return heroDisco() ? "img/outfit_rosie_disco.webp" : outfitImg("rosie", outfitSel("rosie")); } }; window.__heroImg = HERO_IMG; window.__heroDisco = heroDisco;
 /* V553: Freemium – Schalter AUS bis das Ticket kaufbar ist (Vorschau: localStorage capy-fm=1) */
-const FM = { on: (() => { try { return localStorage.getItem("capy-fm") === "1"; } catch (e) { return false; } })(), price: "299 ₽", per: 2, fw: 10,
-  ticket() { try { return localStorage.getItem("capy-ticket") === "1"; } catch (e) { return false; } },
+const FM = { on: (() => { try { return localStorage.getItem("capy-fm") === "1"; } catch (e) { return false; } })(), price: "199 ₽", one: "99 ₽", per: 2, all: 4, fw: 15,
+  ticket() { try { return localStorage.getItem("capy-ticket") === "1"; } catch (e) { return false; } },   /* alle 3 */
+  bought() { try { return +localStorage.getItem("capy-ticket-n") || 0; } catch (e) { return 0; } },   /* einzeln gekaufte Kontinente (in Reihenfolge) */
   friends() { try { return +localStorage.getItem("capy-fm-fr") || 0; } catch (e) { return 0; } },   /* später: Server-Zähler «Freunde ≥ W10» */
-  open(c) { if (!FM.on || c < 2 || FM.ticket()) return true; return c - 2 < Math.floor(FM.friends() / FM.per); },
+  open(c) { if (!FM.on || c < 2 || FM.ticket()) return true; const fr = FM.friends(); if (fr >= FM.all) return true; return c - 2 < FM.bought() + (fr >= FM.per ? 1 : 0); },
   next() { for (let c = 2; c <= 4; c++) if (!FM.open(c)) return c; return -1; } };
 const FM_NAMES = ["SOUTH AMERICA", "AFRICA", "ASIA", "NORTH AMERICA", "ANTARCTICA"];
 /* [Kontinent, Bild, x, y, b, h (px auf 1376×768), Schloss x %, Schloss y %] */
@@ -3195,14 +3196,15 @@ function fmMapSync(ov, pinsEl) { try { ov.querySelectorAll(".mapLock").forEach(i
   if (!FM.on) return; FM_LOCKS.forEach(L => { if (L[0] !== "aus" && FM.open(L[0])) return; pinsEl.insertAdjacentHTML("beforeend", `<button class="mLock" data-lc="${L[0]}" style="left:${L[6]}%;top:${L[7]}%" aria-label="Locked"></button>`); }); } catch (e) {} }
 function fmInfo(lc) { let ov = document.getElementById("ovFm"); if (!ov) { ov = document.createElement("div"); ov.id = "ovFm"; ov.className = "overlay"; document.body.appendChild(ov);
     ov.addEventListener("click", e => { e.stopPropagation(); const b = e.target.closest("button"); if (!b) { if (e.target === ov) ov.hidden = true; return; }
-      try { snd("uiTap"); } catch (er) {} if (b.dataset.a === "inv") { try { sqInviteFrom(b); } catch (er) {} return; } if (b.dataset.a === "buy") return; ov.hidden = true; }); }
-  const aus = lc === "aus", c = aus ? -1 : +lc, fr = FM.friends(), have = fr % FM.per, nx = FM.next();
+      try { snd("uiTap"); } catch (er) {} if (b.dataset.a === "inv") { try { sqInviteFrom(b); } catch (er) {} return; } if (b.dataset.a === "buy" || b.dataset.a === "buy1") return;   /* Kauf folgt mit RuStore-Billing */ ov.hidden = true; }); }
+  const aus = lc === "aus", c = aus ? -1 : +lc, fr = FM.friends(), nx = FM.next(), nxi = Math.max(0, nx - 2);
   ov.innerHTML = aus ? `<div class="fmCard"><div class="fmPic" style="background-image:url(img/fm_card.webp);background-position:100% 70%"><span class="fmTag">🔒 COMING LATER</span></div><div class="fmBody"><h2>AUSTRALIA</h2><p>A new continent is on its way. Keep an eye on the map!</p><button class="fmOk" data-a="ok">OK ▶</button></div></div>`
     : `<div class="fmCard"><div class="fmPic" style="background-image:url(img/fm_card.webp)"><span class="fmTag">🎟 WORLD TOUR</span><span class="fmLockN">🔒 <span>${FM_NAMES[c]}</span></span></div><div class="fmBody">
       <h2>3 MORE CONTINENTS</h2><p>South America and Africa are free (waves 1–60). Asia, North America and Antarctica (waves 61–150) are waiting for you.</p>
       <div class="fmOpt"><b>🎟 WORLD TOUR TICKET</b><small>All 3 continents at once</small><button class="fmBuy" data-a="buy">${FM.price}</button></div>
-      <div class="fmOr">OR</div>
-      <div class="fmOpt"><b>👫 INVITE 2 FRIENDS</b><small>${["When 2 friends reach wave 10, ASIA opens. Free!", "When 2 friends reach wave 10, NORTH AMERICA opens. Free!", "When 2 friends reach wave 10, ANTARCTICA opens. Free!"][Math.max(0, nx - 2)]}</small><span class="fmCnt">Friends: ${have}/${FM.per}</span><button class="fmInv" data-a="inv">INVITE ▶</button></div>
+      <div class="fmOpt fmOne"><b>${["🔓 ONLY ASIA", "🔓 ONLY NORTH AMERICA", "🔓 ONLY ANTARCTICA"][nxi]}</b><small>The next continent</small><button class="fmBuy fmBuy1" data-a="buy1">${FM.one}</button></div>
+      <div class="fmOr">OR FREE</div>
+      <div class="fmOpt"><b>👫 INVITE FRIENDS</b><small>${["2 friends reach wave 15 → ASIA", "2 friends reach wave 15 → NORTH AMERICA", "2 friends reach wave 15 → ANTARCTICA"][nxi]}</small><small>4 friends reach wave 15 → all 3</small><span class="fmCnt">Friends: ${Math.min(fr, FM.all)}/${FM.all}</span><button class="fmInv" data-a="inv">INVITE ▶</button></div>
       <button class="fmOk" data-a="ok">LATER</button></div></div>`;
   ov.hidden = false; try { i18nApplyAll(); } catch (e) {} try { snd("open"); } catch (e) {} }
 window.__fmInfo = fmInfo;
@@ -3210,7 +3212,7 @@ window.__fmInfo = fmInfo;
 window.__fmBanner = (v, w) => { if (v === "A") { fmInfo(FM.next() >= 0 ? FM.next() : 2); const h = document.querySelector("#ovFm h2"), p = document.querySelector("#ovFm p");
     if (h) h.textContent = w >= 60 ? "END OF THE FREE TOUR" : `${60 - w} WAVES LEFT IN AFRICA`; if (p) p.textContent = "After wave 60 the World Tour goes on: Asia, North America and Antarctica – 90 more waves, new monsters and bosses."; try { i18nApplyAll(); } catch (e) {} return; }
   let b = document.getElementById("fmBand"); if (!b) { b = document.createElement("div"); b.id = "fmBand"; b.setAttribute("role", "button"); document.body.appendChild(b); b.addEventListener("click", e => { e.stopPropagation(); b.classList.remove("on"); fmInfo(FM.next() >= 0 ? FM.next() : 2); }); }
-  b.innerHTML = `<i>🔒</i><span><b>${w >= 60 ? "FREE TOUR ENDS HERE" : `${60 - w} WAVES TO ASIA`}</b><small>Ticket ${FM.price} or 2 friends</small></span><em>▶</em>`; try { i18nApplyAll(); } catch (e) {}
+  b.innerHTML = `<i>🔒</i><span><b>${w >= 60 ? "FREE TOUR ENDS HERE" : `${60 - w} WAVES TO ASIA`}</b><small>From ${FM.one} or 2 friends</small></span><em>▶</em>`; try { i18nApplyAll(); } catch (e) {}
   b.classList.add("on"); clearTimeout(b.__t); b.__t = setTimeout(() => b.classList.remove("on"), 9000); };
 { let dn = null; document.addEventListener("pointerdown", e => { const t = e.target.closest && e.target.closest(".mLock"); dn = t ? { lc: t.dataset.lc, x: e.clientX, y: e.clientY, t: performance.now() } : null; }, true);
   document.addEventListener("pointerup", e => { if (!dn) return; const d = dn; dn = null; if (Math.hypot(e.clientX - d.x, e.clientY - d.y) > 10 || performance.now() - d.t > 700) return; setTimeout(() => fmInfo(d.lc), 30); }, true); }
@@ -11023,6 +11025,8 @@ header .brand .logoFull{height:54px!important;width:auto!important}
 #ovFm .fmBuy{background:#ff5fa2!important;color:#fff!important}
 #ovFm .fmInv{background:#3fae3f!important;color:#fff!important}
 #ovFm .fmCnt{grid-column:1;font:800 13px/1.2 "Baloo 2",Nunito,system-ui;color:#3fae3f}
+#ovFm .fmOne{margin-top:6px}
+#ovFm .fmBuy1{background:#ff9a3c!important}
 #ovFm .fmOr{margin:6px 0;font:400 16px/1 Bangers,Oswald,system-ui;color:#8a5a2b;letter-spacing:.08em}
 #ovFm .fmOk{margin:12px auto 0;display:block;min-height:0;padding:8px 22px;background:transparent!important;box-shadow:none!important;border:2px solid #3a2414;border-radius:12px;color:#3a2414;font:400 18px/1 Bangers,Oswald,system-ui;letter-spacing:.05em}
 #fmBand{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 132px);box-sizing:border-box;cursor:pointer;z-index:960;display:flex;align-items:center;gap:10px;width:min(340px,calc(100% - 32px));min-height:0;margin:0;padding:8px 12px;background:#3a2414;color:#fff6e6;border:2px solid #ffc93c;border-radius:16px;box-shadow:0 4px 0 rgba(0,0,0,.35);text-align:left;transform:translate(-50%,-160%);opacity:0;transition:transform .45s cubic-bezier(.2,1.4,.4,1),opacity .3s;pointer-events:none}
