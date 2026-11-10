@@ -8,7 +8,7 @@ files = []
 for d, _, fs in os.walk(root):
     for f in fs:
         p = os.path.relpath(os.path.join(d, f), root).replace(os.sep, '/')
-        if p in skip or p.startswith('logos/') or f.startswith('.'): continue
+        if p in skip or p.startswith('logos/') or f.startswith('.') or p in ('lang/voice_de.json', 'lang/de.json'): continue   # V552: Deutsch abgeschaltet
         files.append({'p': p, 's': os.path.getsize(os.path.join(d, f))})
 # Dateien, die das Spiel mit ?v= lädt, auch so speichern
 for m in set(re.findall(r'"((?:img|bg|music|sfx|intro|sign|fin)/[^"?]+)\?v=(\d+)"', html)):

@@ -7,9 +7,9 @@ const CORE = ["/", "/index.html", "/manifest.webmanifest", "/offline.json"];
 self.addEventListener("install", e => { self.skipWaiting(); e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE)).then(() => fillAll(false)).catch(() => {})); });
 self.addEventListener("activate", e => { e.waitUntil((async () => { for (const k of await caches.keys()) if (k !== CACHE) await caches.delete(k); await self.clients.claim(); })()); });
 let filling = null;
-async function fillAll(withMusic) {
+async function fillAll(withMusic, lang) {   /* V552: Sprachclips nur für die eigene Sprache, und nur beim vollen Speichern */
   const r = await fetch("/offline.json", { cache: "no-store" }); const L = await r.json(); const c = await caches.open(CACHE);
-  const list = L.files.filter(f => withMusic || !/^music\//.test(f.p)); let done = 0, bytes = 0; const total = list.reduce((a, f) => a + f.s, 0);
+  const list = L.files.filter(f => (withMusic || !/^music\//.test(f.p)) && (!/^lang\/voice_/.test(f.p) || (withMusic && lang && f.p === "lang/voice_" + lang + ".json"))); let done = 0, bytes = 0; const total = list.reduce((a, f) => a + f.s, 0);
   const tell = async () => { for (const cl of await self.clients.matchAll()) cl.postMessage({ t: "offline", done: bytes, total, n: done, of: list.length }); };
   let i = 0; const work = async () => { while (i < list.length) { const f = list[i++]; const url = "/" + f.p + (f.v ? "?v=" + f.v : "");
       try { const hit = await c.match(url); const len = hit && +(hit.headers.get("content-length") || 0); if (!hit || (f.s && len && len !== f.s)) { const res = await fetch(url, { cache: "no-cache" }); if (res.ok) await c.put(url, res); } } catch (e) {}
@@ -18,8 +18,12 @@ async function fillAll(withMusic) {
   if (withMusic) { const m = await caches.open(CACHE); await m.put("/__offline_ready", new Response(String(L.ver || ""))); }
   await tell(); return { done, total };
 }
-self.addEventListener("message", e => { const d = e.data || {}; if (d.t === "sync") { if (!filling) filling = caches.open(CACHE).then(c => c.match("/__offline_ready")).then(r => fillAll(!!r)).finally(() => { filling = null; }); e.waitUntil(filling); }
-  if (d.t === "fill") { if (!filling) filling = fillAll(true).finally(() => { filling = null; }); e.waitUntil(filling); } });
+self.addEventListener("message", e => { const d = e.data || {}; if (d.t === "sync") { if (!filling) filling = caches.open(CACHE).then(c => c.match("/__offline_ready")).then(r => fillAll(!!r, d.l)).finally(() => { filling = null; }); e.waitUntil(filling); }
+  if (d.t === "fill") { if (!filling) filling = fillAll(true, d.l).finally(() => { filling = null; }); e.waitUntil(filling); }
+  if (d.t === "pre" && Array.isArray(d.list)) e.waitUntil(preload(d.list)); });
+/* V552: einzelne Dateien im Hintergrund vorladen (Musik des nächsten Kontinents) */
+async function preload(list) { const c = await caches.open(CACHE); for (const p of list.slice(0, 20)) { if (typeof p !== "string" || !/^\/music\/[\w-]+\.mp4$/.test(p)) continue;
+  try { if (!(await c.match(p))) { const res = await fetch(p, { cache: "no-cache" }); if (res.ok && res.status === 200) await c.put(p, res); } } catch (e) {} } }
 async function ranged(req, res) {
   const rng = req.headers.get("range"); if (!rng || !res || res.status !== 200) return res;
   const buf = await res.arrayBuffer(), m = /bytes=(\d*)-(\d*)/.exec(rng); let a = m && m[1] ? +m[1] : 0, b = m && m[2] ? +m[2] : buf.byteLength - 1; b = Math.min(b, buf.byteLength - 1);

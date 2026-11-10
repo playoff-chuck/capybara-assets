@@ -2796,7 +2796,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V551";
+const GAME_VER = "V552";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -9278,7 +9278,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
       if (andr) { toast("Home-screen icon: browser menu ⋮ → Add to Home screen", "OFFLINE", 3600); return true; }
       return false; };
     const ios = /iP(hone|ad|od)/.test(navigator.userAgent), standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone;
-    navigator.serviceWorker.register("sw.js").then(reg => { navigator.serviceWorker.ready.then(r => { try { r.active && r.active.postMessage({ t: "sync" }); } catch (e) {} }); }).catch(() => {});
+    navigator.serviceWorker.register("sw.js").then(reg => { navigator.serviceWorker.ready.then(r => { try { r.active && r.active.postMessage({ t: "sync", l: (typeof I18N !== "undefined" && I18N.lang) || "en" }); } catch (e) {} }); }).catch(() => {});
     navigator.serviceWorker.addEventListener("message", e => { const d = e.data || {}; if (d.t !== "newver") return; let done = false; try { done = sessionStorage.getItem("capy-upd") === "1"; sessionStorage.setItem("capy-upd", "1"); } catch (x) {} if (done) return;   /* V356 */
       if (typeof S === "undefined" || !S || !S.started) location.reload(); else try { toast("UPDATE READY · restart to get it", "HQ", 3500); } catch (x) {} });
     navigator.serviceWorker.addEventListener("message", e => { const d = e.data || {}; if (d.t !== "offline" || state !== "busy") return; const pct = d.total ? Math.min(100, Math.floor(d.done / d.total * 100)) : 0; draw(pct);
@@ -9290,7 +9290,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
       if (!navigator.onLine) { toast("Needs internet once to save the game", "OFFLINE", 2400); return; }
       state = "busy"; draw(0); try { snd("uiTap"); } catch (e) {}
       if (prompt && !isInst()) askIcon();
-      const r = await navigator.serviceWorker.ready; (r.active || navigator.serviceWorker.controller).postMessage({ t: "fill" }); });
+      const r = await navigator.serviceWorker.ready; (r.active || navigator.serviceWorker.controller).postMessage({ t: "fill", l: (typeof I18N !== "undefined" && I18N.lang) || "en" }); });
   } } catch (e) { console.warn("offline", e); }
 
   /* V230: Geister-Klick nach Fingertipp aufs Feld verschlucken (Turm-Fenster schloss sich sonst sofort) */
@@ -10043,6 +10043,20 @@ try { (() => {
       setTimeout(() => { try { if (!S || !S.started || S.over) return; const ov = document.getElementById("ovAd"); if (ov && ov.hidden) window.__TT.ad.showDrop("tut"); else if (window.__dropAd) window.__dropAd("tut"); } catch (e) {} }, 700); } } catch (e) {}
     return r; };
 })(); } catch (e) { console.error("v548", e); }
+
+/* V552: Lade-Diät – Musik des aktuellen und (ab Welle x20) des nächsten Kontinents im Hintergrund vorladen */
+try { (() => { if (!("serviceWorker" in navigator)) return;
+  const MUS = [["andes_lounge", "jungle_downtempo", "copacabana_sunset", "rumba_lounge", "samba_lounge", "lounge_disco", "chill_disco_rio", "airport_bossa", "nz_skullgrog", "nz_anthem"],
+    ["af_oasis", "af_savanna", "af_dune", "af_dune2", "af_pyramid", "nz_gorkazar"],
+    ["as_taiga", "as_frozen", "as_steppe", "as_iceport", "as_icepalace", "nz_frostgnaw"],
+    ["na_dorian_dust", "na_odd_phased", "na_game_loop", "na_cartoon_loop", "na_midtown", "na_miami", "nz_grumblefang"],
+    ["an_ice_a", "an_ice_b", "an_frozen_retro", "an_glide"]];
+  const asked = new Set();
+  const pre = k => { if (k < 0 || k >= MUS.length || asked.has(k)) return; asked.add(k);
+    try { const c = navigator.connection; if (c && (c.saveData || /2g/.test(c.effectiveType || ""))) return; } catch (e) {}
+    navigator.serviceWorker.ready.then(r => { const w = r.active || navigator.serviceWorker.controller; if (w) w.postMessage({ t: "pre", list: MUS[k].map(f => "/music/" + f + ".mp4") }); }).catch(() => {}); };
+  setInterval(() => { try { if (!S || !S.started || S.over || S.testRun) return; const w = Math.max(1, S.wave | 0), k = Math.floor((w - 1) / 30); pre(k); if ((w - 1) % 30 >= 19) pre(k + 1); } catch (e) {} }, 5000);
+})(); } catch (e) { console.error("v552", e); }
 
 /* V325: keine «soldier»-Sprüche */
 try { (() => { const sy = SFX.say; SFX.say = function (k) { try { const t = String((typeof VOICE_TEXT !== "undefined" && VOICE_TEXT[k]) || k || "");
