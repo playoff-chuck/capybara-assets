@@ -2016,5 +2016,8 @@
 "TOP!": "¡TOP!",
 "BRAVO!": "¡BRAVO!",
 "AWESOME!": "¡INCREÍBLE!",
-"YOU GOT IT!": "¡LO TIENES!"
+"YOU GOT IT!": "¡LO TIENES!",
+"Towers can fall when their block disappears – then just build a new one. Build a second tower at the edge and arm it.": "Una torre cae si desaparece su bloque: construye otra. Construye una segunda torre en el borde y ármala.",
+"AIM AT A SPOT!": "¡APUNTA!",
+"Tap a spot on the field: the sniper splats every monster there and clears a 2×2 patch of blocks.": "Toca un punto del campo: el francotirador aplasta a todos los monstruos allí y quita un área de bloques de 2×2."
 }
