@@ -1993,5 +1993,12 @@
 "+# gold back": "+# de oro recuperado",
 "PICK A BLOCK AT THE EDGE": "ELIGE UN BLOQUE EN EL BORDE",
 "Tap a block at the edge of the field – a tower there reaches the monsters on the ring.": "Toca un bloque en el borde del campo: desde ahí la torre alcanza a los monstruos del anillo.",
-"FOR REAL!": "¡EN SERIO!"
+"FOR REAL!": "¡EN SERIO!",
+"CAPYBARA ACADEMY": "ACADEMIA CAPIBARA",
+"CERTIFICATE OF ACHIEVEMENT": "CERTIFICADO DE LOGRO",
+"for excellent results in recruit training": "por resultados excelentes en el entrenamiento de reclutas",
+"excellent": "excelente",
+"PASSED": "APROBADO",
+"+# POINTS": "+# PUNTOS",
+"ACCEPT": "ACEPTAR"
 }
