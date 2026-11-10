@@ -37,7 +37,7 @@ EVENT_MAX_BODY = 8192
 EVENTS_PER_MIN = 20
 EVENT_KINDS = ("start", "error", "leave", "back", "wave")
 UID_RE = re.compile(r"[A-Z0-9]{4}-[A-Z0-9]{4}")
-ADMIN_UIDS = ("M2HL-KCQH", "BEEM-MGDC", "5478-BQ27")   # Martins Geräte (neu nach Reset 09.11.)
+ADMIN_UIDS = ("M2HL-KCQH", "BEEM-MGDC", "5478-BQ27", "R47V-R8F3")   # + R47V-R8F3 (Martins Handy nach Datenverlust, 11.11.)   # Martins Geräte (neu nach Reset 09.11.)
 PLAYER_PER_MIN = 8
 PLAYER_MAX_BODY = 6000
 PLAYER_RETENTION_DAYS = 730
@@ -490,10 +490,8 @@ class H(BaseHTTPRequestHandler):
                 if d.get("uid") not in ADMIN_UIDS:
                     return self.send_json(403, {"error": "forbidden"})
                 with db() as c:
-                    if c.execute("SELECT 1 FROM kv WHERE k='admin:claimed'").fetchone():
-                        return self.send_json(403, {"error": "already claimed"})
-                    tok = secrets.token_urlsafe(32)
-                    c.execute("INSERT OR REPLACE INTO kv(k,v) VALUES('admin:hash',?)", (hashlib.sha256(tok.encode()).hexdigest(),))
+                    tok = secrets.token_urlsafe(32)   # V576: je Admin-Gerät ein eigener Schlüssel, jederzeit neu holbar
+                    c.execute("INSERT OR REPLACE INTO kv(k,v) VALUES(?,?)", ("admin:hash:" + d.get("uid"), hashlib.sha256(tok.encode()).hexdigest()))
                     c.execute("INSERT OR REPLACE INTO kv(k,v) VALUES('admin:claimed',?)", (str(now_ms()),))
                 return self.send_json(200, {"ok": True, "token": tok})
             if self.route()[0] == "/admin/players":   # V536: Spielerliste nur mit Admin-Schlüssel
@@ -502,8 +500,9 @@ class H(BaseHTTPRequestHandler):
                 d = self.parse_json(raw, n)
                 tok = d.get("token")
                 with db() as c:
-                    r = c.execute("SELECT v FROM kv WHERE k='admin:hash'").fetchone()
-                    if not (r and isinstance(tok, str) and hmac.compare_digest(r["v"], hashlib.sha256(tok.encode()).hexdigest())):
+                    hs = [x["v"] for x in c.execute("SELECT v FROM kv WHERE k='admin:hash' OR k LIKE 'admin:hash:%'").fetchall()]
+                    th = hashlib.sha256(tok.encode()).hexdigest() if isinstance(tok, str) else ""
+                    if not (th and any(hmac.compare_digest(h, th) for h in hs)):
                         return self.send_json(403, {"error": "forbidden"})
                     rows = c.execute("SELECT uid, first, last, n, data FROM players ORDER BY first, uid").fetchall()
                 lst = []
