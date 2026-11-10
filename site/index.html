@@ -2796,7 +2796,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V578";
+const GAME_VER = "V579";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -9412,17 +9412,15 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
       const cx = W / 2, cy = (top + bot) / 2, dx = bx - cx, dy = by - cy, f = Math.min((W / 2 - 70) / Math.max(1e-6, Math.abs(dx)), ((bot - top) / 2 - 24) / Math.max(1e-6, Math.abs(dy)));
       el.hidden = false; el.style.left = (cx + dx * f) + "px"; el.style.top = (cy + dy * f) + "px";
       const ang = Math.atan2(dy, dx) * 180 / Math.PI; el.style.setProperty("--ang", ang + "deg"); el.querySelector("b").textContent = (dx < 0 ? "◀ " : "") + nm + (dx >= 0 ? " ▶" : ""); }
-    function flyPlane(a, b, ms, nod) { const PL = (() => { const off = a[0] > 1 || a[0] < 0; if (!off || b[0] === a[0]) return { off, pre: 0, dl: 0 }; const bx = a[0] > 1 ? 1 : 0, ee = Math.max(0, Math.min(1, (bx - a[0]) / (b[0] - a[0]))), dl = Math.acos(1 - 2 * ee) / Math.PI * ms; return { off, dl, pre: 1500 }; })();   /* V572: Motor 1,5 s vor dem Flugzeug */
-      const arc = Math.min(a[1], b[1]) < 0.3 ? -.05 : .12, t0 = performance.now() + PL.pre, ang = Math.atan2((b[1] - a[1]) * MAP_AR, b[0] - a[0]) * 180 / Math.PI;
-      const step = now => { if (mode !== "auto") return; const t = Math.max(0, Math.min(1, (now - t0) / ms)), e = 0.5 - Math.cos(Math.PI * t) / 2, x = a[0] + (b[0] - a[0]) * e, y = a[1] + (b[1] - a[1]) * e - Math.sin(Math.PI * e) * arc;
+    function flyPlane(a, b, ms, nod) { const arc = Math.min(a[1], b[1]) < 0.3 ? -.05 : .12, t0 = performance.now(), ang = Math.atan2((b[1] - a[1]) * MAP_AR, b[0] - a[0]) * 180 / Math.PI;
+      const step = now => { if (mode !== "auto") return; const t = Math.min(1, (now - t0) / ms), e = 0.5 - Math.cos(Math.PI * t) / 2, x = a[0] + (b[0] - a[0]) * e, y = a[1] + (b[1] - a[1]) * e - Math.sin(Math.PI * e) * arc;
         plane.style.setProperty("--px", (x) * BW + "px"); plane.style.setProperty("--py", (y) * BW * MAP_AR + "px");
         if (x >= 0 && x <= 1 && (performance.now() - (window.__camHold || 0)) > 0) { const f = t < 0.15 ? t / 0.15 * 0.12 : 0.12; const lx = x + (b[0] - x) * 0.25, ly = y + (b[1] - y) * 0.25; cam = { ...cam, x: cam.x + (lx - cam.x) * f, y: cam.y + (ly - cam.y) * f }; apply(0); }   /* V317/V321: Kamera folgt dem Flugzeug und schaut voraus */
         { let kc = 1; try { const m = getComputedStyle(world).transform; if (m && m !== "none") kc = parseFloat(m.slice(m.indexOf("(") + 1)) || 1; } catch (er) {}
           const big = (a[0] > 1 || a[0] < 0) ? 0.8 : 0, sc = 1 + big * (1 - e) * (1 - e * 0.35); plane.style.setProperty("--ik", sc / kc); if (t >= 1) plane.style.removeProperty("--ik"); }
         { const dx = b[0] - a[0], dy = (b[1] - a[1]) * MAP_AR - Math.cos(Math.PI * e) * arc * Math.PI * MAP_AR, right = dx >= 0, tilt = Math.max(-25, Math.min(25, Math.atan2(dy, Math.abs(dx) + 1e-6) * 180 / Math.PI));
           plane.style.setProperty("--a", (right ? tilt : -tilt) + "deg"); plane.style.setProperty("--fx", right ? -1 : 1); } plane.classList.add("on"); destPtr(b, t < 1 && !nod ? x : -1, y);   /* V536: nod = ohne Zielpfeil */ if (t < 1) requestAnimationFrame(step); else plane.classList.remove("on"); };
-      step(performance.now()); try { const sAt = 0;
-        setTimeout(() => { try { window.__planeSnd && window.__planeSnd(ms + PL.pre - sAt, PL.off); } catch (e) {} }, sAt); } catch (e) {} }
+      step(t0); try { window.__planeSnd && window.__planeSnd(ms, a[0] > 1 || a[0] < 0); } catch (e) {} }
     const cen = c => { const P = MAP_PTS[c]; return [P.reduce((a, p) => a + p[0], 0) / 6, P.reduce((a, p) => a + p[1], 0) / 6]; };
     function hopMe(a, b, ms) { const t0 = performance.now(); me.classList.add("on", "hop");
       const step = now => { if (mode !== "auto") return; const t = Math.min(1, (now - t0) / ms), x = a[0] + (b[0] - a[0]) * t, y = a[1] + (b[1] - a[1]) * t - Math.sin(Math.PI * t) * .09;
@@ -10240,6 +10238,18 @@ try { (() => { setInterval(() => { const ov = document.getElementById("ovMap"); 
       const hit = [...ov.querySelectorAll(".mPin")].some(q => { if (q === p) return false; const r = q.getBoundingClientRect(); return r.left > up.l && r.left < up.r && r.top > up.t && r.top < up.b; });   /* V369: Schild nie auf einem fremden Ortspunkt */
       const need = up.t < tb || hit; if (need !== down) p.classList.toggle("lblDown", need); }); }, 200); })(); } catch (e) { console.error("v321 lbl", e); }
 
+/* V579: Musik stumm → 🔇 am DJ, Tipp schaltet alles wieder ein */
+try { (() => { const dj = document.getElementById("dj"), box = dj && dj.closest(".djBox"); if (!dj || !box) return;
+  const st = document.createElement("style"); st.textContent = `.djBox{position:relative}#musOff{position:absolute;right:8px;top:4px;z-index:5;width:28px;height:28px;border-radius:50%;background:#d9483b;border:2px solid #3a2414;box-shadow:0 2px 0 #3a2414;display:flex;align-items:center;justify-content:center;font-size:15px;line-height:1;pointer-events:none;animation:musOffWob 2.4s ease-in-out infinite}#musOff[hidden]{display:none}@keyframes musOffWob{0%,80%,100%{transform:rotate(0) scale(1)}86%{transform:rotate(-14deg) scale(1.15)}93%{transform:rotate(12deg) scale(1.15)}}`; document.head.appendChild(st);
+  const b = document.createElement("div"); b.id = "musOff"; b.textContent = "🔇"; b.hidden = true; box.appendChild(b);
+  const silent = () => { try { return !SFX.music.on || SFX.muted || SFX.vol === 0 || SFX.ch("m") < 0.05; } catch (e) { return false; } };
+  setInterval(() => { const on = silent(); if (b.hidden === on) b.hidden = !on; }, 500);
+  dj.addEventListener("click", ev => { if (!silent()) return; ev.stopImmediatePropagation(); ev.stopPropagation();
+    try { SFX.init(); if (SFX.muted) SFX.toggle(); if (!(SFX.vol > 0)) SFX.setVol(0.3); if (SFX.ch("m") < 0.05) SFX.setCh("m", 0.8); if (!SFX.music.on) SFX.music.toggle(); try { musicLabel(); } catch (e) {} try { muteLabel(); } catch (e) {}
+      const inGame = S && S.started && !S.over && ["ovStart", "ovCamp", "ovOver", "ovInfo", "ovHs"].every(id => $(id).hidden);
+      if (inGame) { TP.key = null; SFX.music.start(S.wave); } else SFX.music.menu();
+      b.hidden = true; snd("uiTap"); toast("MUSIC ON", "SOUND"); } catch (e) {} }, true);
+})(); } catch (e) { console.error("v579 musoff", e); }
 /* V322: sichtbarer CANCEL-Knopf beim Platzieren eines Turms */
 try { (() => { const b = document.createElement("button"); b.id = "buildCancel"; b.type = "button"; b.textContent = "✕ CANCEL"; b.hidden = true; document.body.appendChild(b);
   const AIM = { build: 1, snipe: 1, mix: 1, tesla: 1 };   /* V578: alle Ziel-Modi */
