@@ -2796,7 +2796,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V588";
+const GAME_VER = "V589";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -7099,7 +7099,7 @@ try { (() => { const d = document.createElement("div"); d.id = "tutDim"; documen
 try { (() => {
   const EN = { p: null, t: 0, d: 0, ms: 600 }; const oc = document.createElement("canvas"); oc.id = "tutPieceCv"; document.body.appendChild(oc); const ox = oc.getContext("2d"); let shown = false;
   function frame() { requestAnimationFrame(frame); try {
-    const coach = document.getElementById("coach"), on = typeof TUT !== "undefined" && TUT.on && S && S.started && !S.over && S.piece && coach && !coach.hidden && !cv.classList.contains("rot") && !cv.classList.contains("rotR") && !S.rotMode;
+    const coach = document.getElementById("coach"), on = typeof TUT !== "undefined" && TUT.on && S && S.started && !S.over && S.piece && coach && !coach.hidden && !cv.classList.contains("rot") && !cv.classList.contains("rotR") && !S.rotMode && !S.shop && !S.sel && (() => { const sh = document.getElementById("sheet"); return !sh || sh.hidden; })();   /* V589: nie über dem Laden */
     if (!on) { try { if (S) S.tutEnter = 0; } catch (e) {} EN.st = ""; if (shown) { ox.clearRect(0, 0, oc.width, oc.height); shown = false; } return; }
     const dpr = window.devicePixelRatio || 1, W = Math.round(innerWidth * dpr), H = Math.round(innerHeight * dpr); if (oc.width !== W || oc.height !== H) { oc.width = W; oc.height = H; }
     ox.clearRect(0, 0, W, H); shown = true; const dimNow = S.tutDimT > performance.now();   /* V587: Block bleibt sichtbar */
