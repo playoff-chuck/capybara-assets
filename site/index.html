@@ -2796,7 +2796,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V574";
+const GAME_VER = "V575";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -7020,7 +7020,7 @@ const TUT_STEPS = [   /* V570: Kurs mit 10 Lektionen */
 const TUT_PRAISE = ["goodjob", "nice", "great", "nailedit", "smooth", "terrific", "awesome", "brilliant", "fantastic", "outstanding"];   /* V571 */
 window.__tutKeys = new Set(TUT_PRAISE);
 setTimeout(() => { try { const _toK = toast; toast = function () { try { if (TUT.on) return; } catch (e) {} return _toK.apply(this, arguments); };
-  if (typeof SFX !== "undefined" && SFX.say) { const _ssK = SFX.say; SFX.say = function (k) { try { if (TUT.on && !window.__tutKeys.has(k)) return; } catch (e) {} return _ssK.apply(this, arguments); }; } } catch (e) {} }, 0);   /* V571: im Kurs keine anderen Meldungen */
+  if (typeof SFX !== "undefined" && SFX.say) { const _ssK = SFX.say; SFX.say = function (k) { try { if (TUT.on && !window.__tutKeys.has(k)) return; if ((I18N.lang || "") === "ru" && (k === "nutsgo" || k === "nutsmedal")) return; } catch (e) {} return _ssK.apply(this, arguments); }; }   /* V575: alte RU-Aufnahmen sagen noch «Дурдом» */ } catch (e) {} }, 0);   /* V571: im Kurs keine anderen Meldungen */
 
 /* V572: Vollbild-Werbung «Coach Ollie» nach dem ersten Boss-Hack */
 try { (() => {
