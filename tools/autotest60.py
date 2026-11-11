@@ -15,6 +15,18 @@ def _free_port():   # freier Port: ein hängengebliebener alter Testserver darf 
     with socket.socket() as so: so.bind(("127.0.0.1", 0)); return so.getsockname()[1]
 PORT = _free_port()
 
+BUBBLES = r"""
+(() => { const B = window.__BUB = []; const prev = {}; let lastMsg = null;
+  const vis = id => { const e = document.getElementById(id); return !!(e && !e.hidden && e.getClientRects().length && getComputedStyle(e).display !== 'none' && getComputedStyle(e).visibility !== 'hidden'); };
+  setInterval(() => { try { const S = window.__TT && window.__TT.S; if (!S || !S.started) return; const w = S.wave | 0, t = Math.round(performance.now() / 100) / 10;
+    const on = {}; const bd = document.getElementById('buddy'); on.buddy = !!(bd && bd.classList.contains('on'));
+    on.dj = vis('djSong'); on.coach = vis('coach');
+    for (const id of ['ovIntro', 'ovAd', 'ovBandit', 'ovOrders', 'ovJoin', 'ovCoachAd', 'ovSign', 'hackPill']) on[id] = vis(id);
+    for (const k in on) { if (on[k] && !prev[k]) B.push({ k, w, t }); prev[k] = on[k]; }
+    const m = window.__msgCur && window.__msgCur.m; if (m && m !== lastMsg) { lastMsg = m; B.push({ k: m.kind === 'book' ? 'book' : 'general', w, t, tag: String(m.tag || m.kind || '').slice(0, 16) }); }
+  } catch (e) {} }, 200); })();
+"""
+
 BOT = r"""
 (() => {
   const LOG = window.__AT = { ev: [], open: {}, t0: performance.now(), err: [] };
@@ -28,6 +40,7 @@ BOT = r"""
       hackAd: vis('ovHackAd') || !!S.hackAdOpen, duel: vis('ovHack') || !!S.duel, join: vis('ovJoin') || !!S.joinOpen, sign: vis('ovSign') || !!S.signOpen,
       orders: vis('ovOrders') || !!S.ordersOpen, map: b.contains('mapUp') || !!S.mapShow || !!S.mapFly, drop: !!S.drop,
       pause: vis('ovPause') || !!S.paused, sheet: vis('sheet'), over: vis('ovOver') || !!S.over, cloud: vis('ovCloud'),
+      tip: !!(window.__tipBulb && window.__tipBulb.open),   /* 11.11.: Tipp-Karte (V381) hält das Spiel an – ohne Schließen hing der Lauf in W2 */
     };
   };
   const title = k => { const id = {intro:'ovIntro',ad:'ovAd',bandit:'ovBandit',hackAd:'ovHackAd',orders:'ovOrders',join:'ovJoin',duel:'ovHack',sign:'ovSign'}[k];
@@ -79,6 +92,7 @@ BOT = r"""
       const b = pick(document, ['CONTINUE', "LET'S GO", 'GO', 'NEXT']); if (b) click(b, 'map');
       else { const c = document.elementFromPoint(206, 600); if (c) { c.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, clientX: 206, clientY: 600 })); c.dispatchEvent(new PointerEvent('pointerup', { bubbles: true, clientX: 206, clientY: 600 })); c.click(); } }
     }
+    if (w.tip && age('tip') > 2500) { if (!click(pick(document.getElementById('tipBulb'), ['GOT IT', 'OK', 'THANKS', 'CLOSE']), 'tip')) { try { window.__tipBulb.close(); LOG.ev.push({ t, k: 'bot', e: 'tip:close()', wave: S.wave }); } catch (e) {} } }
     if (w.pause && age('pause') > 1500) click(pick(document.getElementById('ovPause'), ['RESUME', 'CONTINUE', 'PLAY']), 'pause');
   }, 250);
 })();
@@ -104,6 +118,7 @@ def main():
             pg.clock.run_for(3000)
             if os.environ.get("BUYER"): pg.evaluate("window.__AT_BUYER = true")   # Käufer-Profil: kauft Anzeigen, hackt den Boss
             pg.evaluate(BOT)
+            if os.environ.get("BUBBLES"): pg.evaluate(BUBBLES)   # Sprechblasen-Statistik (11.11.)
             pg.evaluate(f"window.__TT.startGame('chill', {FROM})")
             wall0 = time.time(); last = -1; last_t = 0
             while True:
@@ -119,6 +134,7 @@ def main():
                     break
             res = pg.evaluate("window.__AT")
             res["console"] = cons[-80:]
+            if os.environ.get("BUBBLES"): res["bubbles"] = pg.evaluate("window.__BUB || []")
             res["end"] = st
             br.close()
     finally:
