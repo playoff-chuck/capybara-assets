@@ -2796,7 +2796,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V597";
+const GAME_VER = "V598";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -7323,7 +7323,8 @@ try { (() => {
   document.body.appendChild(sum); const sb = sum.querySelector("button");
   function sumScore() { try { const goal = (S.bonusPts | 0) + 1000, st = Math.max(1, Math.round((goal - (S.bonusPts | 0)) / 40)); const el = document.getElementById("sScore"), pill = el && (el.closest(".score") || el.parentElement); if (pill) pill.classList.add("ctPop");
       let k = 0; const it = setInterval(() => { try { if (!S || !S.started) { clearInterval(it); return; } S.bonusPts = Math.min(goal, (S.bonusPts | 0) + st); checkScore(); hud(); if (k++ % 6 === 0) snd("sell"); if (S.bonusPts >= goal) { clearInterval(it); snd("powerup"); setTimeout(() => pill && pill.classList.remove("ctPop"), 600); } } catch (e) { clearInterval(it); } }, 35); } catch (e) {} }
-  function sumClose() { sumScore(); sum.classList.remove("on"); setTimeout(() => { sum.hidden = true; }, 220); window.__tutSumOpen = false; window.__certQuietT = performance.now(); try { S.coachHold = false; snd("uiTap"); } catch (e) {} window.__evtLast = performance.now(); }
+  function sumClose() { sumScore(); sum.classList.remove("on"); setTimeout(() => { sum.hidden = true; }, 220); window.__tutSumOpen = false; window.__certQuietT = performance.now(); try { S.coachHold = false; snd("uiTap"); } catch (e) {}
+    try { if (SFX.music && SFX.music.on) { TP.certHold = "frostgnaw"; tpPlay("frostgnaw"); } } catch (e) {}   /* V598: schnelles Stück nach dem Diplom */ window.__evtLast = performance.now(); }
   sb.addEventListener("click", e => { e.stopPropagation(); if (!sb.disabled) sumClose(); });
   setInterval(() => { try {
     const p = window.__tutSumPend; if (!p || window.__tutSumOpen) return;
@@ -7331,7 +7332,10 @@ try { (() => {
     const we = window.__waveEndT || 0; if (!window.__tutSumNow && (S.inWave || we < p || performance.now() - we < 2500)) return;
     if (hintKey || TUT.on || uiWinOpen() || S.drop || S.paused || S.shop || S.sel || S.duel || S.mapShow || (window.__tipBulb && window.__tipBulb.open)) return;
     { const cr = document.getElementById("crate"), gv = document.getElementById("ovGive"); if ((cr && !cr.hidden) || (gv && !gv.hidden)) return; }
-    window.__certNow();
+    if (window.__certFade) return;   /* V598: Musik 3 s ausblenden, dann Diplom */
+    let fade = false; try { if (TP.key && TP.el && !TP.el.paused) { tpFade(0.0001, 3); fade = true; } } catch (e) {}
+    if (!fade) { window.__certNow(); return; }
+    window.__certFade = 1; setTimeout(() => { window.__certFade = 0; try { if (TP.key && TP.el) TP.el.pause(); } catch (e) {} try { if (!window.__tutSumOpen && window.__tutSumPend) window.__certNow(); } catch (e) {} }, 3000);
   } catch (e) {} }, 400);
   window.__certNow = () => { window.__tutSumPend = 0; window.__tutSumNow = false; window.__tutSumOpen = true; S.coachHold = true; setTimeout(() => { try { SFX.say("cert_done", 1, 1, "cert_done"); } catch (e) {} }, 1200);   /* V587: Martins Spruch */
     try { sum.querySelector(".ctHero").src = HERO_IMG[heroKey()]; sum.querySelector(".cert").classList.toggle("us", (I18N.lang || "en") !== "ru"); const gr = { ru: "5", de: "1" }[I18N.lang] || "A+"; sum.querySelectorAll(".ctMark em").forEach(e => { e.textContent = gr; }); } catch (e) {}   /* V566: RU Похвальный лист, sonst US-High-School-Urkunde */
@@ -7716,6 +7720,7 @@ function tpStop(f = 0.5) { if (!TP.el) return; tpFade(0.0001, f); const a = TP.e
 { const M = SFX.music, o = { start: M.start, stop: M.stop, menu: M.menu, switchTo: M.switchTo, next: M.next, setPaused: M.setPaused, toggle: M.toggle, duck: M.duck };
   const useTrk = w => w === 0 || (w >= 1 && w <= 150);
   const begin = w => { if (!M.on) return; TP.wave = w; const pool = trkPool(w); TP.pool = pool;
+    if (TP.certHold && TP.key === TP.certHold && TP.el && !TP.el.paused && !TP.el.ended) return;   /* V598: Diplom-Stück läuft zu Ende */
     if (TP.synthOn) { o.stop.call(M, 0.3); TP.synthOn = false; }
     if (TP.key && pool.includes(TP.key) && TP.el && !TP.el.paused) { if (TP.paused) M.setPaused(false); return; }   // läuft schon ein passendes Stück → weiterlaufen lassen
     tpPlay(pool[Math.floor(Math.random() * pool.length)]); };
@@ -7839,7 +7844,7 @@ function finMedals(ms) {   // V244
   for (const m of ms) { const d = document.createElement("span"); d.className = "fm " + (m.tint || ""); d.innerHTML = `<img src="${MED_IMG[m.img]}" alt=""><b></b>`; d.querySelector("b").textContent = m.name; row.appendChild(d); }
   const n = row.children.length; box.querySelector("small").textContent = n === 1 ? "NEW MEDAL" : n > 4 ? `${n} NEW MEDALS · all in your album` : `${n} NEW MEDALS`; box.hidden = false; try { snd("powerup"); } catch (e) {}
 }
-window.__TQ = () => ({ certQuiet, msgPush, buddyHelp, hint, n: () => MSGQ.length, q: () => MSGQ.map(m => m.title) });   /* V595: Test-Zugang */
+window.__TQ = () => ({ certQuiet, msgPush, buddyHelp, hint, tp: () => [TP.key, TP.el ? +TP.el.volume.toFixed(2) : -1, TP.el ? TP.el.paused : null], n: () => MSGQ.length, q: () => MSGQ.map(m => m.title) });   /* V595: Test-Zugang */
 function albTry() {
   try { if (albQ.length && certQuiet()) { clearTimeout(window.__albT); window.__albT = setTimeout(albTry, 2000); return; } } catch (e) {}   /* V595: Orden erst nach der Ruhe */
   if (!albQ.length || !$("ovGive").hidden) return;
@@ -10435,7 +10440,7 @@ try { (() => {
     if (GH - stackHeight() <= 4 && warnW !== S.wave && LS.get("tarnturm-tipb-stack") === "1" && !(window.__tipBulb && window.__tipBulb.open)) { warnW = S.wave; toast("STACK TOO HIGH · fill rows to clear them", "HQ", 2600); }
   } catch (e) {} }, 500);
   const _te = tutEnd; tutEnd = function () { const r = _te.apply(this, arguments);
-    try { if (S && S.started && !S.over && !S.nuts && stackHeight() > 6 && window.__TT && window.__TT.ad) {   /* V565: ab 7 Reihen */ S.tons = (S.tons || 0) + 1;   /* V550: Air-Drop statt stillem Zusammendrücken */
+    try { if (S && S.started && !S.over && !S.nuts && arguments[0] !== true && window.__TT && window.__TT.ad) {   /* V565: ab 7 Reihen · V598: immer nach der Urkunde (nicht beim Überspringen) */ S.tons = (S.tons || 0) + 1;   /* V550: Air-Drop statt stillem Zusammendrücken */
       const goAd = () => { try { if (!S || !S.started || S.over) return; if (window.__tutSumOpen || window.__tutSumPend) { setTimeout(goAd, 500); return; }   /* V571: Air Drop erst nach der Urkunde */
         setTimeout(() => { try { if (!S || !S.started || S.over) return; const ov = document.getElementById("ovAd"); if (ov && ov.hidden) window.__TT.ad.showDrop("tut"); else if (window.__dropAd) window.__dropAd("tut"); } catch (e) {} }, 900); } catch (e) {} }; setTimeout(goAd, 700); } } catch (e) {}
     return r; };
