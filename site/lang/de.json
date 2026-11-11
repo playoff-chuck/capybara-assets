@@ -1994,5 +1994,10 @@
 "News, records and your ideas": "News, Rekorde und eure Ideen",
 "10 LESSONS FROM THE PRO": "10 LEKTIONEN VOM PROFI",
 "Brush up your moves – then go for the record!": "Frisch die Tricks auf – dann auf zum Rekord!",
-"CRASH COURSE": "CRASHKURS"
+"CRASH COURSE": "CRASHKURS",
+"HOME-SCREEN ICON": "ICON AUF DEN STARTBILDSCHIRM",
+"On some phones (Honor, Huawei, Xiaomi, Redmi, Oppo, Vivo) Chrome first needs permission to create icons.": "Auf manchen Handys (Honor, Huawei, Xiaomi, Redmi, Oppo, Vivo) muss Chrome erst Icons anlegen dürfen.",
+"Settings → Apps → Chrome → Permissions → allow “Home screen shortcuts”.": "Einstellungen → Apps → Chrome → Berechtigungen → „Verknüpfungen auf dem Startbildschirm“ erlauben.",
+"Then tap “Create icon”. If nothing appears: Chrome menu ⋮ → Add to Home screen.": "Dann auf „Icon erstellen“ tippen. Kommt nichts: Chrome-Menü ⋮ → Zum Startbildschirm hinzufügen.",
+"CREATE ICON": "ICON ERSTELLEN"
 }

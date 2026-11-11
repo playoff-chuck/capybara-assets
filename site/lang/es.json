@@ -2051,5 +2051,10 @@
 "News, records and your ideas": "Noticias, récords y tus ideas",
 "10 LESSONS FROM THE PRO": "10 LECCIONES DEL PRO",
 "Brush up your moves – then go for the record!": "Repasa tus trucos – ¡y a por el récord!",
-"CRASH COURSE": "CURSO EXPRÉS"
+"CRASH COURSE": "CURSO EXPRÉS",
+"HOME-SCREEN ICON": "ICONO EN LA PANTALLA",
+"On some phones (Honor, Huawei, Xiaomi, Redmi, Oppo, Vivo) Chrome first needs permission to create icons.": "En algunos móviles (Honor, Huawei, Xiaomi, Redmi, Oppo, Vivo) Chrome necesita permiso para crear iconos.",
+"Settings → Apps → Chrome → Permissions → allow “Home screen shortcuts”.": "Ajustes → Aplicaciones → Chrome → Permisos → permitir «Accesos directos en la pantalla de inicio».",
+"Then tap “Create icon”. If nothing appears: Chrome menu ⋮ → Add to Home screen.": "Luego toca «Crear icono». Si no aparece nada: menú de Chrome ⋮ → Añadir a pantalla de inicio.",
+"CREATE ICON": "CREAR ICONO"
 }

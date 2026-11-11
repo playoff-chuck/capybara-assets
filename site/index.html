@@ -2808,7 +2808,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V614";
+const GAME_VER = "V615";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -9658,17 +9658,28 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     setInterval(place, 400); addEventListener("resize", place); place();
     addEventListener("beforeinstallprompt", e => { e.preventDefault(); prompt = e; if (state !== "busy") draw(); });
     addEventListener("appinstalled", () => { LS.set("capy-installed", "1"); prompt = null; if (state !== "busy") draw(); toast("Icon added to your home screen!", "OFFLINE", 2600); });
-    const askIcon = () => { if (isInst()) return false;
+    const askIcon0 = () => { if (isInst()) return false;
       if (prompt) { const p = prompt; prompt = null; try { p.prompt(); p.userChoice.then(c => { if (c && c.outcome === "accepted") LS.set("capy-installed", "1"); draw(); }).catch(() => {}); } catch (e) {} return true; }
       if (andr) { toast("Home-screen icon: browser menu ⋮ → Add to Home screen", "OFFLINE", 3600); return true; }
       return false; };
+    /* V615: Hinweis vor dem Icon (Honor, Xiaomi & Co. sperren Chrome-Verknüpfungen) */
+    const icHint = go => { if (document.getElementById("icHint")) return;
+      if (!document.getElementById("icHintCss")) { const st = document.createElement("style"); st.id = "icHintCss";
+        st.textContent = '#icHint{position:fixed;inset:0;z-index:99999;display:grid;place-items:center;background:rgba(20,12,6,.6);padding:16px}#icHint .ihC{width:100%;max-width:360px;background:#fff8ec;border:3px solid #3a1d10;border-radius:18px;box-shadow:0 5px 0 #3a1d10;padding:16px 16px 14px;color:#2a1a0e;font:600 15px/1.4 "Baloo 2",system-ui,sans-serif;text-align:left}#icHint h3{margin:0 0 8px;font:400 24px/1 var(--f-display,Bangers,Impact,sans-serif);letter-spacing:.04em;color:#2f6f4f;text-align:center}#icHint p{margin:6px 0}#icHint .ihS{background:#eef5f0;border:1px solid #cfe3d6;border-radius:10px;padding:8px 10px;font-weight:800}#icHint .ihB{display:flex;gap:10px;margin-top:12px}#icHint button{flex:1;border:3px solid #3a1d10;border-radius:12px;padding:10px 6px;font:400 18px/1 var(--f-display,Bangers,Impact,sans-serif);letter-spacing:.04em;cursor:pointer;box-shadow:0 3px 0 #3a1d10}#icHint .ihOk{background:#ffd84d!important;color:#3a1d10!important}#icHint .ihNo{flex:0 0 34%;background:#fff!important;color:#7a6a4f!important}';
+        document.head.appendChild(st); }
+      const o = document.createElement("div"); o.id = "icHint";
+      o.innerHTML = `<div class="ihC" role="dialog" aria-modal="true"><h3>${T("HOME-SCREEN ICON")}</h3><p>${T("On some phones (Honor, Huawei, Xiaomi, Redmi, Oppo, Vivo) Chrome first needs permission to create icons.")}</p><p class="ihS">${T("Settings → Apps → Chrome → Permissions → allow “Home screen shortcuts”.")}</p><p>${T("Then tap “Create icon”. If nothing appears: Chrome menu ⋮ → Add to Home screen.")}</p><div class="ihB"><button type="button" class="ihNo">${T("Later")}</button><button type="button" class="ihOk">${T("CREATE ICON")}</button></div></div>`;
+      document.body.appendChild(o);
+      o.querySelector(".ihNo").addEventListener("click", e => { e.stopPropagation(); o.remove(); });
+      o.querySelector(".ihOk").addEventListener("click", e => { e.stopPropagation(); o.remove(); try { snd("uiTap"); } catch (er) {} askIcon0(); }); };
+    const askIcon = () => { if (isInst()) return false; if (andr) { icHint(); return true; } return askIcon0(); };
     const ios = /iP(hone|ad|od)/.test(navigator.userAgent), standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone;
     navigator.serviceWorker.register("sw.js").then(reg => { navigator.serviceWorker.ready.then(r => { try { r.active && r.active.postMessage({ t: "sync", l: (typeof I18N !== "undefined" && I18N.lang) || "en" }); } catch (e) {} }); }).catch(() => {});
     navigator.serviceWorker.addEventListener("message", e => { const d = e.data || {}; if (d.t !== "newver") return; let done = false; try { done = sessionStorage.getItem("capy-upd") === "1"; sessionStorage.setItem("capy-upd", "1"); } catch (x) {} if (done) return;   /* V356 */
       if (typeof S === "undefined" || !S || !S.started) location.reload(); else try { toast("UPDATE READY · restart to get it", "HQ", 3500); } catch (x) {} });
     navigator.serviceWorker.addEventListener("message", e => { const d = e.data || {}; if (d.t !== "offline" || state !== "busy") return; const pct = d.total ? Math.min(100, Math.floor(d.done / d.total * 100)) : 0; draw(pct);
       if (d.n >= d.of) { state = "ready"; LS.set("capy-offline", "1"); draw(); try { snd("coin"); } catch (er) {}
-        toast(ios && !standalone ? "Saved! Tip: Share → Add to Home Screen" : prompt && !isInst() ? "Saved! Tap ✈ again for the home-screen icon" : andr && !isInst() ? "Home-screen icon: browser menu ⋮ → Add to Home screen" : "Saved! Works in flight mode now.", "OFFLINE", 3200); } });
+        toast(ios && !standalone ? "Saved! Tip: Share → Add to Home Screen" : (prompt || andr) && !isInst() ? "Saved! Tap ✈ again for the home-screen icon" : "Saved! Works in flight mode now.", "OFFLINE", 3200); } });
     b.addEventListener("click", async () => { try { SFX.init(); } catch (e) {}
       if (state === "ready") { if (!askIcon()) toast(navigator.onLine ? "All saved · plays in flight mode" : "Offline mode · leaderboard waits for signal", "OFFLINE", 2400); return; }
       if (state === "busy") return;

@@ -2044,5 +2044,10 @@
 "News, records and your ideas": "Novidades, recordes e suas ideias",
 "10 LESSONS FROM THE PRO": "10 LIÇÕES DO PROFISSIONAL",
 "Brush up your moves – then go for the record!": "Revise seus truques – e vá atrás do recorde!",
-"CRASH COURSE": "CURSO RÁPIDO"
+"CRASH COURSE": "CURSO RÁPIDO",
+"HOME-SCREEN ICON": "ÍCONE NA TELA",
+"On some phones (Honor, Huawei, Xiaomi, Redmi, Oppo, Vivo) Chrome first needs permission to create icons.": "Em alguns celulares (Honor, Huawei, Xiaomi, Redmi, Oppo, Vivo) o Chrome precisa de permissão para criar ícones.",
+"Settings → Apps → Chrome → Permissions → allow “Home screen shortcuts”.": "Configurações → Apps → Chrome → Permissões → permitir «Atalhos na tela inicial».",
+"Then tap “Create icon”. If nothing appears: Chrome menu ⋮ → Add to Home screen.": "Depois toque em «Criar ícone». Se nada aparecer: menu do Chrome ⋮ → Adicionar à tela inicial.",
+"CREATE ICON": "CRIAR ÍCONE"
 }

@@ -2342,5 +2342,10 @@
 "News, records and your ideas": "Новости, рекорды и ваши идеи",
 "10 LESSONS FROM THE PRO": "10 УРОКОВ ОТ ПРОФИ",
 "Brush up your moves – then go for the record!": "Освежи приёмы – и вперёд за рекордом!",
-"CRASH COURSE": "ЛИКБЕЗ"
+"CRASH COURSE": "ЛИКБЕЗ",
+"HOME-SCREEN ICON": "ИКОНКА НА ЭКРАН",
+"On some phones (Honor, Huawei, Xiaomi, Redmi, Oppo, Vivo) Chrome first needs permission to create icons.": "На некоторых телефонах (Honor, Huawei, Xiaomi, Redmi, Oppo, Vivo) Chrome сначала нужно разрешить создавать иконки.",
+"Settings → Apps → Chrome → Permissions → allow “Home screen shortcuts”.": "Настройки → Приложения → Chrome → Права → разрешить «Ярлыки на рабочем столе».",
+"Then tap “Create icon”. If nothing appears: Chrome menu ⋮ → Add to Home screen.": "Потом нажми «Создать иконку». Если ничего не появилось: меню Chrome ⋮ → «Добавить на главный экран».",
+"CREATE ICON": "СОЗДАТЬ ИКОНКУ"
 }

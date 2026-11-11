@@ -2814,5 +2814,10 @@
 "News, records and your ideas": "News, records and your ideas",
 "10 LESSONS FROM THE PRO": "10 LESSONS FROM THE PRO",
 "Brush up your moves – then go for the record!": "Brush up your moves – then go for the record!",
-"CRASH COURSE": "CRASH COURSE"
+"CRASH COURSE": "CRASH COURSE",
+"HOME-SCREEN ICON": "HOME-SCREEN ICON",
+"On some phones (Honor, Huawei, Xiaomi, Redmi, Oppo, Vivo) Chrome first needs permission to create icons.": "On some phones (Honor, Huawei, Xiaomi, Redmi, Oppo, Vivo) Chrome first needs permission to create icons.",
+"Settings → Apps → Chrome → Permissions → allow “Home screen shortcuts”.": "Settings → Apps → Chrome → Permissions → allow “Home screen shortcuts”.",
+"Then tap “Create icon”. If nothing appears: Chrome menu ⋮ → Add to Home screen.": "Then tap “Create icon”. If nothing appears: Chrome menu ⋮ → Add to Home screen.",
+"CREATE ICON": "CREATE ICON"
 }
