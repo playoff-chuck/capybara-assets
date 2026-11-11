@@ -2796,7 +2796,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V596";
+const GAME_VER = "V597";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -7104,7 +7104,7 @@ try { (() => { const d = document.createElement("div"); d.id = "tutDim"; documen
 try { (() => {
   const EN = { p: null, t: 0, d: 0, ms: 600 }; const oc = document.createElement("canvas"); oc.id = "tutPieceCv"; document.body.appendChild(oc); const ox = oc.getContext("2d"); let shown = false;
   function frame() { requestAnimationFrame(frame); try {
-    const coach = document.getElementById("coach"), on = typeof TUT !== "undefined" && TUT.on && S && S.started && !S.over && S.piece && coach && !coach.hidden && !cv.classList.contains("rot") && !cv.classList.contains("rotR") && !S.rotMode && !S.shop && !S.sel && (() => { const sh = document.getElementById("sheet"); return !sh || sh.hidden; })();   /* V589: nie über dem Laden */
+    const coach = document.getElementById("coach"), on = typeof TUT !== "undefined" && TUT.on && S && S.started && !S.over && S.piece && coach && !coach.hidden && !cv.classList.contains("rot") && !cv.classList.contains("rotR") && !S.rotMode && !S.shop && !S.sel && !S.paused && !S.mapShow && !S.mapFly && (() => { const sh = document.getElementById("sheet"), op = document.getElementById("ovPause"); return (!sh || sh.hidden) && (!op || op.hidden); })();   /* V589: nie über dem Laden · V597: nie über Pause/Karte */
     if (!on) { try { if (S) S.tutEnter = 0; } catch (e) {} EN.st = ""; if (shown) { ox.clearRect(0, 0, oc.width, oc.height); shown = false; } return; }
     const dpr = window.devicePixelRatio || 1, W = Math.round(innerWidth * dpr), H = Math.round(innerHeight * dpr); if (oc.width !== W || oc.height !== H) { oc.width = W; oc.height = H; }
     ox.clearRect(0, 0, W, H); shown = true; const dimNow = S.tutDimT > performance.now();   /* V587: Block bleibt sichtbar */
@@ -7159,7 +7159,7 @@ try { (() => {
   };
   setInterval(() => { try { if (!bar.hidden && (typeof TUT === "undefined" || !TUT.on || !S || !S.started || S.over)) window.__tutBar.hide(); else if (!bar.hidden) fit(); } catch (e) {} }, 500);
 })(); } catch (e) { console.error("v570 bar", e); }
-function tutStart() { TUT.dropTap = 0; TUT.e = TUT_SNAP(); TUT.b = { k: S.kills | 0, p: S.pieceNo || 0, tw: S.towers.size, wp: [...S.towers.values()].reduce((a, t) => a + t.w.length, 0) }; TUT.on = true; TUT.step = 0; TUT.t = 0; $("coach").hidden = false; tutShow(); }
+function tutStart() { TUT.dropTap = 0; TUT.e = TUT_SNAP(); TUT.b = { k: S.kills | 0, p: S.pieceNo || 0, tw: S.towers.size, wp: [...S.towers.values()].reduce((a, t) => a + t.w.length, 0) }; TUT.on = true; TUT.l1fill = 0; TUT.step = 0; TUT.t = 0; $("coach").hidden = false; tutShow(); }
 /* V534: Tutorial-Knopf bis Welle 10 */
 { const b = document.createElement("button"); b.id = "bTut"; b.type = "button"; b.setAttribute("aria-label", "Tutorial"); b.hidden = true;
   b.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4 1.5 9 12 14l10.5-5z" fill="#3a2414"/><path d="M5.5 11.2v4.3c0 1.6 2.9 3 6.5 3s6.5-1.4 6.5-3v-4.3L12 14.3z" fill="#3a2414"/><path d="M21 9.3v5.2" stroke="#3a2414" stroke-width="1.6" stroke-linecap="round"/><circle cx="21" cy="15.6" r="1.4" fill="#ffd34a" stroke="#3a2414" stroke-width="1"/></svg><b>HOW TO</b>';
@@ -7278,7 +7278,14 @@ window.__tonTut = { tick: tonTutTick, get st() { return TONTUT.st; } };
 try { (() => {
   window.__TUTT = { get T() { return TUT; }, start: () => tutStart(), get TON() { return TONTUT; } };   /* Test-Hook */
   /* 1: Schritt 1 zählt nur einen echten Tipp auf DROP */
-  const _hd = hardDrop; hardDrop = function () { try { if (TUT.on && TUT.step === 0 && S && !S.duel) TUT.dropTap = (TUT.dropTap || 0) + 1; } catch (e) {} return _hd.apply(this, arguments); };
+  const _hd = hardDrop; hardDrop = function () { try { if (TUT.on && TUT.step === 0 && S && !S.duel) TUT.dropTap = (TUT.dropTap || 0) + 1; } catch (e) {}
+    try { const p = S.piece; if (TUT.on && TUT.step === 0 && !TUT.l1fill && p && !S.duel && !S.rotMode && canAct() && performance.now() >= (S.dropLockUntil || 0)) {   /* V597: erste Reihe schließt sich sofort */
+      const W = VW(); let py = p.y; while (!collide(p.cells, p.x, py + 1)) py++; let low = 0; for (const [, y] of p.cells) low = Math.max(low, py + y);
+      const mine = new Set(p.cells.filter(([, y]) => py + y === low).map(([x]) => p.x + x)); let col = 0;
+      for (let x = 1; x < W - 1; x++) { const v = S.grid[vIdx(x, low)]; if (v && v !== TNT) { col = v; break; } }
+      for (let x = 1; x < W - 1; x++) if (!mine.has(x) && !S.grid[vIdx(x, low)]) S.grid[vIdx(x, low)] = col || ((x % 4) + 1);
+      TUT.l1fill = 1; } } catch (e) {}
+    return _hd.apply(this, arguments); };
   /* 5: Missions- und Beförderungs-Meldungen warten im Tutorial und in W1–W2 bis zur Wellenpause */
   const _to = toast, HOLD = []; let relT = 0;
   const holdNow = () => { try { return !!(S && S.started && !S.over && (TUT.on || window.__tutSumOpen || ((S.wave || 1) <= 2 && S.inWave))); } catch (e) { return false; } };
