@@ -27,6 +27,16 @@ BUBBLES = r"""
   } catch (e) {} }, 200); })();
 """
 
+PEND = r"""
+(() => { const P = window.__PEND = []; let last = "";   /* 11.11. V641: wartende Ereignisse je Welle (Hänger-Suche) */
+  setInterval(() => { try { const S = window.__TT && window.__TT.S; if (!S || !S.started) return; const w = S.wave | 0;
+    const ad = Object.keys(S.adDue || {}).filter(k => S.adDue[k]).sort().join(",");
+    const st = { hack: S.hackPending || 0, ad, lucky: (S.banditNext ? w >= S.banditNext : !S.banditDone) ? 1 : 0, join: localStorage.getItem("tarnturm-join") === "1" ? 0 : (w >= 7 ? 1 : 0),
+      ord: S.ordDue ? 1 : 0, nuts: S.nutsAsk ? 1 : 0, intro: (S.introQ || []).map(q => q.k).join(","), prio: window.__prioDue ? (window.__prioDue() ? 1 : 0) : -1 };
+    const key = JSON.stringify(st); if (key !== last) { last = key; P.push(Object.assign({ w, inW: !!S.inWave, t: Math.round(performance.now() / 1000) }, st)); }
+  } catch (e) {} }, 500); })();
+"""
+
 BOT = r"""
 (() => {
   const LOG = window.__AT = { ev: [], open: {}, t0: performance.now(), err: [] };
@@ -119,7 +129,8 @@ def main():
             if os.environ.get("BUYER"): pg.evaluate("window.__AT_BUYER = true")   # Käufer-Profil: kauft Anzeigen, hackt den Boss
             pg.evaluate(BOT)
             if os.environ.get("BUBBLES"): pg.evaluate(BUBBLES)   # Sprechblasen-Statistik (11.11.)
-            pg.evaluate(f"window.__TT.startGame('chill', {FROM})")
+            if os.environ.get("PEND"): pg.evaluate(PEND)   # wartende Ereignisse (11.11.)
+            pg.evaluate(f"window.__TT.startGame('{os.environ.get('MODE', 'chill')}', {FROM})")
             wall0 = time.time(); last = -1; last_t = 0
             while True:
                 pg.clock.run_for(5000)
@@ -130,8 +141,8 @@ def main():
                     dump = pg.evaluate("(()=>{const S=window.__TT.S;return {inWave:S.inWave,toSpawn:S.toSpawn,mon:S.monsters.length,cd:S.waveCD,intro:!!S.intro,paused:!!S.paused,open:Object.keys(window.__AT.open),body:document.body.className,vis:[...document.querySelectorAll('[id^=ov]')].filter(e=>!e.hidden&&getComputedStyle(e).display!=='none').map(e=>e.id)}})()")
                     print("HAENGT in Welle", last, dump, flush=True); st["stall"] = dump; break
                 if st["w"] != last:
-                    if os.environ.get("BUBBLES"):   # Zwischenstand je Welle (11.11.)
-                        try: json.dump({"bubbles": pg.evaluate("window.__BUB || []"), "wave": st["w"], "partial": True}, open(OUT + ".part", "w"), ensure_ascii=False)
+                    if os.environ.get("BUBBLES") or os.environ.get("PEND"):   # Zwischenstand je Welle (11.11.)
+                        try: json.dump({"bubbles": pg.evaluate("window.__BUB || []"), "pend": pg.evaluate("window.__PEND || []"), "wave": st["w"], "partial": True}, open(OUT + ".part", "w"), ensure_ascii=False)
                         except Exception: pass
                     last_t = st["t"]
                     last = st["w"]; print(f"W{st['w']:3d}  Spielzeit {st['t']/1000/60:5.1f} min  real {time.time()-wall0:5.0f} s", flush=True)
@@ -140,6 +151,7 @@ def main():
             res = pg.evaluate("window.__AT")
             res["console"] = cons[-80:]
             if os.environ.get("BUBBLES"): res["bubbles"] = pg.evaluate("window.__BUB || []")
+            if os.environ.get("PEND"): res["pend"] = pg.evaluate("window.__PEND || []")
             res["end"] = st
             br.close()
     finally:

@@ -48,7 +48,7 @@
 #hackBet #hkGo{font-family:Bangers,system-ui!important;font-size:26px!important;letter-spacing:1px;color:#fff!important;background:linear-gradient(180deg,#e04aa8,#8a2470)!important;border:3px solid #17150c!important;text-shadow:0 2px 0 #4d1240;box-shadow:0 4px 0 #4d1240!important}
 #hackBet #hkSkip{color:#7a6a55!important;background:transparent!important;border:2px solid #e2d3bc!important;box-shadow:none!important}
 </style><link rel="manifest" href="manifest.webmanifest?v=601"><meta name="theme-color" content="#2b3a22"></head><body>
-<script>try{if(localStorage.getItem("capy-tutDone")==="1"){var tb=localStorage.getItem("capy-tutbak");if(tb){var bk=JSON.parse(tb),dk=[];for(var di=0;di<localStorage.length;di++){var dkk=localStorage.key(di);if(dkk&&/^(tarnturm|capy)/.test(dkk)&&!/^(tarnturm-dev|tarnturm-terms|capy-adm|capy-uid|capy-cloud|capy-reset|capy-lang|capy-tutbak|capy-tutDone|capy-tutBack)$/.test(dkk))dk.push(dkk);}dk.forEach(function(k){localStorage.removeItem(k);});for(var bkk in bk)localStorage.setItem(bkk,bk[bkk]);localStorage.setItem("tarnturm-tut","1");localStorage.setItem("capy-tutBack","1");}localStorage.removeItem("capy-tutbak");localStorage.removeItem("capy-tutDone");}}catch(e){}   /* V609: Spielstand nach dem Tutorial zurück */
+<script>try{if(localStorage.getItem("capy-tutDone")==="1"){var tb=localStorage.getItem("capy-tutbak");if(tb){var bk=JSON.parse(tb),dk=[];for(var di=0;di<localStorage.length;di++){var dkk=localStorage.key(di);if(dkk&&/^(tarnturm|capy)/.test(dkk)&&!/^(tarnturm-dev|tarnturm-terms|capy-adm|capy-uid|capy-cloud|capy-reset|capy-lang|capy-tutbak|capy-tutDone|capy-tutBack|tarnturm-join|tarnturm-nick|tarnturm-hero)$/.test(dkk))dk.push(dkk);}dk.forEach(function(k){localStorage.removeItem(k);});for(var bkk in bk)localStorage.setItem(bkk,bk[bkk]);localStorage.setItem("tarnturm-tut","1");localStorage.setItem("capy-tutBack","1");}localStorage.removeItem("capy-tutbak");localStorage.removeItem("capy-tutDone");}}catch(e){}   /* V609: Spielstand nach dem Tutorial zurück */
 try{if(localStorage.getItem("capy-reset")!=="276"){var rk=[];for(var ri=0;ri<localStorage.length;ri++){var rkk=localStorage.key(ri);if(rkk&&/^(tarnturm|capy)/.test(rkk)&&rkk!=="tarnturm-dev"&&rkk!=="capy-cloud"&&rkk!=="capy-uid"&&rkk!=="capy-adm")rk.push(rkk);}rk.forEach(function(k){localStorage.removeItem(k);});localStorage.setItem("capy-reset","276");}}catch(e){}
 try{["img/d328f1a428.webp","img/b6f38631c6.webp","img/2510465d7d.webp","img/e24cf5d037.webp"].forEach(function(u){var i=new Image();i.src=u;if(i.decode)i.decode().catch(function(){});(window.__PRE0=window.__PRE0||[]).push(i);});}catch(e){}</script><link rel="preload" as="image" href="img/d328f1a428.webp"><link rel="preload" as="image" href="img/b6f38631c6.webp"><link rel="preload" as="image" href="img/2510465d7d.webp"><link rel="preload" as="image" href="img/logo_main.webp?v=496"><link rel="preload" as="image" href="img/mixer_big.webp"><link rel="preload" as="image" href="img/worldmap.webp"><link rel="preload" as="image" href="img/arrive_samerica.webp"><title>Capybara Squad</title><link rel="apple-touch-icon" href="icons/icon-192.png?v=536"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -2823,7 +2823,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V640";
+const GAME_VER = "V641";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -8406,7 +8406,7 @@ function joined() { return LS.get("tarnturm-join") === "1"; }
 /* V311: Lucky Supply oder Rufzeichen fällig → Sale-Anzeigen warten */
 window.__prioDue = () => { try { if (!S || !S.started || S.over || S.nuts || S.testRun) return false;
   const lucky = (S.banditNext ? (S.wave || 0) >= S.banditNext : !S.banditDone) && (S.playT || 0) >= 60;
-  const join = !joined() && (S.wave || 0) >= 7; return lucky || join; } catch (e) { return false; } };
+  return lucky;   /* V641: Rufzeichen-Fenster hält nichts mehr auf */ } catch (e) { return false; } };
 function heroName() { return heroKey() === "rosie" ? "Rosie" : "Blue"; }
 async function autoNick() {
   let n = 0;
@@ -8418,7 +8418,7 @@ function maybeJoin() {
   if (typeof S === "undefined" || !S || !S.started || S.over || S.testRun || joined() || S.joinOpen || S.intro || S.nuts || S.inWave || S.wave < 7) return;   // V180: erst nach Welle 3
   if (S.inWave && S.introWave === S.wave) return;     // während einer Welle mit Neuheit nicht; zwischen den Wellen ja
   if (S.drop || S.ordersOpen || S.duel) { setTimeout(maybeJoin, 1500); return; }
-  if (!window.__offerOK()) { clearTimeout(window.__joinT); window.__joinT = setTimeout(maybeJoin, 3000); return; }
+  if (!(window.__playScreen && window.__playScreen())) { clearTimeout(window.__joinT); window.__joinT = setTimeout(maybeJoin, 1500); return; }   /* V641: nächste Wellenpause, ohne 95-s-Takt */
   window.__offerLast = performance.now(); S.intro = true; S.joinOpen = true; $("joinWave").textContent = `WAVE ${S.wave}`;
   $("joinNick").value = LS.get("tarnturm-nick") || funNick();
   renderThemeBtn(); $("ovJoin").hidden = false; snd("radio");
@@ -9195,7 +9195,7 @@ $("btnHs").addEventListener("click", () => { const box = $("hsNuts"); box.innerH
 // V609: Tutorial wiederholen, Spielstand bleibt erhalten
 function tutReplaySafe() { try { SFX.init(); snd("uiTap"); } catch (e) {}
   try { saveGame(); } catch (e) {}
-  try { if (!localStorage.getItem("capy-tutbak")) { const bk = {}, keep = /^(tarnturm-dev|tarnturm-terms|capy-adm|capy-uid|capy-cloud|capy-reset|capy-lang|capy-tutbak|capy-tutDone|capy-tutBack)$/; for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && /^(tarnturm|capy)/.test(k) && !keep.test(k)) bk[k] = localStorage.getItem(k); } localStorage.setItem("capy-tutbak", JSON.stringify(bk)); } localStorage.removeItem("capy-tutDone"); }
+  try { if (!localStorage.getItem("capy-tutbak")) { const bk = {}, keep = /^(tarnturm-dev|tarnturm-terms|capy-adm|capy-uid|capy-cloud|capy-reset|capy-lang|capy-tutbak|capy-tutDone|capy-tutBack|tarnturm-join|tarnturm-nick|tarnturm-hero)$/; for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && /^(tarnturm|capy)/.test(k) && !keep.test(k)) bk[k] = localStorage.getItem(k); } localStorage.setItem("capy-tutbak", JSON.stringify(bk)); } localStorage.removeItem("capy-tutDone"); }
   catch (e) { toast("Not enough space to save your game", "HQ", 2200); return; }
   LS.del("tarnturm-tut"); LS.del("tarnturm-save");
   for (const id of ["ovInfo", "ovPause", "ovSettings", "ovStart"]) { const o = $(id); if (o) o.hidden = true; }
