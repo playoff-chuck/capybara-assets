@@ -2796,7 +2796,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V607";
+const GAME_VER = "V608";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -9890,6 +9890,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     try { if (typeof SAVE_KEYS !== "undefined" && !SAVE_KEYS.includes("wolfAdW")) SAVE_KEYS.push("wolfAdW"); } catch (e) {}
     /* V299: Gratis-Air-Drops als Anzeige */
     let dropBtn = "AWESOME! · IT'S FREE ▶";
+    const HINT608 = "Tight spot? Use one of these. You can buy more in the Shop!";
     function showDrop(kind, o) { o = o || {}; const tc = typeof TON_COST !== "undefined" ? TON_COST : 300;
       const gold = ((o.loot || []).find(x => x[0] === "gold") || [])[2] || "";
       const D = { ton: { img: "img/ad_drop_free.webp", name: "TEN-TON DROP", line: "HQ sent you a Ten-ton drop. It's already in your Pocket.", met: ["+1 Ten-ton", "In your Pocket"], btn: "THANKS! ▶" },
@@ -9903,7 +9904,8 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
       if (!D) return; cur = "drop"; window.__dropKind = kind; saleMode = false; isFree = true; dropBtn = D.btn; late = true; S.intro = true; S.adOpen = true;
       const card = $a("adCard"); card.classList.remove("sale", "free"); card.classList.add("drop");
       $a("adPic").style.backgroundImage = `url(${D.img})`; $a("adPic").style.backgroundPosition = ""; $a("adTag").textContent = "✈ AIR DROP"; $a("adWave").textContent = S.wave ? `WAVE ${S.wave}` : "TUTORIAL"; $a("adPrice").textContent = "";
-      $a("adName").textContent = D.name; $a("adLine").textContent = D.line; $a("adMet").innerHTML = D.met.map(x => `<span>${x}</span>`).join("");
+      $a("adName").textContent = D.name; $a("adLine").textContent = D.line;
+      try { let h = document.getElementById("adHint"); if (!h) { h = document.createElement("div"); h.id = "adHint"; $a("adLine").after(h); } h.textContent = kind === "tut" ? HINT608 : ""; h.hidden = kind !== "tut"; } catch (e) {}   /* V608 */ $a("adMet").innerHTML = D.met.map(x => `<span>${x}</span>`).join("");
       paint(); window.__adLast = performance.now(); $("ovIntro").hidden = true; ov.hidden = false; requestAnimationFrame(() => ov.classList.add("on"));
       try { const vl = { ton: "ad_drop", friend: "ad_drop", squad: "ad_drop", tut: "ad_drop", sweep: "ad_sweep", med: "ad_med", rot: "ad_upright" }[kind]; if (vl) setTimeout(() => { try { if (!ov.hidden) SFX.say(vl, 1.0, 1.0, 0, 0); } catch (e) {} }, 700); } catch (e) {}
       try { snd("crate"); if (kind === "sweep" || kind === "ton" || kind === "friend" || kind === "squad" || kind === "tut") [0.5, 0.8].forEach(d => setTimeout(() => snd("coin"), d * 1000)); } catch (e) {} }
@@ -11521,6 +11523,8 @@ body.testLink #ovStart{pointer-events:none!important;opacity:.35}
 .mPin .pStars{position:absolute;left:50%;top:9px;transform:translateX(-50%);font-size:9px;line-height:1;letter-spacing:-1px;color:#ffc93c;text-shadow:0 0 2px #3a2414,0 0 2px #3a2414;white-space:nowrap;pointer-events:none}
 .mapRose{position:absolute;right:max(10px,env(safe-area-inset-right,0px));bottom:calc(env(safe-area-inset-bottom,0px) + 70px);z-index:5;display:flex;flex-direction:column;align-items:center;gap:2px;pointer-events:none;font:400 12px/1.1 Bangers,Impact,system-ui,sans-serif;letter-spacing:.5px;color:#fff6e6;-webkit-text-stroke:.6px #3a2414;text-shadow:1px 2px 0 #3a2414}
 #ovMap.firstFly .mapRose{display:none!important}
+#ovMap.firstFly .mPin em.sub,#ovMap.firstFly .mNuts{display:none!important}   /* V608: erster Flug nur der erste Ort */
+#adHint{margin:8px 4px 2px;color:#d62828;font-weight:800;font-size:15px;line-height:1.25;text-align:center}
 .mapRose svg{width:60px;height:60px;filter:drop-shadow(2px 3px 0 rgba(58,36,20,.55))}
 .mapRose .rsTot{font-size:16px;color:#ffc93c}
 .mapRose .rsCnt{font-size:10px;opacity:.95;text-align:center;line-height:1.25;letter-spacing:.3px}
