@@ -124,10 +124,13 @@ def main():
             while True:
                 pg.clock.run_for(5000)
                 st = pg.evaluate("({w: window.__TT.S.wave, over: !!window.__TT.S.over, t: performance.now()})")
-                if st["w"] == last and st["t"] - last_t > 10 * 60000:
+                if st["w"] == last and st["t"] - last_t > 4 * 60000:
                     dump = pg.evaluate("(()=>{const S=window.__TT.S;return {inWave:S.inWave,toSpawn:S.toSpawn,mon:S.monsters.length,cd:S.waveCD,intro:!!S.intro,paused:!!S.paused,open:Object.keys(window.__AT.open),body:document.body.className,vis:[...document.querySelectorAll('[id^=ov]')].filter(e=>!e.hidden&&getComputedStyle(e).display!=='none').map(e=>e.id)}})()")
                     print("HAENGT in Welle", last, dump, flush=True); st["stall"] = dump; break
                 if st["w"] != last:
+                    if os.environ.get("BUBBLES"):   # Zwischenstand je Welle (11.11.)
+                        try: json.dump({"bubbles": pg.evaluate("window.__BUB || []"), "wave": st["w"], "partial": True}, open(OUT + ".part", "w"), ensure_ascii=False)
+                        except Exception: pass
                     last_t = st["t"]
                     last = st["w"]; print(f"W{st['w']:3d}  Spielzeit {st['t']/1000/60:5.1f} min  real {time.time()-wall0:5.0f} s", flush=True)
                 if st["w"] > UNTIL or st["over"] or time.time() - wall0 > 3 * 3600:
