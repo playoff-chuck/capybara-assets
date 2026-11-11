@@ -23,7 +23,7 @@ BUBBLES = r"""
     on.dj = vis('djSong'); on.coach = vis('coach');
     for (const id of ['ovIntro', 'ovAd', 'ovBandit', 'ovOrders', 'ovJoin', 'ovCoachAd', 'ovSign', 'hackPill']) on[id] = vis(id);
     for (const k in on) { if (on[k] && !prev[k]) B.push({ k, w, t }); prev[k] = on[k]; }
-    const m = window.__msgCur && window.__msgCur.m; if (m && m !== lastMsg) { lastMsg = m; B.push({ k: m.kind === 'book' ? 'book' : 'general', w, t, tag: String(m.tag || m.kind || '').slice(0, 16) }); }
+    const m = window.__msgCur && window.__msgCur.m; if (m && m !== lastMsg) { lastMsg = m; B.push({ k: m.kind === 'book' ? 'book' : 'general', w, t, tag: String(m.tag || m.kind || '').slice(0, 16), ttl: String(m.title || '').slice(0, 48), sub: String(m.sub || '').slice(0, 60) }); }
   } catch (e) {} }, 200); })();
 """
 
