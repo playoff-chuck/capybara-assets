@@ -2808,7 +2808,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V629";
+const GAME_VER = "V630";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -10504,7 +10504,7 @@ try { (() => { const b = document.createElement("button"); b.id = "buildCancel";
   const _arm = armSpecial; armSpecial = function (k) { const o = from(); const r = _arm.apply(this, arguments); try { if (S && S.mode === k) S.armFrom = o || "shop"; } catch (e) {} return r; };
   const _tb = toggleBuild; toggleBuild = function () { const o = from(); const r = _tb.apply(this, arguments); try { if (S && S.mode === "build") S.armFrom = o || "shop"; } catch (e) {} return r; };
   b.addEventListener("click", e => { e.stopPropagation(); try { if (S && AIM[S.mode]) { const o = S.armFrom || "shop"; S.mode = null; S.aim = null; S.armFrom = null; snd("uiTap"); if (!S.over && !(typeof TUT !== "undefined" && TUT.on)) { if (o === "pk") openPocket(); else { $("sheetIn").classList.remove("pk"); openShop(); } } } } catch (er) {} b.hidden = true; });   /* V578: zurück ins Menü */
-  setInterval(() => { const on = !!(S && S.started && !S.over && AIM[S.mode] && !S.paused); if (on) { const bd = document.getElementById("board"); if (bd) { const r = bd.getBoundingClientRect(); b.style.top = Math.max(8, r.top + 8) + "px"; } } if (b.hidden === on) b.hidden = !on; }, 150); })(); } catch (e) { console.error("v322 cancel", e); }
+  setInterval(() => { const on = !!(S && S.started && !S.over && AIM[S.mode] && !S.paused); if (on) { const bd = document.getElementById("board"); if (bd) { const r = bd.getBoundingClientRect(); b.style.top = Math.max(8, r.top + 56) + "px"; } }   /* V630: unter das Modus-Banner (auf dem Spielfeld gezeichnet) */ if (b.hidden === on) b.hidden = !on; }, 150); })(); } catch (e) { console.error("v322 cancel", e); }
 /* V322: Pause-Menü – Sound-Bereich scrollt nie aus dem Bild */
 try { (() => { const ov = document.getElementById("ovPause"); if (!ov) return; new MutationObserver(() => { if (!ov.hidden) setTimeout(() => { try { ov.scrollTop = 0; } catch (e) {} }, 0); }).observe(ov, { attributes: true, attributeFilter: ["hidden"] }); })(); } catch (e) {}
 

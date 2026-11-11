@@ -2364,5 +2364,8 @@
 "First hack: your stake is fixed at 10 % of your gold.": "Первый взлом: ставка – 10 % твоего золота.",
 "Coach Ollie: three tricks – and the boss is yours!": "Тренер Олли: три приёма – и босс твой!",
 "The boss challenges you to a hack!": "Босс вызывает тебя на взлом!",
-"NEXT ▶": "ДАЛЕЕ ▶"
+"NEXT ▶": "ДАЛЕЕ ▶",
+"# levels": "# уровней",
+"no mercy": "без пощады",
+"boss every #": "босс каждые #"
 }
