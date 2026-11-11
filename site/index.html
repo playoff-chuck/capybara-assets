@@ -2808,7 +2808,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V621";
+const GAME_VER = "V623";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -3322,8 +3322,9 @@ function setScene(src, big) {
 }
 let buddyT = null;
 const BUDDY_SAY = { snipe: ["ON THE SCOPE!", "sniper strike"], mix: ["CONCRETE INCOMING!", "concrete mixer"], tesla: ["FULL CHARGE!", "tesla storm"], chomp: ["RELEASE THE JAWS!", "chomper"], ton: ["HEADS UP! TEN TONS!", "ten-ton drop"], lock: ["TIME OUT!", "lockdown"] };
-function certTusch() {   /* V605: festlicher Tusch zum Diplom */
-  if (SFX.muted || SFX.vol === 0) return; const A = window.__tuschAC || (window.__tuschAC = new (window.AudioContext || window.webkitAudioContext)()); try { A.resume(); } catch (e) {}
+function certTusch() {   /* V605: festlicher Tusch zum Diplom · V623: Suno-Fanfare */
+  if (SFX.muted || SFX.vol === 0) return;
+  try { const fa = new Audio("sfx/fanfare.mp3?v=623"); fa.volume = Math.min(1, 0.95 * Math.pow(SFX.vol || 0.3, 0.5)); const pr = fa.play(); if (pr && pr.catch) pr.catch(() => {}); return; } catch (e) {} const A = window.__tuschAC || (window.__tuschAC = new (window.AudioContext || window.webkitAudioContext)()); try { A.resume(); } catch (e) {}
   const out = A.createGain(); out.gain.value = Math.min(1, 0.55 * Math.pow(SFX.vol || 0.3, 0.6)); out.connect(A.destination); const t0 = A.currentTime + 0.05;
   const brass = (f, t, d, v) => { for (const det of [-6, 0, 7]) { const o = A.createOscillator(), g = A.createGain(), lp = A.createBiquadFilter(); o.type = "sawtooth"; o.frequency.value = f; o.detune.value = det;
       lp.type = "lowpass"; lp.frequency.setValueAtTime(700, t); lp.frequency.linearRampToValueAtTime(3200, t + 0.06); lp.frequency.exponentialRampToValueAtTime(1400, t + d);
@@ -7125,22 +7126,22 @@ try { (() => {
 /* V619: Coach Ollie – 4 Gratis-Tipps vor dem ersten Boss-Hack */
 try { (() => {
   const st = document.createElement("style");
-  st.textContent = `#ovHkTips{position:fixed;inset:0;z-index:9600;display:flex;flex-direction:column;justify-content:space-between;opacity:0;transition:opacity .3s;background:#14240f url("img/hk_tips.webp?v=619") center top/cover no-repeat}
+  st.textContent = `#ovHkTips{position:fixed;inset:0;z-index:9600;display:flex;flex-direction:column;justify-content:space-between;opacity:0;transition:opacity .3s;background:#0d1f0b url("img/hk_tips.webp?v=619") center -7vh/max(100%,56vh) auto no-repeat}
 #ovHkTips.on{opacity:1}#ovHkTips[hidden]{display:none!important}
-#ovHkTips::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,16,6,.78) 0,rgba(10,16,6,.15) 22%,rgba(10,16,6,0) 38%,rgba(10,20,8,.55) 55%,rgba(8,18,8,.9) 100%);pointer-events:none}
+#ovHkTips::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,16,6,.75) 0,rgba(10,16,6,.1) 18%,rgba(10,16,6,0) 50%,rgba(10,20,8,.5) 62%,rgba(8,18,8,.92) 78%);pointer-events:none}
 #ovHkTips .htTop{position:relative;text-align:center;padding:max(18px,env(safe-area-inset-top)) 14px 0;color:#fff}
 #ovHkTips .htK{display:inline-block;font:800 12px/1 "Baloo 2",sans-serif;letter-spacing:.12em;color:#3a2414;background:#ffd23a;border:2px solid #3a2414;border-radius:999px;padding:6px 12px 5px;box-shadow:0 2px 0 #3a2414}
 #ovHkTips h2{margin:8px 0 0;font:400 clamp(34px,11vw,50px)/1 Bangers,Impact,sans-serif;letter-spacing:.04em;color:#fff;text-shadow:0 3px 0 #3a2414,0 0 14px rgba(255,210,58,.55)}
 #ovHkTips .htSub{margin:4px 0 0;font:800 15px/1.2 "Baloo 2",sans-serif;color:#ffe9a8;text-shadow:0 2px 2px #000}
 #ovHkTips .htBot{position:relative;padding:0 12px max(12px,env(safe-area-inset-bottom))}
-#ovHkTips ol{list-style:none;margin:0 0 10px;padding:0;display:grid;gap:7px}
-#ovHkTips li{display:flex;gap:10px;align-items:center;background:#fff6dc;border:3px solid #3a2414;border-radius:16px;padding:8px 10px;box-shadow:0 3px 0 #3a2414}
-#ovHkTips li>i{flex:0 0 34px;height:34px;border-radius:50%;display:grid;place-items:center;background:#ffd23a;border:2px solid #3a2414;font:400 18px/1 Bangers,sans-serif;font-style:normal;color:#3a2414}
-#ovHkTips li b{display:block;font:400 19px/1 Bangers,Impact,sans-serif;letter-spacing:.04em;color:#2f6f4f}
-#ovHkTips li span{display:block;font:700 14px/1.25 "Baloo 2",sans-serif;color:#3a2414}
-#ovHkTips .htGo{position:relative;display:flex!important;flex-direction:row!important;align-items:center;justify-content:center;gap:8px;white-space:nowrap;width:100%;min-height:0;padding:13px 10px;font:400 24px/1 Bangers,Impact,sans-serif;letter-spacing:.05em;background:#7fd35a!important;color:#1f3a12!important;border:3px solid #3a2414!important;border-radius:16px;box-shadow:0 4px 0 #3a2414!important}
+#ovHkTips ol{list-style:none;margin:0 0 8px;padding:0;display:grid;gap:5px}
+#ovHkTips li{display:flex;gap:8px;align-items:center;background:#fff6dc;border:2px solid #3a2414;border-radius:12px;padding:5px 9px;box-shadow:0 2px 0 #3a2414}
+#ovHkTips li>i{flex:0 0 26px;height:26px;font-size:15px!important;border-radius:50%;display:grid;place-items:center;background:#ffd23a;border:2px solid #3a2414;font:400 18px/1 Bangers,sans-serif;font-style:normal;color:#3a2414}
+#ovHkTips li b{display:block;font:400 15px/1 Bangers,Impact,sans-serif;letter-spacing:.04em;color:#2f6f4f}
+#ovHkTips li span{display:block;font:700 12px/1.2 "Baloo 2",sans-serif;color:#3a2414}
+#ovHkTips .htGo{position:relative;display:flex!important;flex-direction:row!important;align-items:center;justify-content:center;gap:8px;white-space:nowrap;width:100%;min-height:0;padding:10px 10px;font:400 21px/1 Bangers,Impact,sans-serif;letter-spacing:.05em;background:#7fd35a!important;color:#1f3a12!important;border:3px solid #3a2414!important;border-radius:16px;box-shadow:0 4px 0 #3a2414!important}
 #ovHkTips .htGo:disabled{opacity:.55}#ovHkTips .htGo em{display:inline;font-style:normal;opacity:.8}
-@media (max-height:700px){#ovHkTips li{padding:6px 9px}#ovHkTips li span{font-size:13px}#ovHkTips li b{font-size:17px}#ovHkTips h2{font-size:34px}#ovHkTips .htSub{display:none}}`;
+@media (max-height:700px){#ovHkTips li{padding:4px 8px}#ovHkTips li span{font-size:11.5px}#ovHkTips li b{font-size:14px}#ovHkTips h2{font-size:32px}#ovHkTips .htSub{display:none}}`;
   document.head.appendChild(st);
   const ov = document.createElement("div"); ov.id = "ovHkTips"; ov.hidden = true;
   const tips = [["1", "PICK YOUR SIDE", "At the start choose the side with more ∞ and Y forks."],
@@ -7151,13 +7152,14 @@ try { (() => {
     + '<div class="htBot"><ol>' + tips.map(t => `<li><i>${t[0]}</i><div><b>${t[1]}</b><span>${t[2]}</span></div></li>`).join("") + '</ol><button type="button" class="htGo" disabled>GOT IT – LET\'S HACK!<em>3</em></button></div>';
   document.body.appendChild(ov);
   const go = ov.querySelector(".htGo"); let after = null, tI = 0;
-  const need = () => { try { const th = !!(S && S.testRun && S.testKind === "hack"); return (LS.get("capy-hk-tips") !== "1" || th) && S && S.started && !S.over && !S.nuts && (!S.testRun || th) && !S.replay; } catch (e) { return false; } };
+  const cnt = () => { try { return LS.get("capy-hk-tips") === "1" ? 1 : (+LS.get("capy-hk-tipsN") || 0); } catch (e) { return 9; } };   /* V622: die ersten 2 Duelle */
+  const need = () => { try { const th = !!(S && S.testRun && S.testKind === "hack"); return (cnt() < 2 || th) && HK.phase === "bet" && S && S.started && !S.over && !S.nuts && (!S.testRun || th) && !S.replay; } catch (e) { return false; } };
   function show(cb) { after = cb; try { S.coachHold = true; } catch (e) {} ov.hidden = false; requestAnimationFrame(() => ov.classList.add("on")); try { snd("radio"); } catch (e) {}
     go.disabled = true; let n = 3; const em = go.querySelector("em"); em.textContent = n; clearInterval(tI);
     tI = setInterval(() => { n--; if (n > 0) { em.textContent = n; return; } clearInterval(tI); em.textContent = ""; go.disabled = false; }, 1000); }
-  go.addEventListener("click", e => { e.stopPropagation(); if (go.disabled) return; try { LS.set("capy-hk-tips", "1"); } catch (x) {} try { snd("uiTap"); } catch (x) {}
+  go.addEventListener("click", e => { e.stopPropagation(); if (go.disabled) return; try { LS.set("capy-hk-tipsN", String(cnt() + 1)); LS.set("capy-hk-tips", "0"); } catch (x) {} try { snd("uiTap"); } catch (x) {}
     ov.classList.remove("on"); setTimeout(() => { ov.hidden = true; }, 300); try { S.coachHold = false; } catch (x) {} const f = after; after = null; if (f) f(); });
-  const _oh = openHack; openHack = function (force) { if (!need() || (!force && !hkOfferOn())) return _oh.apply(this, arguments); show(() => _oh(true)); };
+  const _sd = startDuel; startDuel = function (keep) { if (!need()) return _sd.apply(this, arguments); const a = arguments; show(() => _sd.apply(this, a)); };   /* V622: beim Start des Duells */
   window.__hkTips = { show: () => show(null), need };
 })(); } catch (e) { console.error("v619 hkTips", e); }
 
@@ -7414,7 +7416,7 @@ try { (() => {
     if (!fade) { window.__certNow(); return; }
     window.__certFade = 1; setTimeout(() => { window.__certFade = 0; try { if (TP.key && TP.el) TP.el.pause(); } catch (e) {} try { if (!window.__tutSumOpen && window.__tutSumPend) window.__certNow(); } catch (e) {} }, 3000);
   } catch (e) {} }, 400);
-  window.__certNow = () => { window.__tutSumPend = 0; window.__tutSumNow = false; window.__tutSumOpen = true; S.coachHold = true; setTimeout(() => { try { SFX.say("cert_done", 1, 1, "cert_done"); } catch (e) {} }, 1200);   /* V587: Martins Spruch */
+  window.__certNow = () => { window.__tutSumPend = 0; window.__tutSumNow = false; window.__tutSumOpen = true; S.coachHold = true; setTimeout(() => { try { SFX.say("cert_done", 1, 1, "cert_done"); } catch (e) {} }, 4400);   /* V623: Spruch nach der Fanfare */   /* V587: Martins Spruch */
     try { sum.querySelector(".ctHero").src = HERO_IMG[heroKey()]; sum.querySelector(".cert").classList.toggle("us", (I18N.lang || "en") !== "ru"); const gr = { ru: "5", de: "1" }[I18N.lang] || "A+"; sum.querySelectorAll(".ctMark em").forEach(e => { e.textContent = gr; }); } catch (e) {}   /* V566: RU Похвальный лист, sonst US-High-School-Urkunde */
     sb.disabled = true; setTimeout(() => { sb.disabled = false; }, 1500);
     sum.hidden = false; requestAnimationFrame(() => sum.classList.add("on")); try { certTusch(); } catch (e) { try { snd("powerup"); } catch (x) {} } };
