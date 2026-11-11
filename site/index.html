@@ -2796,7 +2796,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V594";
+const GAME_VER = "V595";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -3308,8 +3308,9 @@ function setScene(src, big) {
 }
 let buddyT = null;
 const BUDDY_SAY = { snipe: ["ON THE SCOPE!", "sniper strike"], mix: ["CONCRETE INCOMING!", "concrete mixer"], tesla: ["FULL CHARGE!", "tesla storm"], chomp: ["RELEASE THE JAWS!", "chomper"], ton: ["HEADS UP! TEN TONS!", "ten-ton drop"], lock: ["TIME OUT!", "lockdown"] };
+function certQuiet() { return performance.now() - (window.__certQuietT || -1e9) < 60000; }   /* V595: 60 s nach der Urkunde nur der 10T-Airdrop */
 function buddyHelp(kind) { try { window.__msnEv && window.__msnEv("use_" + kind); } catch (e) {}
-  try { if ((typeof TUT !== "undefined" && TUT.on) || window.__tutSumPend || window.__tutSumNow || window.__tutSumOpen) return; } catch (e) {}   /* V587: bis zur Urkunde keine Figur */
+  try { if ((typeof TUT !== "undefined" && TUT.on) || window.__tutSumPend || window.__tutSumNow || window.__tutSumOpen || certQuiet()) return; } catch (e) {}   /* V587: bis zur Urkunde keine Figur */
   const el = document.getElementById("buddy"), q = BUDDY_SAY[kind]; if (!el || !q) return;
   const b = buddyKey(), side = Math.random() < 0.5 ? "l" : "r";
   el.className = side; el.querySelector("img").src = HERO_IMG[b];
@@ -4440,6 +4441,7 @@ function uiWinOpen() { try { const v = id => { const e = document.getElementById
   return !!(window.__tipBulb && window.__tipBulb.open) || v("ovTilt") || v("ovIntro") || v("ovHack") || !!(S && (S.duel || S.hackAdOpen)) || document.body.classList.contains("introWin") || v("ovAd") || v("ovBandit") || v("ovJoin") || document.body.classList.contains("mapUp") || v("ovOrders") || !!(S && (S.joinOpen || S.signOpen || S.banditOpen || S.ordersOpen)); } catch (e) { return false; } }
 window.__msgDbg = () => ({ q: MSGQ.map(x => x.title), busy: Math.round(msgBusy - performance.now()), win: uiWinOpen() });
 function msgPush(m) {
+  try { if (certQuiet()) return; } catch (e) {}   /* V595 */
   try { if (typeof TUT !== "undefined" && TUT.on) { if (S.tutGreet) return; S.tutGreet = 1; } else if (S) S.tutGreet = 0; } catch (e) {}   /* V591: im Tutorial nur eine Begrüßung vom General */
   const last = MSGQ[MSGQ.length - 1]; if (last && last.title === m.title && last.sub === m.sub) return;   // gleiche Meldung nicht doppelt
   m.at = performance.now(); if (!m.low) { const i = MSGQ.findIndex(x => x.low); if (i >= 0) MSGQ.splice(i, 0, m); else MSGQ.push(m); } else MSGQ.push(m);
@@ -7314,7 +7316,7 @@ try { (() => {
   document.body.appendChild(sum); const sb = sum.querySelector("button");
   function sumScore() { try { const goal = (S.bonusPts | 0) + 1000, st = Math.max(1, Math.round((goal - (S.bonusPts | 0)) / 40)); const el = document.getElementById("sScore"), pill = el && (el.closest(".score") || el.parentElement); if (pill) pill.classList.add("ctPop");
       let k = 0; const it = setInterval(() => { try { if (!S || !S.started) { clearInterval(it); return; } S.bonusPts = Math.min(goal, (S.bonusPts | 0) + st); checkScore(); hud(); if (k++ % 6 === 0) snd("sell"); if (S.bonusPts >= goal) { clearInterval(it); snd("powerup"); setTimeout(() => pill && pill.classList.remove("ctPop"), 600); } } catch (e) { clearInterval(it); } }, 35); } catch (e) {} }
-  function sumClose() { sumScore(); sum.classList.remove("on"); setTimeout(() => { sum.hidden = true; }, 220); window.__tutSumOpen = false; try { S.coachHold = false; snd("uiTap"); } catch (e) {} window.__evtLast = performance.now(); }
+  function sumClose() { sumScore(); sum.classList.remove("on"); setTimeout(() => { sum.hidden = true; }, 220); window.__tutSumOpen = false; window.__certQuietT = performance.now(); try { S.coachHold = false; snd("uiTap"); } catch (e) {} window.__evtLast = performance.now(); }
   sb.addEventListener("click", e => { e.stopPropagation(); if (!sb.disabled) sumClose(); });
   setInterval(() => { try {
     const p = window.__tutSumPend; if (!p || window.__tutSumOpen) return;
@@ -7830,7 +7832,9 @@ function finMedals(ms) {   // V244
   for (const m of ms) { const d = document.createElement("span"); d.className = "fm " + (m.tint || ""); d.innerHTML = `<img src="${MED_IMG[m.img]}" alt=""><b></b>`; d.querySelector("b").textContent = m.name; row.appendChild(d); }
   const n = row.children.length; box.querySelector("small").textContent = n === 1 ? "NEW MEDAL" : n > 4 ? `${n} NEW MEDALS · all in your album` : `${n} NEW MEDALS`; box.hidden = false; try { snd("powerup"); } catch (e) {}
 }
+window.__TQ = () => ({ certQuiet, msgPush, buddyHelp, hint, n: () => MSGQ.length, q: () => MSGQ.map(m => m.title) });   /* V595: Test-Zugang */
 function albTry() {
+  try { if (albQ.length && certQuiet()) { clearTimeout(window.__albT); window.__albT = setTimeout(albTry, 2000); return; } } catch (e) {}   /* V595: Orden erst nach der Ruhe */
   if (!albQ.length || !$("ovGive").hidden) return;
   if (typeof S !== "undefined" && S && S.won) { if (!$("ovOver").hidden) finMedals(albQ.splice(0)); return; }   // V244: Finale zuerst, Orden stehen auf der Karte
   if (performance.now() - (window.__waveEndT || 0) < 1600) return;   // erst schauen, ob Feldpost kommt
@@ -10475,6 +10479,7 @@ try { (() => {
       D.weeds = xs.map(x => ({ x, root: null, h: 0, seedY: -1, growT: Math.random() * 1.5, waves: 0, delay: dl + Math.random() * 0.4, gi: 6.8 / (WEEDSPD[S.wave] || 1) })); if (n > 1) setTimeout(() => { try { (D.weeds || []).forEach(w => { if (w.delay > 100) w.delay = 2 + Math.random() * 0.4; }); } catch (e) {} }, 40000); }
     if (k === "thief") D.thief = { x: -0.8, t: 0, stolen: 0 };
     snd("siren"); { const nm = k === "weed" && D.weeds.length > 1 ? NAMES.weed5 : NAMES[k]; announce(nm[0], nm[1], "ALERT", 2400); }
+    if (k === "weed") setTimeout(() => { try { hint("weedintro", "WEEDS!", "🌱 → ⬆ → ✂ Weeds grow toward the ring. If one reaches it, the field is lost. Cut it with a Sniper strike or Tesla storm!", "board"); } catch (e) {} }, 2600);   /* V595: Unkraut-Vorstellung (Variante C) */
     if (k === "thief") setTimeout(() => { try { SFX.say("thief_hello", 1.0, 1.0, 0, 0); } catch (e) {} }, 900);
   }
   // Rauschen (leise, nur solange ein Stein im Bildausfall steckt)
