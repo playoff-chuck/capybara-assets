@@ -100,7 +100,7 @@ BOT = r"""
     if (w.drop && age('drop') > 2500) click(pick(document, ['COLLECT', 'GRAB', 'TAKE', 'GOT IT', 'OPEN', "IT'S FREE"]), 'drop');
     if (w.map && age('map') > 4000 && (Math.floor(age('map') / 1500) % 2 === 0)) {
       const b = pick(document, ['CONTINUE', "LET'S GO", 'GO', 'NEXT']); if (b) click(b, 'map');
-      else { const c = document.elementFromPoint(206, 600); if (c) { c.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, clientX: 206, clientY: 600 })); c.dispatchEvent(new PointerEvent('pointerup', { bubbles: true, clientX: 206, clientY: 600 })); c.click(); } }
+      else { const c = document.elementFromPoint(206, 600); if (c) { c.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, clientX: 206, clientY: 600 })); c.dispatchEvent(new PointerEvent('pointerup', { bubbles: true, clientX: 206, clientY: 600 })); if (c.click) c.click(); } }   /* 11.11.: SVG-Elemente haben kein click() */
     }
     if (w.tip && age('tip') > 2500) { if (!click(pick(document.getElementById('tipBulb'), ['GOT IT', 'OK', 'THANKS', 'CLOSE']), 'tip')) { try { window.__tipBulb.close(); LOG.ev.push({ t, k: 'bot', e: 'tip:close()', wave: S.wave }); } catch (e) {} } }
     if (w.pause && age('pause') > 1500) click(pick(document.getElementById('ovPause'), ['RESUME', 'CONTINUE', 'PLAY']), 'pause');
