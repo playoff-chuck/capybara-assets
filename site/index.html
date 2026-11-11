@@ -2796,7 +2796,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V603";
+const GAME_VER = "V604";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -4660,7 +4660,7 @@ function tutSplatPlace(only) {   /* V587: Stein, der beim DROP ein Monster triff
           const hit = cells.some(([x, y]) => tg.has((px + x) + "," + (py + y))); if (!hit) continue;
           const sc = 1000 + (m.cx >= W / 2 ? 500 : 0) + (m.cx >= W - 2 ? 800 : 0) + (k === "I" ? 50 : 0) + py + Math.random(); if (sc > bs) { bs = sc; best = { k, cells: cells.map(c => c.slice()), px }; } } } } }
   if (!best && only) { let cells = SHAPES[only].c.map(p => p.slice()), bx = -99;   /* V599: kein Treffer möglich → ganz rechts über den Ring-Eingang, wo die Monster herunterkommen */
-    for (let px = -3; px < W + 3; px++) { if (collide(cells, px, 0)) continue; if (!cells.every(([x]) => px + x >= 1 && px + x <= W - 2)) continue; if (px > bx) bx = px; }
+    for (let px = -3; px < W + 3; px++) { if (collide(cells, px, 0)) continue; if (!cells.every(([x]) => px + x >= 1 && px + x <= W - 1)) continue; if (px > bx) bx = px; }   /* V604: bis in die Ring-Spalte */
     if (bx > -99) best = { k: only, cells, px: bx, edge: 1 }; }
   return best; }
 setInterval(() => { try { if (!(TUT.on && S && S.piece && TUT_STEPS[TUT.step] && /SPLAT THEM|MONSTERS RUN THE RING/.test(TUT_STEPS[TUT.step].t) && !S.rotMode)) return;   /* V601: auch Lektion 7 */ const p = S.piece;
@@ -9443,7 +9443,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     function placeSub(w) { const P = wherePos(w), left = 5 - P.d, lm = (5 - P.p) * 5 - P.d; return P.p === 5 ? `Landmark · boss waits here · wave ${w}` : `Wave ${w} · next stop in ${left} wave${left > 1 ? "s" : ""} · landmark in ${lm}`; }
     function clearSeq() { seqT.forEach(clearTimeout); seqT = []; }
     function at(ms, f) { seqT.push(setTimeout(f, ms)); }
-    function show(m) { mode = m; mapShownAt = performance.now(); ov.classList.remove("skipOk"); clearTimeout(skipT); skipT = setTimeout(() => ov.classList.add("skipOk"), 3000); layout(); ov.hidden = false; ov.className = m === "browse" ? "browse" : "auto"; document.body.classList.add("mapUp"); }
+    function show(m) { mode = m; mapShownAt = performance.now(); ov.classList.remove("skipOk"); clearTimeout(skipT); skipT = setTimeout(() => ov.classList.add("skipOk"), 3000); layout(); ov.hidden = false; ov.className = m === "browse" ? "browse" : "auto"; try { if (m !== "browse" && S && (S.wave | 0) <= 1 && Object.values(starsAll()).reduce((a, b) => a + (+b || 0), 0) === 0) ov.classList.add("firstFly"); } catch (e) {}   /* V604 */ document.body.classList.add("mapUp"); }
     function hide() { clearSeq(); try { ov.querySelector(".mapReplay").hidden = true; } catch (e) {} ov.hidden = true; ov.classList.remove("fadeOut"); mode = null; document.body.classList.remove("mapUp"); plane.classList.remove("on"); const f = seqDone; seqDone = null; if (f) f(); }
     /* frei ansehen */
     function openMap(w, why) { clearSeq(); w = w || curWave(); const P = posOf(w); show("browse");
@@ -11500,6 +11500,7 @@ body.testLink #ovStart{pointer-events:none!important;opacity:.35}
 @media (prefers-reduced-motion:reduce){#credits .crRoll{animation:none;top:10%}}
 .mPin .pStars{position:absolute;left:50%;top:9px;transform:translateX(-50%);font-size:9px;line-height:1;letter-spacing:-1px;color:#ffc93c;text-shadow:0 0 2px #3a2414,0 0 2px #3a2414;white-space:nowrap;pointer-events:none}
 .mapRose{position:absolute;right:max(10px,env(safe-area-inset-right,0px));bottom:calc(env(safe-area-inset-bottom,0px) + 70px);z-index:5;display:flex;flex-direction:column;align-items:center;gap:2px;pointer-events:none;font:400 12px/1.1 Bangers,Impact,system-ui,sans-serif;letter-spacing:.5px;color:#fff6e6;-webkit-text-stroke:.6px #3a2414;text-shadow:1px 2px 0 #3a2414}
+#ovMap.firstFly .mapRose{display:none!important}
 .mapRose svg{width:60px;height:60px;filter:drop-shadow(2px 3px 0 rgba(58,36,20,.55))}
 .mapRose .rsTot{font-size:16px;color:#ffc93c}
 .mapRose .rsCnt{font-size:10px;opacity:.95;text-align:center;line-height:1.25;letter-spacing:.3px}
