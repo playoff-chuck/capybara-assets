@@ -2823,7 +2823,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V638";
+const GAME_VER = "V639";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -2843,13 +2843,15 @@ function i18nLookup(key, DD) {   /* exakt → Zahlen-Muster → Namens-Muster �
   if (key.includes(" · ")) { const parts = key.split(" · "); let hit = false; const out = parts.map(p => { const k = i18nNorm(p); const v = k ? i18nLookup(k, DD) : null; if (v != null) hit = true; return v != null ? v : p; }); if (hit) return out.join(" · "); }
   if (key.includes(": ")) { const i = key.indexOf(": "), a = key.slice(0, i), b = key.slice(i + 2); const va = i18nLookup(a, DD), vb = i18nLookup(b, DD); if (va != null && vb != null) return va + ": " + vb; }   /* V468 */
   return null; }
+function capyAddr(v) { try { if (I18N.lang !== "ru" || typeof v !== "string" || v.indexOf("напарник") < 0) return v; const TS = window.__TT && window.__TT.S, w = (TS && +TS.wave) || 0; if (w < 31) return v;   /* V639: Anrede nach Welle */
+  return v.replace(/, напарник(?=[\s.,!?–—])/g, w >= 61 ? ", друг" : ", дружище"); } catch (e) { return v; } }
 function T(t) {
   if (t == null) return t; const raw = String(t); const key = i18nNorm(raw); if (!key || !/[A-Za-zÀ-ÿ]{2}/.test(key)) return raw;
   if (I18N.audit) I18N.seen.add(key);
   if (!I18N.dict) return raw;
   let v = I18N.cache.get(key); if (v === undefined) { v = i18nLookup(key); if (v == null) v = i18nCI(key); if (v == null) v = i18nSym(key); if (v == null) { if (!(I18N.rev && (I18N.rev.has(key) || I18N.rev.has(key.replace(I18N_NUM, "#"))))) I18N.miss.add(key); v = null; } I18N.cache.set(key, v); }   /* V460: Rückübersetztes nicht als fehlend zählen */
   if (v == null) return raw;
-  const lead = raw.match(/^\s*/)[0], tail = raw.match(/\s*$/)[0]; return lead + v + tail; }
+  const lead = raw.match(/^\s*/)[0], tail = raw.match(/\s*$/)[0]; return lead + capyAddr(v) + tail; }
 const I18N_SKIP = new Set(["SCRIPT", "STYLE", "TEXTAREA", "INPUT", "CODE"]), I18N_ATTR = ["placeholder", "aria-label", "title"], i18nDone = new WeakMap();
 function i18nText(n) { if (!I18N.dict) return;   /* V471: vor dem Laden nichts als erledigt merken */ const d = n.data; if (!d || !d.trim()) return; const p = n.parentNode; if (!p || I18N_SKIP.has(p.nodeName)) return; if (p.closest && p.closest("[translate=no]")) return;   /* V469 */ const m = i18nDone.get(n); if (m && m.out === d && m.lang === I18N.lang) return; const src = (m && m.out === d) ? m.src : d; const out = T(src); i18nDone.set(n, { src, out, lang: I18N.lang }); if (out !== d) n.data = out; if (out.indexOf("\uE000") >= 0) queueMicrotask(() => { if (n.parentNode && n.data === out) i18nCoin(n, out); }); }   /* erst nach dem Durchlauf tauschen, sonst bricht der TreeWalker ab */
 function i18nCoin(n, out) {   /* V557: Münz-Zeichen → Bild */
@@ -10853,7 +10855,7 @@ try { (() => {
   let lastSay = -1e9, bT = 0; const lastKey = {};
   function bubble(key) { if ((typeof TUT !== "undefined" && TUT.on) || window.__tutSumPend || window.__tutSumNow || window.__tutSumOpen) return;   /* V580/V581: bis zum Diplom nur Stimme, kein Bild */ const el = document.getElementById("buddy"); if (!el) return; const who = "blue";   // V366: Martins Stimme = immer Blue
     el.className = Math.random() < 0.5 ? "l" : "r"; el.querySelector("img").src = HERO_IMG[who];
-    el.querySelector(".say").innerHTML = `${VOICE_TEXT[key]}<small>${who === "rosie" ? "ROSIE" : "BLUE"}</small>`;
+    el.querySelector(".say").innerHTML = `${capyAddr(VOICE_TEXT[key])}<small>${who === "rosie" ? "ROSIE" : "BLUE"}</small>`;
     void el.offsetWidth; el.classList.add("on"); clearTimeout(bT); const mine = String((+el.dataset.bn || 0) + 1); el.dataset.bn = mine; bT = setTimeout(() => { if (el.dataset.bn === mine) el.classList.remove("on"); }, 2800); }   /* V464: übersetzter Text bricht den Vergleich nicht mehr */
   function rbSay(key, delay = 0, force = false) {
     try { if (!force && S && (S.wave | 0) <= 10 && Math.random() < 0.3) return; } catch (e) {}   /* V577: W1–10 30 % weniger */
