@@ -2808,7 +2808,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V616";
+const GAME_VER = "V618";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -3332,10 +3332,8 @@ function certTusch() {   /* V605: festlicher Tusch zum Diplom */
   const noise = (t, d, v, type, f) => { const n = A.createBufferSource(), b = A.createBuffer(1, Math.ceil(A.sampleRate * d), A.sampleRate), c = b.getChannelData(0); for (let i = 0; i < c.length; i++) c[i] = Math.random() * 2 - 1;
     n.buffer = b; const fl = A.createBiquadFilter(), g = A.createGain(); fl.type = type; fl.frequency.value = f; g.gain.setValueAtTime(v, t); g.gain.exponentialRampToValueAtTime(0.0001, t + d); n.connect(fl); fl.connect(g); g.connect(out); n.start(t); };
   const M = n => 440 * Math.pow(2, (n - 69) / 12);
-  for (let i = 0; i < 10; i++) noise(t0 + i * 0.045, 0.09, 0.22 + i * 0.03, "lowpass", 180);   /* Pauken-Wirbel */
   [[0.45, 0.13], [0.62, 0.13], [0.79, 0.13]].forEach(([dt, d]) => [67, 72, 76].forEach(n => brass(M(n), t0 + dt, d, 0.16)));   /* ta-ta-ta */
   [72, 76, 79, 84].forEach(n => brass(M(n), t0 + 0.96, 1.25, 0.18)); brass(M(48), t0 + 0.96, 1.25, 0.2);   /* taaa (C-Dur) */
-  noise(t0 + 0.96, 1.6, 0.35, "highpass", 5000); noise(t0 + 0.96, 0.35, 0.6, "lowpass", 120);   /* Becken + Pauke */
   setTimeout(() => { try { out.disconnect(); } catch (e) {} }, 3500); }
 function certQuiet() { return performance.now() - (window.__certQuietT || -1e9) < 60000; }   /* V595: 60 s nach der Urkunde nur der 10T-Airdrop */
 function buddyHelp(kind) { try { window.__msnEv && window.__msnEv("use_" + kind); } catch (e) {}
@@ -4394,7 +4392,7 @@ const SFX = (() => {
     function setPaused(pz) {
       if (!ac || !bus || !cur || pz === paused) return; paused = pz;
       bus.gain.cancelScheduledValues(ac.currentTime); bus.gain.setValueAtTime(Math.max(0.0001, bus.gain.value), ac.currentTime);
-      bus.gain.exponentialRampToValueAtTime(pz ? 0.0001 : LVL * sonarLvl, ac.currentTime + (pz ? 1.5 : 0.25));
+      bus.gain.exponentialRampToValueAtTime(pz ? 0.0001 : LVL * sonarLvl, ac.currentTime + (pz ? 2 : 1.5));   /* V618 */
       if (!pz) nextT = ac.currentTime + 0.1;
     }
     // Musik kurz leiser (Sprecher)
@@ -4697,7 +4695,7 @@ function tutSplatPlace(only) {   /* V587: Stein, der beim DROP ein Monster triff
     for (let px = -3; px < W + 3; px++) { if (collide(cells, px, 0)) continue; if (!cells.every(([x]) => px + x >= 1 && px + x <= W - 1)) continue; if (px > bx) bx = px; }   /* V604: bis in die Ring-Spalte */
     if (bx > -99) best = { k: only, cells, px: bx, edge: 1 }; }
   return best; }
-setInterval(() => { try { if (!(TUT.on && S && S.piece && TUT_STEPS[TUT.step] && /SPLAT THEM|MONSTERS RUN THE RING/.test(TUT_STEPS[TUT.step].t) && !S.rotMode)) return;   /* V601: auch Lektion 7 */ const p = S.piece;
+setInterval(() => { try { if (!(TUT.on && S && S.piece && TUT_STEPS[TUT.step] && /SPLAT THEM|MONSTERS RUN THE RING/.test(TUT_STEPS[TUT.step].t) && !S.rotMode)) return;   /* V601: auch Lektion 7 */ return;   /* V617: kein Nachzielen mehr – Stein sprang */ const p = S.piece;
   const sg = p.x + "," + JSON.stringify(p.cells); if (p.__auto && p.__auto !== sg) return;   // Spieler hat bewegt/gedreht
   const b = tutSplatPlace(p.k); if (!b || collide(b.cells, b.px, p.y)) return; p.cells = b.cells; p.x = b.px; p.__auto = p.x + "," + JSON.stringify(p.cells); } catch (e) {} }, 300);   /* V587 */
 function tutRowKey() {   /* V586: Stein, der eine Reihe schließt (nur innere Spalten zählen) */
@@ -5240,7 +5238,7 @@ function update(dt) {
     else if (f.type === "smoke") { f.vy *= (1 - 0.35 * dt); f.x += (f.vx + Math.sin(f.t * 1.7 + f.ph) * 0.6) * dt; f.y += f.vy * dt; f.r += f.grow * dt; }
   }
   try { ofxStep(dt); } catch (e) {}   /* V490: Outfit-Effekte */
-  SFX.music.setPaused(SFX.music.playing !== 0 && !!frozen() && !S.drop && !S.alert && !S.mix && !S.duel && !S.mapShow && !S.tiltCard && !S.coachHold);
+  SFX.music.setPaused(SFX.music.playing !== 0 && !!frozen() && !S.drop && !S.alert && !S.mix && !S.duel && !S.mapShow && !S.tiltCard && !window.__tutSumOpen && !window.__certFade);   /* V618: auch bei Kurs-/General-Karten ausblenden */
   if (S.mix) stepMix(dt);
   stepTon(dt); stepChomp(dt);
   if (frozen() || S.ton) return;   // während das Gewicht fällt, steht alles
@@ -7093,7 +7091,7 @@ const TUT_STEPS = [   /* V570: Kurs mit 10 Lektionen */
   { t: "BUILD A SECOND TOWER", s: "Towers can fall when their block disappears – then just build a new one. Build a second tower at the edge and arm it.", at: "bBuild", ar: "tower2", fast: 1, enter: () => { try { S.gold = Math.max(S.gold | 0, TOWER_COST + ((WEAP.mg && WEAP.mg.cost) | 0)); } catch (e) {} }, done: () => !S.sel && !S.shop && S.mode !== "build" && ((S.towers.size > TUT.e.tw && [...S.towers.values()].reduce((a, t) => a + t.w.length, 0) > TUT.e.wp) || TUT.t >= 75) },
 ];
 const TUT_PRAISE = ["goodjob", "nice", "great", "nailedit", "smooth", "terrific", "awesome", "brilliant", "fantastic", "outstanding"];   /* V571 */
-window.__tutKeys = new Set(TUT_PRAISE);
+window.__tutKeys = new Set(TUT_PRAISE); window.__tutKeys.add("welcome");   /* V618: Begrüßung Südamerika im Kurs */
 setTimeout(() => { try { const _toK = toast; toast = function () { try { if (TUT.on) return; } catch (e) {} return _toK.apply(this, arguments); };
   if (typeof SFX !== "undefined" && SFX.say) { const _ssK = SFX.say; SFX.say = function (k) { try { if (TUT.on && !window.__tutKeys.has(k)) return; if ((I18N.lang || "") === "ru" && (k === "nutsgo" || k === "nutsmedal")) return; } catch (e) {} return _ssK.apply(this, arguments); }; }   /* V575: alte RU-Aufnahmen sagen noch «Дурдом» */ } catch (e) {} }, 0);   /* V571: im Kurs keine anderen Meldungen */
 
@@ -7770,7 +7768,7 @@ function tpStop(f = 0.5) { if (!TP.el) return; tpFade(0.0001, f); const a = TP.e
   M.next = function () { if (TP.key) return tpNext(); return o.next.call(M); };
   M.stop = function (f) { tpStop(f || 0.5); return o.stop.call(M, f); };
   M.setPaused = function (pz) { if (pz && (shopOpenNow() || (S && S.intro)) && TP.key && TP.el) pz = false;   // im Shop läuft die Musik leiser weiter
-    if (TP.key && TP.el) { if (pz === TP.paused) return; TP.paused = pz; if (pz) { tpFade(0.0001, 1.5); setTimeout(() => { if (TP.paused) TP.el.pause(); }, 1600); } else { const p = TP.el.play(); if (p && p.catch) p.catch(() => {}); tpFade(0.5, 0.6); } return; } return o.setPaused.call(M, pz); };
+    if (TP.key && TP.el) { if (pz === TP.paused) return; TP.paused = pz; if (pz) { tpFade(0.0001, 2); setTimeout(() => { if (TP.paused) TP.el.pause(); }, 2100); } else { const p = TP.el.play(); if (p && p.catch) p.catch(() => {}); tpFade(0.5, 1.5); } return; }   /* V618: 2 s aus, 1,5 s ein */ return o.setPaused.call(M, pz); };
   M.toggle = function () { const r = o.toggle.call(M); if (!r) tpStop(0.4); return r; };
   M.duck = function (x) { if (TP.key) { tpFade(0.15, 0.2); setTimeout(() => tpFade(0.5, 1.2), (x || 0.8) * 1000); return; } return o.duck.call(M, x); };
   const d = (k, g) => { try { Object.defineProperty(M, k, { get: g, configurable: true }); } catch (e) {} };
