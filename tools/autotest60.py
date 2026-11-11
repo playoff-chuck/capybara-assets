@@ -115,7 +115,7 @@ def main():
     res = {}
     try:
         with sync_playwright() as p:
-            br = p.chromium.launch(executable_path="/usr/bin/google-chrome", args=["--autoplay-policy=no-user-gesture-required", "--mute-audio"])
+            br = p.chromium.launch(**({"executable_path": "/usr/bin/google-chrome"} if os.path.exists("/usr/bin/google-chrome") else {}), args=["--autoplay-policy=no-user-gesture-required", "--mute-audio"])
             ctx = br.new_context(viewport={"width": 412, "height": 915}, device_scale_factor=1)
             ctx.route("**/api/**", lambda r: r.fulfill(status=200, content_type="application/json", body="{}"))
             ctx.add_init_script("""try{localStorage.setItem('capy-reset','276');localStorage.setItem('tarnturm-tut','1');localStorage.setItem('tarnturm-terms','1');}catch(e){}""")
