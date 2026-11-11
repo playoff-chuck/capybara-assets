@@ -123,6 +123,7 @@ def main():
             wall0 = time.time(); last = -1; last_t = 0
             while True:
                 pg.clock.run_for(5000)
+                pg.evaluate("(()=>{const c=document.getElementById('coach'),k=document.getElementById('coachSkip');if(c&&!c.hidden&&k&&!k.hidden&&!k.classList.contains('wait')&&window.__TT.S.coachHold){k.click();(window.__AT&&window.__AT.ev||[]).push({k:'bot',e:'coach:gotit',wave:window.__TT.S.wave});}})()")   # 11.11.: NEW-Karte («Got it») schließen
                 pg.evaluate("(()=>{const o=document.getElementById('ovPause');if(o&&!o.hidden){const b=[...o.querySelectorAll('button')].find(b=>b.offsetParent);if(b){b.click();(window.__AT&&window.__AT.ev||[]).push({k:'bot',e:'pause:resume',wave:window.__TT.S.wave});}}})()")   # 11.11.: Pause-Fenster sicher schließen (Sprache egal)
                 st = pg.evaluate("({w: window.__TT.S.wave, over: !!window.__TT.S.over, t: performance.now()})")
                 if st["w"] == last and st["t"] - last_t > 4 * 60000:
