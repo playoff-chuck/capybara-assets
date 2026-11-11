@@ -32,6 +32,21 @@
 #tipBulb button{display:block;width:fit-content;margin-left:auto;font-size:13px!important;padding:4px 10px 3px!important;border-width:2px!important;box-shadow:0 2px 0 #3a2414!important;transition:opacity .25s}#tipBulb button:disabled{visibility:hidden;opacity:0}
 #tipArrow{position:fixed;z-index:71;width:46px;height:60px;pointer-events:none;animation:tipBob .7s ease-in-out infinite}
 @keyframes tipBob{50%{transform:translateY(-8px)}}
+
+/* V635: Einsatz-Screen violett wie die Boss-Werbung */
+#hackBet.hackBet{background:#fff7ee!important;border:3px solid #17150c!important;box-shadow:0 14px 0 rgba(0,0,0,.35)!important}
+#hackBet .hkBetPic{border-bottom:3px solid #17150c!important}
+#hackBet .alTag,#hackBet .hackTag{background:linear-gradient(180deg,#d6409f,#7a1f60)!important;color:#fff!important;border:2.5px solid #17150c!important;border-radius:10px!important;font-family:Bangers,var(--f-display),sans-serif!important;letter-spacing:1px}
+#hackBet h2{color:#d6409f!important;-webkit-text-stroke:1.4px #17150c;font-family:Bangers,var(--f-display),sans-serif!important;letter-spacing:1px}
+#hackBet p{color:#3a2a1a!important}
+#hackBet .hkStake small{color:#b0328c!important;letter-spacing:.14em}
+#hackBet .hkStake b{color:#d6409f!important;-webkit-text-stroke:1px #17150c}
+#hackBet #hkRange{display:none!important}
+#hackBet .hkChips{gap:8px}
+#hackBet .hkChips button{background:#fff!important;color:#b0328c!important;border:2.5px solid #d6409f!important;border-radius:12px!important;font:400 22px/1 Bangers,system-ui!important;letter-spacing:1px;box-shadow:0 3px 0 #7a1f60!important}
+#hackBet .hkChips button.on{background:linear-gradient(180deg,#e04aa8,#8a2470)!important;color:#fff!important;border-color:#17150c!important;text-shadow:0 2px 0 #4d1240}
+#hackBet #hkGo{font-family:Bangers,system-ui!important;font-size:26px!important;letter-spacing:1px;color:#fff!important;background:linear-gradient(180deg,#e04aa8,#8a2470)!important;border:3px solid #17150c!important;text-shadow:0 2px 0 #4d1240;box-shadow:0 4px 0 #4d1240!important}
+#hackBet #hkSkip{color:#7a6a55!important;background:transparent!important;border:2px solid #e2d3bc!important;box-shadow:none!important}
 </style><link rel="manifest" href="manifest.webmanifest?v=601"><meta name="theme-color" content="#2b3a22"></head><body>
 <script>try{if(localStorage.getItem("capy-tutDone")==="1"){var tb=localStorage.getItem("capy-tutbak");if(tb){var bk=JSON.parse(tb),dk=[];for(var di=0;di<localStorage.length;di++){var dkk=localStorage.key(di);if(dkk&&/^(tarnturm|capy)/.test(dkk)&&!/^(tarnturm-dev|tarnturm-terms|capy-adm|capy-uid|capy-cloud|capy-reset|capy-lang|capy-tutbak|capy-tutDone|capy-tutBack)$/.test(dkk))dk.push(dkk);}dk.forEach(function(k){localStorage.removeItem(k);});for(var bkk in bk)localStorage.setItem(bkk,bk[bkk]);localStorage.setItem("tarnturm-tut","1");localStorage.setItem("capy-tutBack","1");}localStorage.removeItem("capy-tutbak");localStorage.removeItem("capy-tutDone");}}catch(e){}   /* V609: Spielstand nach dem Tutorial zurück */
 try{if(localStorage.getItem("capy-reset")!=="276"){var rk=[];for(var ri=0;ri<localStorage.length;ri++){var rkk=localStorage.key(ri);if(rkk&&/^(tarnturm|capy)/.test(rkk)&&rkk!=="tarnturm-dev"&&rkk!=="capy-cloud"&&rkk!=="capy-uid"&&rkk!=="capy-adm")rk.push(rkk);}rk.forEach(function(k){localStorage.removeItem(k);});localStorage.setItem("capy-reset","276");}}catch(e){}
@@ -2435,7 +2450,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
           <p>Tap your wires to claim core cells. 10 seconds, more than 6 wins. <b>Win: stake ×2 · Lose: stake gone.</b></p>
                     <div class="hkStake"><small>STAKE</small><b id="hkStakeV">0</b><span id="hkWinV">win 0</span></div>
           <input type="range" id="hkRange" min="0" max="100" step="10" value="0">
-          <div class="hkChips"><button data-p="0.1">10 %</button><button data-p="0.25">25 %</button><button data-p="0.5">50 %</button><button data-p="1">ALL IN</button></div>
+          <div class="hkChips"><button data-p="0.25">25 %</button><button data-p="0.5">50 %</button><button data-p="1">100 %</button></div>
           <div class="hkRow"><button id="hkSkip">Skip</button><button id="hkGo" class="btn-accent">HACK!</button></div>
         </div>
         <canvas id="hackCv" hidden></canvas>
@@ -2808,7 +2823,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V634";
+const GAME_VER = "V635";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -5778,7 +5793,7 @@ function openHack(force) {
   const max = Math.max(0, Math.floor(S.gold / 10) * 10), rg = $("hkRange"); rg.max = max; rg.value = Math.min(max, Math.max(10, Math.round(max * 0.25 / 10) * 10)); hkStakeUI();
   $("ovHack").hidden = false; $("hackBet").hidden = false; $("hackCv").hidden = true; $("hackRes").hidden = true;
 }
-function hkStakeUI() { const v = +$("hkRange").value || 0; $("hkStakeV").textContent = v; $("hkWinV").textContent = v ? `win → +${v} (${v * 2} back)` : "no stake · just for honour"; }
+function hkStakeUI() { const v = +$("hkRange").value || 0; try { const mx = +$("hkRange").max || 0; document.querySelectorAll("#hackBet .hkChips button").forEach(b => b.classList.toggle("on", mx > 0 && v === Math.round(mx * +b.dataset.p / 10) * 10)); } catch (e) {} $("hkStakeV").textContent = v; $("hkWinV").textContent = v ? `win → +${v} (${v * 2} back)` : "no stake · just for honour"; }
 function tutAbort() { if (TUT.on) { TUT.on = false; S.coachHold = false; $("coachSkip").textContent = "Skip tutorial"; $("coachSkip").hidden = false; $("coach").hidden = true; coachHi(null); } }
 function closeHack() { const wasCoach = !!HK.coach; window.__hackBack = true; HK.coach = false; HK._bk = null; snd("arcade", false); $("ovHack").hidden = true; document.body.classList.remove("duelOn", "duelPick"); S.hackDone = S.hackOfferWave || S.wave; HK.phase = "off"; S.duel = false; S.hackDone = S.wave; if (wasCoach && S.started && !S.over) setTimeout(() => { try { openShop(); } catch (e) {} }, 80); }
 function startDuel(keepStake) {
