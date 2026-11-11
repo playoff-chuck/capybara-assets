@@ -2823,7 +2823,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V641";
+const GAME_VER = "V642";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -9994,7 +9994,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     const calm = () => S && S.started && !S.over && !S.nuts && !S.testRun0 && !S.intro && !S.drop && !S.alert && !S.ordersOpen && !S.duel && !S.mapShow && !S.mapFly && !S.signOpen && !S.joinOpen
       && !S.mode && !S.sel && !S.shop && !S.paused && !S.mix && !S.banditOpen && !(typeof TUT !== "undefined" && TUT.on) && !(typeof hkOfferOn === "function" && hkOfferOn()) && (typeof inPlay !== "function" || inPlay()) && !document.hidden && ov.hidden;
     setInterval(() => { try { if (!S || !S.adDue || !calm() || !window.__offerOK()) return;
-      if (window.__prioDue && window.__prioDue()) { if (S.prioW == null) S.prioW = S.wave || 0; if ((S.wave || 0) <= S.prioW + 4) return;   /* V314: bis zu 4 Wellen */ } else S.prioW = null;   /* V311: Vorrang Lucky/Rufzeichen */
+      if (window.__prioDue && window.__prioDue()) { if (S.prioW == null) S.prioW = S.wave || 0; if ((S.wave || 0) < S.prioW + 2) return;   /* V314/V642: höchstens 2 Wellen */ } else S.prioW = null;   /* V311: Vorrang Lucky/Rufzeichen */
       for (const k of ["kan", "frost", "mix", "snipe", "ton", "chomp", "tesla", "lock"]) if (S.adDue[k] && !why(k) && !(k === "ton" && [8, 22].some(w => w >= (S.wave || 0) && w <= (S.wave || 0) + 3 && !(S.tonGift || {})[w]))) { delete S.adDue[k]; late = true; S.intro = true; S.adOpen = true; show(k, true); break; } } catch (e) {} }, 700);
     /* V397: Wolf-Werbung in der Welle vor dem Dieb */
     const thiefW = w => { let x = 100, i = 0; const st = [10, 9, 11]; while (x < w) x += st[i++ % 3]; return x === w; };
@@ -10604,6 +10604,15 @@ try { (() => { if (!("serviceWorker" in navigator)) return;
 /* V640: RU-Anrede in der Stimme (ab W31 «дружище», ab W61 «друг») */
 try { (() => { const key = k => { try { if (I18N.lang !== "ru" || typeof k !== "string") return k; const TS = window.__TT && window.__TT.S, w = (TS && +TS.wave) || 0, k2 = w >= 61 ? k + "__dg" : w >= 31 ? k + "__dr" : null; return k2 && (window.__VOICE || {})[k2] ? k2 : k; } catch (e) { return k; } };
   window.__sayKey = key; const sy = SFX.say; SFX.say = function (k) { const k2 = key(k); if (k2 === k) return sy.apply(SFX, arguments); const a = [...arguments]; a[0] = k2; return sy.apply(SFX, a); }; })(); } catch (e) { console.error("v640", e); }
+/* V642: Sicherheitsnetz – nichts wartet länger als 2 Wellen */
+try { (() => { const o = window.__offerOK, since = {}; let gS = null;
+  const pend = S => { const w = S.wave | 0, L = []; if (S.hackPending) L.push("hack"); if ((S.banditNext ? w >= S.banditNext : !S.banditDone) && (S.playT || 0) >= 60) L.push("lucky"); if (S.ordDue) L.push("ord");
+    try { if (localStorage.getItem("tarnturm-join") !== "1" && w >= 7) L.push("join"); } catch (e) {} return L; };
+  setInterval(() => { try { const S = window.__TT && window.__TT.S; if (!S || !S.started || S.over || S.nuts) return; if (S !== gS) { gS = S; for (const k in since) delete since[k]; }
+    const w = S.wave | 0, L = pend(S); for (const k in since) if (!L.includes(k) || since[k] > w) delete since[k]; for (const k of L) if (!(k in since)) since[k] = w; } catch (e) {} }, 1000);
+  window.__stuck = () => { try { const w = window.__TT.S.wave | 0; return Object.keys(since).filter(k => w - since[k] >= 2); } catch (e) { return []; } };
+  window.__offerOK = function (force) { if (o.apply(this, arguments)) return true; try { if (!window.__playScreen() || !window.__stuck().length) return false;
+    return performance.now() - Math.max(window.__offerLast || -1e9, window.__evtLast || -1e9) >= 15000; } catch (e) { return false; } }; })(); } catch (e) { console.error("v642", e); }
 /* V325: keine «soldier»-Sprüche */
 try { (() => { const sy = SFX.say; SFX.say = function (k) { try { const t = String((typeof VOICE_TEXT !== "undefined" && VOICE_TEXT[k]) || k || "");
       if (/soldier/i.test(t)) { if (/wounded/i.test(t)) { const a = [...arguments]; a[0] = "Mayday! Mayday!"; return sy.apply(SFX, a); } return; } } catch (e) {} return sy.apply(SFX, arguments); }; })(); } catch (e) { console.error("v325", e); }
