@@ -2808,7 +2808,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V619";
+const GAME_VER = "V620";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -7151,7 +7151,7 @@ try { (() => {
     + '<div class="htBot"><ol>' + tips.map(t => `<li><i>${t[0]}</i><div><b>${t[1]}</b><span>${t[2]}</span></div></li>`).join("") + '</ol><button type="button" class="htGo" disabled>GOT IT – LET\'S HACK!<em>3</em></button></div>';
   document.body.appendChild(ov);
   const go = ov.querySelector(".htGo"); let after = null, tI = 0;
-  const need = () => { try { return LS.get("capy-hk-tips") !== "1" && S && S.started && !S.over && !S.nuts && !S.testRun && !S.replay; } catch (e) { return false; } };
+  const need = () => { try { const th = !!(S && S.testRun && S.testKind === "hack"); return (LS.get("capy-hk-tips") !== "1" || th) && S && S.started && !S.over && !S.nuts && (!S.testRun || th) && !S.replay; } catch (e) { return false; } };
   function show(cb) { after = cb; try { S.coachHold = true; } catch (e) {} ov.hidden = false; requestAnimationFrame(() => ov.classList.add("on")); try { snd("radio"); } catch (e) {}
     go.disabled = true; let n = 3; const em = go.querySelector("em"); em.textContent = n; clearInterval(tI);
     tI = setInterval(() => { n--; if (n > 0) { em.textContent = n; return; } clearInterval(tI); em.textContent = ""; go.disabled = false; }, 1000); }
@@ -7503,7 +7503,7 @@ $("btnInfo").addEventListener("click", () => { $("ovStart").hidden = true; $("ov
   document.querySelector(".logo").addEventListener("pointerdown", () => { const now = performance.now(); taps = taps.filter(t => now - t < 3000); taps.push(now); if (taps.length >= 7) { taps = []; devOn = !devOn; LS.set("tarnturm-dev", devOn ? "1" : "0"); apply(); SFX.init(); snd("uiTap"); toast(devOn ? "DEV TOOLS ON" : "DEV TOOLS OFF", "HQ", 1500); } }); }
 // V178z15: Wellen nach dem neuen Ablauf (Zyklus 100); Radio silence = Siberia II / Deep Desert II mit Funkabbruch
 const SPECIALS = [["Sonar", "WAVE 15", 15], ["Wild Cards", "AFTER WAVE 20", 20], ["Wounded", "WAVE 23", 23], ["Siberia", "WAVE 35 · BLIZZARD", 35], ["Hailstorm", "WAVE 37", 37], ["Sidewinder", "WAVE 41", 41], ["Sidewinder II", "WAVE 45", 45], ["Sandstorm", "WAVE 47", 47], ["Siberia II", "WAVE 51 · RADIO SILENCE", 51], ["Radio silence", "WAVE 35 · FORCED", 35, "radio"], ["Sandstorm II", "WAVE 65 · RADIO SILENCE", 65], ["Lockdown", "IN POCKET · WAVE 25", 25, "lock"], ["Hack duel", "BOSS · GOLD BET", 6, "hack"], ["Chomper", "IN POCKET · WAVE 17", 17, "chomp"], ["Ten-ton drop", "IN POCKET · WAVE 5", 5, "ton"], ["Lucky Supply", "BANDIT · ONE FREE SPIN", 3, "bandit"], ["Signal lost", "WAVE 65 · NO SIGNAL", 65, "blk"], ["Magnet", "WAVE 80", 80, "mag"], ["Weeds", "WAVE 92 · TEST", 92, "weed"], ["Thief", "WAVE 100", 100, "thief"], ["Egg · S. America", "WAVE 2 · PUSH 5× INTO WALL", 2, "egg"], ["Egg · Africa", "WAVE 32", 32, "egg"], ["Egg · Asia", "WAVE 62", 62, "egg"], ["Egg · N. America", "WAVE 92", 92, "egg"], ["Egg · Antarctica", "WAVE 122", 122, "egg"]];
-function devJump(w, kind) { SFX.init(); const m = MODES[MODE] ? MODE : "chill"; startGame(m); S.wave = w - 1; S.gold += 300 + 60 * w; S.ff = false; S.waveCD = 6; S.testRun = true; S.medDone = 0; S.rotDone = 0; S.rotMode = 0; S.rotT = 0; if (kind === "lock") S.locks = (S.locks || 0) + 1; if (kind === "chomp") S.chomps = (S.chomps || 0) + 2; if (kind === "ton") S.tons = (S.tons || 0) + 2; if (kind === "radio") S.radioForce = true; if (kind === "hack") { S.wave = w; S.gold += 500; S.waveCD = 60; setTimeout(() => openHack(true), 300); } closeIntro(); $("ovSpec").hidden = true; $("ovStart").hidden = true; toast(`TEST · ${kind === "lock" ? "LOCKDOWN IN POCKET" : "wave " + w + " in 6 s"} · build towers`, "HQ", 2500); }
+function devJump(w, kind) { SFX.init(); const m = MODES[MODE] ? MODE : "chill"; startGame(m); S.wave = w - 1; S.gold += 300 + 60 * w; S.ff = false; S.waveCD = 6; S.testRun = true; S.medDone = 0; S.rotDone = 0; S.rotMode = 0; S.rotT = 0; if (kind === "lock") S.locks = (S.locks || 0) + 1; if (kind === "chomp") S.chomps = (S.chomps || 0) + 2; if (kind === "ton") S.tons = (S.tons || 0) + 2; if (kind === "radio") S.radioForce = true; if (kind === "hack") { S.testKind = "hack"; S.wave = w; S.gold += 500; S.waveCD = 60; setTimeout(() => openHack(true), 300); } closeIntro(); $("ovSpec").hidden = true; $("ovStart").hidden = true; toast(`TEST · ${kind === "lock" ? "LOCKDOWN IN POCKET" : "wave " + w + " in 6 s"} · build towers`, "HQ", 2500); }
 // Runden: jede Sonderwelle kommt alle 30 Wellen wieder (+150: 25 % härter, +180: 50 % härter)
 let specOff = 0;
 function renderSpecials() {
