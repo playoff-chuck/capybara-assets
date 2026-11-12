@@ -2826,7 +2826,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V662";
+const GAME_VER = "V663";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -3171,13 +3171,13 @@ function supportBox() { try { const box = document.querySelector("#ovSettings .j
 new MutationObserver(() => { const o = document.getElementById("ovSettings"); if (o && !o.hidden) supportBox(); }).observe(document.getElementById("ovSettings") || document.body, { attributes: true, attributeFilter: ["hidden"] });
 function fxLabel() { const b = $("setFx"); if (b) b.textContent = "GRAPHICS: " + (fxOn() ? "FULL" : fxPref() === "auto-off" ? "LITE (AUTO)" : "LITE"); }   /* V658 */
 const FX_WEAK = (() => { try { return (navigator.hardwareConcurrency > 0 && navigator.hardwareConcurrency <= 2) || (navigator.deviceMemory > 0 && navigator.deviceMemory <= 2); } catch (e) { return false; } })();
-function fxAutoOff(why) { if (fxPref() != null || FX_FORCE != null) return; try { localStorage.setItem("capy-fx", "auto-off"); } catch (e) {} fxLabel(); liteApply(); try { window.__evLog && window.__evLog.push("perf", { d: { lite: 1, why: String(why || "") } }); } catch (e) {} try { if (S && S.fx) S.fx = S.fx.filter(f => f.type !== "ofx"); } catch (e) {} try { genHeadSync(); toast("PARADE'S OVER! · Lite graphics for smoother play – tap me for full graphics", "HQ", 4200); } catch (e) {} }   /* V662 */
+function fxAutoOff(why) { if (fxPref() != null || FX_FORCE != null) return; try { localStorage.setItem("capy-fx", "auto-off"); } catch (e) {} fxLabel(); liteApply(); try { window.__evLog && window.__evLog.push("perf", { d: { lite: 1, why: String(why || "") } }); } catch (e) {} try { if (S && S.fx) S.fx = S.fx.filter(f => f.type !== "ofx"); } catch (e) {} try { genHeadSync(); toast("LITE GRAPHICS · Tap me for full graphics", "HQ", 4200); } catch (e) {} }   /* V662 */
 const FXM = { t0: 0, n: 0, sum: 0 };   /* V494: Bildrate im Spiel messen */
 function genHeadSync() { try { const want = fxOn() ? GEN_FULL : GEN_LITE; if (GEN_HEAD === want) return; const old = GEN_HEAD; GEN_HEAD = want; const g = document.getElementById("genAv"); if (g && g.getAttribute("src") === old) g.src = want; } catch (e) {} }   /* V662 */
 function genGoFull() { if (fxOn()) return; try { localStorage.removeItem("capy-fx"); } catch (e) {} FXM.n = 0; FXM.sum = 0; FXM.t0 = 0; fxLabel(); liteApply(); genHeadSync();
   try { window.__evLog && window.__evLog.push("perf", { d: { lite: 0, why: "general" } }); } catch (e) {} try { snd("uiTap"); } catch (e) {}
   try { const g = document.getElementById("genAv"); if (g) { g.classList.remove("talk"); void g.offsetWidth; g.classList.add("talk"); } } catch (e) {}
-  try { toast("DRESS UNIFORM ON! · Full graphics are back – medals polished", "HQ", 3600); } catch (e) {} }   /* V662: Tipp auf den General */
+  try { toast("FULL GRAPHICS ARE BACK · Medals polished", "HQ", 3600); } catch (e) {} }   /* V662: Tipp auf den General */
 document.addEventListener("click", e => { try { if (fxOn() || document.body.classList.contains("ovUp")) return; const g = document.getElementById("genAv"); if (!g || !g.getClientRects().length) return; const r = g.getBoundingClientRect();
   if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom) { e.stopPropagation(); e.preventDefault(); genGoFull(); } } catch (er) {} }, true);   /* Treffer über die Fläche des Generals (auch wenn ein Bild darüber liegt) */
 setInterval(genHeadSync, 500);
@@ -3332,7 +3332,7 @@ function syncSky() {
   sky.style.setProperty("--skyN", live ? D.night : 0);
   sky.style.setProperty("--skyT", live ? D.tint : "rgba(0,0,0,.15)");
 }
-const GEN_FULL_IMG = "";   /* V662: Parade-Uniform des Generals */ const PORTRAIT = { general: "img/db5ec9685a.webp", ledger: "img/52b63455fb.webp", hazel: "img/7c0140423d.webp" };
+const GEN_FULL_IMG = "img/d83c175c56.webp";   /* V662: Parade-Uniform des Generals */ const PORTRAIT = { general: "img/db5ec9685a.webp", ledger: "img/52b63455fb.webp", hazel: "img/7c0140423d.webp" };
 const GIFT_IMG = { rosie: "img/ca1498c108.webp", blue: "img/65a0b1249a.webp" };
 const COACH_SRC = "img/d158041493.webp";
 
