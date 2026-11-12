@@ -2832,7 +2832,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V684";
+const GAME_VER = "V685";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -9725,15 +9725,15 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
       at(1500, () => { end = celebrate(`${oldN.toUpperCase()} CLEARED!`, `Place ${P.g} of 30 done · onward!`, host);   /* V684: 1,5–6,0 s Streifen + Klänge */
         blk.style.transitionDuration = "2.25s"; void blk.offsetWidth; blk.classList.add("on"); });   /* 1,5–3,75 s Spielscreen blendet hinter den Streifen nach Schwarz */
       at(3750, () => { fx("powerup"); setTimeout(() => fx("coin"), 260); });
-      at(6000, () => { end && end(); });   /* 6,0–6,7 s Streifen blenden zu Schwarz aus */
-      at(6800, () => { show("auto"); ov.classList.add("fadeIn2"); drawPins(P.g - 1); setMe(prev, true); go(contCam(P.c), 0);
-        label(contName(P.c), `Next stop: ${newN}`, P.p === 5 ? "The landmark · the boss lives here" : `Waves ${w}–${w + 4}`); });   /* 6,8–7,9 s Karte blendet aus dem Schwarz ein */
-      at(8000, () => { ov.classList.remove("fadeIn2"); fx("engine"); whoosh(); me.classList.add("fly"); hopMe(prev, nxt, 2600); });   /* 8,0–10,6 s Flug */
-      at(9100, whoosh);
-      at(10600, () => { me.classList.remove("fly"); drawPins(P.g); const pin = pinsEl.querySelector(`.mPin[data-g="${P.g}"]`); pin && pin.classList.add("pop");
-        label(contName(P.c), `Welcome to ${newN}!`, P.p === 5 ? "The landmark · the boss lives here" : `Waves ${w}–${w + 4}`); fx("tonHit"); setTimeout(() => fx("powerup"), 120); setTimeout(() => fx("coin"), 420); });   /* 10,6–11,6 s Landung */
-      at(11600, () => ov.classList.add("fadeOut", "q"));   /* 11,6–12,2 s Karte blendet nach Schwarz aus */
-      at(12250, () => { ov.classList.remove("q"); blk.style.transitionDuration = ""; blk.classList.remove("on"); hide(); }); }   /* Level blendet wieder ein */
+      at(7000, () => { end && end(); });   /* V685: 7,0–7,7 s Streifen blenden zu Schwarz aus */
+      at(7800, () => { show("auto"); ov.classList.add("fadeIn2"); drawPins(P.g - 1); setMe(prev, true); go(contCam(P.c), 0);
+        label(contName(P.c), `Next stop: ${newN}`, P.p === 5 ? "The landmark · the boss lives here" : `Waves ${w}–${w + 4}`); });   /* 7,8–8,9 s Karte blendet aus dem Schwarz ein */
+      at(9000, () => { ov.classList.remove("fadeIn2"); fx("engine"); whoosh(); me.classList.add("fly"); hopMe(prev, nxt, 2600); });   /* 9,0–11,6 s Flug */
+      at(10100, whoosh);
+      at(11600, () => { me.classList.remove("fly"); drawPins(P.g); const pin = pinsEl.querySelector(`.mPin[data-g="${P.g}"]`); pin && pin.classList.add("pop");
+        label(contName(P.c), `Welcome to ${newN}!`, P.p === 5 ? "The landmark · the boss lives here" : `Waves ${w}–${w + 4}`); fx("tonHit"); setTimeout(() => fx("powerup"), 120); setTimeout(() => fx("coin"), 420); });   /* 11,6–12,6 s Landung */
+      at(12600, () => ov.classList.add("fadeOut", "q"));   /* 12,6–13,2 s Karte blendet nach Schwarz aus */
+      at(13250, () => { ov.classList.remove("q"); blk.style.transitionDuration = ""; blk.classList.remove("on"); hide(); }); }   /* Level blendet wieder ein */
     function playCont(w, done) { const P = posOf(w), oc = Math.max(0, P.c - 1); let arrC = null; seqDone = () => { try { arrC && arrC.remove(); } catch (e) {} if (done) done(); }; show("auto"); drawPins(P.g); setMe(MAP_PTS[oc][5], true);
       label(contName(oc), "Continent cleared!", `Next: ${contName(P.c)}`); go(contCam(oc), 0);
       const sk = window.__fromSign ? 2200 : 0; window.__fromSign = false;   /* V312: Feier lief schon am Spielscreen */
