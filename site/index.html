@@ -1842,7 +1842,7 @@ body:has(.bar:not(.off)) .bar>.cell,body:has(.bar:not(.off)) .bar>.grp:nth-child
 body.hudNarrow:has(.bar:not(.off)) .bar>.cell,body.hudNarrow:has(.bar:not(.off)) .bar>.grp:nth-child(2){height:30px!important}
 body:has(.bar:not(.off)) #btnHQ,body:has(.bar:not(.off)) .hq{display:none!important}
 body.hudNarrow:has(.bar:not(.off)) .bar>.score{min-width:0!important;max-width:none!important}
-#genAv{display:none;position:fixed;left:var(--genL,max(4px,env(safe-area-inset-left,0px)));top:calc(env(safe-area-inset-top,0px) + 4px);width:104px;height:104px;object-position:center bottom;object-fit:contain;z-index:42;filter:drop-shadow(0 3px 4px rgba(0,0,0,.4));pointer-events:none;transform-origin:50% 100%}
+body.lite #genAv{pointer-events:auto!important;cursor:pointer}   #genAv{display:none;position:fixed;left:var(--genL,max(4px,env(safe-area-inset-left,0px)));top:calc(env(safe-area-inset-top,0px) + 4px);width:104px;height:104px;object-position:center bottom;object-fit:contain;z-index:42;filter:drop-shadow(0 3px 4px rgba(0,0,0,.4));pointer-events:none;transform-origin:50% 100%}
 body:has(.bar:not(.off)) #genAv{display:block}
 body:has(#ovOver:not([hidden])) #genAv{display:none}
 body.hudNarrow #genAv{width:100px;height:100px}
@@ -2826,7 +2826,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V661";
+const GAME_VER = "V662";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -3171,8 +3171,16 @@ function supportBox() { try { const box = document.querySelector("#ovSettings .j
 new MutationObserver(() => { const o = document.getElementById("ovSettings"); if (o && !o.hidden) supportBox(); }).observe(document.getElementById("ovSettings") || document.body, { attributes: true, attributeFilter: ["hidden"] });
 function fxLabel() { const b = $("setFx"); if (b) b.textContent = "GRAPHICS: " + (fxOn() ? "FULL" : fxPref() === "auto-off" ? "LITE (AUTO)" : "LITE"); }   /* V658 */
 const FX_WEAK = (() => { try { return (navigator.hardwareConcurrency > 0 && navigator.hardwareConcurrency <= 2) || (navigator.deviceMemory > 0 && navigator.deviceMemory <= 2); } catch (e) { return false; } })();
-function fxAutoOff(why) { if (fxPref() != null || FX_FORCE != null) return; try { localStorage.setItem("capy-fx", "auto-off"); } catch (e) {} fxLabel(); liteApply(); try { window.__evLog && window.__evLog.push("perf", { d: { lite: 1, why: String(why || "") } }); } catch (e) {} try { if (S && S.fx) S.fx = S.fx.filter(f => f.type !== "ofx"); } catch (e) {} try { toast("LITE GRAPHICS · smoother play on this phone", "HQ", 2400); } catch (e) {} }
+function fxAutoOff(why) { if (fxPref() != null || FX_FORCE != null) return; try { localStorage.setItem("capy-fx", "auto-off"); } catch (e) {} fxLabel(); liteApply(); try { window.__evLog && window.__evLog.push("perf", { d: { lite: 1, why: String(why || "") } }); } catch (e) {} try { if (S && S.fx) S.fx = S.fx.filter(f => f.type !== "ofx"); } catch (e) {} try { genHeadSync(); toast("PARADE'S OVER! · Lite graphics for smoother play – tap me for full graphics", "HQ", 4200); } catch (e) {} }   /* V662 */
 const FXM = { t0: 0, n: 0, sum: 0 };   /* V494: Bildrate im Spiel messen */
+function genHeadSync() { try { const want = fxOn() ? GEN_FULL : GEN_LITE; if (GEN_HEAD === want) return; const old = GEN_HEAD; GEN_HEAD = want; const g = document.getElementById("genAv"); if (g && g.getAttribute("src") === old) g.src = want; } catch (e) {} }   /* V662 */
+function genGoFull() { if (fxOn()) return; try { localStorage.removeItem("capy-fx"); } catch (e) {} FXM.n = 0; FXM.sum = 0; FXM.t0 = 0; fxLabel(); liteApply(); genHeadSync();
+  try { window.__evLog && window.__evLog.push("perf", { d: { lite: 0, why: "general" } }); } catch (e) {} try { snd("uiTap"); } catch (e) {}
+  try { const g = document.getElementById("genAv"); if (g) { g.classList.remove("talk"); void g.offsetWidth; g.classList.add("talk"); } } catch (e) {}
+  try { toast("DRESS UNIFORM ON! · Full graphics are back – medals polished", "HQ", 3600); } catch (e) {} }   /* V662: Tipp auf den General */
+document.addEventListener("click", e => { try { if (fxOn() || document.body.classList.contains("ovUp")) return; const g = document.getElementById("genAv"); if (!g || !g.getClientRects().length) return; const r = g.getBoundingClientRect();
+  if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom) { e.stopPropagation(); e.preventDefault(); genGoFull(); } } catch (er) {} }, true);   /* Treffer über die Fläche des Generals (auch wenn ein Bild darüber liegt) */
+setInterval(genHeadSync, 500);
 function fxMeasure() { if (fxPref() != null || FX_FORCE != null) return; const now = performance.now(), d = FXM.t0 ? now - FXM.t0 : 0; FXM.t0 = now;
   if (!d || d > 200 || document.hidden || !S || !S.started || S.over || frozen()) return; FXM.n++; FXM.sum += d;
   if (FXM.n >= 300) { const avg = FXM.sum / FXM.n; FXM.n = 0; FXM.sum = 0; if (avg > 28) fxAutoOff("fps"); } }
@@ -3324,7 +3332,7 @@ function syncSky() {
   sky.style.setProperty("--skyN", live ? D.night : 0);
   sky.style.setProperty("--skyT", live ? D.tint : "rgba(0,0,0,.15)");
 }
-const PORTRAIT = { general: "img/db5ec9685a.webp", ledger: "img/52b63455fb.webp", hazel: "img/7c0140423d.webp" };
+const GEN_FULL_IMG = "";   /* V662: Parade-Uniform des Generals */ const PORTRAIT = { general: "img/db5ec9685a.webp", ledger: "img/52b63455fb.webp", hazel: "img/7c0140423d.webp" };
 const GIFT_IMG = { rosie: "img/ca1498c108.webp", blue: "img/65a0b1249a.webp" };
 const COACH_SRC = "img/d158041493.webp";
 
@@ -7738,7 +7746,7 @@ function placeDJ() {
     else { /* V187 (Martin): 2×2 – Score über Herz/Gold, Wellen-Nummer über den nächsten Steinen */ const gap = 6, w2 = gd.offsetWidth + gap + nx.offsetWidth, x0 = Math.round(cx - w2 / 2), y2 = top - 2 + sc.offsetHeight + 5; set(sc, x0 + (gd.offsetWidth - sc.offsetWidth) / 2, top - 2); set(gd, x0, y2); set(nx, x0 + gd.offsetWidth + gap, y2); } }
 }
 const FP_SAY = ["Outstanding work, squad!", "Well done – carry on!", "That is how it is done!", "Proud of you, partner!", "Splendid! Keep it up!", "Textbook defence, bravo!", "The jungle is safer thanks to you!", "Top marks – onward!", "Medal-worthy work, I say!", "Excellent! Next wave, same spirit!"];
-const GEN_HEAD = "img/a9bbf4192f.webp";
+const GEN_LITE = "img/a9bbf4192f.webp", GEN_FULL = GEN_FULL_IMG || GEN_LITE; let GEN_HEAD = (typeof fxOn === "function" && !fxOn()) ? GEN_LITE : GEN_FULL;   /* V662: Parade-Uniform = volle Grafik */
 /* General immer oben links; seine Meldungen erscheinen als Sprechblase bei ihm */
 { const g = document.createElement("img"); g.id = "genAv"; g.alt = "General Bristle"; g.src = GEN_HEAD; document.body.appendChild(g);
   const mark = (id, avId) => { const el = document.getElementById(id), av = document.getElementById(avId); if (!el || !av) return; new MutationObserver(() => { const gen = !el.hidden; if (gen) { const src = av.getAttribute("src"); g.src = src === PORTRAIT.general ? GEN_HEAD : (src || GEN_HEAD); } el.classList.toggle("gen", gen); { const any = ["alert", "toast"].some(id => { const e = document.getElementById(id); return e && e.classList.contains("gen") && !e.hidden; }); clearTimeout(window.__genT); if (any) document.body.classList.add("genOn"); else window.__genT = setTimeout(() => document.body.classList.remove("genOn"), 380); } if (!el._home) el._home = el.parentElement; if (gen && el.parentElement !== document.body) document.body.appendChild(el); else if (!gen && el.parentElement !== el._home && el.hidden) el._home.appendChild(el);  }).observe(el, { attributes: true, attributeFilter: ["hidden", "class"] }); };
