@@ -2826,7 +2826,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V667";
+const GAME_VER = "V668";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -4200,13 +4200,13 @@ const SFX = (() => {
       // Funkgerät: Bandpass 350–3200 Hz, leichte Verzerrung, Rauschen, Squelch-Klick am Anfang und Ende
       const src = ac.createBufferSource(), g = ac.createGain(), hp = ac.createBiquadFilter(), lp = ac.createBiquadFilter(), pk = ac.createBiquadFilter();
       src.buffer = buf; hp.type = "highpass"; hp.frequency.value = 420; hp.Q.value = 1.1; lp.type = "lowpass"; lp.frequency.value = 2700; lp.Q.value = 1.6; pk.type = "peaking"; pk.frequency.value = 1700; pk.gain.value = 8; pk.Q.value = 1.2; const clean = String(text) === "cert_done"; if (clean) { hp.frequency.value = 70; lp.frequency.value = 12000; pk.gain.value = 0; } else if (/^thief_/.test(String(text))) { hp.frequency.value = 75; lp.frequency.value = 5200; pk.frequency.value = 230; pk.gain.value = 5; }   /* V564: Dieb – tiefe Stimme, kein Funkfilter */
-      const ws = ac.createWaveShaper(), cu = new Float32Array(512); for (let i = 0; i < 512; i++) { const x = i / 255.5 - 1; cu[i] = Math.tanh(x * 3.4) / Math.tanh(3.4); } ws.curve = cu;
-      const comp = ac.createDynamicsCompressor(); comp.threshold.value = -24; comp.ratio.value = 8; comp.attack.value = 0.002; comp.release.value = 0.08;
+      const ws = ac.createWaveShaper(), cu = new Float32Array(512); for (let i = 0; i < 512; i++) { const x = i / 255.5 - 1; cu[i] = Math.tanh(x * 1.8) / Math.tanh(1.8); } ws.curve = cu; ws.oversample = "4x";   /* V668: weich, ohne Knacken */
+      const comp = ac.createDynamicsCompressor(); comp.threshold.value = -24; comp.ratio.value = 8; comp.attack.value = 0.006; comp.release.value = 0.08;
       g.gain.value = 0.324 * [1, 0.72, 0.42, 0.14][Math.min(3, deg)]; if (clean) g.gain.value *= 1.3;   /* V648: Diplom-Spruch +30 % */ src.connect(hp); src.__g = g; hp.connect(pk); pk.connect(lp); lp.connect(ws); ws.connect(comp);
       // Feldfunk: Aussetzer (etwa jede 10. Meldung) und leichtes Flattern der Lautstärke
       const dg = ac.createGain(); dg.gain.value = 1; comp.connect(dg); dg.connect(g); g.connect(voiceOut || master);
       const t0 = t + 0.06; voiceNo++;
-      if (deg > 0) { for (let k = 0, at = t0 + 0.08; at < t0 + dur; k++) { const gap = 0.04 + Math.random() * 0.06 * deg; if (Math.random() < 0.18 * deg) { dg.gain.setValueAtTime(0.02, at); dg.gain.setValueAtTime(1, at + gap); } at += 0.09 + Math.random() * 0.12; } for (let r = 0; r < deg; r++) noise(dur + 0.1, (0.05 + 0.04 * deg) * (1 + Math.random()), "bandpass", 900 + Math.random() * 2600, 700 + Math.random() * 1500, 0.04, 0.5 + Math.random(), 0, voiceOut || master); for (let at = 0.05; at < dur; at += 0.06 + Math.random() * (0.25 - 0.05 * deg)) noise(0.02 + Math.random() * 0.06, 0.05 + 0.05 * deg, "bandpass", 1500 + Math.random() * 3200, 800, at, 2.5, 0, voiceOut || master); }
+      if (deg > 0) { for (let k = 0, at = t0 + 0.08; at < t0 + dur; k++) { const gap = 0.04 + Math.random() * 0.06 * deg; if (Math.random() < 0.18 * deg) { dg.gain.setValueAtTime(1, at); dg.gain.linearRampToValueAtTime(0.05, at + 0.008); dg.gain.setValueAtTime(0.05, at + gap); dg.gain.linearRampToValueAtTime(1, at + gap + 0.008); }   /* V668: Rampen statt Sprung */ at += 0.09 + Math.random() * 0.12; } for (let r = 0; r < deg; r++) noise(dur + 0.1, (0.05 + 0.04 * deg) * (1 + Math.random()), "bandpass", 900 + Math.random() * 2600, 700 + Math.random() * 1500, 0.04, 0.5 + Math.random(), 0, voiceOut || master); /* V668: kurze Knister-Stöße entfernt */ }
       /* Zufalls-Aussetzer aus: klang wie Stottern («Ma, Ma, Muncher») */ if (false && (voiceNo % 10 === 0 || Math.random() < 0.06)) { let at = t0 + 0.25 + Math.random() * Math.max(0.1, dur * 0.4); for (let k = 0; k < 1 + Math.floor(Math.random() * 3) && at < t0 + dur - 0.1; k++) { const len = 0.05 + Math.random() * 0.09; dg.gain.setValueAtTime(1, at); dg.gain.linearRampToValueAtTime(0.03, at + 0.01); dg.gain.setValueAtTime(0.03, at + len); dg.gain.linearRampToValueAtTime(1, at + len + 0.015); noise(len, 0.05, "bandpass", 1500 + Math.random() * 1500, 1200, at - t, 0.8, 0, voiceOut || master); at += len + 0.15 + Math.random() * 0.4; } }
       if (!clean) for (let k = 0, at = t0; at < t0 + dur; k++) { const len = 0.12 + Math.random() * 0.25, lvl = 0.82 + Math.random() * 0.18; dg.gain.setTargetAtTime(lvl, at, 0.05); at += len; }   // Flattern
       { const gv = g.gain.value; g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(gv, t0 + 0.01); g.gain.setValueAtTime(gv, t0 + dur - 0.025); g.gain.linearRampToValueAtTime(0, t0 + dur); }   /* V433: Klick-Schutz */
@@ -10143,10 +10143,10 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
       const o1 = ac.createOscillator(), o2 = ac.createOscillator(); o1.type = "triangle"; o2.type = "triangle";   /* V649: kein Knattern */
       const f0 = fromOff ? 104 : 62, f1 = 112, f2 = 58;
       [o1, o2].forEach((o, i) => { const k = i ? 1.012 : 1; o.frequency.setValueAtTime(f0 * k, T); o.frequency.linearRampToValueAtTime(f1 * k, T + up); o.frequency.linearRampToValueAtTime(f1 * 0.94 * k, T + D * 0.55); o.frequency.linearRampToValueAtTime(f2 * k, T + D); o.connect(lp); });
-      const hs = [[3, 0.55], [4.5, 0.3]].map(([m, gv]) => { const o = ac.createOscillator(), hg = ac.createGain(); o.type = "sine"; hg.gain.value = gv;   /* V664: hörbare Obertöne für Handy-Lautsprecher */
+      const hs = [[3, 0.9], [4.5, 0.6]].map(([m, gv]) => { const o = ac.createOscillator(), hg = ac.createGain(); o.type = "sine"; hg.gain.value = gv;   /* V664: hörbare Obertöne für Handy-Lautsprecher */
         o.frequency.setValueAtTime(f0 * m, T); o.frequency.linearRampToValueAtTime(f1 * m, T + up); o.frequency.linearRampToValueAtTime(f1 * 0.94 * m, T + D * 0.55); o.frequency.linearRampToValueAtTime(f2 * m, T + D); o.connect(hg); hg.connect(lp); return o; });
       lp.frequency.setValueAtTime(fromOff ? 900 : 350, T); lp.frequency.linearRampToValueAtTime(1100, T + up); lp.frequency.linearRampToValueAtTime(420, T + D);
-      const v = 0.075; g.gain.setValueAtTime(0.0001, T);   /* V664: etwas lauter */ g.gain.exponentialRampToValueAtTime(fromOff ? v * 0.8 : v * 0.35, T + 0.15); g.gain.exponentialRampToValueAtTime(v, T + up); g.gain.setValueAtTime(v, T + D - down); g.gain.exponentialRampToValueAtTime(v * 0.25, T + D); g.gain.exponentialRampToValueAtTime(0.0001, T + D + 0.6);
+      const v = 0.16; g.gain.setValueAtTime(0.0001, T);   /* V664/V668: lauter */ g.gain.exponentialRampToValueAtTime(fromOff ? v * 0.8 : v * 0.35, T + 0.15); g.gain.exponentialRampToValueAtTime(v, T + up); g.gain.setValueAtTime(v, T + D - down); g.gain.exponentialRampToValueAtTime(v * 0.25, T + D); g.gain.exponentialRampToValueAtTime(0.0001, T + D + 0.6);
       lp.connect(am); am.connect(g); g.connect(out);
       // Luftrauschen (Propeller-Wind)
       const n = ac.createBuffer(1, ac.sampleRate * 2, ac.sampleRate), d = n.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
