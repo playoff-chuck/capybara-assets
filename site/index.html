@@ -2828,7 +2828,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V676";
+const GAME_VER = "V677";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -7220,7 +7220,7 @@ try { (() => {
 #ovHkTips .htK{display:inline-block;font:800 12px/1 "Baloo 2",sans-serif;letter-spacing:.12em;color:#3a2414;background:#ffd23a;border:2px solid #3a2414;border-radius:999px;padding:6px 12px 5px;box-shadow:0 2px 0 #3a2414}
 #ovHkTips h2{margin:8px 0 0;font:400 clamp(34px,11vw,50px)/1 Bangers,Impact,sans-serif;letter-spacing:.04em;color:#fff;text-shadow:0 3px 0 #3a2414,0 0 14px rgba(255,210,58,.55)}
 #ovHkTips .htSub{margin:4px 0 0;font:800 15px/1.2 "Baloo 2",sans-serif;color:#ffe9a8;text-shadow:0 2px 2px #000}
-#ovHkTips .htBot{position:relative;padding:0 12px max(12px,env(safe-area-inset-bottom))}
+#ovHkTips .htBot{position:relative;padding:0 12px calc(max(12px,env(safe-area-inset-bottom)) + max(4vh, 56vh - 80vw))}   /* V677: höher, Figur unten verdeckt */
 #ovHkTips ol{list-style:none;margin:0 0 8px;padding:0;display:grid;gap:5px}
 #ovHkTips li{display:flex;gap:8px;align-items:center;background:#fff6dc;border:2px solid #3a2414;border-radius:12px;padding:5px 9px;box-shadow:0 2px 0 #3a2414}
 #ovHkTips li>i{flex:0 0 26px;height:26px;font-size:15px!important;border-radius:50%;display:grid;place-items:center;background:#ffd23a;border:2px solid #3a2414;font:400 18px/1 Bangers,sans-serif;font-style:normal;color:#3a2414}
