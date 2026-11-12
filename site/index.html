@@ -2832,7 +2832,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V689";
+const GAME_VER = "V690";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -9727,6 +9727,34 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
             ramp(Math.max(0.05, Math.min(1, (typeof TP_VOL === "function" ? TP_VOL() : 0.4) * 1.15)), 0.4); }   /* V689: Hymne setzt fast sofort ein */
           else { if (!a || !act) return; act = false; ramp(0, 1.5, () => { try { a.pause(); } catch (e) {} }); } } catch (e) {} }; })();
     window.__celMus = celMus;
+    /* V690: Kontinentwechsel – dieselbe Verschnaufpause wie beim Ortswechsel (Streifen + Hymne über Schwarz, Tippen = weiter); danach Wegweiser/Karte über Schwarz */
+    window.__contPause = (name, c, then) => {
+      let host = document.getElementById("celHost"); if (!host) { host = document.createElement("div"); host.id = "celHost"; document.body.appendChild(host); }
+      let blk = document.getElementById("celBlack"); if (!blk) { blk = document.createElement("div"); blk.id = "celBlack"; document.body.appendChild(blk); }
+      let hadTP = false, musBack = false, end = null, gone = false, tap = null, iv = 0; clearTimeout(window.__celHushT);
+      const lvlBack = () => { if (musBack) return; musBack = true; clearTimeout(window.__celHushT); window.__tpHush = false;
+        try { if (hadTP && TP.el && TP.key && !TP.paused && SFX.music.on && !document.hidden && TP.el.paused) { TP.el.volume = 0; const p = TP.el.play(); if (p && p.catch) p.catch(() => {}); tpFade(0.5, 2.0); } } catch (e) {} };
+      const blkOff = () => { try { blk.style.transitionDuration = ""; blk.classList.remove("on"); document.body.classList.remove("contBlk"); } catch (e) {} };
+      try { if (typeof TP !== "undefined" && TP.el && TP.key && !TP.el.paused) { hadTP = true; window.__tpHush = true; tpFade(0.0001, 1.5); setTimeout(() => { try { if (window.__tpHush && !musBack) TP.el.pause(); } catch (e) {} }, 1560); window.__celHushT = setTimeout(lvlBack, 600000); }
+            else if (SFX.music && SFX.music.dim) SFX.music.dim(0.02); } catch (e) {}
+      const mus = on => { try { window.__celMus && window.__celMus(on); } catch (e) {} };
+      document.body.classList.add("contBlk"); host.classList.add("tap"); host.onclick = e => { try { e.stopPropagation(); } catch (x) {} };   /* bis «TAP TO CONTINUE» nichts durchlassen */
+      const cont = () => { if (gone) return; gone = true; host.onclick = e => { try { e.stopPropagation(); } catch (x) {} }; if (tap) tap.classList.remove("on"); try { snd("uiTap"); } catch (e) {} mus(false);
+        setTimeout(() => { try { end && end(); } catch (e) {} if (tap) { tap.remove(); tap = null; } }, 1500);   /* Streifen blenden zu Schwarz aus */
+        setTimeout(() => { host.classList.remove("tap"); host.onclick = null;
+          try { then && then(); } catch (e) { console.error("contPause", e); }
+          try { if (document.getElementById("ovSign").hidden && S && !S.nuts) window.__fromSign = true; } catch (e) {}   /* ohne Wegweiser: keine zweite Feier auf der Karte */
+          let sawMap = false; const t0 = performance.now();
+          iv = setInterval(() => { try { const up = document.body.classList.contains("mapUp"), sign = !document.getElementById("ovSign").hidden, dt = performance.now() - t0;
+              if (up && !sawMap) { sawMap = true; setTimeout(blkOff, 300); }   /* Karte liegt über dem Schwarz */
+              const out = sawMap ? !up : (!S || !S.started || S.over || !!S.nuts || (!sign && dt > 4000) || dt > 600000);
+              if (out) { clearInterval(iv); blkOff(); setTimeout(lvlBack, 400); } } catch (e) { clearInterval(iv); blkOff(); lvlBack(); } }, 200); }, 2300); };
+      setTimeout(() => { end = celebrate(`${name} CLEARED!`, `Continent ${c + 1} of 5 · the world tour goes on`, host); mus(true);
+        blk.style.transitionDuration = "2.25s"; void blk.offsetWidth; blk.classList.add("on"); }, 1500);
+      setTimeout(() => { if (gone) return; fx("powerup"); setTimeout(() => fx("coin"), 260);
+        tap = document.createElement("div"); tap.className = "celTap"; tap.textContent = "TAP TO CONTINUE"; host.appendChild(tap); requestAnimationFrame(() => requestAnimationFrame(() => tap && tap.classList.add("on")));
+        host.onclick = e => { try { e.stopPropagation(); } catch (x) {} cont(); }; }, 3750);
+      setTimeout(cont, 31500); };
     function playPlace(w, done) { const P = posOf(w), prev = MAP_PTS[P.c][P.p - 1], nxt = MAP_PTS[P.c][P.p], oldN = nice(CONTS[P.c][2][P.p - 1]), newN = nice(CONTS[P.c][2][P.p]);   /* V687: Streifen warten auf Tippen */
       seqDone = done; let host = document.getElementById("celHost"); if (!host) { host = document.createElement("div"); host.id = "celHost"; document.body.appendChild(host); }
       let blk = document.getElementById("celBlack"); if (!blk) { blk = document.createElement("div"); blk.id = "celBlack"; document.body.appendChild(blk); }
@@ -10641,7 +10669,7 @@ try { (() => {
   const host = document.createElement("div"); host.id = "gameCel"; host.hidden = true; document.body.appendChild(host);
   ["pointerdown", "pointerup", "click", "touchstart", "touchend"].forEach(t => host.addEventListener(t, e => { e.stopPropagation(); e.preventDefault(); }, { passive: false }));   /* V316: Feier 3 s nicht wegdrückbar */
   const fx = k => { try { snd(k); } catch (e) {} };
-  window.__contCel = (name, c, then) => {
+  window.__contCel = (name, c, then) => { if (window.__contPause) return window.__contPause(name, c, then);   /* V690 */
     let conf = ""; for (let i = 0; i < 46; i++) conf += `<i style="--x:${(Math.random() * 2 - 1).toFixed(2)};--y:${(-.4 - Math.random() * .9).toFixed(2)};--r:${Math.floor(Math.random() * 720 - 360)}deg;--d:${(Math.random() * .25).toFixed(2)}s;--c:${["#ffd84d", "#ff6fb5", "#5cbf4a", "#4aa8ff", "#ff9a2a", "#fff"][i % 6]}"></i>`;
     const el = document.createElement("div"); el.className = "mapCel";
     el.innerHTML = `<div class="celRays"></div><div class="celConf">${conf}</div><div class="celTxt"><b>${name} CLEARED!</b><span>Continent ${c + 1} of 5 · the world tour goes on</span><em>${S && S.lastStars ? starStr(S.lastStars.n) : "★ ★ ★"}</em></div>`;
@@ -11845,7 +11873,7 @@ html[lang=ru] .coachAd .ad3 .p.cta i::after{content:"";display:block;width:20px;
 html[lang=ru] .coachAd .ad3 .ad, html[lang=ru] .coachAd .ad3{padding-right:96px!important}
 body.testLink #ovStart{pointer-events:none!important;opacity:.35}
 #ovMap{position:fixed;inset:0;z-index:990;background:#6faaab;overflow:hidden;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
-#ovMap[hidden]{display:none!important}#ovMap.fadeIn{animation:mapFadeIn .5s ease both}@keyframes mapFadeIn{from{opacity:0}to{opacity:1}}#ovMap.fadeOut.q{transition-duration:.6s}#celHost{position:fixed;inset:0;z-index:989;pointer-events:none;overflow:hidden}#celBlack{position:fixed;inset:0;z-index:988;background:#000;opacity:0;pointer-events:none;transition:opacity .8s ease}#celBlack.on{opacity:1}#ovMap.fadeIn2{animation:mapFadeIn 1.1s ease both}#celHost.tap{pointer-events:auto;cursor:pointer}#celHost .celTap{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 34px);z-index:8;text-align:center;font:700 15px/1.2 "Baloo 2",Nunito,system-ui,sans-serif;letter-spacing:.16em;color:rgba(255,255,255,.45);opacity:0;transition:opacity .9s ease;pointer-events:none}#celHost .celTap.on{opacity:1;animation:celTapP 2.4s ease-in-out .9s infinite}@keyframes celTapP{50%{opacity:.45}}   /* V687 */   /* V682 */   /* V681 */#ovMap.fadeOut{opacity:0;transition:opacity .8s ease;pointer-events:none}
+#ovMap[hidden]{display:none!important}#ovMap.fadeIn{animation:mapFadeIn .5s ease both}@keyframes mapFadeIn{from{opacity:0}to{opacity:1}}#ovMap.fadeOut.q{transition-duration:.6s}#celHost{position:fixed;inset:0;z-index:989;pointer-events:none;overflow:hidden}#celBlack{position:fixed;inset:0;z-index:988;background:#000;opacity:0;pointer-events:none;transition:opacity .8s ease}#celBlack.on{opacity:1}body.contBlk #ovSign{z-index:989}#ovMap.fadeIn2{animation:mapFadeIn 1.1s ease both}#celHost.tap{pointer-events:auto;cursor:pointer}#celHost .celTap{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 34px);z-index:8;text-align:center;font:700 15px/1.2 "Baloo 2",Nunito,system-ui,sans-serif;letter-spacing:.16em;color:rgba(255,255,255,.45);opacity:0;transition:opacity .9s ease;pointer-events:none}#celHost .celTap.on{opacity:1;animation:celTapP 2.4s ease-in-out .9s infinite}@keyframes celTapP{50%{opacity:.45}}   /* V687 */   /* V682 */   /* V681 */#ovMap.fadeOut{opacity:0;transition:opacity .8s ease;pointer-events:none}
 #ovMap .mapVp{position:absolute;inset:0;overflow:hidden}
 #ovMap .mapVp::after{content:"";position:absolute;left:-6px;right:-6px;bottom:-6px;height:calc(env(safe-area-inset-bottom,0px) + 86px);background:linear-gradient(0deg,#3a2414 0,#3a2414 calc(env(safe-area-inset-bottom,0px) + 20px),#fff7e8 calc(env(safe-area-inset-bottom,0px) + 20px),#fff7e8 calc(env(safe-area-inset-bottom,0px) + 24px),rgba(58,36,20,.55) calc(env(safe-area-inset-bottom,0px) + 24px),rgba(58,36,20,0) 100%);pointer-events:none;z-index:4}   /* V459: Rahmen unten + Ausblenden */   /* V454: Comic-Rand unten (Martin 08.11. 14:01) */
 #ovMap .mapVp::before{content:"";position:absolute;left:-6px;right:-6px;top:-6px;height:calc(env(safe-area-inset-top,0px) + 86px);background:linear-gradient(180deg,#3a2414 0,#3a2414 calc(env(safe-area-inset-top,0px) + 20px),#fff7e8 calc(env(safe-area-inset-top,0px) + 20px),#fff7e8 calc(env(safe-area-inset-top,0px) + 24px),rgba(58,36,20,.55) calc(env(safe-area-inset-top,0px) + 24px),rgba(58,36,20,0) 100%);pointer-events:none;z-index:4}   /* V459: Rahmen oben + Ausblenden */   /* dazu Ausblenden über dem Rand */
