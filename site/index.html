@@ -2826,7 +2826,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V671";
+const GAME_VER = "V672";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -3375,7 +3375,7 @@ const BUDDY_SAY = { snipe: ["ON THE SCOPE!", "sniper strike"], mix: ["CONCRETE I
 function certTusch() {   /* V605: festlicher Tusch zum Diplom · V623: Suno-Fanfare */
   try { SFX.voiceCut && SFX.voiceCut(); } catch (e) {}   /* V628: keine Stimme unter der Fanfare */
   if (SFX.muted || SFX.vol === 0) return;
-  try { const fa = new Audio("sfx/fanfare.mp3?v=623"); fa.volume = Math.min(1, 0.95 * Math.pow(SFX.vol || 0.3, 0.5)); const pr = fa.play(); if (pr && pr.catch) pr.catch(() => {}); const v0 = fa.volume; setTimeout(() => { let i = 0; const iv = setInterval(() => { i++; try { fa.volume = Math.max(0, v0 * (1 - i / 16)); } catch (e) {} if (i >= 16) { clearInterval(iv); try { fa.pause(); } catch (e) {} } }, 20); }, 4100); return; }   /* V648: Fanfare vor dem Spruch aus */ catch (e) {} const A = window.__tuschAC || (window.__tuschAC = new (window.AudioContext || window.webkitAudioContext)()); try { A.resume(); } catch (e) {}
+  try { const fa = new Audio("sfx/fanfare.mp3?v=672"); fa.volume = Math.min(1, 0.95 * Math.pow(SFX.vol || 0.3, 0.5)); const pr = fa.play(); if (pr && pr.catch) pr.catch(() => {}); const v0 = fa.volume; setTimeout(() => { let i = 0; const iv = setInterval(() => { i++; try { fa.volume = Math.max(0, v0 * Math.pow(1 - i / 40, 2)); } catch (e) {} if (i >= 40) { clearInterval(iv); try { fa.pause(); } catch (e) {} } }, 10); }, 4000);   /* V672: weich ausblenden */ return; }   /* V648: Fanfare vor dem Spruch aus */ catch (e) {} const A = window.__tuschAC || (window.__tuschAC = new (window.AudioContext || window.webkitAudioContext)()); try { A.resume(); } catch (e) {}
   const out = A.createGain(); out.gain.value = Math.min(1, 0.55 * Math.pow(SFX.vol || 0.3, 0.6)); out.connect(A.destination); const t0 = A.currentTime + 0.05;
   const brass = (f, t, d, v) => { for (const det of [-6, 0, 7]) { const o = A.createOscillator(), g = A.createGain(), lp = A.createBiquadFilter(); o.type = "sawtooth"; o.frequency.value = f; o.detune.value = det;
       lp.type = "lowpass"; lp.frequency.setValueAtTime(700, t); lp.frequency.linearRampToValueAtTime(3200, t + 0.06); lp.frequency.exponentialRampToValueAtTime(1400, t + d);
