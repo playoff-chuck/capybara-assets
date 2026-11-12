@@ -25,6 +25,7 @@ const core = require(path.join(process.env.GL, '@bubblewrap/cli/node_modules/@bu
   m.host = 'playcapybarasquad.com';
   m.name = 'Capybara Squad'; m.launcherName = 'Capybara Squad';
   m.startUrl = '/';
+  m.iconUrl = 'https://playcapybarasquad.com/icons/icon-512.png'; m.maskableIconUrl = 'https://playcapybarasquad.com/icons/icon-maskable-512.png';   // V654: aktuelles Logo C1 (Manifest nennt jetzt das freigestellte Splash-Logo)
   m.appVersionCode = parseInt(process.env.VCODE || '1'); m.appVersionName = process.env.VNAME || '1.0.0';
   m.orientation = 'portrait'; m.display = 'standalone';
   m.enableNotifications = false; m.fallbackType = 'customtabs';
