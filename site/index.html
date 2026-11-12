@@ -2825,7 +2825,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V647";
+const GAME_VER = "V648";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -3347,7 +3347,7 @@ const BUDDY_SAY = { snipe: ["ON THE SCOPE!", "sniper strike"], mix: ["CONCRETE I
 function certTusch() {   /* V605: festlicher Tusch zum Diplom · V623: Suno-Fanfare */
   try { SFX.voiceCut && SFX.voiceCut(); } catch (e) {}   /* V628: keine Stimme unter der Fanfare */
   if (SFX.muted || SFX.vol === 0) return;
-  try { const fa = new Audio("sfx/fanfare.mp3?v=623"); fa.volume = Math.min(1, 0.95 * Math.pow(SFX.vol || 0.3, 0.5)); const pr = fa.play(); if (pr && pr.catch) pr.catch(() => {}); return; } catch (e) {} const A = window.__tuschAC || (window.__tuschAC = new (window.AudioContext || window.webkitAudioContext)()); try { A.resume(); } catch (e) {}
+  try { const fa = new Audio("sfx/fanfare.mp3?v=623"); fa.volume = Math.min(1, 0.95 * Math.pow(SFX.vol || 0.3, 0.5)); const pr = fa.play(); if (pr && pr.catch) pr.catch(() => {}); const v0 = fa.volume; setTimeout(() => { let i = 0; const iv = setInterval(() => { i++; try { fa.volume = Math.max(0, v0 * (1 - i / 16)); } catch (e) {} if (i >= 16) { clearInterval(iv); try { fa.pause(); } catch (e) {} } }, 20); }, 4100); return; }   /* V648: Fanfare vor dem Spruch aus */ catch (e) {} const A = window.__tuschAC || (window.__tuschAC = new (window.AudioContext || window.webkitAudioContext)()); try { A.resume(); } catch (e) {}
   const out = A.createGain(); out.gain.value = Math.min(1, 0.55 * Math.pow(SFX.vol || 0.3, 0.6)); out.connect(A.destination); const t0 = A.currentTime + 0.05;
   const brass = (f, t, d, v) => { for (const det of [-6, 0, 7]) { const o = A.createOscillator(), g = A.createGain(), lp = A.createBiquadFilter(); o.type = "sawtooth"; o.frequency.value = f; o.detune.value = det;
       lp.type = "lowpass"; lp.frequency.setValueAtTime(700, t); lp.frequency.linearRampToValueAtTime(3200, t + 0.06); lp.frequency.exponentialRampToValueAtTime(1400, t + d);
@@ -4171,27 +4171,27 @@ const SFX = (() => {
       MUSIC.duck(dur);
       // Funkgerät: Bandpass 350–3200 Hz, leichte Verzerrung, Rauschen, Squelch-Klick am Anfang und Ende
       const src = ac.createBufferSource(), g = ac.createGain(), hp = ac.createBiquadFilter(), lp = ac.createBiquadFilter(), pk = ac.createBiquadFilter();
-      src.buffer = buf; hp.type = "highpass"; hp.frequency.value = 420; hp.Q.value = 1.1; lp.type = "lowpass"; lp.frequency.value = 2700; lp.Q.value = 1.6; pk.type = "peaking"; pk.frequency.value = 1700; pk.gain.value = 8; pk.Q.value = 1.2; if (/^thief_/.test(String(text))) { hp.frequency.value = 75; lp.frequency.value = 5200; pk.frequency.value = 230; pk.gain.value = 5; }   /* V564: Dieb – tiefe Stimme, kein Funkfilter */
+      src.buffer = buf; hp.type = "highpass"; hp.frequency.value = 420; hp.Q.value = 1.1; lp.type = "lowpass"; lp.frequency.value = 2700; lp.Q.value = 1.6; pk.type = "peaking"; pk.frequency.value = 1700; pk.gain.value = 8; pk.Q.value = 1.2; const clean = String(text) === "cert_done"; if (clean) { hp.frequency.value = 70; lp.frequency.value = 12000; pk.gain.value = 0; } else if (/^thief_/.test(String(text))) { hp.frequency.value = 75; lp.frequency.value = 5200; pk.frequency.value = 230; pk.gain.value = 5; }   /* V564: Dieb – tiefe Stimme, kein Funkfilter */
       const ws = ac.createWaveShaper(), cu = new Float32Array(512); for (let i = 0; i < 512; i++) { const x = i / 255.5 - 1; cu[i] = Math.tanh(x * 3.4) / Math.tanh(3.4); } ws.curve = cu;
       const comp = ac.createDynamicsCompressor(); comp.threshold.value = -24; comp.ratio.value = 8; comp.attack.value = 0.002; comp.release.value = 0.08;
-      g.gain.value = 0.324 * [1, 0.72, 0.42, 0.14][Math.min(3, deg)]; src.connect(hp); src.__g = g; hp.connect(pk); pk.connect(lp); lp.connect(ws); ws.connect(comp);
+      g.gain.value = 0.324 * [1, 0.72, 0.42, 0.14][Math.min(3, deg)]; if (clean) g.gain.value *= 1.3;   /* V648: Diplom-Spruch +30 % */ src.connect(hp); src.__g = g; hp.connect(pk); pk.connect(lp); lp.connect(ws); ws.connect(comp);
       // Feldfunk: Aussetzer (etwa jede 10. Meldung) und leichtes Flattern der Lautstärke
       const dg = ac.createGain(); dg.gain.value = 1; comp.connect(dg); dg.connect(g); g.connect(voiceOut || master);
       const t0 = t + 0.06; voiceNo++;
       if (deg > 0) { for (let k = 0, at = t0 + 0.08; at < t0 + dur; k++) { const gap = 0.04 + Math.random() * 0.06 * deg; if (Math.random() < 0.18 * deg) { dg.gain.setValueAtTime(0.02, at); dg.gain.setValueAtTime(1, at + gap); } at += 0.09 + Math.random() * 0.12; } for (let r = 0; r < deg; r++) noise(dur + 0.1, (0.05 + 0.04 * deg) * (1 + Math.random()), "bandpass", 900 + Math.random() * 2600, 700 + Math.random() * 1500, 0.04, 0.5 + Math.random(), 0, voiceOut || master); for (let at = 0.05; at < dur; at += 0.06 + Math.random() * (0.25 - 0.05 * deg)) noise(0.02 + Math.random() * 0.06, 0.05 + 0.05 * deg, "bandpass", 1500 + Math.random() * 3200, 800, at, 2.5, 0, voiceOut || master); }
       /* Zufalls-Aussetzer aus: klang wie Stottern («Ma, Ma, Muncher») */ if (false && (voiceNo % 10 === 0 || Math.random() < 0.06)) { let at = t0 + 0.25 + Math.random() * Math.max(0.1, dur * 0.4); for (let k = 0; k < 1 + Math.floor(Math.random() * 3) && at < t0 + dur - 0.1; k++) { const len = 0.05 + Math.random() * 0.09; dg.gain.setValueAtTime(1, at); dg.gain.linearRampToValueAtTime(0.03, at + 0.01); dg.gain.setValueAtTime(0.03, at + len); dg.gain.linearRampToValueAtTime(1, at + len + 0.015); noise(len, 0.05, "bandpass", 1500 + Math.random() * 1500, 1200, at - t, 0.8, 0, voiceOut || master); at += len + 0.15 + Math.random() * 0.4; } }
-      for (let k = 0, at = t0; at < t0 + dur; k++) { const len = 0.12 + Math.random() * 0.25, lvl = 0.82 + Math.random() * 0.18; dg.gain.setTargetAtTime(lvl, at, 0.05); at += len; }   // Flattern
+      if (!clean) for (let k = 0, at = t0; at < t0 + dur; k++) { const len = 0.12 + Math.random() * 0.25, lvl = 0.82 + Math.random() * 0.18; dg.gain.setTargetAtTime(lvl, at, 0.05); at += len; }   // Flattern
       { const gv = g.gain.value; g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(gv, t0 + 0.01); g.gain.setValueAtTime(gv, t0 + dur - 0.025); g.gain.linearRampToValueAtTime(0, t0 + dur); }   /* V433: Klick-Schutz */
       src.start(t0); curVoice = src; src.__rb = /^rb_/.test(String(text));
       setTimeout(() => { if (curVoice === src) curVoice = null; }, (dur + 0.45) * 1000);   // erst frei, wenn auch das Squelch-Ende durch ist
       const hiss = Math.random() < 0.7, f1 = 1800 + Math.random() * 1400, f2 = 1200 + Math.random() * 1200;   // immer etwas anders
-      noise(0.04 + Math.random() * 0.04, 0.16 + Math.random() * 0.06, "bandpass", f1 + 600, f2, 0, 1.5, 0, voiceOut || master);   // Squelch auf
-      if (hiss) noise(0.12 + Math.random() * 0.12, 0.06 + Math.random() * 0.03, "bandpass", f1, f2, 0.03, 0.6, 0, voiceOut || master);
-      noise(dur + 0.08, 0.05 + Math.random() * 0.025, "bandpass", f1, f1 * (0.8 + Math.random() * 0.4), 0.06, 0.35 + Math.random() * 0.4, 0, voiceOut || master);   // Träger-Rauschen, driftet
-      noise(dur + 0.08, 0.02 + Math.random() * 0.015, "highpass", 3500, 3500, 0.06, 0.8, 0, voiceOut || master);                                                // Zischen
-      for (let k = 0, at = 0.15 + Math.random() * 0.25; at < dur; at += 0.18 + Math.random() * 0.45) noise(0.02 + Math.random() * 0.05, 0.04 + Math.random() * 0.05, "bandpass", 1800 + Math.random() * 2800, 900, at, 2, 0, voiceOut || master);   // Knistern
-      noise(0.05, 0.1, "bandpass", 1800, 3500, dur + 0.1, 1.5, 0, voiceOut || master); osc("square", 1900, 1700, 0.025, 0.02, dur + 0.12, { dest: voiceOut || master });   // Squelch zu
-      if (hiss) noise(0.14, 0.035, "bandpass", 2400, 1600, dur + 0.14, 0.6, 0, voiceOut || master);
+      clean || noise(0.04 + Math.random() * 0.04, 0.16 + Math.random() * 0.06, "bandpass", f1 + 600, f2, 0, 1.5, 0, voiceOut || master);   // Squelch auf
+      if (hiss) clean || noise(0.12 + Math.random() * 0.12, 0.06 + Math.random() * 0.03, "bandpass", f1, f2, 0.03, 0.6, 0, voiceOut || master);
+      clean || noise(dur + 0.08, 0.05 + Math.random() * 0.025, "bandpass", f1, f1 * (0.8 + Math.random() * 0.4), 0.06, 0.35 + Math.random() * 0.4, 0, voiceOut || master);   // Träger-Rauschen, driftet
+      clean || noise(dur + 0.08, 0.02 + Math.random() * 0.015, "highpass", 3500, 3500, 0.06, 0.8, 0, voiceOut || master);                                                // Zischen
+      for (let k = 0, at = 0.15 + Math.random() * 0.25; at < dur; at += 0.18 + Math.random() * 0.45) clean || noise(0.02 + Math.random() * 0.05, 0.04 + Math.random() * 0.05, "bandpass", 1800 + Math.random() * 2800, 900, at, 2, 0, voiceOut || master);   // Knistern
+      clean || noise(0.05, 0.1, "bandpass", 1800, 3500, dur + 0.1, 1.5, 0, voiceOut || master); clean || osc("square", 1900, 1700, 0.025, 0.02, dur + 0.12, { dest: voiceOut || master });   // Squelch zu
+      if (hiss) clean || noise(0.14, 0.035, "bandpass", 2400, 1600, dur + 0.14, 0.6, 0, voiceOut || master);
       return;
     }
   }
@@ -4446,6 +4446,18 @@ const SFX = (() => {
   };
 })();
 let snd = (n, ...a) => SFX.play(n, ...a);   /* V430: let – V421 umhüllt snd */
+/* V648: gewählte Klänge als Samples */
+try { (() => { const FX = { lock: 1, lines: 1, splat: 1, mg: 1, coin: 1, kan: 1 }, GAIN = { lock: 0.7, lines: 0.6, splat: 1.1, mg: 0.8, coin: 0.7, kan: 0.7 }, BUFX = {}, last = {}; let loading = false, chainN = 0, chainT = -9;
+  function load(ac) { loading = true; for (const k in FX) fetch(`sfx/fx_${k}.mp3?v=648`).then(r => r.arrayBuffer()).then(b => ac.decodeAudioData(b)).then(buf => { BUFX[k] = buf; }).catch(() => {}); }
+  const _play = SFX.play;
+  SFX.play = (n, ...a) => { try { if (FX[n]) { const ac = SFX._ac(), out = SFX._out(); if (ac && !loading) load(ac); const buf = BUFX[n];
+      if (ac && out && buf) { const now = ac.currentTime; if (now - (last[n] == null ? -9 : last[n]) < (n === "mg" ? 0.05 : 0.03)) return; last[n] = now;
+        let rate = 1; if (n === "splat") { chainN = now - chainT < 1.6 ? Math.min(7, chainN + 1) : 0; chainT = now; rate = Math.pow(2, chainN / 12); }
+        const src = ac.createBufferSource(), g = ac.createGain(), v = GAIN[n] || 1, d = buf.duration / rate; src.buffer = buf; src.playbackRate.value = rate;
+        g.gain.setValueAtTime(0, now); g.gain.linearRampToValueAtTime(v, now + 0.003); g.gain.setValueAtTime(v, now + Math.max(0.004, d - 0.01)); g.gain.linearRampToValueAtTime(0, now + d);
+        src.connect(g); g.connect(out); src.start(now); src.onended = () => { try { g.disconnect(); } catch (e) {} }; return; } } } catch (e) {} return _play(n, ...a); };
+})(); } catch (e) { console.error("v648", e); }
+
 window.__TT = { get S() { return S; }, get HK() { return HK; }, startGame: (m, w) => startGame(m, w), startWave: () => startWave(), hud: () => hud(), theme: () => ({ THEME, base: baseTheme(), camo0: CAMO[0][0] }), baseTheme: () => baseTheme(), openSheet: t => openSheet(t), hkFinish: () => hkFinish(), openHack: f => openHack(f), startDuel: k => startDuel(k), startCoach: () => startCoach(), toast: (a, b, c) => toast(a, b, c), announce: (a, b, c, d) => announce(a, b, c, d), book: (a, b) => bookkeeper(a, b), SFX, cvPt: (...a) => cvPt(...a), cvCell: e => cvCell(e), hardDrop: () => hardDrop(), v2g: (u, v) => v2g(u, v), GW: () => GW, GH: () => GH };
 // ---------- Lob (Stempel + Stimme) ----------
 // Der Buchhalter meldet runde Punktestände
