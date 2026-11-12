@@ -2826,7 +2826,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V663";
+const GAME_VER = "V665";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -3171,7 +3171,7 @@ function supportBox() { try { const box = document.querySelector("#ovSettings .j
 new MutationObserver(() => { const o = document.getElementById("ovSettings"); if (o && !o.hidden) supportBox(); }).observe(document.getElementById("ovSettings") || document.body, { attributes: true, attributeFilter: ["hidden"] });
 function fxLabel() { const b = $("setFx"); if (b) b.textContent = "GRAPHICS: " + (fxOn() ? "FULL" : fxPref() === "auto-off" ? "LITE (AUTO)" : "LITE"); }   /* V658 */
 const FX_WEAK = (() => { try { return (navigator.hardwareConcurrency > 0 && navigator.hardwareConcurrency <= 2) || (navigator.deviceMemory > 0 && navigator.deviceMemory <= 2); } catch (e) { return false; } })();
-function fxAutoOff(why) { if (fxPref() != null || FX_FORCE != null) return; try { localStorage.setItem("capy-fx", "auto-off"); } catch (e) {} fxLabel(); liteApply(); try { window.__evLog && window.__evLog.push("perf", { d: { lite: 1, why: String(why || "") } }); } catch (e) {} try { if (S && S.fx) S.fx = S.fx.filter(f => f.type !== "ofx"); } catch (e) {} try { genHeadSync(); toast("LITE GRAPHICS · Tap me for full graphics", "HQ", 4200); } catch (e) {} }   /* V662 */
+function fxAutoOff(why) { if (fxPref() != null || FX_FORCE != null) return; try { if (FXU.upAt) { FXU.next = performance.now() + (FXU.tries <= 1 ? 600000 : 1800000); FXU.upAt = 0; } FXU.t0 = 0; FXU.n = 0; FXU.sum = 0; FXU.good = 0; } catch (e) {}   /* V665: Sperrzeit nach Rückfall */ try { localStorage.setItem("capy-fx", "auto-off"); } catch (e) {} fxLabel(); liteApply(); try { window.__evLog && window.__evLog.push("perf", { d: { lite: 1, why: String(why || "") } }); } catch (e) {} try { if (S && S.fx) S.fx = S.fx.filter(f => f.type !== "ofx"); } catch (e) {} try { genHeadSync(); toast("LITE GRAPHICS · Tap me for full graphics", "HQ", 4200); } catch (e) {} }   /* V662 */
 const FXM = { t0: 0, n: 0, sum: 0 };   /* V494: Bildrate im Spiel messen */
 function genHeadSync() { try { const want = fxOn() ? GEN_FULL : GEN_LITE; if (GEN_HEAD === want) return; const old = GEN_HEAD; GEN_HEAD = want; const g = document.getElementById("genAv"); if (g && g.getAttribute("src") === old) g.src = want; } catch (e) {} }   /* V662 */
 function genGoFull() { if (fxOn()) return; try { localStorage.removeItem("capy-fx"); } catch (e) {} FXM.n = 0; FXM.sum = 0; FXM.t0 = 0; fxLabel(); liteApply(); genHeadSync();
@@ -3181,7 +3181,18 @@ function genGoFull() { if (fxOn()) return; try { localStorage.removeItem("capy-f
 document.addEventListener("click", e => { try { if (fxOn() || document.body.classList.contains("ovUp")) return; const g = document.getElementById("genAv"); if (!g || !g.getClientRects().length) return; const r = g.getBoundingClientRect();
   if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom) { e.stopPropagation(); e.preventDefault(); genGoFull(); } } catch (er) {} }, true);   /* Treffer über die Fläche des Generals (auch wenn ein Bild darüber liegt) */
 setInterval(genHeadSync, 500);
-function fxMeasure() { if (fxPref() != null || FX_FORCE != null) return; const now = performance.now(), d = FXM.t0 ? now - FXM.t0 : 0; FXM.t0 = now;
+const FXU = { t0: 0, n: 0, sum: 0, good: 0, tries: 0, next: 0, upAt: 0 };   /* V665: Rückkehr auf volle Grafik */
+function fxUpMeasure() { const now = performance.now(), d = FXU.t0 ? now - FXU.t0 : 0; FXU.t0 = now;
+  if (FX_WEAK || FXU.tries >= 2 || now < FXU.next) { FXU.n = 0; FXU.sum = 0; FXU.good = 0; return; }
+  if (!d || d > 200 || document.hidden || !S || !S.started || S.over || frozen()) { FXU.n = 0; FXU.sum = 0; return; }
+  FXU.n++; FXU.sum += d; if (FXU.n < 60) return; const avg = FXU.sum / FXU.n, span = FXU.sum; FXU.n = 0; FXU.sum = 0;
+  if (avg < 20) FXU.good += span; else FXU.good = 0;   /* ≥ 50 FPS ohne Unterbrechung */
+  if (FXU.good < 120000) return; FXU.good = 0; FXU.tries++; FXU.upAt = now;
+  try { localStorage.removeItem("capy-fx"); } catch (e) {} FXM.n = 0; FXM.sum = 0; FXM.t0 = 0; fxLabel(); liteApply(); genHeadSync();
+  try { window.__evLog && window.__evLog.push("perf", { d: { lite: 0, why: "auto-up", n: FXU.tries } }); } catch (e) {}
+  try { const g = document.getElementById("genAv"); if (g) { g.classList.remove("talk"); void g.offsetWidth; g.classList.add("talk"); } } catch (e) {}
+  try { toast("FULL GRAPHICS ARE BACK · Medals polished", "HQ", 3600); } catch (e) {} }
+function fxMeasure() { if (FX_FORCE == null && fxPref() === "auto-off") { fxUpMeasure(); return; } if (fxPref() != null || FX_FORCE != null) return; const now = performance.now(), d = FXM.t0 ? now - FXM.t0 : 0; FXM.t0 = now;
   if (!d || d > 200 || document.hidden || !S || !S.started || S.over || frozen()) return; FXM.n++; FXM.sum += d;
   if (FXM.n >= 300) { const avg = FXM.sum / FXM.n; FXM.n = 0; FXM.sum = 0; if (avg > 28) fxAutoOff("fps"); } }
 function outfitFx() { try { if (heroDisco() || (FX_FORCE == null && !fxOn())) return null; const k = heroKey(); return OUTFIT_FX[k][outfitSel(k)] || null; } catch (e) { return null; } }   /* V490 */
@@ -7226,7 +7237,8 @@ try { (() => {
   const first = () => { try { return (LS.get("capy-hk-first") !== "1" && !S.testRun) || (S.testRun && S.testKind === "tips"); } catch (e) { return false; } };   /* V624 */
   const fst = document.createElement("p"); fst.id = "hkFirstP"; fst.hidden = true; fst.textContent = "The boss challenges you to a hack!"; const hb = document.getElementById("hackBet"); if (hb) hb.insertBefore(fst, hb.querySelector(".hkRow"));
   const _oh2 = openHack; openHack = function () { const r = _oh2.apply(this, arguments); try { const f = first(); hb.classList.toggle("hkFirst", f); fst.hidden = !f;
-      const nb = !f && !(S && S.testRun) && (cnt() < 2 || (+$("hkRange").max || 0) < 10);   /* V660: nichts zu setzen → Einsatz-Fenster weg */
+      let hn = 9; try { if (!(S && S.testRun)) { let c0 = LS.get("capy-hk-n"); if (c0 == null) c0 = LS.get("capy-hk-first") === "1" ? 2 : 0; hn = (+c0 || 0) + 1; LS.set("capy-hk-n", String(hn)); } } catch (e) {}   /* V665: eigener Hack-Zähler */
+      const nb = !f && !(S && S.testRun) && (hn <= 2 || (+$("hkRange").max || 0) < 10);   /* V660: nichts zu setzen → Einsatz-Fenster weg */
       const gb = $("hkGo"); if (f || nb) { $("hkRange").value = 0; hkStakeUI(); gb.textContent = "NEXT ▶"; hb.style.visibility = "hidden"; setTimeout(() => { try { gb.click(); } catch (e) {} const vt = setInterval(() => { try { if (hb.hidden || $("ovHack").hidden || HK.phase !== "bet") { clearInterval(vt); hb.style.visibility = ""; } } catch (e) { clearInterval(vt); } }, 150); }, 30); }   /* V660 */   /* V634: Boss-Karte überspringen */ else if (gb.textContent !== "HACK!") gb.textContent = "HACK!"; } catch (e) {} return r; };   /* V626: erster Hack gratis */
   document.getElementById("hkGo").addEventListener("click", () => { try { window.__hkFree = hb.classList.contains("hkFirst") ? 1 : 0; if (hb.classList.contains("hkFirst") && !S.testRun) LS.set("capy-hk-first", "1"); hb.classList.remove("hkFirst"); fst.hidden = true; $("hkGo").textContent = "HACK!"; } catch (e) {} }, true);
   const _sd = startDuel; startDuel = function (keep) { if (!need()) return _sd.apply(this, arguments); const a = arguments; show(() => _sd.apply(this, a)); };   /* V622: beim Start des Duells */
@@ -10125,15 +10137,17 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
       const o1 = ac.createOscillator(), o2 = ac.createOscillator(); o1.type = "triangle"; o2.type = "triangle";   /* V649: kein Knattern */
       const f0 = fromOff ? 104 : 62, f1 = 112, f2 = 58;
       [o1, o2].forEach((o, i) => { const k = i ? 1.012 : 1; o.frequency.setValueAtTime(f0 * k, T); o.frequency.linearRampToValueAtTime(f1 * k, T + up); o.frequency.linearRampToValueAtTime(f1 * 0.94 * k, T + D * 0.55); o.frequency.linearRampToValueAtTime(f2 * k, T + D); o.connect(lp); });
+      const hs = [[3, 0.55], [4.5, 0.3]].map(([m, gv]) => { const o = ac.createOscillator(), hg = ac.createGain(); o.type = "sine"; hg.gain.value = gv;   /* V664: hörbare Obertöne für Handy-Lautsprecher */
+        o.frequency.setValueAtTime(f0 * m, T); o.frequency.linearRampToValueAtTime(f1 * m, T + up); o.frequency.linearRampToValueAtTime(f1 * 0.94 * m, T + D * 0.55); o.frequency.linearRampToValueAtTime(f2 * m, T + D); o.connect(hg); hg.connect(lp); return o; });
       lp.frequency.setValueAtTime(fromOff ? 900 : 350, T); lp.frequency.linearRampToValueAtTime(1100, T + up); lp.frequency.linearRampToValueAtTime(420, T + D);
-      const v = 0.05; g.gain.setValueAtTime(0.0001, T); g.gain.exponentialRampToValueAtTime(fromOff ? v * 0.8 : v * 0.35, T + 0.15); g.gain.exponentialRampToValueAtTime(v, T + up); g.gain.setValueAtTime(v, T + D - down); g.gain.exponentialRampToValueAtTime(v * 0.25, T + D); g.gain.exponentialRampToValueAtTime(0.0001, T + D + 0.6);
+      const v = 0.075; g.gain.setValueAtTime(0.0001, T);   /* V664: etwas lauter */ g.gain.exponentialRampToValueAtTime(fromOff ? v * 0.8 : v * 0.35, T + 0.15); g.gain.exponentialRampToValueAtTime(v, T + up); g.gain.setValueAtTime(v, T + D - down); g.gain.exponentialRampToValueAtTime(v * 0.25, T + D); g.gain.exponentialRampToValueAtTime(0.0001, T + D + 0.6);
       lp.connect(am); am.connect(g); g.connect(out);
       // Luftrauschen (Propeller-Wind)
       const n = ac.createBuffer(1, ac.sampleRate * 2, ac.sampleRate), d = n.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
       const ns = ac.createBufferSource(), bp = ac.createBiquadFilter(), ng = ac.createGain(); ns.buffer = n; ns.loop = true; bp.type = "bandpass"; bp.frequency.value = 520; bp.Q.value = 0.6;
       ng.gain.setValueAtTime(0.0001, T); ng.gain.exponentialRampToValueAtTime(0.03, T + up); ng.gain.setValueAtTime(0.03, T + D - down); ng.gain.exponentialRampToValueAtTime(0.0001, T + D + 0.4);
       ns.connect(bp); bp.connect(ng);   /* V606: Luftrauschen beim Kartenflug aus (nicht mehr an out) */
-      [o1, o2, lfo, ns].forEach(x => { x.start(T); x.stop(T + D + 0.7); });
+      [o1, o2, lfo, ns, ...hs].forEach(x => { x.start(T); x.stop(T + D + 0.7); });
       // Landung: zwei kurze Reifen-Quietscher + dumpfes Aufsetzen
       const td = T + D - 0.05;
       [].forEach((dt, i) => { const s2 = ac.createBufferSource(), hp = ac.createBiquadFilter(), sg = ac.createGain(); s2.buffer = n; hp.type = "bandpass"; hp.frequency.value = 2600 + i * 400; hp.Q.value = 4;
