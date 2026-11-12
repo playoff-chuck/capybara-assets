@@ -2826,7 +2826,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V660";
+const GAME_VER = "V661";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -10464,22 +10464,29 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
 
     /* Kurz-Umfrage nach W7 und W17: schwebend, blockiert nichts */
     const pc = document.createElement("div"); pc.id = "pollCard"; pc.hidden = true; document.body.appendChild(pc);
-    let pT = 0, pAt = 0;
+    let pT = 0, pAt = 0, pOpen = false;
+    const pMusicOut = sec => { try { if (typeof TP !== "undefined" && TP.el && !TP.el.paused) tpFade(0.0001, sec); } catch (e) {} };
+    const pMusicIn = () => { try { if (typeof TP !== "undefined" && TP.el && TP.key && !TP.paused) tpFade(0.5, 1.5); } catch (e) {} };
+    const pHold = () => { try { if (S && S.started && !S.over) S.coachHold = true; } catch (e) {} };   /* V661: Spiel steht */
     function pollHide() { clearTimeout(pT); pc.classList.remove("on"); setTimeout(() => { if (!pc.classList.contains("on")) pc.hidden = true; }, 320); }
     function pollShow(at) { if (!pc.hidden && pc.classList.contains("on") && pAt === at) return; pAt = at; try { LS.set("capy-poll-" + at, "s"); } catch (e) {}   /* V659: "s" = gezeigt, offen */
+      pOpen = true; pHold(); pMusicOut(0.3);   /* V661 */
       try { if (pc.parentNode !== document.body || document.body.lastElementChild !== pc) document.body.appendChild(pc); } catch (e) {}
       pc.classList.remove("thx"); pc.innerHTML = '<small>QUICK QUESTION</small><b>How do you like the game?</b><div class="pRow"><button type="button" class="pBtn pUp" data-v="1" aria-label="Good">👍</button><button type="button" class="pBtn pMid" data-v="0" aria-label="Okay">😐</button><button type="button" class="pBtn pDown" data-v="-1" aria-label="Not good">👎</button></div>';
       pc.hidden = false; requestAnimationFrame(() => pc.classList.add("on")); try { snd("uiTap"); } catch (e) {}
       clearTimeout(pT); }   /* V659: kein automatisches Ausblenden */
     pc.addEventListener("click", e => { const b = e.target.closest(".pBtn"); const why = e.target.closest(".pWhy");
       if (why) { pollHide(); openRate(0, "poll"); return; }
-      if (!b) return; const v = +b.dataset.v; ev("poll", { v, at: pAt }); try { LS.set("capy-poll-" + pAt, "1"); } catch (er) {} try { snd("uiTap"); } catch (er) {} clearTimeout(pT);
+      if (!b) return; if (!pOpen) return; const v = +b.dataset.v; ev("poll", { v, at: pAt }); try { LS.set("capy-poll-" + pAt, "1"); } catch (er) {}
+      pOpen = false; try { if (S) { S.coachHold = false; window.__evLast = performance.now(); } } catch (er) {} pMusicIn();   /* V661: weiter + Musik ein */ try { snd("uiTap"); } catch (er) {} clearTimeout(pT);
       pc.classList.add("thx"); pc.innerHTML = '<b>Thanks!</b>' + (v <= 0 ? '<button type="button" class="pWhy">TELL US WHY ▶</button>' : ""); pT = setTimeout(pollHide, v <= 0 ? 7000 : 2200); });
     function pollLater(at) { try { if (LS.get("capy-poll-" + at) === "1") return; } catch (e) { return; }
-      setTimeout(() => pollShow(at), 1500); }   /* V659: sofort, über allem */
+      pHold(); pMusicOut(1.5); setTimeout(() => pollShow(at), 1500); }   /* V659/V661: Musik 1,5 s aus, dann Fenster */
     setInterval(() => { try {   /* V659: offene Umfrage bleibt sichtbar und ganz oben (auch nach Neuladen) */
       if (pc.hidden) { for (const at of [7, 17]) if (LS.get("capy-poll-" + at) === "s" || LS.get("capy-poll-" + at) === "0") { pollShow(at); break; } }
       else if (document.body.lastElementChild !== pc) document.body.appendChild(pc); } catch (e) {} }, 700);
+    setInterval(() => { if (!pOpen || pc.hidden) return; pHold();   /* V661: solange offen bleibt das Spiel stehen und die Musik aus */
+      try { if (typeof TP !== "undefined" && TP.el && !TP.el.paused && TP.el.volume > 0.004 && (TP.want == null || TP.want >= 0.5)) tpFade(0.0001, 0.3); } catch (e) {} }, 150);
     window.__pollShow = pollShow;
   })(); } catch (e) { console.error("v647", e); }
 
