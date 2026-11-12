@@ -2098,5 +2098,13 @@
 "Your player name · made up, not your real one": "Tu nombre en el juego · inventado, no el real",
 "ALL SLOTS USED": "SIN HUECOS LIBRES",
 "NO BLOCKS YET": "PRIMERO BLOQUES",
-"# weapons per tower · up to # monsters": "# armas por torre · hasta # monstruos"
+"# weapons per tower · up to # monsters": "# armas por torre · hasta # monstruos",
+"GRAPHICS:": "GRÁFICOS:",
+"FULL": "COMPLETOS",
+"LITE": "LIGEROS",
+"LITE (AUTO)": "LIGEROS (AUTO)",
+"GRAPHICS: FULL": "GRÁFICOS: COMPLETOS",
+"GRAPHICS: LITE": "GRÁFICOS: LIGEROS",
+"GRAPHICS: LITE (AUTO)": "GRÁFICOS: LIGEROS (AUTO)",
+"LITE GRAPHICS · smoother play on this phone": "GRÁFICOS LIGEROS · juego más fluido en este móvil"
 }

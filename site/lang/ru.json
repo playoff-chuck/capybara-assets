@@ -2389,5 +2389,13 @@
 "Your player name · made up, not your real one": "Твоё имя в игре · выдуманное, не настоящее",
 "ALL SLOTS USED": "ВСЕ МЕСТА ЗАНЯТЫ",
 "NO BLOCKS YET": "СНАЧАЛА БЛОКИ",
-"# weapons per tower · up to # monsters": "оружия на башню: # · монстров: до #"
+"# weapons per tower · up to # monsters": "оружия на башню: # · монстров: до #",
+"GRAPHICS:": "ГРАФИКА:",
+"FULL": "ПОЛНАЯ",
+"LITE": "ЛЁГКАЯ",
+"LITE (AUTO)": "ЛЁГКАЯ (АВТО)",
+"GRAPHICS: FULL": "ГРАФИКА: ПОЛНАЯ",
+"GRAPHICS: LITE": "ГРАФИКА: ЛЁГКАЯ",
+"GRAPHICS: LITE (AUTO)": "ГРАФИКА: ЛЁГКАЯ (АВТО)",
+"LITE GRAPHICS · smoother play on this phone": "ЛЁГКАЯ ГРАФИКА · так игра идёт плавнее"
 }

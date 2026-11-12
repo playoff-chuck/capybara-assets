@@ -2858,5 +2858,13 @@
 "Your player name · made up, not your real one": "Your player name · made up, not your real one",
 "ALL SLOTS USED": "ALL SLOTS USED",
 "NO BLOCKS YET": "NO BLOCKS YET",
-"# weapons per tower · up to # monsters": "# weapons per tower · up to # monsters"
+"# weapons per tower · up to # monsters": "# weapons per tower · up to # monsters",
+"GRAPHICS:": "GRAPHICS:",
+"FULL": "FULL",
+"LITE": "LITE",
+"LITE (AUTO)": "LITE (AUTO)",
+"GRAPHICS: FULL": "GRAPHICS: FULL",
+"GRAPHICS: LITE": "GRAPHICS: LITE",
+"GRAPHICS: LITE (AUTO)": "GRAPHICS: LITE (AUTO)",
+"LITE GRAPHICS · smoother play on this phone": "LITE GRAPHICS · smoother play on this phone"
 }

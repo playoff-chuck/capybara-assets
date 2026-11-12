@@ -2825,7 +2825,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V657";
+const GAME_VER = "V658";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -3142,6 +3142,8 @@ function outfitSel(k) { if (FX_FORCE != null) return FX_FORCE; try { const n = +
 function heroDisco() { try { const s = window.__TT && window.__TT.S; return !!(s && s.nuts); } catch (e) { return false; } }   /* V466: Nuts = 80er-Disco-Outfit */
 function fxPref() { try { return localStorage.getItem("capy-fx"); } catch (e) { return null; } }   /* V494: on | off | auto-off | null */
 function fxOn() { const p = fxPref(); return p !== "off" && p !== "auto-off"; }
+function liteOn() { return !fxOn(); }   /* V658: Leicht-Modus = Effekte aus */
+function liteApply() { try { document.body.classList.toggle("lite", liteOn()); } catch (e) {} try { resize(); } catch (e) {} }
 /* V525: Spieler-Nummer + Geräte-Info für Support */
 function capyUid() { let u = ""; try { u = localStorage.getItem("capy-uid") || ""; } catch (e) {}
   if (!/^[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(u)) { const A = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; let r; try { r = crypto.getRandomValues(new Uint8Array(8)); } catch (e) { r = Array.from({ length: 8 }, () => Math.random() * 256 | 0); }
@@ -3166,9 +3168,9 @@ function supportBox() { try { const box = document.querySelector("#ovSettings .j
       try { navigator.clipboard.writeText(t).then(ok, () => { fallback(); }); } catch (e) { fallback(); }
       function fallback() { try { const ta = document.createElement("textarea"); ta.value = t; ta.style.position = "fixed"; ta.style.opacity = "0"; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove(); ok(); } catch (e) {} } }); } catch (e) {} }
 new MutationObserver(() => { const o = document.getElementById("ovSettings"); if (o && !o.hidden) supportBox(); }).observe(document.getElementById("ovSettings") || document.body, { attributes: true, attributeFilter: ["hidden"] });
-function fxLabel() { const b = $("setFx"); if (b) b.textContent = "EFFECTS: " + (fxOn() ? "ON" : fxPref() === "auto-off" ? "OFF (AUTO)" : "OFF"); }
+function fxLabel() { const b = $("setFx"); if (b) b.textContent = "GRAPHICS: " + (fxOn() ? "FULL" : fxPref() === "auto-off" ? "LITE (AUTO)" : "LITE"); }   /* V658 */
 const FX_WEAK = (() => { try { return (navigator.hardwareConcurrency > 0 && navigator.hardwareConcurrency <= 2) || (navigator.deviceMemory > 0 && navigator.deviceMemory <= 2); } catch (e) { return false; } })();
-function fxAutoOff(why) { if (fxPref() != null || FX_FORCE != null) return; try { localStorage.setItem("capy-fx", "auto-off"); } catch (e) {} fxLabel(); try { if (S && S.fx) S.fx = S.fx.filter(f => f.type !== "ofx"); } catch (e) {} try { toast("EFFECTS OFF · smoother play on this phone", "HQ", 2400); } catch (e) {} }
+function fxAutoOff(why) { if (fxPref() != null || FX_FORCE != null) return; try { localStorage.setItem("capy-fx", "auto-off"); } catch (e) {} fxLabel(); liteApply(); try { window.__evLog && window.__evLog.push("perf", { d: { lite: 1, why: String(why || "") } }); } catch (e) {} try { if (S && S.fx) S.fx = S.fx.filter(f => f.type !== "ofx"); } catch (e) {} try { toast("LITE GRAPHICS · smoother play on this phone", "HQ", 2400); } catch (e) {} }
 const FXM = { t0: 0, n: 0, sum: 0 };   /* V494: Bildrate im Spiel messen */
 function fxMeasure() { if (fxPref() != null || FX_FORCE != null) return; const now = performance.now(), d = FXM.t0 ? now - FXM.t0 : 0; FXM.t0 = now;
   if (!d || d > 200 || document.hidden || !S || !S.started || S.over || frozen()) return; FXM.n++; FXM.sum += d;
@@ -3228,7 +3230,8 @@ function drawOfx(f, k, s, g2) {   /* V490 · V494: g2 = eigener Kontext, x/y in 
   G.restore();
 }
 window.__ofx = { fx: outfitFx, add: ofxAdd, pv: (c, k, n) => ofPreview(c, k, n), fxOn: () => fxOn(), auto: w => fxAutoOff(w) };
-setTimeout(() => { fxLabel(); if (FX_WEAK) fxAutoOff("hw"); }, 1500); setInterval(() => { const o = $("ovSettings"); if (o && !o.hidden) fxLabel(); }, 700);
+setTimeout(() => { fxLabel(); liteApply(); if (FX_WEAK) fxAutoOff("hw"); }, 1500);
+setInterval(() => { try { if (liteOn() && S && S.fx && S.fx.length > 36) S.fx.splice(0, S.fx.length - 36); } catch (e) {} }, 300);   /* V658: Partikel begrenzen */ setInterval(() => { const o = $("ovSettings"); if (o && !o.hidden) fxLabel(); }, 700);
 const HERO_IMG = { get blue() { return heroDisco() ? "img/outfit_blue_disco.webp" : outfitImg("blue", outfitSel("blue")); }, get rosie() { return heroDisco() ? "img/outfit_rosie_disco.webp" : outfitImg("rosie", outfitSel("rosie")); } }; window.__heroImg = HERO_IMG; window.__heroDisco = heroDisco;
 /* V553: Freemium – Schalter AUS bis das Ticket kaufbar ist (Vorschau: localStorage capy-fm=1) */
 const FM = { on: (() => { try { return localStorage.getItem("capy-fm") === "1"; } catch (e) { return false; } })(), price: "199 ₽", one: "99 ₽", per: 2, all: 4, fw: 15,
@@ -5364,7 +5367,7 @@ function makePatterns() {
   });
 }
 function resize() {
-  const r = { width: cv.clientWidth || cv.getBoundingClientRect().width, height: cv.clientHeight || cv.getBoundingClientRect().height }; DPR = Math.min(3, window.devicePixelRatio || 1);
+  const r = { width: cv.clientWidth || cv.getBoundingClientRect().width, height: cv.clientHeight || cv.getBoundingClientRect().height }; DPR = Math.min((typeof liteOn === "function" && liteOn()) ? (FX_WEAK ? 1.5 : 2) : 3, window.devicePixelRatio || 1);   /* V658 */
   cv.width = Math.round(r.width * DPR); cv.height = Math.round(r.height * DPR);
   CELL = cv.width / GW; makePatterns();
 }
@@ -9050,7 +9053,7 @@ async function sqInvite() { if (sqBusy) return; sqBusy = true; sqNote("…");
   } finally { sqBusy = false; } }
 async function sqCount() { const c = LS.get("capy-squad-code"); if (!c || !SQ_RE.test(c) || performance.now() - sqCntT < 30000) return; sqCntT = performance.now();
   try { const r = await fetch(API_BASE + "/squad?code=" + c, { cache: "no-store" }); if (!r.ok) return; const d = await r.json(); const n = d && d.n | 0; sqStoreN(n); if (!sqBusy) sqNote(n > 0 ? `SQUAD +${n} · ${n === 1 ? "friend" : "friends"} joined with your link` : "Friends get a free Ten-ton drop"); } catch (e) {} }
-document.addEventListener("click", e => { if (e.target.closest("#setFx")) { const on = fxOn(); try { localStorage.setItem("capy-fx", on ? "off" : "on"); } catch (er) {} if (on) { try { if (S && S.fx) S.fx = S.fx.filter(f => f.type !== "ofx"); } catch (er) {} } fxLabel(); try { snd("uiTap"); } catch (er) {} return; }
+document.addEventListener("click", e => { if (e.target.closest("#setFx")) { const on = fxOn(); try { localStorage.setItem("capy-fx", on ? "off" : "on"); } catch (er) {} if (on) { try { if (S && S.fx) S.fx = S.fx.filter(f => f.type !== "ofx"); } catch (er) {} } fxLabel(); liteApply(); try { snd("uiTap"); } catch (er) {} return; }
   if (e.target.closest("#setInvite")) { try { SFX.init(); snd("uiTap"); } catch (er) {} sqInvite(); return; }
   setTimeout(() => { const o = $("ovSettings"); if (o && !o.hidden) sqCount(); }, 80); });
 (() => { try { const q = new URLSearchParams(location.search), c = (q.get("squad") || "").toUpperCase();
@@ -12543,6 +12546,8 @@ clip-path:polygon(46% 0,54% 0,100% 100%,0 100%);background:linear-gradient(180de
 #ovSettings{position:fixed!important;inset:0!important;z-index:80!important;height:auto!important;background:rgba(24,14,6,.6)!important;overflow:hidden!important;display:flex;align-items:center!important;justify-content:center!important;padding:0!important}
 #ovSettings[hidden]{display:none!important}
 #ovSettings .joinBox{transform-origin:50% 0!important}
+/* V658: Leicht-Modus */
+body.lite *,body.lite *::before,body.lite *::after{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}body.lite .dj .disc,body.lite .dj .djhead,body.lite .dj .djarm,body.lite .dj .djLedger,body.lite .modeBtn svg.sold,body.lite .board.wounded,body.lite .board.wounded canvas#cv,body.lite .hkConf i,body.lite .allIn.prem::after{animation:none!important}
 /* V650: Einstellungen breit, Trainer oben, Figuren unten, Bewertung groß */
 #ovSettings{z-index:88!important;overflow-y:auto!important;align-items:center!important;justify-content:flex-start!important;padding:calc(env(safe-area-inset-top,0px) + 8px) 8px calc(env(safe-area-inset-bottom,0px) + 110px)!important;-webkit-overflow-scrolling:touch}
 #ovSettings .joinBox{box-sizing:border-box!important;width:min(520px,calc(100vw - 16px))!important;margin:0 auto!important;padding:14px 14px 16px!important}
