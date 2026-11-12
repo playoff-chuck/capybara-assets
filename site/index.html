@@ -2832,7 +2832,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V687";
+const GAME_VER = "V688";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -9721,7 +9721,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     const celMus = (() => { let a = null, iv = 0, act = false;
       const mk = () => { if (!a) { a = new Audio("sfx/place_choir.mp3?v=687"); a.preload = "auto"; } return a; };
       const ramp = (to, sec, then) => { clearInterval(iv); if (!a) return; const from = a.volume, n = Math.max(1, Math.round(sec * 30)); let i = 0; iv = setInterval(() => { i++; try { a.volume = Math.max(0, Math.min(1, from + (to - from) * i / n)); } catch (e) {} if (i >= n) { clearInterval(iv); then && then(); } }, 33); };
-      try { setTimeout(() => { try { mk().load(); } catch (e) {} }, 15000); } catch (e) {}
+      try { setTimeout(() => { try { if (!a) mk().load(); } catch (e) {} }, 15000); } catch (e) {}   /* V688: nie neu laden, wenn er schon existiert */
       document.addEventListener("visibilitychange", () => { try { if (!a) return; if (document.hidden) a.pause(); else if (act) { const p = a.play(); p && p.catch && p.catch(() => {}); } } catch (e) {} });
       return on => { try { if (on) { if (!(SFX.music && SFX.music.on) || SFX.muted) return; mk(); act = true; try { a.currentTime = 0; } catch (e) {} a.volume = 0; const p = a.play(); p && p.catch && p.catch(() => {});
             ramp(Math.max(0.05, Math.min(1, (typeof TP_VOL === "function" ? TP_VOL() : 0.4) * 1.15)), 1.2); }
@@ -9730,7 +9730,11 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     function playPlace(w, done) { const P = posOf(w), prev = MAP_PTS[P.c][P.p - 1], nxt = MAP_PTS[P.c][P.p], oldN = nice(CONTS[P.c][2][P.p - 1]), newN = nice(CONTS[P.c][2][P.p]);   /* V687: Streifen warten auf Tippen */
       seqDone = done; let host = document.getElementById("celHost"); if (!host) { host = document.createElement("div"); host.id = "celHost"; document.body.appendChild(host); }
       let blk = document.getElementById("celBlack"); if (!blk) { blk = document.createElement("div"); blk.id = "celBlack"; document.body.appendChild(blk); }
-      try { if (typeof TP !== "undefined" && TP.el && TP.key && !TP.el.paused) tpFade(0.0001, 1.5); else if (SFX.music && SFX.music.dim) SFX.music.dim(0.02); } catch (e) {}   /* 0–1,5 s Musik klingt aus */
+      let hadTP = false, musBack = false; clearTimeout(window.__celHushT);
+      const lvlBack = () => { if (musBack) return; musBack = true; clearTimeout(window.__celHushT); window.__tpHush = false;   /* V688: Level-Musik 2 s wieder ein */
+        try { if (hadTP && TP.el && TP.key && !TP.paused && SFX.music.on && !document.hidden && TP.el.paused) { TP.el.volume = 0; const p = TP.el.play(); if (p && p.catch) p.catch(() => {}); tpFade(0.5, 2.0); } } catch (e) {} };
+      try { if (typeof TP !== "undefined" && TP.el && TP.key && !TP.el.paused) { hadTP = true; window.__tpHush = true; tpFade(0.0001, 1.5); setTimeout(() => { try { if (window.__tpHush && !musBack) TP.el.pause(); } catch (e) {} }, 1560); window.__celHushT = setTimeout(lvlBack, 60000); }
+            else if (SFX.music && SFX.music.dim) SFX.music.dim(0.02); } catch (e) {}   /* 0–1,5 s Musik klingt aus, bleibt bis zum Ende des Übergangs aus */
       let end = null, gone = false, tap = null; const mus = on => { try { window.__celMus && window.__celMus(on); } catch (e) {} };
       const cont = () => { if (gone) return; gone = true; host.classList.remove("tap"); host.onclick = null; if (tap) tap.classList.remove("on"); try { snd("uiTap"); } catch (e) {} mus(false);   /* weiter: 1,5 s Ausklingen */
         const T0 = 1500;
@@ -9742,7 +9746,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
         at(T0 + 4600, () => { me.classList.remove("fly"); drawPins(P.g); const pin = pinsEl.querySelector(`.mPin[data-g="${P.g}"]`); pin && pin.classList.add("pop");
           label(contName(P.c), `Welcome to ${newN}!`, P.p === 5 ? "The landmark · the boss lives here" : `Waves ${w}–${w + 4}`); fx("tonHit"); setTimeout(() => fx("powerup"), 120); setTimeout(() => fx("coin"), 420); });   /* Landung 1 s */
         at(T0 + 5600, () => ov.classList.add("fadeOut", "q"));   /* Karte blendet nach Schwarz aus */
-        at(T0 + 6250, () => { ov.classList.remove("q"); blk.style.transitionDuration = ""; blk.classList.remove("on"); hide(); }); };   /* Level blendet wieder ein */
+        at(T0 + 6250, () => { ov.classList.remove("q"); blk.style.transitionDuration = ""; blk.classList.remove("on"); hide(); setTimeout(lvlBack, 400); }); };   /* Level blendet wieder ein, Musik kommt zurück */
       at(1500, () => { end = celebrate(`${oldN.toUpperCase()} CLEARED!`, `Place ${P.g} of 30 done · onward!`, host); mus(true);   /* ab 1,5 s Streifen + Klänge (+ Feier-Musik) */
         blk.style.transitionDuration = "2.25s"; void blk.offsetWidth; blk.classList.add("on"); });   /* 1,5–3,75 s Spielscreen blendet hinter den Streifen nach Schwarz */
       at(3750, () => { fx("powerup"); setTimeout(() => fx("coin"), 260);
