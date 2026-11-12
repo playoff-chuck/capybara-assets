@@ -1589,6 +1589,7 @@ body:has(.bar:not(.off)) #sLives::before,body:has(.bar:not(.off)) #sGold::before
 body:has(.bar:not(.off)) #nextCv{width:24px!important;height:24px!important}
 body:has(.bar:not(.off)) #next2Cv{width:14px!important;height:14px!important}
 body:has(.bar:not(.off)) .nextRow{gap:3px!important}
+html body:has(.bar:not(.off)) .bar .cell:has(.nextRow){background:none!important;border-color:transparent!important;box-shadow:none!important}html body:has(.bar:not(.off)) .bar #next2Cv{display:none!important}html body:has(.bar:not(.off)) .bar #nextCv{width:48px!important;height:24px!important;position:fixed;z-index:30;filter:drop-shadow(0 2px 0 rgba(58,36,20,.55))}   /* V645 */
 body:has(.bar:not(.off)) .score{min-width:52px!important;padding:1px 5px!important}
 body:has(.bar:not(.off)) .score b{font-size:18px!important}
 body:has(.bar:not(.off)) .bar{padding-right:80px!important}
@@ -2406,7 +2407,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
       </header>
 
   <div class="bar" role="status">
-    <div class="cell"><div class="nextRow" title="Next pieces"><canvas id="nextCv" width="96" height="96"></canvas><canvas id="next2Cv" width="64" height="64"></canvas></div></div>
+    <div class="cell"><div class="nextRow" title="Next pieces"><canvas id="nextCv" width="192" height="96"></canvas><canvas id="next2Cv" width="64" height="64"></canvas></div></div>
     <div class="grp">
       <div class="stat"><b id="sLives">10</b><small>Lives</small></div>
       <div class="stat"><b id="sGold">130</b><small>Gold</small></div>
@@ -2823,7 +2824,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V644";
+const GAME_VER = "V645";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -5403,6 +5404,7 @@ function tntCell(x, y, g = ctx, s = CELL, px = x * CELL, py = y * CELL) {
 }
 // Ein Monster zeichnen (Spielfeld und Feldhandbuch)
 /*SPRITES_START*/const MON_SPR_SRC={norm:"img/0d74d4e1a8.webp",fast:"img/cad8b59a7d.webp",heavy:"img/a5a46f151d.webp",munch:"img/1ed8ccf00b.webp",runner:"img/948aebca31.webp",kiefer:"img/6d3bb5d7c5.webp",bomber:"img/7ab8ccae81.webp",volt:"img/f5a9cc1d7f.webp",jaguar:"img/d6115da788.webp",mummy:"img/b7c38c3e3b.webp",tiger:"img/e28b8c0ffe.webp",bear:"img/9ce1173bc3.webp"};const MON_SPR={};for(const k in MON_SPR_SRC){const im=new Image();im.decoding='async';im.src=MON_SPR_SRC[k];MON_SPR[k]=im;}const MON_SPR_SCALE={norm:2.9,fast:3.1,heavy:2.6,munch:2.9,runner:3.0,kiefer:2.5,bomber:2.8,volt:2.8,jaguar:2.9,mummy:2.8,tiger:2.8,bear:2.6};function drawMonSprite(ctx,m,cx,cy,s,now){const k=m.kind,im=MON_SPR[k];if(!im||!im.complete||!im.naturalWidth)return false;if(m.lead){const rr=s*(MON_R[k]||0.33)*1.25,pu=0.55+0.45*Math.abs(Math.sin(now/180));ctx.save();const g=ctx.createRadialGradient(cx,cy,rr*0.3,cx,cy,rr*1.35);g.addColorStop(0,"rgba(255,40,40,0)");g.addColorStop(0.6,`rgba(255,40,40,${(0.55*pu).toFixed(2)})`);g.addColorStop(1,"rgba(255,40,40,0)");ctx.fillStyle=g;ctx.beginPath();ctx.arc(cx,cy,rr*1.35,0,7);ctx.fill();ctx.restore();}const ph=m.ph||0,r=s*(MON_R[k]||0.33)*(m.big||1),bob=Math.abs(Math.sin(now/110+ph))*s*0.07,tilt=Math.sin(now/90+ph)*0.09;ctx.fillStyle='rgba(0,0,0,.35)';ctx.beginPath();ctx.ellipse(cx,cy+r*0.95,r*0.9,r*0.3,0,0,7);ctx.fill();const sz=r*(MON_SPR_SCALE[k]||2.8),sq=1+Math.sin(now/55+ph)*0.04;ctx.save();ctx.translate(cx,cy+r*0.95-bob);ctx.rotate(tilt);ctx.scale(Math.cos(m.dir||0)<-0.3?-1:1,1);ctx.scale(1/sq,sq);ctx.drawImage(im,-sz/2,-sz*0.97,sz,sz);ctx.restore();m._top=cy+r*0.95-bob-sz*0.9;return true;}const TOW_SPR={};{const T={mg:"img/9335afdf0f.webp",kan:"img/8d5eb7ae93.webp",frost:"img/595582df1c.webp"};for(const k in T){const im=new Image();im.src=T[k];TOW_SPR[k]=im;}}const SKIN_SPR={};for(const c of["africa","asia","namerica"]){SKIN_SPR[c]={};for(const k of["mg","kan","frost"]){const im=new Image();im.src=`img/skin_${c}_${k}.webp`;SKIN_SPR[c][k]=im;}}function skinSpr(ty){try{const c=curSkin();if(!c)return null;const im=SKIN_SPR[c]&&SKIN_SPR[c][ty];return im&&im.complete&&im.naturalWidth?im:null;}catch(e){return null;}}const TOW_DIR={};for(const k of["mg","kan","frost"])for(const d of["front","back"]){const im=new Image();im.decoding="async";im.src="img/tow_"+k+"_"+d+".webp";TOW_DIR[k+"_"+d]=im;}function towView(t,now){if(!t._aim)return 0;const a=t.ang||0,c=Math.abs(Math.cos(a)),sn=Math.sin(a),H=0.12,o=t._vw||0;let v=o;if(o===0){if(Math.abs(sn)>c+H)v=sn>0?1:2;}else if(c>Math.abs(sn)+H)v=0;else v=sn>0?1:2;if(v!==o){t._vwP=o;t._vwT=now;t._vw=v;}return v;}function drawTowSprite(ctx,t,cx,cy,s){if(!t.w.length)return false;const ty=t.w.some(w=>w.type==='kan')?'kan':t.w.some(w=>w.type==='frost')?'frost':'mg',skm=skinSpr(ty),im=skm||TOW_SPR[ty];if(!im||!im.complete||!im.naturalWidth)return false;const sz=s*1.18;if(S.sel===t){ctx.strokeStyle='#ee7a2c';ctx.lineWidth=Math.max(2,s*0.09);ctx.beginPath();ctx.arc(cx,cy,s*0.52,0,7);ctx.stroke();}{const now=performance.now(),v=skm?0:towView(t,now),pick=x=>{if(skm)return skm;const j=x?TOW_DIR[ty+(x===1?"_front":"_back")]:im;return j&&j.complete&&j.naturalWidth?j:im;},dr=(x,al)=>{if(al<=0)return;ctx.save();ctx.globalAlpha*=al;ctx.translate(cx,cy);if(x===0&&Math.cos(t.ang||0)<0)ctx.scale(-1,1);ctx.drawImage(pick(x),-sz/2,-sz*0.58,sz,sz);ctx.restore();},p=t._vwT?Math.min(1,(now-t._vwT)/140):1;if(p<1)dr(t._vwP||0,1);dr(v,p);}const n=t.w.length,pr=s*0.075;for(let i=0;i<n;i++){const px=cx+(i-(n-1)/2)*pr*2.4,py=cy+s*0.4;ctx.fillStyle=WEAP[t.w[i].type].col;ctx.strokeStyle='#17150c';ctx.lineWidth=Math.max(1,s*0.03);ctx.beginPath();ctx.arc(px,py,pr,0,7);ctx.fill();ctx.stroke();}return true;}const ICO_SPR={tower:"img/31f06ee640.webp",snipe:"img/7c9c7b7e55.webp",mix:"img/mixer_icon.webp",tesla:"img/f52a688927.webp",lock:"img/64ef54d7b4.webp",chomp:"img/6ea9cae9a7.webp",ton:"img/ton_icon.webp",wolf:"img/wolf_icon.webp",wolfuse:"img/wolf_icon.webp",mg:"img/9335afdf0f.webp",kan:"img/8d5eb7ae93.webp",frost:"img/595582df1c.webp"};/*SPRITES_END*/
+const MON_FS = 1.28;   /* V645: Monster im Feld größer */
 const MON_R = { heavy: 0.42, fast: 0.27, munch: 0.34, runner: 0.31, bomber: 0.36, kiefer: 0.46, volt: 0.4, jaguar: 0.36, mummy: 0.36, tiger: 0.4, bear: 0.46, norm: 0.33 };
 function drawMonster(ctx, m, cx, cy, s, now) {
     if (drawMonSprite(ctx, m, cx, cy, s, now)) return;
@@ -6331,8 +6333,8 @@ function draw() {
   const now = performance.now();
   for (const m of S.monsters) {
     const cx = C(m.x), cy = C(m.y), k = m.kind;
-    drawMonster(ctx, m, cx, cy, s, now);
-    const r = s * MON_R[k];
+    drawMonster(ctx, m, cx, cy, s * MON_FS, now);
+    const r = s * MON_FS * MON_R[k];
     if (m.slowT > 0) { ctx.strokeStyle = "#94d6ff"; ctx.lineWidth = Math.max(1, s * 0.06); ctx.beginPath(); ctx.arc(cx, cy, r + s * 0.1, 0, 7); ctx.stroke(); ctx.fillStyle = "rgba(148,214,255,.25)"; ctx.fill(); }
     if (m.chew && !EATER(k)) { ctx.strokeStyle = "#cdbd8c"; ctx.setLineDash([s * 0.08, s * 0.08]); ctx.beginPath(); ctx.arc(cx, cy, r + s * 0.14, 0, 7); ctx.stroke(); ctx.setLineDash([]); }
     const bw = s * 0.8, f = Math.max(0, m.hp / m.max), by = m._top != null ? Math.max(1, m._top - s * 0.08) : cy - r - s * 0.26;
@@ -6450,12 +6452,12 @@ function draw() {
 function fxText(x, y, txt, col) { S.fx.push({ type: "text", x, y, txt, col, t: 0, life: 0.9 }); }
 
 function drawPieceTo(cvId, pc) {
-  const c = $(cvId), g = c.getContext("2d"), W = c.width; g.clearRect(0, 0, W, W);
+  const c = $(cvId), g = c.getContext("2d"), W = c.width, H = c.height; g.clearRect(0, 0, W, H);   /* V645 */
   if (!pc) return;
   const cells = pc.cells, xs = cells.map(p => p[0]), ys = cells.map(p => p[1]);
-  const w = Math.max(...xs) - Math.min(...xs) + 1, h = Math.max(...ys) - Math.min(...ys) + 1, cs = Math.floor(W / 4.4);
-  const ox = (W - w * cs) / 2 - Math.min(...xs) * cs, oy = (W - h * cs) / 2 - Math.min(...ys) * cs;
-  const set = CAMO[pc.col];
+  const w = Math.max(...xs) - Math.min(...xs) + 1, h = Math.max(...ys) - Math.min(...ys) + 1, cs = Math.floor(Math.min(W / (w + 0.4), H / (h + 0.2), W / 4.4 * 2));
+  const ox = (W - w * cs) / 2 - Math.min(...xs) * cs, oy = (H - h * cs) / 2 - Math.min(...ys) * cs;
+  const set = cvId === "nextCv" ? CAMO[KEYS.indexOf("L")] : CAMO[pc.col];   /* V645: nächster Stein immer rosa */
   for (const [x, y] of cells) {
     const px = ox + x * cs, py = oy + y * cs;
     if (cells.findIndex(q => q[0] === x && q[1] === y) === pc.tnt) { tntCell(0, 0, g, cs, px, py); continue; }
@@ -6466,6 +6468,11 @@ function drawPieceTo(cvId, pc) {
     g.strokeStyle = "#0e120a"; g.lineWidth = Math.max(1.5, cs * 0.08); g.strokeRect(px + 1, py + 1, cs - 2, cs - 2);
   }
 }
+(() => { const pos = () => { try { const c = document.getElementById("nextCv"), cell = c && c.closest(".cell"); if (!cell || document.querySelector(".bar.off")) return;
+  const g = cell.getBoundingClientRect(), wn = document.getElementById("waveNum"); let x = g.left + g.width / 2;
+  if (wn && getComputedStyle(wn).visibility !== "hidden" && wn.offsetWidth) { const r = wn.getBoundingClientRect(); x = r.left + r.width / 2; }
+  const L = Math.round(x - 24) + "px", T = Math.round(g.top + g.height / 2 - 12) + "px"; if (c.style.left !== L) c.style.left = L; if (c.style.top !== T) c.style.top = T; } catch (e) {} };
+  setInterval(pos, 250); addEventListener("resize", pos); })();   /* V645 */
 function drawNext() { if (!S) return; drawPieceTo("nextCv", S.next); drawPieceTo("next2Cv", S.next2); }
 
 // ---------- HUD ----------
