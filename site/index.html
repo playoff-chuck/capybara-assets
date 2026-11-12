@@ -2826,7 +2826,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V659";
+const GAME_VER = "V660";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -7218,7 +7218,8 @@ try { (() => {
   const first = () => { try { return (LS.get("capy-hk-first") !== "1" && !S.testRun) || (S.testRun && S.testKind === "tips"); } catch (e) { return false; } };   /* V624 */
   const fst = document.createElement("p"); fst.id = "hkFirstP"; fst.hidden = true; fst.textContent = "The boss challenges you to a hack!"; const hb = document.getElementById("hackBet"); if (hb) hb.insertBefore(fst, hb.querySelector(".hkRow"));
   const _oh2 = openHack; openHack = function () { const r = _oh2.apply(this, arguments); try { const f = first(); hb.classList.toggle("hkFirst", f); fst.hidden = !f;
-      const gb = $("hkGo"); if (f) { $("hkRange").value = 0; hkStakeUI(); gb.textContent = "NEXT ▶"; hb.style.visibility = "hidden"; setTimeout(() => { try { gb.click(); } catch (e) {} setTimeout(() => { hb.style.visibility = ""; }, 400); }, 30); }   /* V634: Boss-Karte überspringen */ else if (gb.textContent !== "HACK!") gb.textContent = "HACK!"; } catch (e) {} return r; };   /* V626: erster Hack gratis */
+      const nb = !f && !(S && S.testRun) && (cnt() < 2 || (+$("hkRange").max || 0) < 10);   /* V660: nichts zu setzen → Einsatz-Fenster weg */
+      const gb = $("hkGo"); if (f || nb) { $("hkRange").value = 0; hkStakeUI(); gb.textContent = "NEXT ▶"; hb.style.visibility = "hidden"; setTimeout(() => { try { gb.click(); } catch (e) {} const vt = setInterval(() => { try { if (hb.hidden || $("ovHack").hidden || HK.phase !== "bet") { clearInterval(vt); hb.style.visibility = ""; } } catch (e) { clearInterval(vt); } }, 150); }, 30); }   /* V660 */   /* V634: Boss-Karte überspringen */ else if (gb.textContent !== "HACK!") gb.textContent = "HACK!"; } catch (e) {} return r; };   /* V626: erster Hack gratis */
   document.getElementById("hkGo").addEventListener("click", () => { try { window.__hkFree = hb.classList.contains("hkFirst") ? 1 : 0; if (hb.classList.contains("hkFirst") && !S.testRun) LS.set("capy-hk-first", "1"); hb.classList.remove("hkFirst"); fst.hidden = true; $("hkGo").textContent = "HACK!"; } catch (e) {} }, true);
   const _sd = startDuel; startDuel = function (keep) { if (!need()) return _sd.apply(this, arguments); const a = arguments; show(() => _sd.apply(this, a)); };   /* V622: beim Start des Duells */
   window.__hkTips = { show: () => show(null), showThen: cb => show(cb), need };
