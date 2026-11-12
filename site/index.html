@@ -2832,7 +2832,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V682";
+const GAME_VER = "V683";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -9866,7 +9866,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
   try { const sm = document.getElementById("startMain"); if (sm) { const d = document.createElement("div"); d.id = "devBar"; d.className = "devOnly"; d.hidden = LS.get("tarnturm-dev") !== "1";
       d.innerHTML = '<span class="dTag">DEV</span><input id="devWave" type="number" min="1" max="150" value="31" inputmode="numeric" aria-label="Start wave"><button class="btn-accent" id="devGo">GO ▶</button>'
         + '<div class="dRow dQ">' + [5, 15, 31, 61, 91, 121].map(w => '<button data-w="' + w + '">' + w + '</button>').join("") + '</div>'
-        + '<div class="dRow dT"><button id="devSpec">Specials</button><button id="devZero">Test from 0</button><button id="devBandit">Bandit</button><button id="devAA">AA</button></div><div class="dRow dR"><button id="devFresh">Street player</button><button id="devNews">Check news</button></div>';
+        + '<div class="dRow dT"><button id="devSpec">Specials</button><button id="devZero">Test from 0</button><button id="devBandit">Bandit</button><button id="devAA">AA</button></div><div class="dRow dR"><button id="devFresh">Street player</button></div>';
       sm.appendChild(d);
       const go = w => { w = Math.max(1, Math.min(150, w | 0 || 1)); try { SFX.init(); snd("confirm"); } catch (e) {} devJump(w); };
       window.__devAA = () => { try { SFX.init(); snd("confirm"); } catch (e) {} devJump(60); let t0 = 0; const iv = setInterval(() => { try { if (!S || S.over) { clearInterval(iv); return; }
