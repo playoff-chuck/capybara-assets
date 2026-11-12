@@ -2825,7 +2825,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V654";
+const GAME_VER = "V655";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -3099,7 +3099,7 @@ const upCost = w => lvlCost(w.type, w.lvl);
 
 function limits(wave) {
   const tier = Math.floor(Math.max(0, wave - 1) / 3);
-  return { towers: 2 + tier, weapons: Math.min(4, 2 + Math.floor(tier / 2)), monsters: G.capBase + (G.capPer ?? 4) * tier };
+  return { towers: 1e9, weapons: Math.min(4, 2 + Math.floor(tier / 2)), monsters: G.capBase + (G.capPer ?? 4) * tier };
 }
 
 // Fallende Teile
@@ -5265,7 +5265,7 @@ function startWave() {
   snd("wave");
   if (!S.introNow && Math.random() < 0.2) { const mk = Math.random() < 0.5 ? "inc_m" + (1 + Math.floor(Math.random() * 10)) : (S.incomingKey || "Incoming!"); setTimeout(() => SFX.say(mk), 1300); }
   if (S.wave > 1) SFX.music.switchTo(S.wave);
-  if (S.wave > 1 && (S.wave - 1) % 3 === 0) setTimeout(() => announce("REINFORCEMENTS", `${L.towers} towers · ${L.weapons} weapons per tower · up to ${L.monsters} monsters`, "HQ", 2000), 1800);
+  if (S.wave > 1 && (S.wave - 1) % 3 === 0) setTimeout(() => announce("REINFORCEMENTS", `${L.weapons} weapons per tower · up to ${L.monsters} monsters`, "HQ", 2000), 1800);
 }
 function update(dt) {
   if (S.alert && $("alert").hidden) S.alert = false;
@@ -6676,7 +6676,7 @@ function renderShop() {
   const LSAY = ["Don't blow it all at once, partner!", "Budget first, fun second. Okay… fun first.", "Life is short – buy the big cannon!", "Go on, splash out! Monsters won't splat themselves.", "A coin saved is a tower built later.", "Treat yourself – you earned every coin!", "Spend it like it grows on palm trees!", "My ledger says: you can afford a little fun.", "Save some gold for a rainy wave!", "Ka-ching! Pleasure doing business, partner."];
   let h = `<div class="ledgerTop"><img class="ledgerBig" src="${PORTRAIT.ledger}" alt="Major Ledger"><div class="ledgerBubble"><b>Major Ledger</b><span>${LSAY[(S.lsay || 0) % LSAY.length]}</span><em><i></i>${S.gold.toLocaleString("en")}</em></div></div><div class="shopGrid shopTiles">`;
   const rows = [];
-  rows.push([0, item("tower", ICON.tower, "Field tower", TOWER_COST, full ? `All ${L.towers} tower slots in use` : noBlocks ? "Land some blocks first" : `Place on a landed block · ${S.towers.size}/${L.towers} built`, full ? "ALL SLOTS USED" : noBlocks ? "NO BLOCKS YET" : "PLACE", full || noBlocks || S.gold < TOWER_COST, "btn-accent")]);   /* V654: Grund auf dem Knopf */
+  rows.push([0, item("tower", ICON.tower, "Field tower", TOWER_COST, full ? `All ${L.towers} tower slots in use` : noBlocks ? "Land some blocks first" : `Place on a landed block · ${S.towers.size} built`, full ? "ALL SLOTS USED" : noBlocks ? "NO BLOCKS YET" : "PLACE", full || noBlocks || S.gold < TOWER_COST, "btn-accent")]);   /* V654: Grund auf dem Knopf */
   const lock = k => `Locked · unlocks at wave ${unlockedAt(k)}`;
   rows.push([unlockedAt("snipe"), item("snipe", ICON.snipe, "Sniper strike", SNIPE_COST, unlocked("snipe") ? "One shot: 2×2 patch wiped, the blast splats around it." + (S.wave >= 90 ? " Cuts weeds" + "." : "") : lock("snipe"), unlocked("snipe") ? "BUY" : `<i class="lk">🔒 WAVE ${unlockedAt("snipe")}</i>`, !unlocked("snipe") || S.gold < SNIPE_COST, "btn-accent")]);
   rows.push([unlockedAt("tesla"), item("tesla", ICON.tesla, "Tesla storm", TESLA_COST, unlocked("tesla") ? "4×4 lightning strike, splats count triple." + (S.wave >= 90 ? " Cuts weeds" + "." : "") : lock("tesla"), unlocked("tesla") ? "BUY" : `<i class="lk">🔒 WAVE ${unlockedAt("tesla")}</i>`, !unlocked("tesla") || S.gold < TESLA_COST, "btn-accent")]);
