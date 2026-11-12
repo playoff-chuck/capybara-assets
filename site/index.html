@@ -2516,7 +2516,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
   <button class="xBtn" id="setX" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg></button>
   <div class="alHead"><span class="alTag">SETTINGS</span><span class="alTime"></span></div>
   <div class="heroPick" id="heroPickSet"><div class="hpHead">YOUR HERO</div><div class="hpRow"><button class="hpAv" data-hero="blue" aria-label="Play as Blue"><img alt=""><b>BLUE</b></button><button class="hpAv" data-hero="rosie" aria-label="Play as Rosie"><img alt=""><b>ROSIE</b></button></div><div class="hpSub"></div></div>
-  <label for="setNick">YOUR PLAYER NAME · made up, never your real name</label>
+  <label for="setNick">Your player name · made up, not your real one</label>
   <input id="setNick" type="text" maxlength="14" autocomplete="off" spellcheck="false" placeholder="e.g. CapyKing"><div class="setRate"><div class="hpHead">RATE THE GAME</div><div class="rateRow"><div class="rateStars" id="setStars"><button type="button" class="rStar" data-s="1" aria-label="1 of 5"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.6l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.4l-5.8 3.1 1.1-6.5-4.7-4.6 6.5-.9z"/></svg></button><button type="button" class="rStar" data-s="2" aria-label="2 of 5"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.6l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.4l-5.8 3.1 1.1-6.5-4.7-4.6 6.5-.9z"/></svg></button><button type="button" class="rStar" data-s="3" aria-label="3 of 5"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.6l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.4l-5.8 3.1 1.1-6.5-4.7-4.6 6.5-.9z"/></svg></button><button type="button" class="rStar" data-s="4" aria-label="4 of 5"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.6l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.4l-5.8 3.1 1.1-6.5-4.7-4.6 6.5-.9z"/></svg></button><button type="button" class="rStar" data-s="5" aria-label="5 of 5"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.6l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.4l-5.8 3.1 1.1-6.5-4.7-4.6 6.5-.9z"/></svg></button></div><button id="setMsg" class="btn-small" type="button">✉ MESSAGE</button><span class="setMsgHint">Write us · ideas, bugs, wishes …</span></div></div><div class="setRow"><button id="setCloud" class="btn-small" type="button">☁ Cloud save</button><button id="setGuide" class="btn-small" type="button">Guide</button><button id="setFx" class="btn-small" type="button">EFFECTS: ON</button></div><div class="setTut"><button id="setReTut" class="tutBanner" type="button"><span class="tbTag">CRASH COURSE</span><span class="tbTxt"><small>COACH OLLIE</small><b>10 LESSONS FROM THE PRO</b><em>Brush up your moves – then go for the record!</em></span><span class="tbGo">▶</span></button><small>Your game stays saved. After the certificate you are back exactly where you left off.</small></div><div class="setLangBox"><div class="hpHead">LANGUAGE</div><div class="setLang" id="setLang" aria-label="Language"></div></div><div class="setInv"><button id="setInvite" class="shareBtn" type="button">INVITE FRIENDS</button><small id="setInvN">Friends get a free Ten-ton drop</small><a id="setVk" class="vkBtn" href="https://vk.ru/playcapybarasquad" target="_blank" rel="noopener">JOIN US ON VK</a><small>News, records and your ideas</small></div>
 </div></div>
       <div class="overlay ordOv" id="ovOrders" hidden>
@@ -2825,7 +2825,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V650";
+const GAME_VER = "V651";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -12529,6 +12529,8 @@ clip-path:polygon(46% 0,54% 0,100% 100%,0 100%);background:linear-gradient(180de
 #ovSettings .setRate #setMsg{width:100%;min-height:64px;display:flex;align-items:center;justify-content:center;gap:6px;font-size:17px!important}
 #ovSettings .setRate .setMsgHint{display:block;font:600 12px/1.3 var(--f-body,"Baloo 2",sans-serif);color:#7a5a3e;text-align:center;margin-top:-4px}
 body:has(#ovSettings:not([hidden])) #btnOffline,body:has(#ovSettings:not([hidden])) #btnMap{visibility:hidden!important}
+#ovSettings label[for="setNick"]{display:block;margin:10px 0 0;font:600 13px/1.3 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif!important;letter-spacing:0!important;text-transform:none!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center;color:#7a5a3e!important}
+#ovSettings #setNick{box-sizing:border-box!important;width:100%!important;height:56px!important;min-height:56px!important;padding:0 16px!important;font:700 22px/1 "Baloo 2",system-ui,sans-serif!important;border-radius:16px!important;line-height:56px!important}   /* V651 */
 #ovRate .rBox{width:min(520px,100%)!important}#ovRate textarea{min-height:150px!important;font-size:16px!important}
 
 #nzDisco .nzKey{position:absolute;top:-10px;width:var(--kw,150px);height:var(--kh,140px);margin-left:calc(var(--kw,150px) / -2);mix-blend-mode:screen;filter:blur(2.5px);
