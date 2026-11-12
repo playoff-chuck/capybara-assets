@@ -2832,7 +2832,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V693";
+const GAME_VER = "V694";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -2852,8 +2852,11 @@ function i18nLookup(key, DD) {   /* exakt → Zahlen-Muster → Namens-Muster �
   if (key.includes(" · ")) { const parts = key.split(" · "); let hit = false; const out = parts.map(p => { const k = i18nNorm(p); const v = k ? i18nLookup(k, DD) : null; if (v != null) hit = true; return v != null ? v : p; }); if (hit) return out.join(" · "); }
   if (key.includes(": ")) { const i = key.indexOf(": "), a = key.slice(0, i), b = key.slice(i + 2); const va = i18nLookup(a, DD), vb = i18nLookup(b, DD); if (va != null && vb != null) return va + ": " + vb; }   /* V468 */
   return null; }
-function capyAddr(v) { try { if (I18N.lang !== "ru" || typeof v !== "string" || v.indexOf("напарник") < 0) return v; const TS = window.__TT && window.__TT.S, w = (TS && +TS.wave) || 0; if (w < 31) return v;   /* V639: Anrede nach Welle */
-  return v.replace(/, напарник(?=[\s.,!?–—])/g, w >= 61 ? ", друг" : ", дружище"); } catch (e) { return v; } }
+function capyAddr(v) { try { if (I18N.lang !== "ru" || typeof v !== "string" || !/[Нн]апарник|[Дд]ружище/.test(v)) return v; const TS = window.__TT && window.__TT.S, w = (TS && +TS.wave) || 0; if (w < 31) return v;   /* V639/V694: Anrede nach Welle – überall */
+  const to = w >= 61 ? "друг" : "дружище", up = x => x[0].toUpperCase() + x.slice(1);
+  let r = v.replace(/(^|[^А-Яа-яЁё])([Нн])апарник(?![А-Яа-яЁё])/g, (m, a, n) => a + (n === "Н" ? up(to) : to));
+  if (w >= 61) r = r.replace(/(^|[^А-Яа-яЁё])([Дд])ружище(?![А-Яа-яЁё])/g, (m, a, d) => a + (d === "Д" ? "Друг" : "друг"));
+  return r; } catch (e) { return v; } }
 function T(t) {
   if (t == null) return t; const raw = String(t); const key = i18nNorm(raw); if (!key || !/[A-Za-zÀ-ÿ]{2}/.test(key)) return raw;
   if (I18N.audit) I18N.seen.add(key);
@@ -4197,7 +4200,9 @@ const SFX = (() => {
     if (curVoice) { try { const cv = curVoice, n = ac.currentTime; if (cv.__g) { cv.__g.gain.cancelScheduledValues(n); cv.__g.gain.setValueAtTime(cv.__g.gain.value, n); cv.__g.gain.linearRampToValueAtTime(0, n + 0.025); cv.stop(n + 0.03); } else cv.stop(); } catch (e) {} curVoice = null; }   /* V433: ausblenden statt hart stoppen */
     if (!key && !deg && !VOICE[text] && performance.now() - (window.__sayT || -1e9) < 12000) return; window.__sayT = performance.now();   // V178v: freie Sprüche höchstens alle 12 s
     { const nt = norm(text), nw = performance.now(); if (deg === 0 && lastSaid[nt] && nw - lastSaid[nt] < 3000) return; lastSaid[nt] = nw; }   // gleicher Satz höchstens alle 3 s
-    const ck = VOICE[text] ? text : VOICE_BY_TEXT[norm(text)];
+    let ck = VOICE[text] ? text : VOICE_BY_TEXT[norm(text)];
+    try { if (ck && window.__sayKey) { const k2 = window.__sayKey(ck); if (k2 !== ck && BUF["v_" + k2] && BUF["v_" + k2].length) ck = k2; } } catch (e) {}   /* V694: Anrede-Clip auch bei Aufruf über den Satz */
+    try { if (ck) { const L = window.__voiceLog || (window.__voiceLog = []); L.push({ k: ck, t: performance.now() }); if (L.length > 60) L.shift(); } } catch (e) {}
     if (!ck || !BUF["v_" + ck] || !BUF["v_" + ck].length) return;             // nur eigene Clips, nie eine fremde Computerstimme
     {
       const buf = BUF["v_" + ck][0], dur = buf.duration, t = ac.currentTime;
@@ -5904,7 +5909,7 @@ function hkFinish() {
   try { if (!HK.coach && !HK.trial && S && !S.testRun && !S.nuts && (LS.get("capy-coach-ad1") !== "1" || (LS.get("capy-coach-ad2") !== "1" && coachLeft() === 0 && (LS.set("capy-coach-ad2", "1"), true)))) window.__coachAdPend = 1;   /* V600: 2. Hack (W12) noch einmal, wenn nicht gebucht */ } catch (e) {}   /* V572 */
   const mine = HK.cells.filter(c => c === HK.me).length;
   if (mine === 6 && !window.__hkFree) { toast("DRAW · 6 : 6 · the circuit rewires", "HACK", 1800); startDuel(true); return; }   /* V627: Gratis-Hack nur einmal */
-  HK.phase = "done"; const win = mine > 6; try { if (win && !HK.coach && S && !S.testRun) chHit("hk", 1); } catch (e) {} snd("arcade", false); $("hkAgain").hidden = !S.testRun && !(HK.coach && coachLeft() > 0);
+  HK.phase = "done"; const win = mine > 6; try { if (win && !HK.coach && S && !S.testRun) chHit("hk", 1); } catch (e) {} snd("arcade", false); $("hkAgain").hidden = !(HK.coach && coachLeft() > 0);   /* V694: kein «Again (test)» mehr */
   if (HK.coach) { $("hackCv").hidden = true; const res = $("hackRes"); res.hidden = false; res.classList.toggle("win", win); res.classList.toggle("lose", !win);
     $("hkResTag").textContent = "COACH OLLIE"; $("hkResTag").hidden = false; $("hkResTag").classList.remove("bad"); $("hkResT").textContent = win ? "NICE ROUND!" : "GOOD TRY!"; $("hkDevT").textContent = "";
     res.classList.add("hkNew"); $("hkArt").classList.remove("proud"); $("hkArt").classList.add("scn"); $("hkArt").innerHTML = hkScene([{ x: 50, jx: 63, src: COACH_IMG(), name: "Ollie", k: "", say: "" }]);   /* V691 */ $("hkScMe").textContent = mine; $("hkScBo").textContent = 12 - mine; $("hkConf").innerHTML = ""; document.querySelector(".hkScoreL").innerHTML = `<span>YOU</span><span>COACH</span>`;
@@ -10823,6 +10828,11 @@ try { (() => { if (!("serviceWorker" in navigator)) return;
 /* V640: RU-Anrede in der Stimme (ab W31 «дружище», ab W61 «друг») */
 try { (() => { const key = k => { try { if (I18N.lang !== "ru" || typeof k !== "string") return k; const TS = window.__TT && window.__TT.S, w = (TS && +TS.wave) || 0, k2 = w >= 61 ? k + "__dg" : w >= 31 ? k + "__dr" : null; return k2 && (window.__VOICE || {})[k2] ? k2 : k; } catch (e) { return k; } };
   window.__sayKey = key; const sy = SFX.say; SFX.say = function (k) { const k2 = key(k); if (k2 === k) return sy.apply(SFX, arguments); const a = [...arguments]; a[0] = k2; return sy.apply(SFX, a); }; })(); } catch (e) { console.error("v640", e); }
+/* V694: Anrede-Sicherheitsnetz – Texte, die vor W31/W61 schon standen, nachziehen */
+try { (() => { const RX = /[Нн]апарник|[Дд]ружище/, SKIP = new Set(["SCRIPT", "STYLE", "TEXTAREA", "INPUT"]);
+  setInterval(() => { try { if (I18N.lang !== "ru") return; const S = window.__TT && window.__TT.S; if (!S || (S.wave | 0) < 31) return;
+    const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, { acceptNode: n => RX.test(n.data) && n.parentNode && !SKIP.has(n.parentNode.nodeName) ? 1 : 3 }); const L = []; let n; while ((n = w.nextNode())) L.push(n);
+    for (const t of L) { const v = capyAddr(t.data); if (v !== t.data) t.data = v; } } catch (e) {} }, 2500); })(); } catch (e) { console.error("v694", e); }
 /* V642: Sicherheitsnetz – nichts wartet länger als 2 Wellen */
 try { (() => { const o = window.__offerOK, since = {}; let gS = null;
   const pend = S => { const w = S.wave | 0, L = []; if (S.hackPending) L.push("hack"); if ((S.banditNext ? w >= S.banditNext : !S.banditDone) && (S.playT || 0) >= 60) L.push("lucky"); if (S.ordDue) L.push("ord");
@@ -12941,7 +12951,7 @@ body.tutBarOn #coach.genTalk{animation:none!important}
 #ovHack #hackRes.hkNew .hkGold b{color:#ffd166!important;text-shadow:0 3px 0 #17150c}
 #ovHack #hackRes.hkNew.lose .hkGold{border-color:rgba(255,138,106,.45)!important}#ovHack #hackRes.hkNew.lose .hkGold b{color:#ff8a6a!important}
 #ovHack #hackRes.hkNew .hkGold small{color:#f4e2c4!important}
-#ovHack #hackRes.hkNew .hkRow{padding:0 14px;box-sizing:border-box}
+#ovHack #hackRes.hkNew .hkRow{padding:0 14px;box-sizing:border-box;justify-content:center}#ovHack #hackRes.hkNew .hkRow button{flex:0 1 calc(50% - 4px)!important}#ovHack #hackRes.hkNew.lose #hkBack{background:linear-gradient(180deg,#ffb0da,#f06aac)!important;color:#fff!important}
 #ovHack #hackRes.hkNew .hkConf{z-index:7}
 body:has(#ovHack:not([hidden]) #hackRes:not([hidden])) #buddy,body:has(#ovHack:not([hidden]) #hackRes:not([hidden])) #buddy *{visibility:hidden!important}   /* keine Funk-Blase über der Karte */
 @media (prefers-reduced-motion:reduce){#hkArt .hkScn .fig img{animation:none!important}#hkArt .hkScn .bub{animation:none;opacity:1}}
