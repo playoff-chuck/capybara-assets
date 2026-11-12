@@ -2825,7 +2825,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V651";
+const GAME_VER = "V652";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -6565,11 +6565,15 @@ try { (() => { const sh = $("sheet"); let held = false, tm = 0;
 })(); } catch (e) { console.error("v441", e); }
 const SNIPE_COST = 200, MIX_COST = 350, TESLA_COST = 500, WOLF_COST = 500, WOLF_W = 100;   /* V394: Wolf call */
 function playWolf() { try { if (SFX.muted) return; const a = new Audio("sfx/wolf.mp3"); a.volume = 0.5 * Math.min(1, Math.max(0.6, 8 * Math.pow(SFX.vol || 0.3, 2)));   /* V564: −50 % (Martin 10.11.) */ a.play().catch(() => {}); } catch (e) {} }
+function thiefEv(a, d) { try { const C = JSON.parse(localStorage.getItem("capy-thf") || "{}"); const g = (d && d.g) | 0;   /* V652: Dieb mitschreiben */
+    if (a === "come") C.n = (C.n || 0) + 1; else if (a === "steal") { C.s = (C.s || 0) + 1; C.gs = (C.gs || 0) + g; } else if (a === "wolf") { C.wf = (C.wf || 0) + 1; C.gb = (C.gb || 0) + g; } else if (a === "gone") C.gl = (C.gl || 0) + g;
+    C.lw = (S && S.wave) | 0; C.lt = Date.now(); localStorage.setItem("capy-thf", JSON.stringify(C)); } catch (e) {}
+  try { window.__evLog && window.__evLog.push("thief", { d: Object.assign({ a, gold: (S && S.gold) | 0 }, d || {}) }); if (a !== "come") window.__evLog.flush(false); } catch (e) {} }
 function wolfCall() { const D = window.__dist && window.__dist.D, T = D && D.thief;
   if (!(S.wolves > 0)) { snd("nope"); return; }
   if (!T) { S.wolves--; S.mode = null; S.aim = null; playWolf(); setTimeout(() => toast("AWOOO! · no thief around – howl wasted", "POCKET", 2000), 600); return; }
   S.wolves--; S.mode = null; S.aim = null; playWolf();
-  setTimeout(() => { if (D.thief !== T) return; T.flee = true; const g = T.stolen || 0; T.stolen = 0; if (g) S.gold += g;
+  setTimeout(() => { if (D.thief !== T) return; T.flee = true; const g = T.stolen || 0; T.stolen = 0; if (g) S.gold += g; thiefEv("wolf", { g });
     toast(g ? `THE WOLF SCARED HIM OFF · +${g} gold back` : "THE WOLF SCARED HIM OFF!", "HQ", 2200); praise("AWOOO!", 2, false);
     setTimeout(() => { if (D.thief === T) { D.thief = null; window.__thiefPos(null); } }, 1800); }, 900); }
 const ICON = {
@@ -10742,7 +10746,7 @@ try { (() => {
       const xs = n > 1 ? pool.slice(0, n).sort((a, b) => a - b) : [2 + Math.floor(Math.random() * (GW - 4))];
       const dl = n > 1 ? 9999 : 0; D.weedAge = 0; D.weedW0 = false; if (n > 1) { try { S.tons = (S.tons || 0) + 1; if (window.__dropAd) { window.__dropAd("weed"); } else { startTon(); (D.weeds || []).forEach(w => { w.delay = 3; }); } } catch (e) {} }   /* V446: Gratis-Ten-ton als Air-Drop, Samen warten (Notfall 40 s) */
       D.weeds = xs.map(x => ({ x, root: null, h: 0, seedY: -1, growT: Math.random() * 1.5, waves: 0, delay: dl + Math.random() * 0.4, gi: 6.8 / (WEEDSPD[S.wave] || 1) })); if (n > 1) setTimeout(() => { try { (D.weeds || []).forEach(w => { if (w.delay > 100) w.delay = 2 + Math.random() * 0.4; }); } catch (e) {} }, 40000); }
-    if (k === "thief") D.thief = { x: -0.8, t: 0, stolen: 0 };
+    if (k === "thief") { D.thief = { x: -0.8, t: 0, stolen: 0 }; thiefEv("come", {}); }
     snd("siren"); { const nm = k === "weed" && D.weeds.length > 1 ? NAMES.weed5 : NAMES[k]; announce(nm[0], nm[1], "ALERT", 2400); }
     if (k === "weed") setTimeout(() => { try { hint("weedintro", "WEEDS!", "🌱 → ⬆ → ✂ Weeds grow toward the ring. If one reaches it, the field is lost. Cut it with a Sniper strike or Tesla storm!", "board"); } catch (e) {} }, 2600);   /* V595: Unkraut-Vorstellung (Variante C) */
     if (k === "thief") setTimeout(() => { try { SFX.say("thief_hello", 1.0, 1.0, 0, 0); } catch (e) {} }, 900);
@@ -10811,8 +10815,8 @@ try { (() => {
           if (left <= 2 && !D.weedW2) { D.weedW2 = true; try { window.__rbSay && window.__rbSay("rb_weedlast", true); } catch (e) {} if (!D.weedW0) { D.weedW0 = true; try { weedCard(); } catch (e) {} } }   /* V446: Karte spätestens hier */
           else if (left <= 4 && !D.weedW1) { D.weedW1 = true; try { snd("siren"); announce("WEED ALERT", "If it reaches the ring, it's over · Tesla or Sniper", "ALERT", 3000); setTimeout(() => SFX.say("weed_warn"), 500); } catch (e) {} } } } }
     if (D.thief) { const T = D.thief; T.t += dt; if (window.__thiefPos) window.__thiefPos(T);
-      if (!T.stolen && !T.flee && T.t >= 10) { T.stolen = Math.floor(S.gold / 2); S.gold -= T.stolen; snd("sell"); setTimeout(() => snd("sell"), 140); try { SFX.say("thief_laugh", 1.0, 1.0, 0, 0); } catch (e) {} toast(`THIEF GRABBED ${T.stolen} GOLD!`, "ALERT", 1800); setTimeout(() => { if (D.thief === T && !T.flee) toast(S.wolves > 0 ? "QUICK! Use your WOLF CALL – he'll drop the gold!" : "Raccoons hate wolves! Get a WOLF CALL in the shop.", "HQ", 2800); }, 2100); const g = $("sGold"); if (g) { g.classList.remove("thiefHit"); void g.offsetWidth; g.classList.add("thiefHit"); } }
-      if (T.t >= 30) { if (T.stolen) toast(`THIEF GOT AWAY · −${T.stolen} gold`, "HQ", 1800); D.thief = null; } }
+      if (!T.stolen && !T.flee && T.t >= 10) { T.stolen = Math.floor(S.gold / 2); S.gold -= T.stolen; thiefEv("steal", { g: T.stolen, wl: S.wolves | 0 }); snd("sell"); setTimeout(() => snd("sell"), 140); try { SFX.say("thief_laugh", 1.0, 1.0, 0, 0); } catch (e) {} toast(`THIEF GRABBED ${T.stolen} GOLD!`, "ALERT", 1800); setTimeout(() => { if (D.thief === T && !T.flee) toast(S.wolves > 0 ? "QUICK! Use your WOLF CALL – he'll drop the gold!" : "Raccoons hate wolves! Get a WOLF CALL in the shop.", "HQ", 2800); }, 2100); const g = $("sGold"); if (g) { g.classList.remove("thiefHit"); void g.offsetWidth; g.classList.add("thiefHit"); } }
+      if (T.t >= 30) { thiefEv("gone", { g: T.stolen | 0 }); if (T.stolen) toast(`THIEF GOT AWAY · −${T.stolen} gold`, "HQ", 1800); D.thief = null; } }
     if (!D.thief && window.__thiefPos) window.__thiefPos(null);
   }
   const _up = update; update = function (dt) { const r = _up.apply(this, arguments); try { if (!frozen()) step(dt); else { noiseLevel(0); if (window.__magHum) window.__magHum(0); } } catch (e) { console.error("v327", e); } return r; };
@@ -11096,7 +11100,7 @@ try { (() => {
       if (el.__mk !== mk) { el.__mk = mk; el.style.webkitMaskImage = mk; el.style.maskImage = mk; } } el.style.transform = `translate(${(x - SZ / 2).toFixed(1)}px,${Math.round(feet - SZ + 5)}px) scale(${sc.toFixed(3)})`; sprite(T); };
   el.addEventListener("pointerdown", ev => { ev.preventDefault(); ev.stopPropagation(); const D = window.__dist && window.__dist.D, T = D && D.thief; if (!T) return;
     if (T.flee) return; if (S.wolves > 0) { wolfCall(); return; }   /* V394: nur der Wolf vertreibt den Dieb */
-    toast("Only a WOLF CALL scares him off · find it in the shop", "HQ", 1800); snd("nopeSoft"); return;
+    thiefEv("tap", {}); toast("Only a WOLF CALL scares him off · find it in the shop", "HQ", 1800); snd("nopeSoft"); return;
     let used = null;
     S.mode = null; S.aim = null; snd(used); S.shake = 0.5;
     if (T.stolen) { S.gold += T.stolen; toast(`THIEF STOPPED · +${T.stolen} gold back`, "HQ", 2000); } else toast("THIEF STOPPED!", "HQ", 1600);
@@ -11145,6 +11149,7 @@ try { (() => {
       lv: (() => { try { return sqLevel(); } catch (e) { return 1; } })(), xp: (() => { try { return sqXP(); } catch (e) { return 0; } })(), ms: msnD, dly,
       fr: +localStorage.getItem("capy-squad-n") || 0, k: L.k || 0, l: L.l || 0, w: L.w || 0, r: L.r || 0, t: Math.round(L.t || 0),
       scrT: +localStorage.getItem("capy-scr") || 0, d: D.n || 0, dnz: D.nz || 0, dby: D.by || {}, dlw: D.lw || 0,
+      thf: (() => { try { return JSON.parse(localStorage.getItem("capy-thf") || "null"); } catch (e) { return null; } })(),   /* V652 */
       tut: localStorage.getItem("tarnturm-tut") === "1" ? 1 : 0, dev: localStorage.getItem("tarnturm-dev") === "1" ? 1 : 0, cs: !!localStorage.getItem("capy-cloudT"),
       team: (() => { try { return capyMe() ? 1 : 0; } catch (e) { return 0; } })() }; }   /* V583 */
   let lastSend = 0;
@@ -11239,7 +11244,7 @@ body:has(.overlay.joinOv:not([hidden])) #stAdm,body:has(#ovDaily:not([hidden])) 
       kv("Sterne", `${num(d.st)} ★ · ${d.pl || 0} von 30 Orten`), kv("Medaillen", `${d.md || 0} / 81`), kv("Squad Level", `${d.lv || 1} · ${num(d.xp)} XP`), kv("Missionen", num(d.ms)),
       kv("Daily-Kette", d.dly ? `Tag ${d.dly}` : "–"), kv("Geworbene Freunde", num(d.fr)), kv("Nuts-Bestwerte", esc(nzb)), kv("Nuts offen", d.nzs ? `${NZW[d.nzs.c] || ""} · Level ${d.nzs.lv}` : "–")]);
     h += sec("SPIELZEIT & TODE", [kv("Spielzeit", dur(d.t)), kv("Bildschirmzeit", dur(d.scrT)), kv("Läufe", num(d.r)), kv("Wellen geschafft", num(d.w)), kv("Monster gesplattet", num(d.k)), kv("Reihen", num(d.l)),
-      kv("Tode Hauptspiel", num(d.d) + (d.dlw ? ` · zuletzt in Welle ${d.dlw}` : "")), kv("Tode Nuts", num(d.dnz)), kv("Todesursachen", esc(byT))]);
+      kv("Tode Hauptspiel", num(d.d) + (d.dlw ? ` · zuletzt in Welle ${d.dlw}` : "")), kv("Tode Nuts", num(d.dnz)), kv("Todesursachen", esc(byT)), kv("Dieb", d.thf ? `kam ${d.thf.n || 0}× · stahl ${d.thf.s || 0}× · ${num(d.thf.gs || 0)} Gold weg · ${num(d.thf.gb || 0)} per Wolf zurück · ${num(d.thf.gl || 0)} verloren · zuletzt W${d.thf.lw || 0}` : "noch nie (ab V652)")]);   /* V652 */
     { const P = p.plays || [], two = n => String(n).padStart(2, "0"), WD = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];   /* V650 */
       const lt = (t, off) => { if (off == null) return new Date(t).toLocaleString("de-AT"); const x = new Date(t + off * 60000); return `${WD[x.getUTCDay()]} ${two(x.getUTCDate())}.${two(x.getUTCMonth() + 1)}. ${two(x.getUTCHours())}:${two(x.getUTCMinutes())}`; };
       const tot = P.reduce((a, y) => a + (y.secs || 0), 0);
@@ -11272,6 +11277,7 @@ body:has(.overlay.joinOv:not([hidden])) #stAdm,body:has(#ovDaily:not([hidden])) 
       h += sec("FRUST-SIGNALE", [kv("Tod → App zu in 20 s", num(x.rage || 0)), kv("Tod → sofort Neustart", num(x.quickRestart || 0)), kv("Knapp am Ende (2 Reihen)", num(nsum(x.near))), kv("45 s keine Eingabe", num(nsum(x.idle))), kv("Sitzung (Median)", x.sessMedian ? Math.round(x.sessMedian / 60) + " min · " + x.sessN + " Sitzungen" : "–")].concat(obj(x.quits).map(r => r.replace("<span>", "<span>Verlassen über "))));
       h += sec("JE WELLE: DAUER · LEBEN VERLOREN · STAPEL", (x.waves || []).slice(0, 60).map(r => kv("W" + r.w + " (" + r.n + ")", `${r.sec} s · ${r.lives} Leben · ${r.lossPct} % mit Verlust · Stapel ${r.stack}`)));
       h += sec("TIPP-KARTEN", obj(x.tips));
+      { const t = x.thief || {}; h += sec("DIEB (AB WELLE 100)", t.come || t.steal ? [kv("Aufgetaucht", num(t.come || 0)), kv("Gold gestohlen", `${num(t.steal || 0)}× · ${num(t.gs || 0)} Gold`), kv("Per Wolf zurück", `${num(t.wolf || 0)}× · ${num(t.gb || 0)} Gold`), kv("Entkommen mit Gold", `${num(t.gone || 0)}× · ${num(t.gl || 0)} Gold`), kv("Angetippt ohne Wolf", num(t.tap || 0))] : []); }   /* V652 */
       { const pp = x.plays || {}, hr = pp.hours || [], wd = pp.wd || [], mx = Math.max(1, ...hr), mw = Math.max(1, ...wd), WD = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];   /* V650 */
         const bar = (v, m) => `<i style="display:inline-block;height:9px;width:${Math.round(90 * v / m)}px;background:#e98a2b;border-radius:3px;vertical-align:middle;margin-right:6px"></i>${v}`;
         h += sec("SITZUNGEN · GERÄTE", [kv("Sitzungen", num(pp.n || 0) + " · " + num(pp.mins || 0) + " min gesamt")].concat(obj(pp.models).map(r => r.replace("<span>", "<span>Modell "))).concat(obj(pp.os).map(r => r.replace("<span>", "<span>System "))));
