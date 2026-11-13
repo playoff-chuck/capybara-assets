@@ -2861,7 +2861,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V700";
+const GAME_VER = "V701";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -5138,7 +5138,7 @@ function spawnMonster() {
   const volts = w >= G.voltFrom ? 1 + Math.floor((w - G.voltFrom) / 8) : 0; const cuF = G.cuddleFrom || 58, cuddleW = !S.nuts && w >= cuF && (w - cuF) % 20 === 0;   /* V699: W58/78/98/118/138 */
   const slot = (k, n) => Math.floor(total * (k + 1) / (n + 1));
   S.totalSpawned = (S.totalSpawned || 0) + 1;
-  if (cuddleW && idx % 5 === 4) kind = "cuddle";   /* V700: jedes 5. Monster dieser Welle ist ein Cuddle Zombie */
+  if (cuddleW) kind = "cuddle";   /* V701: in dieser Welle kommen nur Cuddle Zombies, gleiche Anzahl wie sonst */
   else if (w >= G.kieferFrom && S.totalSpawned % 30 === 0) kind = "kiefer";                                         // jedes 30. Monster: der Kiefer
   else if ([...Array(runners)].some((_, k) => slot(k, runners) === idx)) kind = "runner";
   else if ([...Array(bombers)].some((_, k) => slot(k, bombers) + 1 === idx)) kind = "bomber";
@@ -11149,7 +11149,7 @@ try { (() => {
   window.__egg = c => openEgg(c == null ? wherePos(S.wave).c : c);
 })(); } catch (e) { console.error("v328", e); }
 
-/* V697: Test-Link ?test=cuddle */ try { (() => { const _dj = devJump; devJump = function (w, kind) { const r = _dj.apply(this, arguments); if (kind === "cuddle") { S.testCuddle = true; S.gold = Math.max(S.gold || 0, 3000); S.lives = Math.max(S.lives || 0, 99); S.waveCD = 6; toast("TEST · wave 58 · every 5th monster is a CUDDLE ZOMBIE · 99 lives · build towers right next to the path", "HQ", 3500); } return r; }; })(); } catch (e) { console.error("v697", e); }
+/* V697: Test-Link ?test=cuddle */ try { (() => { const _dj = devJump; devJump = function (w, kind) { const r = _dj.apply(this, arguments); if (kind === "cuddle") { S.testCuddle = true; S.gold = Math.max(S.gold || 0, 3000); S.lives = Math.max(S.lives || 0, 99); S.waveCD = 6; toast("TEST · wave 58 · only CUDDLE ZOMBIES this wave · 99 lives · build towers right next to the path", "HQ", 3500); } return r; }; })(); } catch (e) { console.error("v697", e); }
 /* V330: Test-Zugang Störungen + Easter Egg (Dev-Liste und ?test=…) */
 try { (() => {
   const DK = ["blk", "mag", "weed", "thief", "egg"];
