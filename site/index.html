@@ -2862,7 +2862,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V702";
+const GAME_VER = "V703";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -4530,6 +4530,7 @@ try { (() => { const FX = { lock: 1, lines: 1, splat: 1, mg: 1, coin: 1, kan: 1 
         src.connect(g); g.connect(out); src.start(now); src.onended = () => { try { g.disconnect(); } catch (e) {} }; return; } } } catch (e) {} return _play(n, ...a); };
 })(); } catch (e) { console.error("v648", e); }
 
+window.__vcSave = () => saveGame(); window.__vcUi = () => uiWinOpen();   /* V703 */
 window.__TT = { get S() { return S; }, get HK() { return HK; }, startGame: (m, w) => startGame(m, w), startWave: () => startWave(), hud: () => hud(), theme: () => ({ THEME, base: baseTheme(), camo0: CAMO[0][0] }), baseTheme: () => baseTheme(), openSheet: t => openSheet(t), hkFinish: () => hkFinish(), openHack: f => openHack(f), startDuel: k => startDuel(k), startCoach: () => startCoach(), toast: (a, b, c) => toast(a, b, c), announce: (a, b, c, d) => announce(a, b, c, d), book: (a, b) => bookkeeper(a, b), SFX, cvPt: (...a) => cvPt(...a), cvCell: e => cvCell(e), hardDrop: () => hardDrop(), v2g: (u, v) => v2g(u, v), GW: () => GW, GH: () => GH };
 // ---------- Lob (Stempel + Stimme) ----------
 // Der Buchhalter meldet runde Punktestände
@@ -13077,4 +13078,25 @@ var add=function(){d.body.appendChild(b);setInterval(place,500);place();
   hd.parentNode.insertBefore(sb,hd.nextSibling);lab();d.addEventListener("fullscreenchange",function(){lab();place();});setInterval(lab,1500);};
 if(d.readyState==="loading")d.addEventListener("DOMContentLoaded",add);else add();
 }catch(e){console.warn("fs",e);}})();</script>
+<script>/* V703: Versionsprüfung beim Zurückkehren */
+(function(){try{
+var num=function(v){return parseInt(String(v||"").replace(/\D/g,""),10)||0};
+var want=null,busy=false,timer=null;
+function canApply(){try{var S=window.__TT&&window.__TT.S;if(!S||!S.started)return "menu";if(S.over)return false;if(S.testRun||S.replay||S.nuts||S.inWave)return false;
+if(window.__vcUi&&window.__vcUi())return false;
+if(document.querySelector("#ovHack:not([hidden]),#ovNutsRes:not([hidden]),#ovSign:not([hidden])"))return false;return "game";}catch(e){return false}}
+function apply(){if(!want)return;var c=canApply();clearTimeout(timer);if(!c||document.hidden){timer=setTimeout(apply,2000);return;}
+try{sessionStorage.setItem("capy-vupd",want);if(c==="game"){try{window.__vcSave()}catch(e){}sessionStorage.setItem("capy-vres","1");}}catch(e){}
+location.reload();}
+function check(){if(busy||document.hidden||want)return;busy=true;
+fetch("/offline.json?vc="+Date.now(),{cache:"no-store"}).then(function(r){return r.json()}).then(function(d){var sv=d&&d.ver;
+if(num(sv)>num(GAME_VER)){var tried=null;try{tried=sessionStorage.getItem("capy-vupd")}catch(e){}if(tried===sv)return;want=sv;apply();}}).catch(function(){}).then(function(){busy=false});}
+document.addEventListener("visibilitychange",function(){if(!document.hidden)check();});
+window.addEventListener("pageshow",function(e){if(e.persisted)check();});
+window.__verCheck=check;
+var res=null;try{res=sessionStorage.getItem("capy-vres");sessionStorage.removeItem("capy-vres");}catch(e){}
+if(res){var go=function(){var n=0,iv=setInterval(function(){var b=document.getElementById("btnResume");
+if(b&&!b.hidden&&b.offsetParent){clearInterval(iv);b.click();}else if(++n>40)clearInterval(iv);},250);};
+var sp=document.getElementById("splash");if(sp)sp.addEventListener("click",go,{once:true});else go();}
+}catch(e){console.warn("v703",e)}})();</script>
 </body></html>
