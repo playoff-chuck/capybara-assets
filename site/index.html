@@ -903,7 +903,8 @@ canvas#cv.rotR{transform:rotate(90deg) scale(.6667)}
 .hkConf{position:absolute;inset:0;pointer-events:none}
 .hkConf i{position:absolute;top:-10px;width:7px;height:11px;border-radius:2px;animation:hkFall 2s linear infinite}
 @keyframes hkFall{0%{transform:translateY(-10px) rotate(0)}100%{transform:translateY(460px) rotate(540deg)}}
-@media (prefers-reduced-motion: reduce){.hackRes .hkArt svg,.hkConf i,.hkArt .smoke,.hkArt .coinfly{animation:none}}
+@media (prefers-reduced-motion: reduce){.hackRes .hkArt svg,.hkConf i,.hkArt .smoke,.hkArt .coinfly{animation:none}.hkConf{display:none!important}}
+body.lite .hkConf{display:none!important}   /* V702: stehendes Konfetti = Punktreihe oben, deshalb weg */
 
 .hackRes .alTag{background:#4f8a2b;color:#fff}
 
@@ -2861,7 +2862,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V701";
+const GAME_VER = "V702";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
