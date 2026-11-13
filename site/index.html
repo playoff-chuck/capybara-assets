@@ -2861,7 +2861,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V697";
+const GAME_VER = "V698";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -5135,14 +5135,14 @@ function spawnMonster() {
   const total = S.waveTotal || 1;
   const runners = w >= G.runnerFrom ? 1 + Math.floor((w - G.runnerFrom + 5) / 10) : 0;   // 1, nach 5 Wellen 2, dann alle 10 eine mehr
   const bombers = w >= G.bomberFrom ? 1 + Math.floor((w - G.bomberFrom) / 10) : 0;
-  const volts = w >= G.voltFrom ? 1 + Math.floor((w - G.voltFrom) / 8) : 0; const cuF = G.cuddleFrom || 57, cuddles = w >= cuF ? 1 + Math.floor((w - cuF) / 20) : 0;   /* V697 */
+  const volts = w >= G.voltFrom ? 1 + Math.floor((w - G.voltFrom) / 8) : 0; const cuF = G.cuddleFrom || 57, cuddleW = !S.nuts && w >= cuF && (w - cuF) % 20 === 0;   /* V698: W57/77/97/117/137 */
   const slot = (k, n) => Math.floor(total * (k + 1) / (n + 1));
   S.totalSpawned = (S.totalSpawned || 0) + 1;
-  if (w >= G.kieferFrom && S.totalSpawned % 30 === 0) kind = "kiefer";                                         // jedes 30. Monster: der Kiefer
+  if (cuddleW && idx < 5) kind = "cuddle";   /* V698: erste 5 Monster dieser Welle sind Cuddle Zombies */
+  else if (w >= G.kieferFrom && S.totalSpawned % 30 === 0) kind = "kiefer";                                         // jedes 30. Monster: der Kiefer
   else if ([...Array(runners)].some((_, k) => slot(k, runners) === idx)) kind = "runner";
   else if ([...Array(bombers)].some((_, k) => slot(k, bombers) + 1 === idx)) kind = "bomber";
   else if ([...Array(volts)].some((_, k) => slot(k, volts) + 2 === idx) || (S.test711 && idx % 4 === 1)) kind = "volt";
-  else if ((S.testCuddle && idx % 3 === 1) || [...Array(cuddles)].some((_, k) => slot(k, cuddles) + 3 === idx)) kind = "cuddle";   /* V697: Cuddle Zombie */
   else if (w >= (G.bearFrom || 999) && w <= 120 && idx % 11 === 7) kind = "bear";        /* V373: nur Nordamerika */
   else if (w >= (G.tigerFrom || 999) && w <= 90 && idx % 9 === 4) kind = "tiger";       /* V373: nur Asien */
   else if (w >= (G.mummyFrom || 999) && w <= 60 && idx % 8 === 6) kind = "mummy";       /* V373: nur Afrika */
@@ -11149,7 +11149,7 @@ try { (() => {
   window.__egg = c => openEgg(c == null ? wherePos(S.wave).c : c);
 })(); } catch (e) { console.error("v328", e); }
 
-/* V697: Test-Link ?test=cuddle */ try { (() => { const _dj = devJump; devJump = function (w, kind) { const r = _dj.apply(this, arguments); if (kind === "cuddle") { S.testCuddle = true; S.gold = Math.max(S.gold || 0, 3000); S.lives = Math.max(S.lives || 0, 99); S.waveCD = 6; toast("TEST · CUDDLE ZOMBIE in wave 57 · 99 lives · build towers right next to the path", "HQ", 3500); } return r; }; })(); } catch (e) { console.error("v697", e); }
+/* V697: Test-Link ?test=cuddle */ try { (() => { const _dj = devJump; devJump = function (w, kind) { const r = _dj.apply(this, arguments); if (kind === "cuddle") { S.testCuddle = true; S.gold = Math.max(S.gold || 0, 3000); S.lives = Math.max(S.lives || 0, 99); S.waveCD = 6; toast("TEST · wave 57 starts with 5 CUDDLE ZOMBIES · 99 lives · build towers right next to the path", "HQ", 3500); } return r; }; })(); } catch (e) { console.error("v697", e); }
 /* V330: Test-Zugang Störungen + Easter Egg (Dev-Liste und ?test=…) */
 try { (() => {
   const DK = ["blk", "mag", "weed", "thief", "egg"];
