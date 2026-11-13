@@ -2862,7 +2862,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V703";
+const GAME_VER = "V704";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -7499,6 +7499,7 @@ function tonTutTick() { try {
   if (!TONTUT.base) { TONTUT.base = {}; SP_KEYS.forEach(k => TONTUT.base[k] = SP_CNT(k)); return; }
   if (!TONTUT.st) {
     if (LS.get("capy-tut-sp") === "1") return;
+    if ((S.wave | 0) > 15) { try { LS.set("capy-tut-sp", "1"); } catch (e) {} return; }   /* V704: nur bis W15 */
     if (S.shop) { SP_KEYS.forEach(k => TONTUT.base[k] = SP_CNT(k)); return; }   // selbst gekauft: kennt den Laden schon
     SP_KEYS.forEach(q => { if (SP_CNT(q) < TONTUT.base[q]) TONTUT.base[q] = SP_CNT(q); });
     const k = SP_KEYS.find(q => SP_CNT(q) > TONTUT.base[q]); if (!k) return;
