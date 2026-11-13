@@ -2302,7 +2302,7 @@ body:has(.bar:not(.off)) #genAv.isGen{transform:scaleX(-1)!important;animation:g
 .signTxt h2{margin:0;font-family:Bangers,var(--f-display),sans-serif;font-size:21px;letter-spacing:.03em;color:#3a1d10}
 .signTxt p{margin:2px 0 0;font-size:11.5px;line-height:1.25}
 .signTxt p b{color:#c23f3f}
-.signBtns{position:absolute;left:8px;right:8px;bottom:10px;display:flex;gap:8px}
+.signBtns{position:absolute;left:8px;right:8px;bottom:10px;display:flex;gap:8px;z-index:3}
 .signBtns button{flex:1;min-height:64px;line-height:1.05;gap:2px;border-radius:14px;border:3px solid #3a1d10;box-shadow:0 4px 0 #3a1d10;font-family:Bangers,var(--f-display),sans-serif;font-size:20px;letter-spacing:.03em;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px;cursor:pointer;text-shadow:0 2px 0 rgba(0,0,0,.35)}
 .signBtns button small{font-family:"Baloo 2",system-ui,sans-serif;font-size:11px;letter-spacing:0;font-weight:700;opacity:.95;text-shadow:none}
 #signNuts{background:linear-gradient(#e2473f,#a8221d)!important;color:#fff!important}
@@ -2343,6 +2343,35 @@ body.inNuts #btnPRestart{display:none!important}
 #hsNuts:empty{display:none}#hsPlaces:empty{display:none}#hsPlaces .prCont{margin:6px 0 1px;font:700 11px/1.2 var(--f-display),sans-serif;letter-spacing:.08em;text-transform:uppercase;opacity:.75}#hsPlaces .prSt{color:#e8a915;letter-spacing:-1px;white-space:nowrap}#hsPlaces .prKey{margin-top:5px;font-size:11px;opacity:.7}
 .signRule{position:absolute;left:10px;right:10px;bottom:86px;background:rgba(42,13,11,.82);color:#ffe3dc;border-radius:10px;padding:5px 8px;font-size:11px;line-height:1.3;text-align:center}
 .signRule b{color:#ffd36a}
+.signBox .signTxt[hidden],.signBox .signRule[hidden],.sgPop[hidden]{display:none!important}   /* V696 */
+#nrBack{position:relative}
+body:has(#ovSign:not([hidden])) #buddy,body:has(#ovNutsRes:not([hidden])) #buddy{display:none!important}
+#nrBack.nrLock{filter:grayscale(.7) brightness(.85);opacity:.7;pointer-events:none}
+#nrBack.nrLock::after{content:attr(data-cd);position:absolute;right:10px;top:50%;transform:translateY(-50%);width:28px;height:28px;border-radius:50%;background:#3a1d10;color:#fff;font:400 18px/28px Bangers,var(--f-display),sans-serif;text-align:center}
+#nrBack.nrGo{animation:nrGo 1.1s ease-in-out infinite}
+@keyframes nrGo{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
+.signBtns button{min-height:68px!important;padding:6px 6px 7px!important;gap:3px!important;border-radius:16px!important;box-shadow:0 5px 0 #3a1d10,inset 0 2px 0 rgba(255,255,255,.35)!important;text-shadow:0 2px 0 rgba(0,0,0,.4)!important;overflow:hidden}
+.signBtns button b{display:block;align-self:stretch;text-align:center;font-weight:400;font-family:Bangers,var(--f-display),sans-serif;font-size:clamp(19px,6vw,25px);line-height:1.05;letter-spacing:.04em;white-space:nowrap}
+.signBtns button small{display:block;align-self:stretch;text-align:center;font-size:12px;line-height:1.15;white-space:nowrap;opacity:.92}
+.sgDot{position:absolute!important;z-index:6;width:46px!important;height:46px!important;min-width:0!important;min-height:0!important;border-radius:50%!important;border:3px solid #4a2a14!important;box-shadow:0 3px 0 #2e1a0c,inset 0 2px 0 rgba(255,255,255,.28),0 5px 12px rgba(0,0,0,.4)!important;color:#fff!important;display:flex!important;align-items:center;justify-content:center;padding:0!important;margin:0!important;cursor:pointer;-webkit-tap-highlight-color:transparent;animation:sgPulse 1.8s ease-in-out infinite}
+.sgDot.sgNuts{left:calc(var(--nx,29) * 1% - 23px);top:calc(var(--ny,17.5) * 1% - 23px);background:linear-gradient(180deg,#cc5546,#a23e33 55%,#8a3128)!important}
+.sgDot.sgNext{left:calc(var(--xx,69) * 1% - 23px);top:calc(var(--xy,18) * 1% - 23px);right:auto!important;background:linear-gradient(180deg,#68a35f,#4b8350 55%,#3a6b44)!important}
+.sgDot .sgSk{font-size:25px;line-height:1;color:#fff;filter:drop-shadow(0 2px 0 rgba(0,0,0,.35))}
+.sgDot .sgI{font:700 28px/1 Georgia,"Times New Roman",serif;font-style:normal;color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.35);margin-top:-2px}
+.sgDot.on{animation:none;transform:scale(1.1);box-shadow:0 3px 0 #2e1a0c,0 0 0 5px rgba(255,255,255,.7)!important}
+.sgDot:active{transform:translateY(2px) scale(.98)}
+@keyframes sgPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.09)}}
+@media (prefers-reduced-motion:reduce){.sgDot{animation:none}}
+.sgPop{position:absolute;left:10px;right:10px;top:30%;z-index:5;border:3px solid #4a2a14;border-radius:14px;box-shadow:0 5px 0 #3a1d10,0 10px 24px rgba(0,0,0,.45);padding:11px 13px 12px;color:#fff;text-align:left;font-family:"Baloo 2",system-ui,sans-serif;font-size:14px;line-height:1.3}
+.sgPop::before{content:"";position:absolute;top:-12px;left:var(--ax,40px);width:18px;height:18px;transform:rotate(45deg);border-left:3px solid #4a2a14;border-top:3px solid #4a2a14;background:inherit}
+.sgPop.nuts{background:linear-gradient(180deg,#c24e40,#9a3a2f)}.sgPop.nuts::before{background:#c24e40}
+.sgPop.next{background:linear-gradient(180deg,#5f9a59,#3c6f48)}.sgPop.next::before{background:#5f9a59}
+.sgPop h3{margin:0 0 5px;font-family:Bangers,var(--f-display),sans-serif;font-weight:400;font-size:23px;letter-spacing:.04em;line-height:1.05;text-shadow:0 2px 0 rgba(0,0,0,.3)}
+.sgPop p{margin:0}.sgPop p+p{margin-top:7px}
+.sgPop b{color:#fff;font-weight:800}.sgPop.nuts .sgPopR b{color:#ffe08a}
+.sgPop .sgPl{display:block;margin-top:5px;font-size:12px;letter-spacing:.04em;opacity:.9}
+.sgPop .sgPopR{font-size:13.5px}
+.sgPop .sgLi{display:block;position:relative;padding-left:16px;font-weight:700;font-size:15px;line-height:1.3}.sgPop .sgLi::before{content:"•";position:absolute;left:3px}
 .sqLvl{position:fixed;left:max(12px,env(safe-area-inset-left,0px));bottom:calc(env(safe-area-inset-bottom,0px) + 18px);z-index:5;pointer-events:none;font-family:var(--f-display);font-size:clamp(10px,3vw,12px);letter-spacing:.08em;color:var(--sand);text-shadow:0 2px 0 #0b0e07,0 0 8px rgba(0,0,0,.7);line-height:1.25;max-width:52vw}.sqLvl b{color:#ffd36a}.sqLvl:empty{display:none}
 #sqLvl,.sqLvl{text-align:left!important}
 #ovHs .hsBox h2{font-weight:700!important}
@@ -2832,7 +2861,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V695";
+const GAME_VER = "V696";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -5334,7 +5363,7 @@ function update(dt) {
     if (S.toSpawn > 0 && S.spawnT <= 0 && S.monsters.length < L.monsters) { spawnMonster(); S.toSpawn--; S.spawnT = Math.max(G.spawnMin, G.spawnBase - S.wave * 0.03) * (ffOn() ? 0.5 : 1); }
     if (S.toSpawn === 0 && S.monsters.length === 0) {
       S.inWave = false; try { window.__msnEv && window.__msnEv("wave", S.waveLeaks || 0); } catch (e) {} if (S.nuts) nutsLevelDone(); else { S.waveCD = ffOn() ? 3 : G.waveCD; const b = Math.round((20 + 5 * S.wave) * (G.goldMul || 1) * goldTaper() * ordv("waveGoldMul")); S.gold += b; if (ORD_W.includes(S.wave)) { S.ordDue = S.wave; S.ordDueT = performance.now(); }   /* V242: kommt nach dem Air Drop, vor Wegweiser und Flug */ LS.set("tarnturm-waves-" + MODE, campTotal() + 1); lvLabel();
-      if (S.wave % 10 === 0 && !S.nuts && !S.testRun && S.wave > (+LS.get("tarnturm-cp-" + MODE) || 0)) { LS.set("tarnturm-cp-" + MODE, S.wave); setTimeout(() => toast(`CHECKPOINT · wave ${S.wave} saved`, "HQ", 1800), 5200); } setTimeout(maybeJoin, 5600); { const tg = [8, 22].includes(S.wave) && !(S.tonGift || {})[S.wave];   // V178q: geschenkter Ten-ton drop als Rettungsanker
+      if (S.wave % 10 === 0 && !S.nuts && !S.testRun && S.wave > (+LS.get("tarnturm-cp-" + MODE) || 0)) { LS.set("tarnturm-cp-" + MODE, S.wave); setTimeout(() => toast(`CHECKPOINT · wave ${S.wave} saved`, "HQ", 1800), 5200); } setTimeout(maybeJoin, 5600); { const tg = [8, 22].includes(S.wave) && !(S.tonGift || {})[S.wave] && !((S.rescueW || -99) >= S.wave - 3);   /* V696: nicht direkt nach Notfall-Kiste */   // V178q: geschenkter Ten-ton drop als Rettungsanker
         if (tg) { S.tonGift = S.tonGift || {}; S.tonGift[S.wave] = 1; S.tons = (S.tons || 0) + 1; S.introQ = S.introQ || []; S.seen = S.seen || {}; if (!S.seen["g:ton"]) { if (!S.introQ.some(x => x && x.k === "ton")) S.introQ.push({ t: "gear", k: "ton" }); } else if (window.__dropAd && S.introWave !== S.wave) window.__dropAd("ton"); }   /* V405: kein Doppelfenster in W8 */
         airDrop(`WAVE ${S.wave} CLEARED`, [["gold", "Gold", "+" + b], ...(tg ? [["ton", "Ten-ton drop", "+1 · in your Pocket"]] : []), ["level", "Level", campTotal() + 1], ["score", "Score", calcScore().toLocaleString("en-US")]]); }
       if (hkOfferWave(S.wave) && S.wave < 150) S.hackPending = S.hackPending || S.wave;   // Boss-Banner kommt, sobald Air Drop / Orders vorbei sind
@@ -8907,7 +8936,7 @@ $("joinDice").addEventListener("click", e => { e.preventDefault(); SFX.init(); s
 // --- Oberflächen ---
 const nzBadge = document.createElement("div"); nzBadge.id = "nutsBadge"; nzBadge.hidden = true; document.body.appendChild(nzBadge);
 const ovSign = document.createElement("div"); ovSign.className = "signOv"; ovSign.id = "ovSign"; ovSign.hidden = true;
-ovSign.innerHTML = `<div class="signBox" id="signBox"><div class="signTxt"><h2 id="signTitle">CONTINENT CLEARED!</h2><p id="signInfo"></p></div><div class="signRule" id="signRule"></div><div class="signBtns"><button id="signNuts">☠ NUTS DETOUR<small>30 crazy levels</small></button><button id="signNext">NEXT<small>continue the tour</small></button></div></div>`;
+ovSign.innerHTML = `<div class="signBox" id="signBox"><div class="signTxt" hidden><h2 id="signTitle">CONTINENT CLEARED!</h2><p id="signInfo"></p></div><div class="signRule" id="signRule" hidden></div><button type="button" class="sgDot sgNuts" id="sgDotNuts" aria-label="NUTS DETOUR"><span class="sgSk">☠</span></button><button type="button" class="sgDot sgNext" id="sgDotNext" aria-label="Info"><span class="sgI">i</span></button><div class="sgPop" id="sgPop" hidden><h3 id="sgPopT"></h3><p id="sgPopP"></p><p class="sgPopR" id="sgPopR"></p></div><div class="signBtns"><button id="signNuts"><b>☠ NUTS</b><small>30 crazy levels</small></button><button id="signNext"><b>NEXT</b><small>continue the tour</small></button></div></div>`;   /* V696: Infopunkte statt Titelkasten */
 document.body.appendChild(ovSign);
 const ovRes = document.createElement("div"); ovRes.className = "nutsRes"; ovRes.id = "ovNutsRes"; ovRes.hidden = true;
 ovRes.innerHTML = `<div class="nutsResBox"><div class="nrPic"></div><span class="alTag" id="nrTag">NUTS DETOUR</span><h2 id="nrTitle"></h2><div class="big" id="nrBig"></div><p id="nrSub"></p><p class="bonus" id="nrBonus"></p><div class="hs" id="nrHs"></div><button class="btn-accent btn-big" id="nrBack">BACK TO THE MAIN ROAD ▶</button></div>`;
@@ -8928,10 +8957,33 @@ function showSign(c) {
     window.__contCel(nzName(c), c, () => { S.signOpen = 0; if (!(S.nutsAsk || {})[c]) showSign(c); }); return; }
   S.intro = true; S.signOpen = c + 1; $("signBox").style.backgroundImage = `url(sign/sign_${c + 1}.webp)`;
   $("signTitle").textContent = `${nzName(c)} CLEARED!`; $("signInfo").innerHTML = nzSignInfo(); $("signRule").innerHTML = nzSignRule(nzFirstOpen(c));
-  $("signNext").innerHTML = `NEXT: ${NZ_NEXT[c]}<small>continue the tour</small>`; ovSign.hidden = false; snd("radio");
+  $("signNext").innerHTML = `<b>${NZ_NEXT[c]} ▶</b><small>continue the tour</small>`; try { window.__sgC = c; window.__sgShut && window.__sgShut(); const P = [[29, 17.5, 69, 18], [32, 20, 67, 20], [32, 21.5, 68, 21], [19, 25, 84, 35]][c] || [29, 17.5, 69, 18], bx = $("signBox"); ["--nx", "--ny", "--xx", "--xy"].forEach((k, i) => bx.style.setProperty(k, P[i])); } catch (e) {} ovSign.hidden = false; try { window.__sgFit && window.__sgFit(); } catch (e) {} snd("radio");   /* V696 */
   { const u = nzUnl(); if (!u.includes(c)) { u.push(c); LS.set("tarnturm-nuts-unl", JSON.stringify(u)); } }
 }
-function closeSign() { ovSign.hidden = true; window.__celFor = null; if (S) { S.intro = false; S.signOpen = 0; } }
+(() => {   /* V696: Infopunkte am Wegweiser */
+  const pop = () => document.getElementById("sgPop"), dotN = () => document.getElementById("sgDotNuts"), dotX = () => document.getElementById("sgDotNext");
+  let cur = "";
+  const shut = () => { cur = ""; const p = pop(); if (p) { p.hidden = true; p.className = "sgPop"; } [dotN(), dotX()].forEach(d => d && d.classList.remove("on")); };
+  const open = which => { const p = pop(); if (!p) return; const c = window.__sgC | 0;
+    if (which === "nuts") { $("sgPopT").textContent = "☠ NUTS DETOUR"; $("sgPopP").innerHTML = `<span class="sgLi">${NZ_MAX} levels, each harder · ${NZ_KIT.lives} lives</span><span class="sgLi">Same kit for everyone · no shop</span><span class="sgLi">Your main run waits here</span>`;
+      $("sgPopR").innerHTML = nzFirstOpen(c) ? `<b>First try: +1 % main score per level (max +${NZ_MAX} %)</b>` : "Replay: Nuts board and medals only"; }
+    else { const C = CONTS[c + 1] || CONTS[CONTS.length - 1], a = NZ_BASES[c] + 1, b = NZ_BASES[c] + 30;
+      $("sgPopT").textContent = `NEXT STOP: ${NZ_NEXT[c]}`;
+      $("sgPopP").innerHTML = `<span class="sgLi">Waves ${a}–${b}</span><span class="sgLi">${C[2].length} new places · new music</span><span class="sgPl">${C[2].join(" · ")}</span>`;
+      $("sgPopR").textContent = "Nuts stays open in the pause menu"; }
+    cur = which; p.className = "sgPop " + (which === "nuts" ? "nuts" : "next"); p.hidden = false;
+    try { const d = which === "nuts" ? dotN() : dotX(), bx = $("signBox"); p.style.top = (d.offsetTop + d.offsetHeight + 12) + "px"; p.style.setProperty("--ax", (d.offsetLeft + d.offsetWidth / 2 - p.offsetLeft - 11) + "px"); } catch (e) {}
+    dotN().classList.toggle("on", which === "nuts"); dotX().classList.toggle("on", which !== "nuts"); try { snd("uiTap"); } catch (e) {} };
+  window.__sgShut = shut;
+  const fit = () => { try { document.querySelectorAll("#ovSign .signBtns b, #ovSign .signBtns small").forEach(el => { el.style.fontSize = ""; let f = parseFloat(getComputedStyle(el).fontSize) || 16; let n = 0; const W = () => el.parentNode.clientWidth - 12; while (el.scrollWidth > W() && f > 9 && n++ < 24) { f -= 0.5; el.style.fontSize = f + "px"; } }); } catch (e) {} };
+  window.__sgFit = () => { [60, 300, 900].forEach(t => setTimeout(fit, t)); };
+  const hov = matchMedia("(hover: hover)").matches;
+  const wire = (el, which) => { if (!el) return; el.addEventListener("click", e => { e.stopPropagation(); if (cur === which) shut(); else open(which); });
+    if (hov) { el.addEventListener("pointerenter", () => open(which)); el.addEventListener("pointerleave", () => { setTimeout(() => { if (!el.matches(":hover")) shut(); }, 60); }); } };
+  const go = () => { wire(dotN(), "nuts"); wire(dotX(), "next"); const box = document.getElementById("signBox"); if (box) box.addEventListener("click", e => { if (cur && !e.target.closest(".sgDot") && !e.target.closest(".signBtns")) shut(); }); };
+  if (document.getElementById("sgDotNuts")) go(); else setTimeout(go, 0);
+})();
+function closeSign() { try { window.__sgShut && window.__sgShut(); } catch (e) {} ovSign.hidden = true; window.__celFor = null; if (S) { S.intro = false; S.signOpen = 0; } }
 $("signNext").addEventListener("click", () => { SFX.init(); snd("uiTap"); const c = (S.signOpen || 1) - 1; S.nutsAsk = { ...(S.nutsAsk || {}), [c]: 1 }; window.__celFor = null; if (S) { S.intro = false; S.signOpen = 0; } window.__fromSign = true; toast(`NUTS DETOUR · any time later from the pause menu`, "HQ", 2400); if (S && !S.inWave) S.waveCD = Math.min(S.waveCD || 0, 0.02);
   { const t0 = performance.now(), keep = () => { if (document.body.classList.contains("mapUp") || (S && S.mapShow) || performance.now() - t0 > 2500) { setTimeout(() => { ovSign.hidden = true; }, 120); return; } requestAnimationFrame(keep); }; requestAnimationFrame(keep); } });   /* V316: Wegweiser bis zur Karte stehen lassen */   /* V312: Karte sofort */
 $("signNuts").addEventListener("click", () => { SFX.init(); const c = (S.signOpen || 1) - 1; S.nutsAsk = { ...(S.nutsAsk || {}), [c]: 1 }; closeSign(); startDetour(c); });
@@ -9217,18 +9269,23 @@ function nutsEnd(why) {
   try { SFX.music.stop(0.5); } catch (e) {}
   $("ovPause").hidden = true; nzBadge.hidden = true;
   const best = nzBest(c), rec = cleared > best; if (rec) LS.set("tarnturm-nuts-best-" + c, cleared);
-  $("nrTag").textContent = n.first ? "NUTS DETOUR · FIRST TRY" : "NUTS DETOUR · REPLAY"; $("nrTitle").textContent = why === "done" ? "ALL 30 CLEARED!" : rec && best ? "NEW NUTS RECORD!" : "NUTS OVER!";
+  $("nrTag").textContent = n.first ? "NUTS DETOUR · FIRST TRY" : "NUTS DETOUR · REPLAY"; $("nrTitle").textContent = why === "done" ? `ALL ${NZ_MAX} CLEARED!` : why === "quit" ? "NUTS DETOUR ENDED" : "OUT OF LIVES!";
+  try { let w = $("nrWhy"); if (!w) { w = document.createElement("div"); w.id = "nrWhy"; w.className = "nrWhy"; $("nrBig").after(w); } $("nrBig").after(w); w.after($("nrBack"));
+    w.textContent = why === "done" ? `All ${NZ_MAX} levels cleared` : why === "quit" ? `Detour ended at level ${cleared + 1}` : `All ${NZ_KIT.lives} lives lost in level ${cleared + 1}`; w.classList.toggle("ok", why === "done");
+    if (rec && best) $("nrTag").textContent = "NEW NUTS RECORD!"; } catch (e) {}
+  try { window.__mpush && window.__mpush("nzend", { d: { why: why || "lives", lv: cleared, c, first: !!n.first } }); } catch (e) {}   /* V696 */
   $("nrBig").textContent = `${cleared} / ${NZ_MAX}`;
-  $("nrSub").textContent = `${nzName(c)} · Nuts levels cleared · best ${Math.max(best, cleared)}` + (cleared >= 30 ? " · gold skull!" : cleared >= 20 ? " · silver skull!" : cleared >= 10 ? " · bronze skull!" : "");
+  $("nrSub").textContent = `${nzName(c)} · best ${Math.max(best, cleared)}` + (cleared >= 30 ? " · gold skull!" : cleared >= 20 ? " · silver skull!" : cleared >= 10 ? " · bronze skull!" : "");
   $("nrBonus").textContent = n.first ? `First try counts once: +${cleared} % on your main score.` : `Replay: counts for the Nuts board and medals only – your main score stays as it is.`;
   const name = cleanNick(LS.get("tarnturm-nick") || "") || "Anonymous", entry = { name, score: cleared, wave: cleared, lines: S.lines | 0, kills: S.kills | 0, t: Date.now() };
   $("nrHs").innerHTML = `<h4>Loading…</h4>`;
   if (cleared > 0 && !S.testRun) nzPost(c, entry).then(l => { $("nrHs").innerHTML = l ? nzBoardHtml(c, l, entry.t) : `<h4>Nuts board offline</h4>`; });
   else nzFetch(c).then(l => { $("nrHs").innerHTML = l ? nzBoardHtml(c, l) : ""; });
   ovRes.hidden = false; ovRes._c = c; ovRes._cleared = cleared; ovRes._first = n.first;
+  try { const b = $("nrBack"); clearInterval(ovRes._lt); b.disabled = true; b.classList.add("nrLock"); let k = 3; b.dataset.cd = k; ovRes._lt = setInterval(() => { k--; if (k > 0) { b.dataset.cd = k; return; } clearInterval(ovRes._lt); b.disabled = false; b.classList.remove("nrLock"); b.classList.add("nrGo"); }, 1000); } catch (e) {}   /* V696: 3 s Sperre */
   if (why !== "quit") { snd(cleared >= 10 ? "hkWin" : "nope"); }
 }
-$("nrBack").addEventListener("click", () => { SFX.init(); snd("uiTap"); nutsResume(ovRes._c, ovRes._cleared, ovRes._first); });
+$("nrBack").addEventListener("click", () => { if ($("nrBack").disabled) return; $("nrBack").classList.remove("nrGo"); SFX.init(); snd("uiTap"); nutsResume(ovRes._c, ovRes._cleared, ovRes._first); });
 /* V512: Nuts-Stand im Menü */
 function nzHasSave() {   /* liefert Untertitel oder "" */
   try { if (S && S.nuts && S.started && !S.over && !NZ.ending) return `${nzWord(S.nuts.c)} · level ${Math.min(NZ_MAX, (S.nuts.cleared || 0) + 1)} of ${NZ_MAX}`;
@@ -10110,7 +10167,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     let lastW = null; setInterval(() => { if (!ov.hidden && cur && !isFree) { const w = why(cur); if (w !== lastW) { lastW = w; paint(); } } }, 400);
     const _si = showIntro;
     let late = false;
-    try { if (typeof SAVE_KEYS !== "undefined" && !SAVE_KEYS.includes("adDue")) SAVE_KEYS.push("adDue"); } catch (e) {}
+    try { if (typeof SAVE_KEYS !== "undefined" && !SAVE_KEYS.includes("adDue")) SAVE_KEYS.push("adDue"); if (!SAVE_KEYS.includes("rescueW")) SAVE_KEYS.push("rescueW");   /* V696: Sperre der Notfall-Kiste überlebt Neustart */ } catch (e) {}
     showIntro = function (q) {
       if (q && q.t === "gear" && AD[q.k] && !S.nuts && !window.__newsPrev) { try {   // V271: Anzeige statt altem Fenster
           S.seen = S.seen || {}; S.seen["g:" + q.k] = true; S.introWave = S.wave; S.adDue = S.adDue || {};
@@ -12912,6 +12969,13 @@ body.tutBarOn #coach.genTalk{animation:none!important}
 .nutsRes{background:#1d1638 url(img/nuts_result_bg.webp?v=590) center top/cover no-repeat!important;align-items:flex-end!important;padding:14px 14px max(16px,env(safe-area-inset-bottom))!important}
 .nutsRes::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(18,10,30,0) 0%,rgba(18,10,30,0) 38%,rgba(18,10,30,.55) 62%,rgba(18,10,30,.8) 100%);pointer-events:none}
 .nutsRes .nutsResBox{position:relative;max-height:62vh!important;padding-top:12px!important}
+.nutsRes{align-items:center!important;padding-top:24vh!important;padding-bottom:16vh!important}   /* V696: Fenster mittig, Knopf nicht im Bedienfeld */
+.nutsRes .nutsResBox{max-height:60vh!important}
+#nrWhy{margin:2px 14px 10px!important;padding:7px 10px;border-radius:10px;background:#c23f3f;color:#fff;font:700 15px/1.2 "Baloo 2",system-ui,sans-serif;text-align:center}
+#nrWhy.ok{background:#2f8a2a}
+.nutsResBox #nrBack{margin-top:0!important;margin-bottom:12px!important}
+#nrBack.nrLock::after{left:12px;right:auto!important}
+#nrBack.nrLock{padding-left:46px!important}
 .nutsRes .nrPic{display:none!important}
 </style>
 <style id="v691">
