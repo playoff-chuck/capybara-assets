@@ -2861,7 +2861,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V698";
+const GAME_VER = "V699";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -5135,7 +5135,7 @@ function spawnMonster() {
   const total = S.waveTotal || 1;
   const runners = w >= G.runnerFrom ? 1 + Math.floor((w - G.runnerFrom + 5) / 10) : 0;   // 1, nach 5 Wellen 2, dann alle 10 eine mehr
   const bombers = w >= G.bomberFrom ? 1 + Math.floor((w - G.bomberFrom) / 10) : 0;
-  const volts = w >= G.voltFrom ? 1 + Math.floor((w - G.voltFrom) / 8) : 0; const cuF = G.cuddleFrom || 57, cuddleW = !S.nuts && w >= cuF && (w - cuF) % 20 === 0;   /* V698: W57/77/97/117/137 */
+  const volts = w >= G.voltFrom ? 1 + Math.floor((w - G.voltFrom) / 8) : 0; const cuF = G.cuddleFrom || 58, cuddleW = !S.nuts && w >= cuF && (w - cuF) % 20 === 0;   /* V699: W58/78/98/118/138 */
   const slot = (k, n) => Math.floor(total * (k + 1) / (n + 1));
   S.totalSpawned = (S.totalSpawned || 0) + 1;
   if (cuddleW && idx < 5) kind = "cuddle";   /* V698: erste 5 Monster dieser Welle sind Cuddle Zombies */
@@ -6689,7 +6689,7 @@ const ICON = {
 function openShop() { try { const ar = TUT.on && (TUT_STEPS[TUT.step] || {}).ar; if (ar === "arm" || ar === "tower2") { const T = [...S.towers.values()].filter(t => !t.w.length).pop(); if (T) { openSheet(T); return; } } } catch (e) {}   /* V654: Tutorial – direkt zum unbewaffneten Turm */
   S.lsay = ((S.lsay || 0) + 1 + Math.floor(Math.random() * 9)) % 10; S.sel = null; S.shop = true; renderShop(); $("sheet").hidden = false; try { if (TUT.on && (TUT_STEPS[TUT.step] || {}).ar !== "spec") { const top0 = () => document.querySelectorAll("#sheet .shopTiles, #sheetIn").forEach(e => { e.scrollTop = 0; }); top0(); requestAnimationFrame(top0); } } catch (e) {} }   /* V592: im Tutorial oben öffnen */
 // Feldhandbuch: Gegner und Waffen mit Freischalt-Welle
-function monFrom(k) { return { norm: 1, fast: G.fastFrom, heavy: G.heavyFrom, munch: G.munchFrom, runner: G.runnerFrom, kiefer: G.kieferFrom, bomber: G.bomberFrom, volt: G.voltFrom, jaguar: G.jaguarFrom, mummy: G.mummyFrom, tiger: G.tigerFrom, bear: G.bearFrom, cuddle: G.cuddleFrom || 57 }[k] || 1; }
+function monFrom(k) { return { norm: 1, fast: G.fastFrom, heavy: G.heavyFrom, munch: G.munchFrom, runner: G.runnerFrom, kiefer: G.kieferFrom, bomber: G.bomberFrom, volt: G.voltFrom, jaguar: G.jaguarFrom, mummy: G.mummyFrom, tiger: G.tigerFrom, bear: G.bearFrom, cuddle: G.cuddleFrom || 58 }[k] || 1; }
 const RULE_CARDS = [
   ["block", "DROP BLOCKS", "Fill a row of 10 to clear it for gold."],
   ["ring", "THE RING", "Monsters run the outer lane. A full lap costs a life."],
@@ -11149,7 +11149,7 @@ try { (() => {
   window.__egg = c => openEgg(c == null ? wherePos(S.wave).c : c);
 })(); } catch (e) { console.error("v328", e); }
 
-/* V697: Test-Link ?test=cuddle */ try { (() => { const _dj = devJump; devJump = function (w, kind) { const r = _dj.apply(this, arguments); if (kind === "cuddle") { S.testCuddle = true; S.gold = Math.max(S.gold || 0, 3000); S.lives = Math.max(S.lives || 0, 99); S.waveCD = 6; toast("TEST · wave 57 starts with 5 CUDDLE ZOMBIES · 99 lives · build towers right next to the path", "HQ", 3500); } return r; }; })(); } catch (e) { console.error("v697", e); }
+/* V697: Test-Link ?test=cuddle */ try { (() => { const _dj = devJump; devJump = function (w, kind) { const r = _dj.apply(this, arguments); if (kind === "cuddle") { S.testCuddle = true; S.gold = Math.max(S.gold || 0, 3000); S.lives = Math.max(S.lives || 0, 99); S.waveCD = 6; toast("TEST · wave 58 starts with 5 CUDDLE ZOMBIES · 99 lives · build towers right next to the path", "HQ", 3500); } return r; }; })(); } catch (e) { console.error("v697", e); }
 /* V330: Test-Zugang Störungen + Easter Egg (Dev-Liste und ?test=…) */
 try { (() => {
   const DK = ["blk", "mag", "weed", "thief", "egg"];
@@ -11162,7 +11162,7 @@ try { (() => {
       toast("TEST · Wolf ad comes in wave 99 · the thief follows in wave 100", "HQ", 3000); }
     return r; };
   let q = null; try { q = new URLSearchParams(location.search).get("test"); } catch (e) {}
-  const map = { cert: 1, shock: 9, ton: 9, laser: 44, laser10: 10, laser26: 26, laser74: 74, laser109: 109, laser134: 134, hack: 5, tips: 5, blk: 65, mag: 80, weed: 81, weed3: 106, weed4: 126, weed5: 136, elite: 6, peek: 3, nuts: 31, nuts2: 61, nuts3: 91, nuts4: 121, cuddle: 57, fly: 31, fly2: 61, fly3: 91, fly4: 121, thief: 100, wolfad: 99, egg1: 2, egg2: 32, egg3: 62, egg4: 92, egg5: 122 };
+  const map = { cert: 1, shock: 9, ton: 9, laser: 44, laser10: 10, laser26: 26, laser74: 74, laser109: 109, laser134: 134, hack: 5, tips: 5, blk: 65, mag: 80, weed: 81, weed3: 106, weed4: 126, weed5: 136, elite: 6, peek: 3, nuts: 31, nuts2: 61, nuts3: 91, nuts4: 121, cuddle: 58, fly: 31, fly2: 61, fly3: 91, fly4: 121, thief: 100, wolfad: 99, egg1: 2, egg2: 32, egg3: 62, egg4: 92, egg5: 122 };
   if (q && /^[we]\d{1,3}$/.test(q) && +q.slice(1) >= 1 && +q.slice(1) <= 150) map[q] = +q.slice(1);   /* V681: eNN = Welle NN endet nach 5 s */   /* V553: Aufnahme-Links */
   if (q && map[q]) { try { document.body.classList.add("testLink"); } catch (e) {} const go = () => { setTimeout(() => { try { document.body.classList.remove("testLink"); } catch (e) {} try { history.replaceState(null, "", location.pathname); } catch (e) {} const bak = LS.get("tarnturm-save"); devJump(map[q], /^[we]\d/.test(q) ? "" : q.replace(/\d$/, "")); if (/^e\d/.test(q)) { S.waveCD = 1; let t0 = 0; const ev = setInterval(() => { try { if (!S || !S.started || S.over) { clearInterval(ev); return; } if (!S.inWave || S.paused) return; if (!t0) t0 = performance.now(); if (performance.now() - t0 > 5000) { clearInterval(ev); S.toSpawn = 0; S.monsters.length = 0; setTimeout(() => { try { if (!S.inWave) S.waveCD = Math.min(S.waveCD, 1.5); } catch (e) {} }, 400); } } catch (e) { clearInterval(ev); } }, 250); }   /* V681 */ try { if (bak) LS.set("tarnturm-save", bak); } catch (e) {} if (q === "cert") { let n8 = 0; const w8 = () => { try { const vis = id => { const e = document.getElementById(id); if (!e || e.hidden) return false; const c = getComputedStyle(e); return c.display !== "none" && c.visibility !== "hidden" && +c.opacity > 0.05; }; if ((vis("splash") || vis("ovLang")) && n8++ < 120) { setTimeout(w8, 400); return; } setTimeout(() => { try { const t = document.getElementById("tutSum"); if (t) t.style.zIndex = "1001"; window.__certNow(); } catch (e) {} }, 700); } catch (e) {} }; setTimeout(w8, 500); }   /* V567: Urkunde sofort, auch über der Weltkarte */   /* V566 */ if (q === "ton") { S.tons = (S.tons || 0) + 2; LS.set("capy-tut-ton", "1"), LS.set("capy-tut-sp", "1"); }   /* V508 */
         if (q === "tips") { S.testKind = "tips"; S.waveCD = 0.3; S.gold = Math.max(S.gold | 0, 600); setTimeout(() => { try { openHack(true); } catch (e) {} }, 5300); }   /* V624: Testlink Coach-Tipps */
