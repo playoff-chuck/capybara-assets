@@ -783,7 +783,7 @@ canvas#cv{transition:transform 1.15s cubic-bezier(.55,-0.35,.3,1.35)}
 canvas#cv.rot{transform:rotate(-90deg) scale(.6667)}
 canvas#cv.rotR{transform:rotate(90deg) scale(.6667)}
 .board.tilting{animation:tiltShake .5s ease-in-out 2}
-@keyframes tiltShake{0%,100%{translate:0 0}25%{translate:4px -3px}50%{translate:-4px 2px}75%{translate:3px 3px}}
+@keyframes tiltShake{0%,100%{translate:0 0}25%{translate:4px -3px}50%{translate:-4px -1px}75%{translate:3px -2px}}
 .tiltBand{background:repeating-linear-gradient(-45deg,rgba(240,179,35,.92) 0 10px,rgba(23,21,12,.92) 10px 20px)!important}
 .tiltBand i{color:#fff4cf!important;text-shadow:0 1px 0 #17150c}
 .tiltBand span,.tiltBand i{white-space:nowrap}
@@ -2866,7 +2866,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V711";
+const GAME_VER = "V712";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -3315,7 +3315,7 @@ const FM_NAMES = ["SOUTH AMERICA", "AFRICA", "ASIA", "NORTH AMERICA", "ANTARCTIC
 /* [Kontinent, Bild, x, y, b, h (px auf 1376×768), Schloss x %, Schloss y %] */
 const FM_LOCKS = [[2, "asia", 651, 47, 632, 382, 72.3, 21.5], [3, "nam", 13, 38, 595, 432, 17.8, 22.1], [4, "ant", 99, 660, 1129, 108, 54.9, 92.7], ["aus", "aus", 1113, 429, 186, 128, 86.5, 61.2]];
 window.__FM = FM;
-function contGrey(c) { if (c === "aus") return true; c = +c; if (c < 2) return false; if (FM.on) return !FM.open(c); let b = 0; try { b = dailyBestW(); } catch (e) {} return b < c * 30 + 1; }   /* V636 */
+function contGrey(c) { if (c === "aus") return true; c = +c; if (c < 2) return false; if (FM.on) return !FM.open(c); let b = 0; try { b = dailyBestW(); } catch (e) {} try { if (S && S.started && !S.nuts && !S.testRun) b = Math.max(b, (S.wave | 0) + 1); } catch (e) {} return b < c * 30 + 1; }   /* V636 · V712: laufende Welle zählt mit */
 function fmMapSync(ov, pinsEl) { try { ov.querySelectorAll(".mapLock").forEach(i => { i.hidden = !contGrey(i.dataset.lc); });
   setTimeout(() => pinsEl.querySelectorAll(".mNuts").forEach(n => { const g = contGrey(n.dataset.nz); const a = n.querySelector(".nzAnc"); if (a) a.style.display = g ? "none" : ""; n.classList.toggle("greyC", g); }), 0);
   pinsEl.querySelectorAll(".mPin[data-g]").forEach(m => { m.style.display = contGrey(Math.floor(+m.dataset.g / 6)) ? "none" : ""; });   /* V637: keine Ortspunkte auf grauen Kontinenten */ window.__contGrey = contGrey;   /* V636: keine Nuts-Punkte/-Namen auf grauen Kontinenten */
