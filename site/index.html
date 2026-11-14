@@ -2862,7 +2862,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V708";
+const GAME_VER = "V709";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -10171,7 +10171,7 @@ try { window.__TT.v180 = { NZ, startDetour, nutsEnd, nutsResume, showSign, nutsC
     function paint() { if (isFree) { $a("adAct").innerHTML = `<button class="btn-accent" id="adFree">${cur === "drop" ? dropBtn : cur === "elite" ? "AWESOME! · LET'S GO ▶" : "AWESOME! · IT'S FREE ▶"}</button>`; $a("adLater").textContent = ""; $a("adLater").hidden = true; return; } $a("adLater").hidden = false; const k = cur, w = why(k), act = $a("adAct"), sale = $a("adCard").classList.contains("sale");
       act.innerHTML = w ? `<div class="adNote">${w}</div>` : `<button class="btn-accent" id="adBuy">${sale ? "I WANT IT!" : k === "ton" ? "BUY ANOTHER" : "BUY NOW"} · ${price(k)} GOLD ▶</button>`;
       $a("adLater").textContent = sale ? "No thanks" : w || k === "ton" ? "Got it" : "Later"; }
-    function show(k, sale) { try { if (typeof TUT !== "undefined" && TUT.on) return; } catch (e) {} const free = sale === "free";   /* V591: keine Werbung im Tutorial */ if (free) sale = true; cur = k; saleMode = !!sale; isFree = free; const a = AD[k], d = INTRO_GEAR[k];
+    function show(k, sale) { try { if (typeof TUT !== "undefined" && TUT.on) return; } catch (e) {} if (!S.intro) { late = true; S.intro = true; S.adOpen = true; }   /* V709: Angebot hält das Spiel immer an */ const free = sale === "free";   /* V591: keine Werbung im Tutorial */ if (free) sale = true; cur = k; saleMode = !!sale; isFree = free; const a = AD[k], d = INTRO_GEAR[k];
       { const card = $a("adCard"); card.classList.toggle("sale", sale); [1, 2, 3].forEach(n => { const el = card.querySelector(".saleSt.s" + n); if (el && a.st) { const PS = k === "elite" ? [[80, 30], [14, 30], [80, 72]] : [[14, 40], [14, 76], [52, 86]]; let x = PS[n - 1][0], y = PS[n - 1][1]; el.style.left = x + "%"; el.style.top = y + "%"; } });
         if (sale) { const p = price(k), up = 0.4 + Math.random() * 3.6, was = Math.ceil(p * (1 + up) / 10) * 10, pct = Math.round((1 - p / was) * 100);
           $a("saleWas").textContent = `${was} GOLD`; $a("salePct").textContent = `−${pct}%`; $a("saleS1").textContent = `−${pct}%`; $a("saleNow").textContent = `${p} GOLD`; } }
