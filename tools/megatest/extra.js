@@ -1,7 +1,7 @@
 /* Megatest: zusätzliche Live-Prüfungen (Kriterienkatalog 12.11.2026). Läuft neben CHECK aus testbot.py. */
 (() => {
   const S0 = () => window.__TT && window.__TT.S, g = id => document.getElementById(id);
-  let k = 0, mOpen = {}, mT = {}, hkW = {}, lastOffClose = -1e9, lastAdClose = -1e9, evs = [], idle = 0, idleW = -1, low = 0, bubV = null, posBase = {}, posBad = {}, contChk = {}, says = [], fontsDone = false, inWSince = 0;
+  let k = 0, mOpen = {}, mT = {}, hkW = {}, lastOffClose = -1e9, lastAdClose = -1e9, evs = [], idle = 0, idleW = -1, low = 0, bubV = null, posBase = {}, posBad = {}, contChk = {}, says = [], fontsDone = false, inWSince = 0, d8Pos = null;
   const LANG = window.__LANG || 'en';
   const hookSay = () => { try { const X = window.__TT && window.__TT.SFX; if (!X || X.__mt) return; const o = X.say; X.__mt = 1;
       X.say = function (key) { try { const t = performance.now(), S = S0(); says.push({ t, key: String(key) }); says = says.filter(s => t - s.t < 20000);
@@ -24,7 +24,8 @@
       if (o && now - (mT[id] || now) > 3500 && k % 4 === 0) { const bs = [...g(id).querySelectorAll('button')].filter(b => vis(b)); if (bs.length && bs.every(b => b.disabled)) add('E5', id, `${id}: nach 3,5 s alle Knöpfe gesperrt`); } }
     /* D8: Spiel läuft hinter einem Pflichtfenster weiter */
     const stopIds = open.filter(id => !['ovMap'].includes(id));
-    if (stopIds.length && S.inWave && !S.paused && !S.duel) { inWSince += 500; if (inWSince > 2500) add('D8', stopIds.join('+'), `Welle läuft hinter Fenster ${stopIds.join(', ')} weiter`); } else inWSince = 0;
+    if (stopIds.length && S.inWave && !S.duel) { const pos = (S.monsters || []).slice(0, 8).map(m => Math.round((m.x || 0) * 20) + ',' + Math.round((m.y || 0) * 20)).join('|');   /* V714: echte Bewegung messen statt S.paused */
+      if (d8Pos === null) { d8Pos = pos; inWSince = 0; } else { inWSince += 500; if (inWSince >= 2500) { if (pos !== d8Pos && (S.monsters || []).length) add('D8', stopIds.join('+'), `Monster bewegen sich hinter Fenster ${stopIds.join(', ')}`); d8Pos = pos; inWSince = 0; } } } else { d8Pos = null; inWSince = 0; }
     /* D19: Welle startet nicht (Pause ohne Fenster > 25 s) */
     if (!S.inWave && !open.length && !S.paused && !mapUp && !S.over && !S.duel) { idle += 500; if (idle > 25000 && idleW !== W) { idleW = W; add('D19', 'idle@' + W, `Nach Welle ${W} startet die nächste Welle nicht (> 25 s ohne Fenster)`); } } else idle = 0;
     /* D14: neuer Kontinent → Feld leer, keine Türme */

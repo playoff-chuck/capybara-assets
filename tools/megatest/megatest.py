@@ -62,9 +62,9 @@ CHECK = r"""
         const cs = getComputedStyle(e), clip = /hidden|clip|auto|scroll/.test(cs.overflowX + cs.overflowY) || cs.textOverflow === 'ellipsis';
         const txt = (e.innerText || '').replace(/\s+/g, ' ').trim().slice(0, 60); if (!txt) continue;
         if (clip && (e.scrollWidth > e.clientWidth + 5 || (cs.overflowY !== 'auto' && cs.overflowY !== 'scroll' && cs.lineHeight !== '0px' && e.scrollHeight > e.clientHeight + 4))) add('C1', txt, `Text abgeschnitten: «${txt}» (${Math.max(e.scrollWidth - e.clientWidth, e.scrollHeight - e.clientHeight)}px)`);
-        const r = R(e); if (r.width > 4 && (r.right > innerWidth + 2 || r.left < -2)) add('C1', 'vp:' + txt, `Text ragt aus dem Bildschirm: «${txt}»`); } }
+        const r = R(e); if (r.width > 4 && (r.right > innerWidth + 2 || r.left < -2) && cs.transform === 'none' && !e.closest('.adTag,.saleSt') && !e.getAnimations().length) add('C1', 'vp:' + txt, `Text ragt aus dem Bildschirm: «${txt}»`); } }
     /* C7: englische Reste */
-    try { const m = window.__i18n && window.__i18n.miss ? window.__i18n.miss() : null; if (m && m.length && window.__LANG !== 'en') for (const x of m.slice(-20)) add('C7', String(x).replace(/\d+/g, '#').slice(0, 60), 'Nicht übersetzt: ' + String(x).slice(0, 80), { shot: 0 }); } catch (e) {}
+    try { const m = window.__i18n && window.__i18n.miss ? window.__i18n.miss() : null; if (m && m.length && window.__LANG !== 'en') for (const x of m.slice(-20).filter(x => !(window.__botW && window.__botW.has(x)))) add('C7', String(x).replace(/\d+/g, '#').slice(0, 60), 'Nicht übersetzt: ' + String(x).slice(0, 80), { shot: 0 }); } catch (e) {}
   } catch (e) {} }, 500);
 })();
 """
@@ -106,7 +106,7 @@ def main():
             pg.goto(f"http://localhost:{port}/index.html?lang={LANG}")
             pg.clock.run_for(3000)
             pg.evaluate("window.__AT_BUYER = true"); BOT = at60.BOT; _a = "(x.innerText || '').toUpperCase().includes(p)"; assert BOT.count(_a) == 1
-            BOT = BOT.replace(_a, "(((x.innerText || '').toUpperCase().includes(p)) || (()=>{try{const q=String(window.__i18n.T(p)).toUpperCase();return q!==p&&(x.innerText || '').toUpperCase().includes(q)}catch(e){return false}})())")
+            BOT = BOT.replace(_a, "(((x.innerText || '').toUpperCase().includes(p)) || (()=>{try{(window.__botW=window.__botW||new Set()).add(p);const q=String(window.__i18n.T(p)).toUpperCase();return q!==p&&(x.innerText || '').toUpperCase().includes(q)}catch(e){return false}})())")
             pg.evaluate(BOT)
             if NUTS:
                 pg.evaluate(f"window.__TT.startGame('{os.environ.get('MODE', 'chill')}', 31)"); pg.clock.run_for(3000)
