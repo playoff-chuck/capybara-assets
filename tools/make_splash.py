@@ -50,7 +50,7 @@ for i, (t, col) in enumerate(lines):
         x += font.getlength(c) + ls
 shadow = shadow.filter(ImageFilter.GaussianBlur(9 * K))
 comb = Image.alpha_composite(shadow, txt).rotate(3, resample=Image.BICUBIC, center=(W / 2, txt.height / 2))
-ty = round(0.07 * DH * K) - 40 * K + round(0.0 * K)
+ty = round(0.21 * DH * K) - 40 * K + round(0.0 * K)
 img = img.convert("RGBA"); img.alpha_composite(comb, (0, ty)); img = img.convert("RGB")
 
 for d, f in [("mdpi", 1), ("hdpi", 1.5), ("xhdpi", 2), ("xxhdpi", 3), ("xxxhdpi", 4)]:
