@@ -1627,7 +1627,7 @@
 "medals": "медали",
 "monsters splatted": "монстров расплющено",
 "mounted on your tower": "на твоей башне",
-"next stop in # waves": "следующая остановка через # волн",
+"next stop in # waves": "до следующей остановки: #",
 "no entries yet": "пока нет записей",
 "no stake lost": "ставка не потеряна",
 "no stake · just for honour": "без ставки · только ради чести",
@@ -1711,7 +1711,7 @@
 "INCOMING: SPRINTERS": "НА ПОДХОДЕ: СПРИНТЕРЫ",
 "INCOMING: BOMBERS": "НА ПОДХОДЕ: БОМБЕРЫ",
 "INCOMING: SPARKIES": "НА ПОДХОДЕ: ИСКРУНЫ",
-"@ CLEARED!": "@ ПРОЙДЕНО!",
+"@ CLEARED!": "@ – ПРОЙДЕНО!",
 "RUINS CLEARED!": "РУИНЫ ПРОЙДЕНЫ!",
 "Welcome to @!": "Добро пожаловать в @!",
 "Welcome to Jungle Temple!": "Добро пожаловать в Храм в джунглях!",
@@ -2184,7 +2184,7 @@
 "From # or # friends": "От # или # друга",
 "Cleared · best ## · replay for more stars": "Пройдено · лучшее ## · переиграй ради звёзд",
 "All time ·": "За всё время ·",
-"# CLEARED!": "# ПРОЙДЕНО!",
+"# CLEARED!": "# – ПРОЙДЕНО!",
 "# NEW MEDALS": "НОВЫХ МЕДАЛЕЙ: #",
 "# NEW MEDALS · all in your album": "НОВЫХ МЕДАЛЕЙ: # · все в альбоме",
 "# Nuts levels cleared": "уровней Аномалии пройдено: #",
@@ -2446,5 +2446,9 @@
 "Hug # s": "Объятия # с",
 "HUG!": "ОБНИМАШКИ!",
 "Tower hugged away": "Башню заобнимали",
-"Vibration: off": "Вибрация: выкл"
+"Vibration: off": "Вибрация: выкл",
+"next stop in # wave": "до следующей остановки: #",
+"Landmark": "Достопримечательность",
+"boss waits here": "здесь ждёт босс",
+"−#° PACKAGE": "ПАКЕТ −#°"
 }
