@@ -2474,5 +2474,9 @@
 "☠ Nuts # / # levels done": "☠ Аномалия: пройдено # из # уровней",
 "PLACE # OF #": "МЕСТО # ИЗ #",
 "BEST WAVE #": "ЛУЧШАЯ ВОЛНА #",
-"free Ten-ton drop for you": "Десятитонка в подарок"
+"free Ten-ton drop for you": "Десятитонка в подарок",
+"YOU REACHED WAVE": "ТЫ ДОШЁЛ ДО ВОЛНЫ",
+"YOU CONTINUE FROM WAVE": "ПРОДОЛЖИШЬ С ВОЛНЫ",
+"YOU START AGAIN FROM WAVE": "НАЧНЁШЬ СНОВА С ВОЛНЫ",
+"▶ CONTINUE FROM WAVE #": "▶ ДАЛЬШЕ С ВОЛНЫ #"
 }

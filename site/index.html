@@ -2857,7 +2857,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
       <div class="overlay" id="ovOver" hidden>
         <div class="aar">
           <div class="aarHead"><span class="aarTag">RESULTS</span><span class="aarMode" id="overMode">WORLD TOUR</span></div>
-          <h2 id="overTitle">FALLEN</h2>
+          <h2 id="overTitle">FALLEN</h2><div id="overWhere" hidden><div class="owBox owGot"><small>YOU REACHED WAVE</small><b id="owGot">1</b><em id="owGotP"></em></div><div class="owArrow">➜</div><div class="owBox owNext"><small id="owNextL">YOU CONTINUE FROM WAVE</small><b id="owNext">1</b><em id="owNextP"></em></div></div>
           <div class="hsScore"><span id="overScore">0</span><small>Score</small><button type="button" id="btnShare" class="shareBtn" aria-label="Share your result">SHARE</button></div>
           <div class="aarStats"><div><b id="ovWave">0</b><span>Waves</span></div><div><b id="ovLines">0</b><span>Lines</span></div><div><b id="ovKills">0</b><span>Splats</span></div><div><b id="ovTime">0:00</b><span>Time</span></div></div>
         </div>
@@ -2907,7 +2907,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V722";
+const GAME_VER = "V723";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -10896,7 +10896,9 @@ try { (() => { const key = () => "tarnturm-cp-" + (window.ONE_MODE ? "pro" : MOD
   const bump = w => { const c = Math.floor(((w | 0) - 1) / 5) * 5; if (c >= 5 && c > window.__cpGet()) LS.set(key(), c); };
   window.__cpBump = bump;
   const _go = gameOver; gameOver = function () { try { if (S && !S.nuts && !S.testRun) bump(S.wave); } catch (e) {} const r = _go.apply(this, arguments);
-    try { const cp = window.__cpGet(), bc = $("btnCp"); if (bc && cp >= 5 && !(S && S.nuts) && !(S && S.won)) {   /* V438: nicht nach dem Sieg */ bc.hidden = false; bc.innerHTML = `CONTINUE · WAVE ${cp + 1} · ${String(wherePos(cp + 1).place || "")}`; bc.classList.add("btn-big"); const p = bc.parentNode; if (p && p.firstElementChild !== bc) p.insertBefore(bc, p.firstElementChild); const rs = $("btnRestart"); if (rs) { rs.classList.remove("btn-big"); rs.textContent = "Start over · wave 1"; } } } catch (e) {}
+    try { const ow = $("overWhere"); if (ow) { const dead = S && !S.won && !S.nuts && !S.replay; ow.hidden = !dead; if (dead) { const cp = window.__cpGet(), nx = cp >= 5 ? cp + 1 : 1, w = Math.max(1, S.wave | 0);   /* V723 */
+        $("owGot").textContent = String(w); $("owGotP").textContent = String(wherePos(w).place || ""); $("owNextL").textContent = cp >= 5 ? "YOU CONTINUE FROM WAVE" : "YOU START AGAIN FROM WAVE"; $("owNext").textContent = String(nx); $("owNextP").textContent = String(wherePos(nx).place || ""); } } } catch (e) {}
+    try { const cp = window.__cpGet(), bc = $("btnCp"); if (bc && cp >= 5 && !(S && S.nuts) && !(S && S.won)) {   /* V438: nicht nach dem Sieg */ bc.hidden = false; bc.innerHTML = `▶ CONTINUE FROM WAVE ${cp + 1}`; bc.classList.add("btn-big"); const p = bc.parentNode; if (p && p.firstElementChild !== bc) p.insertBefore(bc, p.firstElementChild); const rs = $("btnRestart"); if (rs) { rs.classList.remove("btn-big"); rs.textContent = "Start over · wave 1"; } } } catch (e) {}
     return r; };
   try { if (typeof renderModes === "function") renderModes(); } catch (e) {}
 })(); } catch (e) { console.error("v321 cp", e); }
@@ -13211,6 +13213,18 @@ if(res){var go=function(){var n=0,iv=setInterval(function(){var b=document.getEl
 if(b&&!b.hidden&&b.offsetParent){clearInterval(iv);b.click();}else if(++n>40)clearInterval(iv);},250);};
 var sp=document.getElementById("splash");if(sp)sp.addEventListener("click",go,{once:true});else go();}
 }catch(e){console.warn("v703",e)}})();</script>
+<style id="v723css">
+#overWhere{display:grid;grid-template-columns:1fr auto 1fr;align-items:stretch;gap:6px;margin:6px 0 4px}
+#overWhere[hidden]{display:none}
+#overWhere .owBox{display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:14px;padding:7px 6px 6px;border:2.5px solid #3a2414;box-shadow:0 3px 0 #3a2414;min-width:0}
+#overWhere .owGot{background:#ffe1dc}#overWhere .owNext{background:#d9f5c9}
+#overWhere small{font:800 11px/1.1 var(--f-ui,system-ui);letter-spacing:.06em;color:#6b4a35;text-transform:uppercase;text-align:center}
+#overWhere b{font:400 44px/1 var(--f-display,"Bangers",sans-serif);letter-spacing:.02em;color:#3a2414;margin-top:3px;white-space:nowrap}
+#overWhere .owGot b{color:#c62d24}#overWhere .owNext b{color:#2f7d1e}
+#overWhere em{font:700 11.5px/1.1 var(--f-ui,system-ui);font-style:normal;color:#6b4a35;margin-top:2px;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+#overWhere .owArrow{align-self:center;font:700 22px/1 system-ui;color:#3a2414}
+@media (max-height:700px){#overWhere b{font-size:34px}#overWhere small,#overWhere em{font-size:10px}}
+</style>
 <style id="v720css">
 #ovOver.deadOv{background:#000!important}#ovOver.deadOv::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(180deg,rgba(0,0,0,.7) 0%,rgba(0,0,0,.42) 45%,rgba(0,0,0,.06) 75%,rgba(0,0,0,0) 100%),url(img/over_grave.webp) center bottom/cover no-repeat,#000}
 #ovOver .overBtns,#ovOver .hsScore,#ovOver .campLine{position:relative}
