@@ -2907,7 +2907,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V723";
+const GAME_VER = "V724";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -10896,7 +10896,7 @@ try { (() => { const key = () => "tarnturm-cp-" + (window.ONE_MODE ? "pro" : MOD
   const bump = w => { const c = Math.floor(((w | 0) - 1) / 5) * 5; if (c >= 5 && c > window.__cpGet()) LS.set(key(), c); };
   window.__cpBump = bump;
   const _go = gameOver; gameOver = function () { try { if (S && !S.nuts && !S.testRun) bump(S.wave); } catch (e) {} const r = _go.apply(this, arguments);
-    try { const ow = $("overWhere"); if (ow) { const dead = S && !S.won && !S.nuts && !S.replay; ow.hidden = !dead; if (dead) { const cp = window.__cpGet(), nx = cp >= 5 ? cp + 1 : 1, w = Math.max(1, S.wave | 0);   /* V723 */
+    try { const ow = $("overWhere"); if (ow) { const dead = S && !S.won && !S.nuts && !S.replay; ow.hidden = !dead; if (dead) { $("overTitle").textContent = "YOU DIED!";   /* V724 */ const cp = window.__cpGet(), nx = cp >= 5 ? cp + 1 : 1, w = Math.max(1, S.wave | 0);   /* V723 */
         $("owGot").textContent = String(w); $("owGotP").textContent = String(wherePos(w).place || ""); $("owNextL").textContent = cp >= 5 ? "YOU CONTINUE FROM WAVE" : "YOU START AGAIN FROM WAVE"; $("owNext").textContent = String(nx); $("owNextP").textContent = String(wherePos(nx).place || ""); } } } catch (e) {}
     try { const cp = window.__cpGet(), bc = $("btnCp"); if (bc && cp >= 5 && !(S && S.nuts) && !(S && S.won)) {   /* V438: nicht nach dem Sieg */ bc.hidden = false; bc.innerHTML = `▶ CONTINUE FROM WAVE ${cp + 1}`; bc.classList.add("btn-big"); const p = bc.parentNode; if (p && p.firstElementChild !== bc) p.insertBefore(bc, p.firstElementChild); const rs = $("btnRestart"); if (rs) { rs.classList.remove("btn-big"); rs.textContent = "Start over · wave 1"; } } } catch (e) {}
     return r; };
@@ -13213,6 +13213,25 @@ if(res){var go=function(){var n=0,iv=setInterval(function(){var b=document.getEl
 if(b&&!b.hidden&&b.offsetParent){clearInterval(iv);b.click();}else if(++n>40)clearInterval(iv);},250);};
 var sp=document.getElementById("splash");if(sp)sp.addEventListener("click",go,{once:true});else go();}
 }catch(e){console.warn("v703",e)}})();</script>
+<style id="v724css">
+#ovOver.deadOv .aarHead,#ovOver.deadOv .comfort,#ovOver.deadOv #overScore,#ovOver.deadOv .hsScore>small,#ovOver.deadOv #hsOver{display:none!important}
+#ovOver.deadOv .aar,#ovOver.deadOv .hsEntry,#ovOver.deadOv .campLine:not(:empty){background:rgba(8,10,14,.6)!important;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);border:1.5px solid rgba(255,255,255,.16)!important;box-shadow:0 12px 36px rgba(0,0,0,.55)!important;color:#fff!important}
+#ovOver.deadOv .aar *,#ovOver.deadOv .hsEntry *,#ovOver.deadOv .campLine *{color:#fff;-webkit-text-stroke:0!important;text-shadow:none}
+#ovOver.deadOv #overTitle{color:#ff3b30!important;font-size:46px!important;letter-spacing:.03em;text-shadow:0 0 18px rgba(255,40,30,.45),0 2px 0 #000!important;margin:2px 0 8px!important}
+#ovOver.deadOv .aarStats{border-color:rgba(255,255,255,.14)!important;background:transparent!important}
+#ovOver.deadOv .aarStats b{color:#fff!important}#ovOver.deadOv .aarStats span{color:rgba(255,255,255,.62)!important}
+#ovOver.deadOv .hsScore{justify-content:center!important;min-height:0!important;margin:2px 0!important}
+#ovOver.deadOv #overWhere .owBox{box-shadow:none!important;border-width:1.5px!important}
+#ovOver.deadOv #overWhere .owGot{background:rgba(150,20,20,.36)!important;border-color:rgba(255,95,85,.65)!important}
+#ovOver.deadOv #overWhere .owNext{background:rgba(30,120,40,.36)!important;border-color:rgba(120,235,110,.6)!important}
+#ovOver.deadOv #overWhere small,#ovOver.deadOv #overWhere em{color:rgba(255,255,255,.8)!important}
+#ovOver.deadOv #overWhere .owGot b{color:#ff6a5f!important}#ovOver.deadOv #overWhere .owNext b{color:#7cf06e!important}#ovOver.deadOv #overWhere .owArrow{color:#fff!important}
+#ovOver.deadOv button,#ovOver.deadOv .btn-accent{background:rgba(255,255,255,.08)!important;border:1.5px solid rgba(255,255,255,.32)!important;color:#fff!important;box-shadow:none!important;-webkit-text-stroke:0!important;text-shadow:none!important}
+#ovOver.deadOv #btnCp{background:rgba(40,140,50,.55)!important;border-color:#7cf06e!important}
+#ovOver.deadOv #btnShare{background:rgba(255,95,162,.3)!important;border-color:rgba(255,95,162,.85)!important}
+#ovOver.deadOv input{background:rgba(255,255,255,.1)!important;color:#fff!important;border-color:rgba(255,255,255,.3)!important}
+#ovOver.deadOv label{color:rgba(255,255,255,.75)!important}
+</style>
 <style id="v723css">
 #overWhere{display:grid;grid-template-columns:1fr auto 1fr;align-items:stretch;gap:6px;margin:6px 0 4px}
 #overWhere[hidden]{display:none}
