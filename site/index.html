@@ -2907,7 +2907,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V720";
+const GAME_VER = "V721";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -13209,7 +13209,7 @@ if(b&&!b.hidden&&b.offsetParent){clearInterval(iv);b.click();}else if(++n>40)cle
 var sp=document.getElementById("splash");if(sp)sp.addEventListener("click",go,{once:true});else go();}
 }catch(e){console.warn("v703",e)}})();</script>
 <style id="v720css">
-#ovOver.deadOv{background:linear-gradient(180deg,rgba(0,0,0,.72) 0%,rgba(0,0,0,.45) 45%,rgba(0,0,0,.08) 72%,rgba(0,0,0,0) 100%),url(img/over_grave.webp) center bottom/cover no-repeat,#000!important}
+#ovOver.deadOv{background:#000!important}#ovOver.deadOv::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(180deg,rgba(0,0,0,.7) 0%,rgba(0,0,0,.42) 45%,rgba(0,0,0,.06) 75%,rgba(0,0,0,0) 100%),url(img/over_grave.webp) center bottom/cover no-repeat,#000}
 #ovOver .overBtns,#ovOver .hsScore,#ovOver .campLine{position:relative}
 #ovOver .overBtns::after,#ovOver .hsScore::after,#ovOver .campLine::after{content:"";position:absolute;inset:-6px;z-index:5;animation:ovGate 3s step-end forwards}
 #ovOver .overBtns button,#ovOver #btnShare,#ovOver .campLine button{animation:ovFade 3s ease-in forwards}
