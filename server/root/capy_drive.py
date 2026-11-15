@@ -24,7 +24,7 @@ if a[0] == "check":
 elif a[0] == "csv":
     srv, wk, f = a[1], a[2], a[3]
     assert srv in ("com", "ru") and re.fullmatch(r"\d{4}-KW\d{2}", wk) and f in ("spieler", "sitzungen")
-    sys.stdout.write(sh(srv, f"cat {D}/{wk}/{f}.csv").lstrip("﻿"))
+    sys.stdout.write(sh(srv, f"cat {D}/{wk}/{f}.csv"))
 elif a[0] == "done":
     srv = a[1]; assert srv in ("com", "ru")
     dr = rj(srv, "drive.json") or {}

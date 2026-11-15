@@ -957,6 +957,11 @@ def build_report():
             plays = c.execute("SELECT * FROM plays WHERE first >= ? ORDER BY first", (ws,)).fetchall()
             ev = c.execute("SELECT uid, kind, wave, data FROM events WHERE t >= ? AND uid IS NOT NULL", (ws,)).fetchall()
             fb = c.execute("SELECT t, uid, stars, msg FROM feedback WHERE t >= ? ORDER BY t", (ws,)).fetchall()
+            ALLS = {r[0]: r[1] or 0 for r in c.execute("SELECT uid, SUM(COALESCE(secs, (last - first) / 1000)) FROM plays WHERE uid IS NOT NULL GROUP BY uid")}   # V724: Spielzeit gesamt aus allen Sitzungen
+            TUTN = {}
+            for r in c.execute("SELECT uid, data FROM events WHERE kind = 'tut' AND uid IS NOT NULL"):
+                try: TUTN[r[0]] = max(TUTN.get(r[0], 0), int(json.loads(r[1] or "{}").get("n") or 0))
+                except Exception: pass
         W = {}
         for r in plays:
             if not r["uid"]: continue
@@ -998,8 +1003,8 @@ def build_report():
             cur_s = (f"Nuts {cur.get('c')} L{cur.get('lv')}" if cur.get("nz") else f"Welle {cur.get('w')}") if cur else ""
             by = d.get("dby") or {}
             w.writerow([i + 1, uid, d.get("nm") or "", team, a.get("ch", ""), d.get("lang") or "", a.get("dev", ""), d.get("os") or "", d.get("app") or "", d.get("scr") or "", d.get("tz") or "", d.get("ver") or "",
-                        _msk(r["first"]), _msk(r["last"]), r["n"], a.get("s", 0), round(a.get("sec", 0) / 60), round((d.get("t") or 0) / 60), d.get("bw") or 0, cur_s,
-                        d.get("cp") or 0, "ja" if d.get("tut") else "nein", d.get("d") or 0, " ".join(f"{k}:{v}" for k, v in by.items()), e.get("wend", 0), e.get("death", 0), e.get("near", 0), e.get("idle", 0), e.get("quit", 0),
+                        _msk(r["first"]), _msk(r["last"]), r["n"], a.get("s", 0), round(a.get("sec", 0) / 60), round(max(d.get("t") or 0, ALLS.get(uid, 0)) / 60), d.get("bw") or 0, cur_s,
+                        d.get("cp") or 0, "ja" if d.get("tut") else (f"nein (bis Schritt {TUTN[uid]}/10)" if TUTN.get(uid) else "nein"), d.get("d") or 0, " ".join(f"{k}:{v}" for k, v in by.items()), e.get("wend", 0), e.get("death", 0), e.get("near", 0), e.get("idle", 0), e.get("quit", 0),
                         e.get("buy", 0), e.get("ad", 0), e.get("hack", 0), e.get("error", 0), f"{e.get('poll_up', 0)}/{e.get('poll_mid', 0)}/{e.get('poll_down', 0)}",
                         f"{e.get('thief_come', 0)}/{e.get('thief_steal', 0)}/{e.get('thief_wolf', 0)}/{e.get('thief_gone', 0)}", e.get("thief_gold", 0),
                         (f["stars"] or "") if f else "", (f["msg"] or "") if f else ""])

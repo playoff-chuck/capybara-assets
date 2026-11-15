@@ -36,6 +36,14 @@
 
 playcapybarasquad.com, www.playcapybarasquad.com {
   encode zstd gzip
+  log {
+    output file /var/log/caddy/com_access.log {
+      roll_size 20MiB
+      roll_keep 3
+      roll_keep_for 72h
+    }
+    format json
+  }
   import capy_routes
   @html path / /index.html /sw.js /offline.json /manifest.webmanifest
   header @html Cache-Control "no-cache"
