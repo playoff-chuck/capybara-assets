@@ -2907,7 +2907,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V718";
+const GAME_VER = "V719";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -13208,6 +13208,7 @@ if(res){var go=function(){var n=0,iv=setInterval(function(){var b=document.getEl
 if(b&&!b.hidden&&b.offsetParent){clearInterval(iv);b.click();}else if(++n>40)clearInterval(iv);},250);};
 var sp=document.getElementById("splash");if(sp)sp.addEventListener("click",go,{once:true});else go();}
 }catch(e){console.warn("v703",e)}})();</script>
+<style id="v719css">#board:has(.overlay:not([hidden])){animation:none!important;transform:none!important;filter:none!important}</style>
 <style id="v718css">
 .deckIn .pad #bInfo{grid-area:po;display:flex!important;align-items:center;justify-content:center;background:transparent!important;box-shadow:none!important;border:2px dashed rgba(255,246,230,.55)!important;border-radius:12px!important;min-height:0!important;height:auto!important;padding:0!important;cursor:pointer;-webkit-tap-highlight-color:transparent}
 #bInfo i{width:22px;height:22px;border-radius:50%;border:2px solid #fff6e6;color:#fff6e6;display:flex;align-items:center;justify-content:center;font:italic 700 14px/1 Georgia,"Times New Roman",serif;box-sizing:border-box}
