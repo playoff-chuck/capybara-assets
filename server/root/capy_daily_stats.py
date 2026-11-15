@@ -61,7 +61,22 @@ def local(d):
             "min_neu": round(sum(mins_u[u] for u in new), 1), "d1_basis": len(prev_new), "d1": len(prev_new & uids),
             "wellen": k.get('wend', 0), "beste": best, "kaeufe": k.get('buy', 0), "werbung": k.get('ad', 0), "boss_hack": k.get('hack', 0),
             "plat": dict(plat), "kanal": dict(ch), "tester": testers, "gesamt": tot_players,
-            "spieler_min": sorted([round(v, 1) for v in mins_u.values()], reverse=True)}
+            "spieler_min": sorted([round(v, 1) for v in mins_u.values()], reverse=True),
+            # V726: für die Zusammenzählung beider Server – nur gekürzte Prüfsummen der Spieler-IDs, keine IDs
+            "_akt": [hx(u) for u in uids], "_first": {hx(u): t for u, t in first.items()}}
+
+import hashlib
+def hx(u): return hashlib.sha256(("capy|" + str(u)).encode()).hexdigest()[:16]
+
+def merged(d, S):
+    """V726: Russland-Spieler (RU-Server) + Rest (Hetzner) zusammen, jeder Spieler nur einmal (auch wenn er auf beiden Servern Daten hat)."""
+    a, _ = day_bounds(d); pa, _ = day_bounds(d - datetime.timedelta(days=1))
+    first = {}
+    for x in S.values():
+        for h, t in (x.get('_first') or {}).items(): first[h] = min(t, first.get(h, t))
+    akt = set().union(*[set(x.get('_akt') or []) for x in S.values()])
+    new = {h for h in akt if first.get(h, 0) >= a}; prev_new = {h for h, t in first.items() if pa <= t < a}
+    return {"aktiv": len(akt), "neu": len(new), "rueck": len(akt - new), "gesamt": len(first), "d1_basis": len(prev_new), "d1": len(prev_new & akt)}
 
 def fmt(d, S):
     def s(k): return sum(x.get(k, 0) for x in S.values())
@@ -71,6 +86,9 @@ def fmt(d, S):
         return ', '.join(f"{a} {b}" for a, b in c.most_common()) or '–'
     allm = sorted(sum((x.get('spieler_min', []) for x in S.values()), []), reverse=True)
     med = allm[len(allm) // 2] if allm else 0
+    M = merged(d, S) if all('_first' in x for x in S.values()) else {}
+    s0 = s
+    def s(k): return M[k] if k in M else s0(k)
     akt = s('aktiv'); d1b = s('d1_basis')
     L = [f"📊 Capybara Squad – {d:%d.%m.%Y} (MSK)",
          f"👤 Neue Spieler: {s('neu')}  (COM {S.get('com', {}).get('neu', 0)} · RU {S.get('ru', {}).get('neu', 0)})",
