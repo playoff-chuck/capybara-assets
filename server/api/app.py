@@ -35,9 +35,9 @@ SAVE_KEY_RE = re.compile(r"(tarnturm|capy)-[a-z0-9_-]{1,40}")
 EVENT_RETENTION_DAYS = 90
 EVENT_MAX_BODY = 8192
 EVENTS_PER_MIN = 20
-EVENT_KINDS = ("start", "error", "leave", "back", "wave")
+EVENT_KINDS = ("thief", "start", "error", "leave", "back", "wave", "tut", "tutskip", "cert", "hack", "set", "buy", "spec", "cancel", "ad", "death", "restart", "perf", "wend", "near", "idle", "quit", "sess", "tip", "poll", "rate", "rescue")   # V594, V647, V678
 UID_RE = re.compile(r"[A-Z0-9]{4}-[A-Z0-9]{4}")
-ADMIN_UIDS = ("M2HL-KCQH", "BEEM-MGDC", "5478-BQ27", "R47V-R8F3")   # + R47V-R8F3 (Martins Handy nach Datenverlust, 11.11.)   # Martins Geräte (neu nach Reset 09.11.)
+ADMIN_UIDS = ("M2HL-KCQH", "BEEM-MGDC", "5478-BQ27", "R47V-R8F3", "69JD-AFLF")   # + 69JD-AFLF (Martins Handy nach «Street player», 11.11. 01:10)   # + R47V-R8F3 (Martins Handy nach Datenverlust, 11.11.)   # Martins Geräte (neu nach Reset 09.11.)
 PLAYER_PER_MIN = 8
 PLAYER_MAX_BODY = 6000
 PLAYER_RETENTION_DAYS = 730
@@ -87,8 +87,14 @@ CREATE TABLE IF NOT EXISTS squads(
   code TEXT PRIMARY KEY, t INTEGER NOT NULL, n INTEGER NOT NULL DEFAULT 0, last INTEGER);
 CREATE TABLE IF NOT EXISTS squad_joins(h TEXT PRIMARY KEY, t INTEGER NOT NULL);
 CREATE TABLE IF NOT EXISTS kv(k TEXT PRIMARY KEY, v TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS testers(id INTEGER PRIMARY KEY, t INTEGER NOT NULL, name TEXT, email TEXT NOT NULL, tg TEXT, msg TEXT, lang TEXT, site TEXT);
 CREATE TABLE IF NOT EXISTS players(uid TEXT PRIMARY KEY, first INTEGER NOT NULL, last INTEGER NOT NULL, n INTEGER NOT NULL DEFAULT 0, data TEXT NOT NULL);
 CREATE INDEX IF NOT EXISTS players_first ON players(first);
+CREATE TABLE IF NOT EXISTS plays(sess TEXT PRIMARY KEY, uid TEXT, first INTEGER NOT NULL, last INTEGER NOT NULL, n INTEGER NOT NULL DEFAULT 0, secs INTEGER NOT NULL DEFAULT 0, maxw INTEGER NOT NULL DEFAULT 0, ver TEXT, ch TEXT, os TEXT, osv TEXT, model TEXT, br TEXT, sw INTEGER, sh INTEGER, tz TEXT, off INTEGER, lang TEXT, team INTEGER NOT NULL DEFAULT 0, dev INTEGER NOT NULL DEFAULT 0);
+CREATE INDEX IF NOT EXISTS plays_uid ON plays(uid, first);
+CREATE INDEX IF NOT EXISTS plays_first ON plays(first);
+CREATE TABLE IF NOT EXISTS feedback(id INTEGER PRIMARY KEY, t INTEGER NOT NULL, uid TEXT, ver TEXT, ch TEXT, lang TEXT, src TEXT, wave INTEGER, stars INTEGER, msg TEXT, plat TEXT);
+CREATE INDEX IF NOT EXISTS feedback_t ON feedback(t);
 """
 
 class _DB:
@@ -114,6 +120,11 @@ def db():
 def init_db():
     with db() as c:
         c.executescript(SCHEMA)
+        cols = {r[1] for r in c.execute("PRAGMA table_info(events)")}   # V594: Metrik-Spalten, alte Zeilen bleiben
+        for col, typ in (("uid", "TEXT"), ("ch", "TEXT"), ("team", "INTEGER DEFAULT 0"), ("data", "TEXT")):
+            if col not in cols:
+                c.execute(f"ALTER TABLE events ADD COLUMN {col} {typ}")
+        c.execute("CREATE INDEX IF NOT EXISTS events_uid ON events(uid, t)")
 
 def purge_old_runs():
     cutoff = int(time.time() * 1000) - RUN_RETENTION_DAYS * 86400 * 1000
@@ -123,6 +134,137 @@ def purge_old_runs():
         c.execute("DELETE FROM events WHERE t < ?", (ecut,))
         scut = int(time.time() * 1000) - SAVE_RETENTION_DAYS * 86400 * 1000
         c.execute("DELETE FROM saves WHERE k IN (SELECT k FROM saves GROUP BY k HAVING MAX(t) < ?)", (scut,))
+
+def is_bot_profile(x):
+    """Google-Play-Vorabtest, Emulator, Google Test Lab, Server-/Headless-Browser, Roboter, Familien-Testgeräte (Malediven)."""
+    if not isinstance(x, dict): return False
+    os_, app, scr, tz, loc = (str(x.get(k) or "") for k in ("os", "app", "scr", "tz", "loc"))
+    if "sdk_gphone" in os_ or "OnePlus8Pro" in os_: return True
+    if tz == "America/Los_Angeles" and "Android" in os_: return True
+    if tz == "Indian/Maldives": return True
+    if os_.startswith("Linux"): return True
+    if "Edge 12" in app or tz in ("Etc/Unknown", "+00:00"): return True
+    if re.match(r"\d+×\d+ @1x", scr) and ("iPhone" in os_ or "Android" in os_): return True
+    if os_.startswith("Windows") and scr.startswith(("800×600", "1024×1024", "1080×600")): return True
+    return False
+
+def admin_stats(c, days):
+    """V594: Trichter, Ausstiege, Boss-Hack, Musik aus, Wiederkehr – nur echte Spieler (ohne team/dev/bot)."""
+    now = now_ms(); since = now - days * 86400 * 1000
+    bad = set(ADMIN_UIDS)
+    for r in c.execute("SELECT uid, data FROM players"):
+        try: dd = json.loads(r["data"])
+        except Exception: dd = {}
+        if dd.get("team") or dd.get("dev") or dd.get("bot") or is_bot_profile(dd): bad.add(r["uid"])
+    ev = [r for r in c.execute("SELECT t, sess, kind, wave, scr, uid, ch, data FROM events WHERE t >= ? AND uid IS NOT NULL AND dev=0 AND COALESCE(team,0)=0 ORDER BY t", (since,)) if r["uid"] not in bad]
+    def dj(r):
+        try: return json.loads(r["data"]) if r["data"] else {}
+        except Exception: return {}
+    U = {}
+    sess_last = {}
+    hack, deaths, perf, loads, chans, spec, buys, ads, sets = {}, {}, [], [], {}, {}, {}, {}, {}
+    for r in ev:
+        u = U.setdefault(r["uid"], {"first": r["t"], "last": r["t"], "tut": 0, "cert": 0, "w": 0, "mu": None, "skip": 0, "start": 0, "ch": r["ch"] or "?"})
+        u["last"] = r["t"]; k = r["kind"]; x = dj(r)
+        sess_last[r["sess"]] = (r["t"], r["scr"] or "?", r["wave"] or 0, k)
+        if k in ("wave", "death") or (r["wave"] or 0) > 0: u["w"] = max(u["w"], r["wave"] or 0)
+        if k == "start":
+            if "mu" in x: u["mu"] = x.get("mu")
+            if isinstance(x.get("ld"), (int, float)) and 0 < x["ld"] < 120000: loads.append(x["ld"])
+        if k == "tut": u["tut"] = max(u["tut"], int(x.get("n") or 0)); u["start"] = 1
+        if k == "wave" and (r["wave"] or 0) >= 1: u["start"] = 1
+        if k == "tutskip": u["skip"] = max(u["skip"], int(x.get("n") or 1)); u["start"] = 1
+        if k == "cert": u["cert"] = 1
+        if k == "hack": hack[str(x.get("r") or "?")] = hack.get(str(x.get("r") or "?"), 0) + 1
+        if k == "death": deaths[r["wave"] or 0] = deaths.get(r["wave"] or 0, 0) + 1
+        if k == "perf" and isinstance(x.get("fps"), (int, float)): perf.append(x["fps"])
+        if k == "spec": spec[str(x.get("k") or "?")] = spec.get(str(x.get("k") or "?"), 0) + 1
+        if k == "buy": buys[str(x.get("k") or "?")] = buys.get(str(x.get("k") or "?"), 0) + 1
+        if k == "ad": ads[str(x.get("a") or "?")] = ads.get(str(x.get("a") or "?"), 0) + 1
+        if k == "set":
+            for kk in ("music", "mute", "lang"):
+                if kk in x: sets[f"{kk}={x[kk]}"] = sets.get(f"{kk}={x[kk]}", 0) + 1
+                if kk == "music" and kk in x: u["mu"] = x[kk]
+    for u in U.values(): chans[u["ch"]] = chans.get(u["ch"], 0) + 1
+    n = len(U)
+    steps = [("geöffnet", n), ("gestartet", sum(1 for u in U.values() if u["start"] or u["w"] > 0))]
+    for i in range(1, 11): steps.append((f"Lektion {i}", sum(1 for u in U.values() if u["tut"] >= i)))
+    steps += [("Urkunde", sum(1 for u in U.values() if u["cert"])), ("Welle 5", sum(1 for u in U.values() if u["w"] >= 5)),
+              ("Welle 10", sum(1 for u in U.values() if u["w"] >= 10)), ("Welle 30", sum(1 for u in U.values() if u["w"] >= 30))]
+    funnel = [{"step": a, "n": b, "pct": round(100 * b / n, 1) if n else 0} for a, b in steps]
+    ex = {}
+    for t, scr, w, k in sess_last.values():
+        if now - t > 30 * 60 * 1000:
+            key = f"{scr} · W{w}"; ex[key] = ex.get(key, 0) + 1
+    exits = sorted(({"where": k, "n": v} for k, v in ex.items()), key=lambda x: -x["n"])[:15]
+    mu_known = [u for u in U.values() if u["mu"] is not None]
+    old1 = [u for u in U.values() if now - u["first"] > 86400000]; old7 = [u for u in U.values() if now - u["first"] > 7 * 86400000]
+    ret1 = sum(1 for u in old1 if u["last"] - u["first"] > 20 * 3600000); ret7 = sum(1 for u in old7 if u["last"] - u["first"] > 7 * 86400000 - 4 * 3600000)
+    loads.sort()
+    extra = {}
+    try:   # V647: Erleben je Welle, Frust-Signale, Umfrage, Bewertungen
+        wb, near, idle, quits, sessl, poll, tips = {}, {}, {}, {}, [], {}, {}
+        seq = {}
+        thf = {}   # V652
+        for r in ev:
+            k = r["kind"]; x = dj(r); w = r["wave"] or 0
+            seq.setdefault(r["sess"], []).append((r["t"], k, w))
+            if k == "wend" and not x.get("nz"):
+                b = wb.setdefault(w, [0, 0, 0, 0, 0])   # n, sekunden, leben verloren, wellen mit verlust, max stapel
+                b[0] += 1; b[1] += int(x.get("s") or 0); lv = int(x.get("lv") or 0); b[2] += lv; b[3] += 1 if lv else 0; b[4] += int(x.get("mx") or 0)
+            elif k == "near": near[w] = near.get(w, 0) + 1
+            elif k == "idle": idle[w] = idle.get(w, 0) + 1
+            elif k == "quit": kk = str(x.get("a") or "menu"); quits[kk] = quits.get(kk, 0) + 1
+            elif k == "sess" and isinstance(x.get("s"), (int, float)) and 0 < x["s"] < 86400: sessl.append(int(x["s"]))
+            elif k == "poll": kk = f"W{x.get('at') or w}"; pv = poll.setdefault(kk, {"up": 0, "mid": 0, "down": 0, "skip": 0}); vv = {1: "up", 0: "mid", -1: "down"}.get(x.get("v"), "skip"); pv[vv] += 1
+            elif k == "tip": kk = f"{x.get('k') or '?'}:{x.get('a') or 'shown'}"; tips[kk] = tips.get(kk, 0) + 1
+            elif k == "thief":   # V652
+                ta = str(x.get("a") or "?"); thf[ta] = thf.get(ta, 0) + 1; g = int(x.get("g") or 0)
+                if ta == "steal": thf["gs"] = thf.get("gs", 0) + g
+                elif ta == "wolf": thf["gb"] = thf.get("gb", 0) + g
+                elif ta == "gone": thf["gl"] = thf.get("gl", 0) + g
+        rage = 0; quickrestart = 0
+        for L in seq.values():
+            for i, (t, k, w) in enumerate(L):
+                if k != "death": continue
+                for t2, k2, w2 in L[i + 1:i + 6]:
+                    if t2 - t > 20000: break
+                    if k2 == "leave": rage += 1; break
+                    if k2 == "restart" and t2 - t < 8000: quickrestart += 1; break
+        waves = []
+        for w in sorted(wb):
+            b = wb[w]
+            if w < 1 or w > 150: continue
+            waves.append({"w": w, "n": b[0], "sec": round(b[1] / b[0]), "lives": round(b[2] / b[0], 2), "lossPct": round(100 * b[3] / b[0]), "stack": round(b[4] / b[0], 1)})
+        sessl.sort()
+        fb = c.execute("SELECT t, uid, ver, ch, lang, src, wave, stars, msg, plat FROM feedback WHERE t >= ? ORDER BY t DESC LIMIT 60", (since,)).fetchall()
+        st = [x["stars"] for x in fb if x["stars"]]
+        extra = {"waves": waves, "near": near, "idle": idle, "quits": quits, "rage": rage, "quickRestart": quickrestart,
+                 "thief": thf, "sessMedian": sessl[len(sessl) // 2] if sessl else None, "sessN": len(sessl), "poll": poll, "tips": tips,
+                 "rating": {"n": len(st), "avg": round(sum(st) / len(st), 2) if st else None, "dist": {str(i): st.count(i) for i in range(1, 6)}},
+                 "feedback": [{"t": x["t"], "uid": x["uid"], "team": x["uid"] in bad, "ver": x["ver"], "ch": x["ch"], "lang": x["lang"], "src": x["src"], "w": x["wave"], "stars": x["stars"], "msg": x["msg"], "plat": x["plat"]} for x in fb]}
+        try:   # V650
+            mods, oss, hrs, wds, nP, tot = {}, {}, [0] * 24, [0] * 7, 0, 0
+            for y in c.execute("SELECT uid, first, secs, os, osv, model, off FROM plays WHERE first >= ? AND dev=0 AND team=0", (since,)):
+                if not y["uid"] or y["uid"] in bad: continue
+                nP += 1; tot += y["secs"] or 0
+                m = y["model"] or "?"; mods[m] = mods.get(m, 0) + 1
+                o = ((y["os"] or "?") + " " + (y["osv"] or "")).strip(); oss[o] = oss.get(o, 0) + 1
+                if y["off"] is not None:
+                    lt = time.gmtime((y["first"] + y["off"] * 60000) / 1000); hrs[lt.tm_hour] += 1; wds[lt.tm_wday] += 1
+            extra["plays"] = {"n": nP, "mins": round(tot / 60), "models": mods, "os": oss, "hours": hrs, "wd": wds}
+        except Exception as e2:
+            extra["plays"] = {"err": str(e2)[:120]}
+    except Exception as e:
+        extra = {"err": str(e)[:120]}
+    return {"ok": True, "x": extra, "days": days, "players": n, "events": len(ev), "funnel": funnel, "exits": exits,
+            "skipAt": {str(i): sum(1 for u in U.values() if u["skip"] == i) for i in range(1, 11) if any(u["skip"] == i for u in U.values())},
+            "hack": hack, "deathsByWave": sorted(([w, c2] for w, c2 in deaths.items()), key=lambda x: -x[1])[:12],
+            "musicOff": {"off": sum(1 for u in mu_known if not u["mu"]), "of": len(mu_known)},
+            "return": {"d1": ret1, "d1of": len(old1), "d7": ret7, "d7of": len(old7)},
+            "perf": {"n": len(perf), "avgFps": round(sum(perf) / len(perf), 1) if perf else None},
+            "loadMs": {"n": len(loads), "median": loads[len(loads) // 2] if loads else None},
+            "channels": chans, "spec": spec, "buy": buys, "ad": ads, "set": sets}
 
 def save_key(code):
     """Der Code selbst wird nie gespeichert, nur sein Hash."""
@@ -419,6 +561,8 @@ class H(BaseHTTPRequestHandler):
                 clean_text(d.get("plat"), 24), clean_text(d.get("br"), 24),
                 integer(d.get("sw"), "sw", 0, 10000, 0), integer(d.get("sh"), "sh", 0, 10000, 0),
                 max(0.0, min(64.0, float(d.get("mem")))) if isinstance(d.get("mem"), (int, float)) and not isinstance(d.get("mem"), bool) else None)
+        uid = d.get("uid") if isinstance(d.get("uid"), str) and UID_RE.fullmatch(d.get("uid")) else None   # V594
+        ext = (uid, clean_text(d.get("ch"), 12) or None, 1 if d.get("team") is True or d.get("team") == 1 else 0)
         t, rows = now_ms(), []
         for e in ev[:12]:
             if not isinstance(e, dict):
@@ -428,12 +572,31 @@ class H(BaseHTTPRequestHandler):
                 continue
             m = e.get("m")
             mins = max(0.0, min(10000.0, float(m))) if isinstance(m, (int, float)) and not isinstance(m, bool) else None
+            dd = clean_profile(e.get("d")) if isinstance(e.get("d"), dict) else None
+            dj = json.dumps(dd, separators=(",", ":"))[:400] if dd else None
             rows.append((t, base[0], base[1], k, integer(e.get("w"), "w", 0, MAX_WAVE, 0), clean_text(e.get("scr"), 16),
-                         clean_text(e.get("msg"), 200), clean_text(e.get("src"), 80), mins) + base[2:])
+                         clean_text(e.get("msg"), 200), clean_text(e.get("src"), 80), mins) + base[2:] + ext + (dj,))
         if rows:
             with db() as c:
-                c.executemany("INSERT INTO events(t,ver,sess,kind,wave,scr,msg,src,mins,dev,plat,br,sw,sh,mem) "
-                              "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", rows)
+                c.executemany("INSERT INTO events(t,ver,sess,kind,wave,scr,msg,src,mins,dev,plat,br,sw,sh,mem,uid,ch,team,data) "
+                              "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", rows)
+                try:   # V650: Sitzung mit Gerät und Spielzeit
+                    dv = d.get("dv") if isinstance(d.get("dv"), dict) else {}
+                    off = dv.get("off"); off = int(off) if isinstance(off, (int, float)) and not isinstance(off, bool) and -900 <= off <= 900 else None
+                    secs = 0
+                    for e in ev[:12]:
+                        if isinstance(e, dict) and e.get("k") == "sess" and isinstance(e.get("d"), dict) and isinstance(e["d"].get("s"), (int, float)):
+                            secs = max(secs, min(86400, int(e["d"]["s"])))
+                    mw = max([r[4] for r in rows] + [0])
+                    c.execute("INSERT INTO plays(sess,uid,first,last,n,secs,maxw,ver,ch,os,osv,model,br,sw,sh,tz,off,lang,team,dev) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) "
+                              "ON CONFLICT(sess) DO UPDATE SET last=excluded.last, n=plays.n+excluded.n, secs=MAX(plays.secs, excluded.secs), maxw=MAX(plays.maxw, excluded.maxw), ver=excluded.ver, "
+                              "uid=COALESCE(excluded.uid, plays.uid), os=COALESCE(NULLIF(excluded.os,''), plays.os), osv=COALESCE(NULLIF(excluded.osv,''), plays.osv), "
+                              "model=COALESCE(NULLIF(excluded.model,''), plays.model), tz=COALESCE(NULLIF(excluded.tz,''), plays.tz), off=COALESCE(excluded.off, plays.off), "
+                              "lang=COALESCE(NULLIF(excluded.lang,''), plays.lang), team=MAX(plays.team, excluded.team), dev=MAX(plays.dev, excluded.dev)",
+                              (sess, uid, t, t, len(rows), secs, mw, base[0], ext[1], clean_text(dv.get("os"), 24), clean_text(dv.get("osv"), 24), clean_text(dv.get("model"), 40),
+                               base[4], base[5], base[6], clean_text(dv.get("tz"), 40), off, clean_text(dv.get("lang"), 8), ext[2], base[2]))
+                except Exception:
+                    pass
         return self.send_json(200, {"ok": True, "n": len(rows)})
 
     def post_save(self, d):
@@ -483,6 +646,23 @@ class H(BaseHTTPRequestHandler):
                     else:
                         c.execute("INSERT INTO players(uid,first,last,n,data) VALUES(?,?,?,?,?)", (uid, t, t, max(1, inc), blob))
                 return self.send_json(200, {"ok": True})
+            if self.route()[0] == "/tester":   # V707b: Tester-Anmeldung (Trailer-Seite)
+                if not rate_ok(self.client_ip(), "te", 3):
+                    return self.send_json(429, {"error": "too many requests"})
+                d = self.parse_json(raw, n)
+                if d.get("web"):   # Honigtopf gegen Bots
+                    return self.send_json(200, {"ok": True})
+                em = clean_text(d.get("email"), 120).strip()
+                if not re.fullmatch(r"[^@\s]{1,64}@[^@\s]{1,80}\.[A-Za-z]{2,24}", em):
+                    raise Bad("bad email")
+                tg = clean_text(d.get("tg"), 40).strip()
+                if tg and not re.fullmatch(r"@?[A-Za-z0-9_]{3,40}|\+?[0-9 ]{6,20}", tg):
+                    raise Bad("bad telegram")
+                row = (now_ms(), clean_text(d.get("name"), 60), em, tg, clean_text(d.get("msg"), 600),
+                       short_str(d.get("lang"), "lang", ("ru", "en"), 4, ""), clean_text(d.get("site"), 40))
+                with db() as c:
+                    c.execute("INSERT INTO testers(t,name,email,tg,msg,lang,site) VALUES(?,?,?,?,?,?,?)", row)
+                return self.send_json(200, {"ok": True})
             if self.route()[0] == "/admin/claim":   # V536: einmalig für Martins Gerät
                 if not rate_ok(self.client_ip(), "ad", 6):
                     return self.send_json(429, {"error": "too many requests"})
@@ -505,12 +685,103 @@ class H(BaseHTTPRequestHandler):
                     if not (th and any(hmac.compare_digest(h, th) for h in hs)):
                         return self.send_json(403, {"error": "forbidden"})
                     rows = c.execute("SELECT uid, first, last, n, data FROM players ORDER BY first, uid").fetchall()
+                    PL = {}   # V650
+                    for y in c.execute("SELECT uid, first, last, secs, maxw, ver, ch, os, osv, model, br, tz, off FROM plays WHERE uid IS NOT NULL ORDER BY first DESC LIMIT 6000"):
+                        L = PL.setdefault(y["uid"], [])
+                        if len(L) < 40: L.append({k: y[k] for k in y.keys() if k != "uid"})
                 lst = []
                 for i, x in enumerate(rows):
                     try: dd = json.loads(x["data"])
                     except Exception: dd = {}
-                    lst.append({"no": i + 1, "uid": x["uid"], "first": x["first"], "last": x["last"], "n": x["n"], "d": dd})
+                    lst.append({"no": i + 1, "uid": x["uid"], "first": x["first"], "last": x["last"], "n": x["n"], "d": dd, "plays": PL.get(x["uid"], [])})
                 return self.send_json(200, {"ok": True, "now": now_ms(), "list": lst})
+            if self.route()[0] == "/admin/tgtoken":   # V707c: Telegram-Bot-Token
+                if not rate_ok(self.client_ip(), "ad", 10):
+                    return self.send_json(429, {"error": "too many requests"})
+                d = self.parse_json(raw, n)
+                with db() as c:
+                    if not admin_ok(c, d.get("token")):
+                        return self.send_json(403, {"error": "forbidden"})
+                bt = d.get("bot")
+                if not (isinstance(bt, str) and re.fullmatch(r"[0-9]{5,15}:[A-Za-z0-9_-]{30,60}", bt.strip())):
+                    return self.send_json(400, {"error": "Das sieht nicht wie ein Bot-Token aus."})
+                bt = bt.strip()
+                try:
+                    import urllib.request as _u
+                    me = json.loads(_u.urlopen("https://api.telegram.org/bot" + bt + "/getMe", timeout=15).read().decode())
+                except Exception:
+                    return self.send_json(400, {"error": "Telegram kennt diesen Token nicht."})
+                if not me.get("ok"):
+                    return self.send_json(400, {"error": "Telegram kennt diesen Token nicht."})
+                sd = os.path.join(os.path.dirname(DB), "secret"); os.makedirs(sd, exist_ok=True); os.chmod(sd, 0o700)
+                fp = os.path.join(sd, "tg.json"); fd = os.open(fp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+                with os.fdopen(fd, "w") as f: json.dump({"bot": bt, "user": me["result"].get("username")}, f)
+                return self.send_json(200, {"ok": True, "user": me["result"].get("username")})
+            if self.route()[0] == "/admin/secret":   # V656: Play-Dienstschlüssel speichern
+                if not rate_ok(self.client_ip(), "ad", 10):
+                    return self.send_json(429, {"error": "too many requests"})
+                d = self.parse_json(raw, n, 16000)
+                with db() as c:
+                    if not admin_ok(c, d.get("token")):
+                        return self.send_json(403, {"error": "forbidden"})
+                k = d.get("key")
+                if not (isinstance(k, dict) and k.get("type") == "service_account" and isinstance(k.get("client_email"), str) and "PRIVATE KEY" in str(k.get("private_key"))):
+                    return self.send_json(400, {"error": "Das ist kein Dienstkonto-Schlüssel (JSON)."})
+                sd = os.path.join(os.path.dirname(DB), "secret"); os.makedirs(sd, exist_ok=True); os.chmod(sd, 0o700)
+                fp = os.path.join(sd, "play-sa.json"); fd = os.open(fp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+                with os.fdopen(fd, "w") as f: json.dump(k, f)
+                return self.send_json(200, {"ok": True, "email": k["client_email"], "project": k.get("project_id")})
+            if self.route()[0] == "/admin/report":   # V653: Tabelle jetzt bauen / Drive-Auftrag / herunterladen
+                if not rate_ok(self.client_ip(), "ad", 30):
+                    return self.send_json(429, {"error": "too many requests"})
+                d = self.parse_json(raw, n)
+                with db() as c:
+                    if not admin_ok(c, d.get("token")):
+                        return self.send_json(403, {"error": "forbidden"})
+                act = d.get("act")
+                if act == "refresh":
+                    m = build_report(); return self.send_json(200, {"ok": True, "meta": m, "st": report_status()})
+                if act == "drive":
+                    m = build_report(); os.makedirs(REPORT_DIR, exist_ok=True)
+                    json.dump({"req": now_ms(), "msk": _msk(now_ms()), "week": m["week"], "done": None}, open(os.path.join(REPORT_DIR, "drive.json"), "w"))
+                    return self.send_json(200, {"ok": True, "meta": m, "st": report_status()})
+                if act == "get":
+                    wk = d.get("week") if isinstance(d.get("week"), str) and re.fullmatch(r"\d{4}-KW\d{2}", d.get("week") or "") else _week(now_ms())[0]
+                    f = "sitzungen.csv" if d.get("f") == "sitzungen" else "spieler.csv"
+                    try: txt = open(os.path.join(REPORT_DIR, wk, f), encoding="utf-8-sig").read()
+                    except Exception: txt = ""
+                    return self.send_json(200, {"ok": True, "week": wk, "file": f, "csv": txt})
+                return self.send_json(200, {"ok": True, "st": report_status()})
+            if self.route()[0] == "/admin/stats":   # V594: Analyse (nur echte Spieler)
+                if not rate_ok(self.client_ip(), "ad", 30):
+                    return self.send_json(429, {"error": "too many requests"})
+                d = self.parse_json(raw, n)
+                tok = d.get("token")
+                with db() as c:
+                    hs = [x["v"] for x in c.execute("SELECT v FROM kv WHERE k='admin:hash' OR k LIKE 'admin:hash:%'").fetchall()]
+                    th = hashlib.sha256(tok.encode()).hexdigest() if isinstance(tok, str) else ""
+                    if not (th and any(hmac.compare_digest(h, th) for h in hs)):
+                        return self.send_json(403, {"error": "forbidden"})
+                    try: days = max(1, min(EVENT_RETENTION_DAYS, int(d.get("days") or 30)))
+                    except Exception: days = 30
+                    return self.send_json(200, admin_stats(c, days))
+            if self.route()[0] == "/feedback":   # V647: Bewertung 1–5 Sterne + Nachricht
+                if not rate_ok(self.client_ip(), "fb", 6):
+                    return self.send_json(429, {"error": "too many requests"})
+                d = self.parse_json(raw, n, 8000)
+                stars = d.get("stars")
+                stars = stars if isinstance(stars, int) and not isinstance(stars, bool) and 1 <= stars <= 5 else None
+                msg = d.get("msg") if isinstance(d.get("msg"), str) else ""
+                msg = _URLQ.sub(r"\1", msg); msg = re.sub(r"[\x00-\x09\x0b-\x1f\x7f]+", " ", msg).strip()[:1000]
+                if not stars and not msg:
+                    raise Bad("empty")
+                uid = d.get("uid") if isinstance(d.get("uid"), str) and UID_RE.fullmatch(d.get("uid")) else None
+                with db() as c:
+                    c.execute("INSERT INTO feedback(t,uid,ver,ch,lang,src,wave,stars,msg,plat) VALUES(?,?,?,?,?,?,?,?,?,?)",
+                              (now_ms(), uid, short_str(d.get("ver"), "ver", None, 24, ""), clean_text(d.get("ch"), 12) or None,
+                               clean_text(d.get("lang"), 5) or None, clean_text(d.get("src"), 12) or None,
+                               integer(d.get("w"), "w", 0, MAX_WAVE, 0), stars, msg or None, clean_text(d.get("plat"), 24) or None))
+                return self.send_json(200, {"ok": True})
             if self.route()[0] == "/events":
                 if not rate_ok(self.client_ip(), "e", EVENTS_PER_MIN):
                     return self.send_json(429, {"error": "too many requests"})
@@ -660,6 +931,113 @@ def purge_old_entries():
         c.execute("DELETE FROM scores WHERE t < ?", (cutoff,))
         c.execute("DELETE FROM nuts WHERE t < ?", (cutoff,))
         c.execute("DELETE FROM players WHERE last < ?", (int(time.time() * 1000) - PLAYER_RETENTION_DAYS * 86400 * 1000,))
+        c.execute("DELETE FROM plays WHERE last < ?", (int(time.time() * 1000) - PLAYER_RETENTION_DAYS * 86400 * 1000,))
+
+# ---------- V653: Spieler-Tabelle je Woche ----------
+import csv, io
+REPORT_DIR = os.environ.get("CAPY_REPORTS", os.path.join(os.path.dirname(DB), "reports"))
+MSK = 3 * 3600 * 1000
+_rep_lock = threading.Lock()
+
+def _msk(t):
+    return time.strftime("%d.%m.%Y %H:%M", time.gmtime((t + MSK) / 1000)) if t else ""
+
+def _week(now):
+    d = datetime.fromtimestamp((now + MSK) / 1000, tz=timezone.utc)
+    y, w, wd = d.isocalendar()
+    start = int(datetime(d.year, d.month, d.day, tzinfo=timezone.utc).timestamp() * 1000) - (wd - 1) * 86400000 - MSK
+    return f"{y}-KW{w:02d}", start
+
+def build_report():
+    with _rep_lock:
+        now = now_ms(); wk, ws = _week(now)
+        out = os.path.join(REPORT_DIR, wk); os.makedirs(out, exist_ok=True)
+        with db() as c:
+            P = c.execute("SELECT uid, first, last, n, data FROM players ORDER BY first, uid").fetchall()
+            plays = c.execute("SELECT * FROM plays WHERE first >= ? ORDER BY first", (ws,)).fetchall()
+            ev = c.execute("SELECT uid, kind, wave, data FROM events WHERE t >= ? AND uid IS NOT NULL", (ws,)).fetchall()
+            fb = c.execute("SELECT t, uid, stars, msg FROM feedback WHERE t >= ? ORDER BY t", (ws,)).fetchall()
+        W = {}
+        for r in plays:
+            if not r["uid"]: continue
+            a = W.setdefault(r["uid"], {"s": 0, "sec": 0, "mw": 0, "dev": ""})
+            a["s"] += 1; a["sec"] += r["secs"] or max(0, (r["last"] - r["first"]) // 1000); a["mw"] = max(a["mw"], r["maxw"] or 0)
+            a["dev"] = " ".join(x for x in (r["os"], r["osv"], r["model"]) if x) or a["dev"]; a["ch"] = r["ch"] or a.get("ch", "")
+        E = {}
+        for r in ev:
+            k = r["kind"]; a = E.setdefault(r["uid"], {})
+            try: x = json.loads(r["data"]) if r["data"] else {}
+            except Exception: x = {}
+            key = k
+            if k == "thief": key = "thief_" + str(x.get("a") or "?")
+            if k == "poll": key = "poll_" + {1: "up", 0: "mid", -1: "down"}.get(x.get("v"), "skip")
+            a[key] = a.get(key, 0) + 1
+            if k == "thief" and x.get("a") == "steal": a["thief_gold"] = a.get("thief_gold", 0) + int(x.get("g") or 0)
+        F = {}
+        for r in fb: F[r["uid"]] = r
+        cols = ["Nr", "Spieler-Nr", "Name", "Team/Test", "Kanal", "Sprache", "Gerät (letzte Woche)", "System (Profil)", "App/Browser", "Bildschirm", "Zeitzone", "Version",
+                "Erster Kontakt (MSK)", "Zuletzt (MSK)", "App-Starts gesamt", "Sitzungen Woche", "Spielzeit Woche (min)", "Spielzeit gesamt (min)", "Beste Welle", "Gerade",
+                "Checkpoint", "Tutorial", "Tode gesamt", "Todesursachen", "Wellen gespielt Woche", "Tode Woche", "Knapp am Ende Woche", "Untätig 45s Woche", "Verlassen Woche",
+                "Käufe Woche", "Werbung Woche", "Boss-Hack Woche", "Fehler Woche", "Umfrage 👍/😐/👎", "Dieb kam/stahl/Wolf/entkommen", "Dieb Gold gestohlen Woche",
+                "Sterne-Bewertung", "Nachricht"]
+        bad = set(ADMIN_UIDS)
+        robots = set()
+        for r in P:
+            try:
+                if is_bot_profile(json.loads(r["data"])): robots.add(r["uid"])
+            except Exception: pass
+        P = [r for r in P if r["uid"] not in robots]   # V708b: Roboter/Testgeräte nicht in der Tabelle
+        plays = [r for r in plays if r["uid"] not in robots]
+        buf = io.StringIO(); w = csv.writer(buf); w.writerow(cols)
+        for i, r in enumerate(P):
+            try: d = json.loads(r["data"])
+            except Exception: d = {}
+            uid = r["uid"]; a = W.get(uid, {}); e = E.get(uid, {}); f = F.get(uid)
+            team = "ja" if (uid in bad or d.get("team") or d.get("dev")) else ""
+            cur = d.get("cur") or {}
+            cur_s = (f"Nuts {cur.get('c')} L{cur.get('lv')}" if cur.get("nz") else f"Welle {cur.get('w')}") if cur else ""
+            by = d.get("dby") or {}
+            w.writerow([i + 1, uid, d.get("nm") or "", team, a.get("ch", ""), d.get("lang") or "", a.get("dev", ""), d.get("os") or "", d.get("app") or "", d.get("scr") or "", d.get("tz") or "", d.get("ver") or "",
+                        _msk(r["first"]), _msk(r["last"]), r["n"], a.get("s", 0), round(a.get("sec", 0) / 60), round((d.get("t") or 0) / 60), d.get("bw") or 0, cur_s,
+                        d.get("cp") or 0, "ja" if d.get("tut") else "nein", d.get("d") or 0, " ".join(f"{k}:{v}" for k, v in by.items()), e.get("wend", 0), e.get("death", 0), e.get("near", 0), e.get("idle", 0), e.get("quit", 0),
+                        e.get("buy", 0), e.get("ad", 0), e.get("hack", 0), e.get("error", 0), f"{e.get('poll_up', 0)}/{e.get('poll_mid', 0)}/{e.get('poll_down', 0)}",
+                        f"{e.get('thief_come', 0)}/{e.get('thief_steal', 0)}/{e.get('thief_wolf', 0)}/{e.get('thief_gone', 0)}", e.get("thief_gold", 0),
+                        (f["stars"] or "") if f else "", (f["msg"] or "") if f else ""])
+        open(os.path.join(out, "spieler.csv"), "w", encoding="utf-8-sig", newline="").write(buf.getvalue())
+        buf = io.StringIO(); w = csv.writer(buf)
+        w.writerow(["Start (MSK)", "Ende (MSK)", "Ortszeit Start", "Spieler-Nr", "Minuten", "bis Welle", "System", "Version System", "Modell", "Browser/App", "Bildschirm", "Zeitzone", "Kanal", "Spiel-Version", "Team/Test"])
+        for r in plays:
+            lt = time.strftime("%a %d.%m. %H:%M", time.gmtime((r["first"] + (r["off"] or 0) * 60000) / 1000)) if r["off"] is not None else ""
+            w.writerow([_msk(r["first"]), _msk(r["last"]), lt, r["uid"] or "", round((r["secs"] or max(0, (r["last"] - r["first"]) // 1000)) / 60, 1), r["maxw"], r["os"] or "", r["osv"] or "", r["model"] or "",
+                        r["br"] or "", f"{r['sw']}×{r['sh']}" if r["sw"] else "", r["tz"] or "", r["ch"] or "", r["ver"] or "", "ja" if (r["team"] or r["dev"] or r["uid"] in bad) else ""])
+        open(os.path.join(out, "sitzungen.csv"), "w", encoding="utf-8-sig", newline="").write(buf.getvalue())
+        meta = {"t": now, "msk": _msk(now), "week": wk, "players": len(P), "plays": len(plays)}
+        json.dump(meta, open(os.path.join(REPORT_DIR, "last.json"), "w"))
+        return meta
+
+def report_status():
+    st = {}
+    try: st["last"] = json.load(open(os.path.join(REPORT_DIR, "last.json")))
+    except Exception: st["last"] = None
+    try: st["drive"] = json.load(open(os.path.join(REPORT_DIR, "drive.json")))
+    except Exception: st["drive"] = None
+    try: st["weeks"] = sorted([x for x in os.listdir(REPORT_DIR) if "-KW" in x], reverse=True)[:20]
+    except Exception: st["weeks"] = []
+    return st
+
+def reporter():
+    time.sleep(60)
+    while True:
+        try: build_report()
+        except Exception as e:
+            try: open(os.path.join(REPORT_DIR, "error.txt"), "w").write(str(e))
+            except Exception: pass
+        time.sleep(3600)
+
+def admin_ok(c, tok):
+    hs = [x["v"] for x in c.execute("SELECT v FROM kv WHERE k='admin:hash' OR k LIKE 'admin:hash:%'").fetchall()]
+    th = hashlib.sha256(tok.encode()).hexdigest() if isinstance(tok, str) else ""
+    return bool(th and any(hmac.compare_digest(h, th) for h in hs))
 
 def janitor():
     while True:
@@ -674,6 +1052,7 @@ def janitor():
 if __name__ == "__main__":
     init_db()
     threading.Thread(target=janitor, daemon=True).start()
+    threading.Thread(target=reporter, daemon=True).start()   # V653
     srv = ThreadingHTTPServer((HOST, PORT), H)
     srv.daemon_threads = True
     srv.serve_forever()

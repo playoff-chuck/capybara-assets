@@ -1,0 +1,2 @@
+3 0 * * * /usr/local/bin/ru-code-backup.sh >>/var/log/ru-code-backup.log 2>&1
+17 * * * * /root/capy_git_sync.sh >> /var/log/capy_git_sync.log 2>&1
