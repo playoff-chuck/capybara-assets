@@ -2459,5 +2459,16 @@
 "SWIPE CONTROLS: ON": "УПРАВЛЕНИЕ ЖЕСТАМИ: ВКЛ",
 "SWIPE CONTROLS: OFF": "УПРАВЛЕНИЕ ЖЕСТАМИ: ВЫКЛ",
 "DRAG = move · TAP = rotate · SWIPE UP = drop": "ВЕДИ = двигать · ТАП = вращать · ВВЕРХ = сброс",
-"SWIPE": "ЖЕСТЫ"
+"SWIPE": "ЖЕСТЫ",
+"Swipe controls": "Управление жестами",
+"Tap": "Тап",
+"Drag left": "Веди влево",
+"Drag right": "Веди вправо",
+"Move": "Сдвинуть",
+"Swipe up": "Свайп вверх",
+"Drop": "Сбросить",
+"Drag down": "Веди вниз",
+"Lower": "Опустить",
+"Swipe controls are off · turn them on in Settings": "Жесты выключены · включи их в настройках",
+"Tap ⓘ to play on": "Нажми ⓘ, чтобы играть дальше"
 }

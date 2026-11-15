@@ -2040,5 +2040,16 @@
 "SWIPE CONTROLS: ON": "WISCHSTEUERUNG: AN",
 "SWIPE CONTROLS: OFF": "WISCHSTEUERUNG: AUS",
 "DRAG = move · TAP = rotate · SWIPE UP = drop": "ZIEHEN = bewegen · TIPPEN = drehen · HOCH = fallen",
-"SWIPE": "WISCHEN"
+"SWIPE": "WISCHEN",
+"Swipe controls": "Wischsteuerung",
+"Tap": "Tippen",
+"Drag left": "Nach links ziehen",
+"Drag right": "Nach rechts ziehen",
+"Move": "Verschieben",
+"Swipe up": "Nach oben wischen",
+"Drop": "Fallen lassen",
+"Drag down": "Nach unten ziehen",
+"Lower": "Senken",
+"Swipe controls are off · turn them on in Settings": "Wischsteuerung ist aus · in den Einstellungen einschalten",
+"Tap ⓘ to play on": "Tippe auf ⓘ, um weiterzuspielen"
 }

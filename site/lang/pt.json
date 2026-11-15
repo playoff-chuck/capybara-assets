@@ -2460,5 +2460,16 @@
 "SWIPE CONTROLS: ON": "CONTROLE POR GESTOS: LIGADO",
 "SWIPE CONTROLS: OFF": "CONTROLE POR GESTOS: DESLIGADO",
 "DRAG = move · TAP = rotate · SWIPE UP = drop": "ARRASTE = mover · TOQUE = girar · CIMA = soltar",
-"SWIPE": "GESTOS"
+"SWIPE": "GESTOS",
+"Swipe controls": "Controle por gestos",
+"Tap": "Toque",
+"Drag left": "Arraste para a esquerda",
+"Drag right": "Arraste para a direita",
+"Move": "Mover",
+"Swipe up": "Deslize para cima",
+"Drop": "Soltar",
+"Drag down": "Arraste para baixo",
+"Lower": "Descer",
+"Swipe controls are off · turn them on in Settings": "Os gestos estão desligados · ative-os nas Configurações",
+"Tap ⓘ to play on": "Toque em ⓘ para continuar"
 }

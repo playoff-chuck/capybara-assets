@@ -2916,5 +2916,16 @@
 "SWIPE CONTROLS: ON": "SWIPE CONTROLS: ON",
 "SWIPE CONTROLS: OFF": "SWIPE CONTROLS: OFF",
 "DRAG = move · TAP = rotate · SWIPE UP = drop": "DRAG = move · TAP = rotate · SWIPE UP = drop",
-"SWIPE": "SWIPE"
+"SWIPE": "SWIPE",
+"Swipe controls": "Swipe controls",
+"Tap": "Tap",
+"Drag left": "Drag left",
+"Drag right": "Drag right",
+"Move": "Move",
+"Swipe up": "Swipe up",
+"Drop": "Drop",
+"Drag down": "Drag down",
+"Lower": "Lower",
+"Swipe controls are off · turn them on in Settings": "Swipe controls are off · turn them on in Settings",
+"Tap ⓘ to play on": "Tap ⓘ to play on"
 }
