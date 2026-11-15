@@ -2596,6 +2596,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
   <button class="xBtn" id="setX" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg></button>
   <div class="alHead"><span class="alTag">SETTINGS</span><span class="alTime"></span></div>
   <div class="heroPick" id="heroPickSet"><div class="hpHead">YOUR HERO</div><div class="hpRow"><button class="hpAv" data-hero="blue" aria-label="Play as Blue"><img alt=""><b>BLUE</b></button><button class="hpAv" data-hero="rosie" aria-label="Play as Rosie"><img alt=""><b>ROSIE</b></button></div><div class="hpSub"></div></div>
+  <button type="button" id="pvGest" class="btn-small setGest">SWIPE CONTROLS: ON</button><style>.setGest{display:block;width:100%;margin:6px 0 10px;min-height:40px}</style>
   <label for="setNick">Your player name · made up, not your real one</label>
   <input id="setNick" type="text" maxlength="14" autocomplete="off" spellcheck="false" placeholder="e.g. CapyKing"><div class="setRate"><div class="hpHead">RATE THE GAME</div><div class="rateRow"><div class="rateStars" id="setStars"><button type="button" class="rStar" data-s="1" aria-label="1 of 5"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.6l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.4l-5.8 3.1 1.1-6.5-4.7-4.6 6.5-.9z"/></svg></button><button type="button" class="rStar" data-s="2" aria-label="2 of 5"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.6l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.4l-5.8 3.1 1.1-6.5-4.7-4.6 6.5-.9z"/></svg></button><button type="button" class="rStar" data-s="3" aria-label="3 of 5"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.6l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.4l-5.8 3.1 1.1-6.5-4.7-4.6 6.5-.9z"/></svg></button><button type="button" class="rStar" data-s="4" aria-label="4 of 5"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.6l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.4l-5.8 3.1 1.1-6.5-4.7-4.6 6.5-.9z"/></svg></button><button type="button" class="rStar" data-s="5" aria-label="5 of 5"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.6l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.4l-5.8 3.1 1.1-6.5-4.7-4.6 6.5-.9z"/></svg></button></div><button id="setMsg" class="btn-small" type="button">✉ MESSAGE</button><span class="setMsgHint">Write us · ideas, bugs, wishes …</span></div></div><div class="setRow"><button id="setCloud" class="btn-small" type="button">☁ Cloud save</button><button id="setGuide" class="btn-small" type="button">Guide</button><button id="setFx" class="btn-small" type="button">EFFECTS: ON</button></div><div class="setTut"><button id="setReTut" class="tutBanner" type="button"><span class="tbTag">CRASH COURSE</span><span class="tbTxt"><small>COACH OLLIE</small><b>10 LESSONS FROM THE PRO</b><em>Brush up your moves – then go for the record!</em></span><span class="tbGo">▶</span></button><small>Your game stays saved. After the certificate you are back exactly where you left off.</small></div><div class="setLangBox"><div class="hpHead">LANGUAGE</div><div class="setLang" id="setLang" aria-label="Language"></div></div><div class="setInv"><button id="setInvite" class="shareBtn" type="button">INVITE FRIENDS</button><small id="setInvN">Friends get a free Ten-ton drop</small><a id="setVk" class="vkBtn" href="https://vk.ru/playcapybarasquad" target="_blank" rel="noopener">JOIN US ON VK</a><small>News, records and your ideas</small></div>
 </div></div>
@@ -2905,7 +2906,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V716";
+const GAME_VER = "V717";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -7072,6 +7073,43 @@ $("sheet").addEventListener("click", e => {
 
 // ---------- Eingabe ----------
 let towerId = 0;
+/* V717: Wischsteuerung (Option) – nach dem Laden einrichten (LS wird weiter unten definiert) */
+setTimeout(() => {
+  let on = LS.get("capy-gest") !== "0", g = null;   /* Martin 17:58: standardmäßig AN, im Pause-Menü abschaltbar */
+  const btn = $("pvGest"), paint = () => { if (btn) btn.textContent = "SWIPE CONTROLS: " + (on ? "ON" : "OFF"); }; paint();
+  if (btn) btn.addEventListener("click", () => { on = !on; LS.set("capy-gest", on ? "1" : "0"); paint(); if (on) toast("DRAG = move · TAP = rotate · SWIPE UP = drop", "SWIPE"); });
+  window.__gest = { get on() { return on; } };
+  const free = () => !S.started || S.over || S.duel || S.drop || S.alert || S.mix || ["build", "snipe", "mix", "tesla"].includes(S.mode);
+  cv.addEventListener("pointerdown", e => {
+    if (!on || free() || performance.now() < (window.__tapGuard || 0)) return;
+    e.stopImmediatePropagation(); e.preventDefault();
+    const r = cv.getBoundingClientRect();
+    g = { id: e.pointerId, x0: e.clientX, y0: e.clientY, t0: performance.now(), lx: e.clientX, ly: e.clientY, cw: r.width / GW, ch: r.height / GH, moved: false, down: 0, e };
+    try { cv.setPointerCapture(e.pointerId); } catch (er) {}
+  }, true);
+  cv.addEventListener("pointermove", e => {
+    if (!g || e.pointerId !== g.id) return;
+    e.stopImmediatePropagation();
+    const dx = e.clientX - g.lx, dy = e.clientY - g.ly;
+    if (Math.abs(e.clientX - g.x0) > 10 || Math.abs(e.clientY - g.y0) > 10) g.moved = true;
+    if (Math.abs(dx) >= g.cw * 0.9 && Math.abs(e.clientX - g.x0) > Math.abs(e.clientY - g.y0) * 0.6) { const n = Math.trunc(dx / (g.cw * 0.9)); for (let i = 0; i < Math.abs(n); i++) move(Math.sign(n)); g.lx += n * g.cw * 0.9; }
+    if (e.clientY - g.y0 > g.ch * 1.5 && dy >= g.ch * 0.8) { const n = Math.trunc(dy / (g.ch * 0.8)); for (let i = 0; i < n; i++) softDrop(); g.ly += n * g.ch * 0.8; g.down += n; }
+  }, true);
+  const end = e => {
+    if (!g || e.pointerId !== g.id) return;
+    e.stopImmediatePropagation();
+    const dt = performance.now() - g.t0, tx = e.clientX - g.x0, ty = e.clientY - g.y0, st = g; g = null;
+    if (e.type === "pointercancel") return;
+    if (ty < -Math.max(40, st.ch * 1.5) && Math.abs(ty) > Math.abs(tx) * 1.2 && dt < 600) { hardDrop(); return; }
+    if (!st.moved && dt < 350) {
+      const [x, y] = cvCell(st.e), t = (x >= 0 && y >= 0 && x < GW && y < GH) ? S.towers.get(y * GW + x) : null;
+      if (t) { snd("towerTap"); openSheet(t); return; }
+      if (S.sel) closeSheet();
+      rotate();
+    }
+  };
+  cv.addEventListener("pointerup", end, true); cv.addEventListener("pointercancel", end, true);
+}, 0);
 cv.addEventListener("pointerdown", e => {
   if (!S.started || S.over) return;
   if (performance.now() < (window.__tapGuard || 0)) return;

@@ -2912,5 +2912,9 @@
 "Hugs a tower for 10 s – it stops shooting. Too slow? The tower dissolves.": "Hugs a tower for 10 s – it stops shooting. Too slow? The tower dissolves.",
 "Hug # s": "Hug # s",
 "HUG!": "HUG!",
-"Tower hugged away": "Tower hugged away"
+"Tower hugged away": "Tower hugged away",
+"SWIPE CONTROLS: ON": "SWIPE CONTROLS: ON",
+"SWIPE CONTROLS: OFF": "SWIPE CONTROLS: OFF",
+"DRAG = move · TAP = rotate · SWIPE UP = drop": "DRAG = move · TAP = rotate · SWIPE UP = drop",
+"SWIPE": "SWIPE"
 }
