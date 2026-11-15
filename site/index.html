@@ -2907,7 +2907,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V721";
+const GAME_VER = "V722";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -9151,15 +9151,18 @@ function shRR(g, x, y, w, h, r) { g.beginPath(); g.moveTo(x + r, y); g.arcTo(x +
 function shFit(g, txt, font, size, maxW) { let z = size; g.font = font.replace("#", z); while (z > 20 && g.measureText(txt).width > maxW) { z -= 4; g.font = font.replace("#", z); } return z; }
 function shInfo(o) {
   o = o || { kind: "over" }; const st = starsAll(), tot = Object.values(st).reduce((a, b) => a + (+b || 0), 0);
-  if (o.kind === "place") { const P = wherePos(o.wave || (o.g + 1) * 5); return { c: P.c, p: P.p, tag: `${P.cont[1]} · PLACE ${o.g + 1} OF 30`, title: `${P.place} CLEARED!`, stars: o.n || 0, big: null, tot, wave: o.wave, call: "CAN YOU GET 5 STARS?", text: `I cleared ${P.place} with ${o.n || 0}/5 stars in Capybara Squad! Can you beat it? ${chUrl("st", o.n || 1, o.g)}` }; }
+  if (o.kind === "place") { const P = wherePos(o.wave || (o.g + 1) * 5); return { c: P.c, p: P.p, tag: `${P.cont[1]} · PLACE ${o.g + 1} OF 30`, title: `${P.place} CLEARED!`, stars: o.n || 0, big: null, tot, wave: o.wave, call: "CAN YOU GET 5 STARS?", text: `I cleared ${P.place} with ${o.n || 0}/5 stars in Capybara Squad! Can you beat it? ${chUrl("st", o.n || 1, o.g)}`, tpl: "I cleared # with #/# stars in Capybara Squad! Can you beat it? #", args: [T(P.place), o.n || 0, 5, chUrl("st", o.n || 1, o.g)] }; }
   const w = Math.max(1, S && S.wave || 1), P = wherePos(w), sc = (S && S.score) || 0, win = !!(S && S.won);
   return { c: P.c, p: P.p, tag: `${P.place} · ${P.cont[1]}`, title: win ? "WORLD TOUR COMPLETE!" : `I REACHED WAVE ${w}`, stars: null, big: sc, tot, wave: w,
     stats: [[w, "WAVES"], [(S && S.lines) || 0, "LINES"], [(S && S.kills) || 0, "SPLATS"], [tot, "STARS"]], call: "BEAT MY SCORE!",
-    text: win ? `I beat all 150 waves of Capybara Squad with ${sc.toLocaleString("en-US")} points! Can you beat me? ${chUrl("sc", sc)}` : `I reached wave ${w} (${P.place}) in Capybara Squad with ${sc.toLocaleString("en-US")} points! Can you beat me? ${chUrl("sc", sc)}` };
+    text: win ? `I beat all 150 waves of Capybara Squad with ${sc.toLocaleString("en-US")} points! Can you beat me? ${chUrl("sc", sc)}` : `I reached wave ${w} (${P.place}) in Capybara Squad with ${sc.toLocaleString("en-US")} points! Can you beat me? ${chUrl("sc", sc)}`,
+    tpl: win ? "I beat all # waves of Capybara Squad with # points! Can you beat me? #" : "I reached wave # (#) in Capybara Squad with # points! Can you beat me? #", args: win ? [150, sc.toLocaleString("en-US"), chUrl("sc", sc)] : [w, T(P.place), sc.toLocaleString("en-US"), chUrl("sc", sc)] };
 }
+function shText(I) { try { if (I.tpl) { let t = T(I.tpl); if (t && t !== I.tpl && (t.match(/#/g) || []).length === I.args.length) { I.args.forEach(a => { t = t.replace("#", String(a)); }); return t; } } } catch (e) {} return I.text; }   /* V722 */
+window.__shText = o => shText(shInfo(o));
 async function shareCard(o) {
   const I = shInfo(o), W = 1080, H = 1350, cv = document.createElement("canvas"); cv.width = W; cv.height = H; const g = cv.getContext("2d");
-  try { await Promise.all([document.fonts.load("100px Bangers"), document.fonts.load('800 40px "Baloo 2"')]); } catch (e) {}
+  try { await Promise.all([document.fonts.load("100px Bangers", "AБЯ"), document.fonts.load('800 40px "Baloo 2"', "AБЯ"), document.fonts.load('800 40px "Baloo 2"')]); } catch (e) {}   /* V722: auch kyrillische Schrift laden */
   const ck = ["samerica", "africa", "asia", "namerica", "antarctica"][I.c] || "samerica";
   const [bg, logo, hero] = await Promise.all([shLoad((PLACE_BG[ck] || [])[I.p]), shLoad(MAIN_LOGO), shLoad(HERO_IMG[heroKey()])]);
   const gr = g.createLinearGradient(0, 0, 0, H); gr.addColorStop(0, "#f6c477"); gr.addColorStop(1, "#d9772f"); g.fillStyle = gr; g.fillRect(0, 0, W, H);
@@ -9186,9 +9189,9 @@ async function shareCard(o) {
   }
   if (hero) { const hh = 400, hw = Math.min(460, hero.naturalWidth * hh / hero.naturalHeight); g.drawImage(hero, 40, H - hh - 20, hw, hh); }
   const bx = 470, bw2 = W - bx - 50;
-  g.textAlign = "center"; g.font = "78px Bangers"; g.lineWidth = 12; g.strokeStyle = "#3a2414"; g.strokeText(I.call, bx + bw2 / 2, 1050); g.fillStyle = "#fff"; g.fillText(I.call, bx + bw2 / 2, 1050);
+  g.textAlign = "center"; shFit(g, I.call, "#px Bangers", 78, bw2 + 10); g.lineWidth = 12; g.strokeStyle = "#3a2414"; g.strokeText(I.call, bx + bw2 / 2, 1050); g.fillStyle = "#fff"; g.fillText(I.call, bx + bw2 / 2, 1050);
   g.fillStyle = "#3a2414"; shRR(g, bx, 1092, bw2, 112, 56); g.fill(); g.fillStyle = "#ff5fa2"; shRR(g, bx, 1080, bw2, 112, 56); g.fill(); g.lineWidth = 7; g.strokeStyle = "#3a2414"; g.stroke();
-  g.fillStyle = "#fff"; g.font = "70px Bangers"; g.fillText("PLAY FREE ▶", bx + bw2 / 2, 1160);
+  g.fillStyle = "#fff"; shFit(g, "PLAY FREE ▶", "#px Bangers", 70, bw2 - 56); g.fillText("PLAY FREE ▶", bx + bw2 / 2, 1160);
   g.font = '800 34px "Baloo 2"'; g.lineWidth = 8; g.strokeStyle = "rgba(30,16,6,.85)"; g.strokeText("playcapybarasquad.com", bx + bw2 / 2, 1268); g.fillStyle = "#fff"; g.fillText("playcapybarasquad.com", bx + bw2 / 2, 1268);
   return cv;
 }
@@ -9198,8 +9201,8 @@ async function shareResult(o) {
   try {
     const cv = await shareCard(o), blob = await new Promise(r => cv.toBlob(r, "image/png"));
     const file = blob && typeof File === "function" ? new File([blob], "capybara-squad.png", { type: "image/png" }) : null;
-    if (file && navigator.canShare && navigator.canShare({ files: [file] })) await navigator.share({ files: [file], title: "Capybara Squad", text: I.text });
-    else if (navigator.share) await navigator.share({ title: "Capybara Squad", text: I.text, url: SHARE_URL });
+    if (file && navigator.canShare && navigator.canShare({ files: [file] })) await navigator.share({ files: [file], title: "Capybara Squad", text: shText(I) });
+    else if (navigator.share) await navigator.share({ title: "Capybara Squad", text: shText(I), url: SHARE_URL });
     else if (blob) { const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "capybara-squad.png"; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 4000); try { toast("IMAGE SAVED · share it with your squad!", "HQ", 2200); } catch (e) {} }
   } catch (e) { if (!(e && e.name === "AbortError")) { try { toast("Sharing is not available here", "HQ", 2000); } catch (er) {} } }
   shBusy = false;
@@ -9225,7 +9228,7 @@ async function sqInviteFrom(btn) {   /* V438: Einladung von der Siegkarte – R�
 /* V494 (t143 Nr. 3): Einladungs-Bild – Held im Outfit + Effekt + Rufzeichen + beste Welle, im Gerät gezeichnet */
 async function inviteCard() {
   const W = 1080, H = 1350, cv = document.createElement("canvas"); cv.width = W; cv.height = H; const g = cv.getContext("2d");
-  try { await Promise.all([document.fonts.load("100px Bangers"), document.fonts.load('800 40px "Baloo 2"')]); } catch (e) {}
+  try { await Promise.all([document.fonts.load("100px Bangers", "AБЯ"), document.fonts.load('800 40px "Baloo 2"', "AБЯ"), document.fonts.load('800 40px "Baloo 2"')]); } catch (e) {}   /* V722: auch kyrillische Schrift laden */
   const hk = heroKey(), sel = outfitSel(hk), fx = OUTFIT_FX[hk][sel], bw = msnBestW(), nick = (LS.get("tarnturm-nick") || "").toUpperCase();
   const P = wherePos(Math.max(1, bw || 1)), ck = ["samerica", "africa", "asia", "namerica", "antarctica"][P.c] || "samerica";
   const [bg, logo, hero] = await Promise.all([shLoad((PLACE_BG[ck] || [])[P.p]), shLoad(MAIN_LOGO), shLoad(outfitImg(hk, sel))]);
@@ -9243,7 +9246,7 @@ async function inviteCard() {
   const t2 = (nick ? "JOIN MY SQUAD" : "") + (bw >= 2 ? `${nick ? " · " : ""}BEST WAVE ${Math.min(150, bw)}` : "") + (fx ? ` · ${fx[2].toUpperCase()}` : "");
   if (t2) { shFit(g, t2, '800 #px "Baloo 2"', 40, W - 120); g.lineWidth = 9; g.strokeStyle = "rgba(30,16,6,.9)"; g.strokeText(t2, cx, 1100); g.fillStyle = "#ffe58a"; g.fillText(t2, cx, 1100); }
   const bx = 250, bw2 = W - 500; g.fillStyle = "#3a2414"; shRR(g, bx, 1142, bw2, 104, 52); g.fill(); g.fillStyle = "#ff5fa2"; shRR(g, bx, 1130, bw2, 104, 52); g.fill(); g.lineWidth = 7; g.strokeStyle = "#3a2414"; g.stroke();
-  g.fillStyle = "#fff"; g.font = "64px Bangers"; g.fillText("PLAY FREE ▶", cx, 1204);
+  g.fillStyle = "#fff"; shFit(g, "PLAY FREE ▶", "#px Bangers", 64, bw2 - 56); g.fillText("PLAY FREE ▶", cx, 1204);
   g.font = '800 32px "Baloo 2"'; g.lineWidth = 8; g.strokeStyle = "rgba(30,16,6,.85)"; const t3 = "playcapybarasquad.com · free Ten-ton drop for you"; shFit(g, t3, '800 #px "Baloo 2"', 32, W - 100); g.strokeText(t3, cx, 1300); g.fillStyle = "#fff"; g.fillText(t3, cx, 1300);
   return cv; }
 window.__inviteCard = () => inviteCard();
