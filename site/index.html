@@ -2907,7 +2907,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V728";
+const GAME_VER = "V729";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -5363,7 +5363,7 @@ function canAct() { return S.started && !S.over && !S.paused && !S.intro && !(pe
 function genBubbleOnly() { try { if (!S.coachHold || S.paused) return false; const c = document.getElementById("coach"); if (!c || c.hidden) return false;   /* V631: General-Sprechblase hält das Spiel, Musik läuft weiter */
     if (window.__tipBulb && window.__tipBulb.open) return false; for (const id of ["ovHkTips", "ovCoachAd"]) { const o = document.getElementById(id); if (o && !o.hidden) return false; } return true; } catch (e) { return false; } }
 function frozen() { return !S.started || S.over || S.paused || S.coachHold || S.intro || S.duel || S.mode || S.sel || S.shop || S.drop || S.ordersOpen || S.mix || S.tiltCard || S.gestInfo || !!(window.__tipBulb && window.__tipBulb.open) || tutBuildHold(); }
-function tutBuildHold() { try { return !!(TUT.on && (TUT_STEPS[TUT.step] || {}).ar === "build"); } catch (e) { return false; } }   /* V727 */   /* V381: Tipp-Karte hält das Spiel an */
+function tutBuildHold() { try { if (!(TUT.on && (TUT_STEPS[TUT.step] || {}).ar === "build")) { window.__tbh0 = 0; return false; } const n = performance.now(); if (!window.__tbh0) window.__tbh0 = n; return S.mode === "build" || n - window.__tbh0 < 12000; } catch (e) { return false; } }   /* V729: höchstens 12 s */   /* V727 */   /* V381: Tipp-Karte hält das Spiel an */
 function starsAll() { try { return JSON.parse(LS.get("capy-stars") || "{}") || {}; } catch (e) { return {}; } }   /* V374: Bestwert je Ort 0..29 */
 function starStr(n) { return "★".repeat(n) + "☆".repeat(5 - n); }
 function placeRecAll() { try { return JSON.parse(LS.get("capy-place-rec") || "{}") || {}; } catch (e) { return {}; } }   /* V402: Bestwerte je Ort 0..29 {k: Splats, l: Reihen} */
@@ -5502,8 +5502,9 @@ function makePatterns() {
     return ctx.createPattern(c, "repeat");
   });
 }
+window.__deskF = (() => { try { return matchMedia("(pointer: fine)").matches && !(navigator.maxTouchPoints > 0); } catch (e) { return false; } })();   /* V729 */
 function resize() {
-  const r = { width: cv.clientWidth || cv.getBoundingClientRect().width, height: cv.clientHeight || cv.getBoundingClientRect().height }; DPR = Math.min((typeof minOn === "function" && minOn()) ? 1 : (typeof liteOn === "function" && liteOn()) ? (FX_WEAK ? 1.5 : 2) : 3, window.devicePixelRatio || 1);   /* V658 */
+  const r = { width: cv.clientWidth || cv.getBoundingClientRect().width, height: cv.clientHeight || cv.getBoundingClientRect().height }; DPR = Math.min((typeof minOn === "function" && minOn()) ? 1 : (typeof liteOn === "function" && liteOn()) ? (FX_WEAK ? 1.5 : 2) : (window.__deskF ? 1.5 : 3), window.devicePixelRatio || 1);   /* V658 */   /* V729: Desktop max 1,5 */
   cv.width = Math.round(r.width * DPR); cv.height = Math.round(r.height * DPR);
   CELL = cv.width / GW; makePatterns();
 }
@@ -7181,7 +7182,7 @@ function toggleBuild() {
 }
 window.addEventListener("keydown", e => {
   if (!S.started || S.over || e.target.tagName === "INPUT") return;
-  const k = e.key;
+  const k = ({ KeyW: "ArrowUp", KeyA: "ArrowLeft", KeyS: "ArrowDown", KeyD: "ArrowRight", KeyQ: "s" })[e.code] || (e.key === "s" || e.key === "S" ? "" : e.key);   /* V729: WASD, Tasche auf Q */
   if (S.duel && !["ArrowLeft", "ArrowRight", " ", "Enter"].includes(k)) return;   // Hack-Duell: nur Seitenwahl-Tasten
   if (["ArrowLeft", "ArrowRight", "ArrowDown", "ArrowUp", " "].includes(k)) { e.preventDefault(); if (document.activeElement && document.activeElement.tagName === "BUTTON") document.activeElement.blur(); }
   if (k === "ArrowLeft") move(-1); else if (k === "ArrowRight") move(1);
@@ -8745,7 +8746,7 @@ window.addEventListener("keydown", e => { if (e.key === "m" || e.key === "M") { 
 let last = performance.now();
 let loopErr = 0;
 function loop(now) {
-  if (window.__minF && now - last < 30) { requestAnimationFrame(loop); return; }   /* V667: MINIMAL = 30 Bilder/s */
+  if (now - last < (window.__minF ? 30 : 12)) { requestAnimationFrame(loop); return; }   /* V729: höchstens 60 Bilder/s */   /* V667: MINIMAL = 30 Bilder/s */
   const dt = Math.min(0.05, (now - last) / 1000); last = now;
   try { update(dt * (S.started && !S.over ? (S.speed || 1) * resumeK() * wowSlowK() : 1)); try { wowTick(dt); } catch (e) {} if (TUT.on && S.started && !S.over) tutTick(dt); draw(); }
   catch (e) { console.error("loop", e); if (++loopErr === 1) toast("GLITCH RECOVERED · " + String(e && e.message).slice(0, 40), "SYSTEM", 2500); S.mode = null; S.aim = null; S.mix = null; $("mixer").hidden = true; }
