@@ -2907,7 +2907,7 @@ if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.ma
 </div>
 
 <script>
-const GAME_VER = "V726";
+const GAME_VER = "V727";
 const LIN = { n: [11, 65], hp: [15.6, 1320.8], sp: [1.28, 1.67], g: [0.87, 0.61] };   /* V485: Start W1 → Ende W150, linear (Martin 08.11.) */
 function lin(k, w) { const a = LIN[k]; return a[0] + (a[1] - a[0]) * (Math.max(1, Math.min(150, w)) - 1) / 149; }
 /* ===== V456: Sprachschicht ===== */
@@ -5362,7 +5362,8 @@ function stepShots(dt) {
 function canAct() { return S.started && !S.over && !S.paused && !S.intro && !(performance.now() < (window.__holdUntil || 0)) && !S.duel && !S.mode && !S.sel && !S.shop && !S.drop && !S.ordersOpen && S.piece; }   // Funksprüche halten das Spiel nicht an
 function genBubbleOnly() { try { if (!S.coachHold || S.paused) return false; const c = document.getElementById("coach"); if (!c || c.hidden) return false;   /* V631: General-Sprechblase hält das Spiel, Musik läuft weiter */
     if (window.__tipBulb && window.__tipBulb.open) return false; for (const id of ["ovHkTips", "ovCoachAd"]) { const o = document.getElementById(id); if (o && !o.hidden) return false; } return true; } catch (e) { return false; } }
-function frozen() { return !S.started || S.over || S.paused || S.coachHold || S.intro || S.duel || S.mode || S.sel || S.shop || S.drop || S.ordersOpen || S.mix || S.tiltCard || S.gestInfo || !!(window.__tipBulb && window.__tipBulb.open); }   /* V381: Tipp-Karte hält das Spiel an */
+function frozen() { return !S.started || S.over || S.paused || S.coachHold || S.intro || S.duel || S.mode || S.sel || S.shop || S.drop || S.ordersOpen || S.mix || S.tiltCard || S.gestInfo || !!(window.__tipBulb && window.__tipBulb.open) || tutBuildHold(); }
+function tutBuildHold() { try { return !!(TUT.on && (TUT_STEPS[TUT.step] || {}).ar === "build"); } catch (e) { return false; } }   /* V727 */   /* V381: Tipp-Karte hält das Spiel an */
 function starsAll() { try { return JSON.parse(LS.get("capy-stars") || "{}") || {}; } catch (e) { return {}; } }   /* V374: Bestwert je Ort 0..29 */
 function starStr(n) { return "★".repeat(n) + "☆".repeat(5 - n); }
 function placeRecAll() { try { return JSON.parse(LS.get("capy-place-rec") || "{}") || {}; } catch (e) { return {}; } }   /* V402: Bestwerte je Ort 0..29 {k: Splats, l: Reihen} */
@@ -6449,7 +6450,7 @@ function draw() {
   // Geist + aktives Teil
   const p = S.piece;
   const lzk2 = LZ.k; if (lzk2 > 0.02) { try { laserDraw(p, s); } catch (e) {} }   /* V502/V503 */
-  if (lzk2 < 1 && p && S.started && !S.over) { ctx.save(); ctx.globalAlpha = 1 - lzk2;
+  if (lzk2 < 1 && p && S.started && !S.over && !(TUT.on && S.mode === "build")) {   /* V727 */ ctx.save(); ctx.globalAlpha = 1 - lzk2;
     let gy = p.y; while (!collide(p.cells, p.x, gy + 1)) gy++;
     ctx.strokeStyle = TH.ghost; ctx.lineWidth = Math.max(1, s * 0.06);
     for (const [x, y] of p.cells) if (gy + y >= 0) { const [a, b] = v2g(p.x + x, gy + y); ctx.strokeRect(a * s + 2, b * s + 2, s - 4, s - 4); }
@@ -6845,7 +6846,7 @@ function renderShop() {
   CATS.forEach((c, ci) => { const rs = rows.filter(r => CAT(r[1]) === ci); if (!rs.length) return; h += `<div class="shopCat ${c[2]}"><b>${c[0]}</b><span>${c[1]}</span></div>` + rs.map(r => r[1].replace('class="shopItem', `class="shopItem ${c[2]}`)).join(""); });
   h += `<div class="shopSep">Weapon mounts: tap a tower on the field to buy or upgrade · up to ${L.weapons} per tower</div>`;
   h += `</div><div class="sheetFoot"><button data-shop="close">Close</button><button data-shop="close2" class="btn-accent">Back to the game</button></div>`;
-  $("sheetIn").innerHTML = h; $("sheetIn").classList.add("pk", "shopV"); $("sheetIn").scrollTop = 0; const shp = $("sheetIn").closest(".sheet"); if (shp) shp.scrollTop = 0;
+  $("sheetIn").innerHTML = h; try { if (TUT.on && (TUT_STEPS[TUT.step] || {}).ar !== "spec") { const si = $("sheetIn"); si.querySelectorAll(".shopItem.cSpe,.shopCat.cSpe,.shopItem.cTra,.shopCat.cTra,.coachAd").forEach(e => e.remove()); si.querySelectorAll(".shopItem").forEach(e => { if (e.querySelector(".lk")) e.remove(); }); } } catch (e) {}   /* V727: Tutorial-Shop aufgeräumt */ $("sheetIn").classList.add("pk", "shopV"); $("sheetIn").scrollTop = 0; const shp = $("sheetIn").closest(".sheet"); if (shp) shp.scrollTop = 0;
 }
 // Tesla-Sturm: Blitze von allen Rändern auf das Fadenkreuz, 4×4 Felder weg, Monster darin zählen dreifach
 function tesla(x, y) {
@@ -7327,7 +7328,7 @@ const TUT_STEPS = [   /* V570: Kurs mit 10 Lektionen */
   { t: "DROP A BLOCK", s: "Tap DROP. Blocks are your ground.", at: "bDrop", ar: "drop", done: () => (TUT.dropTap || 0) > 0 },
   { t: "TURN YOUR BLOCKS!", s: "Tap the yellow button in the middle to turn the falling block.", at: "bRot", ar: "rot", rot: 1, done: () => (TUT.rot || 0) > (TUT.rb || 0) || TUT.t >= 15 },
   { t: "FILL A ROW – IT DISAPPEARS!", s: "A full row vanishes and pays gold. The outer squares at the left and right edge don't count – leave them free.", at: "board", got: 1, done: () => (S.lines | 0) > TUT.e.lines || TUT.t >= 40 },
-  { t: "BUILD A TOWER", s: "Tap SHOP, then PLACE.", at: "bBuild", ar: "build", fast: 1, done: () => S.mode === "build" || S.towers.size > TUT.b.tw },
+  { t: "BUILD A TOWER", s: "Tap the orange cart button, then PLACE.", at: "bBuild", ar: "build", fast: 1, done: () => S.mode === "build" || S.towers.size > TUT.b.tw },
   { t: "PICK A BLOCK AT THE EDGE", s: "Tap a block at the edge of the field – a tower there reaches the monsters on the ring.", at: "board", ar: "edge", fast: 1, done: () => S.towers.size > TUT.b.tw },
   { t: "ARM IT", s: "Buy the MG. Then tap Done.", at: "sheet", ar: "arm", fast: 1, done: () => [...S.towers.values()].reduce((a, t) => a + t.w.length, 0) > TUT.b.wp && !S.sel },
   { t: "MONSTERS RUN THE RING", s: "They run around the field. Each one that gets all the way round costs a ♥ life – towers and falling blocks splat them.", at: "board", ar: "ring", got: 1, wave: 1, done: () => TUT.t >= 12 || (S.kills | 0) > TUT.e.k + 2 },
