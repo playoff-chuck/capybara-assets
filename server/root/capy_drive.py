@@ -3,6 +3,7 @@
   python3 /root/capy_drive.py check          -> JSON: offene Aufträge je Server (com, ru)
   python3 /root/capy_drive.py csv SRV WEEK F -> CSV-Text (SRV com|ru, F spieler|sitzungen)
   python3 /root/capy_drive.py done SRV       -> Auftrag als erledigt markieren
+  SRV = all (V729, Martin 16.11.2026 «zusammenlegen»): beide Server in EINER Tabelle, erste Spalte «Server»
 """
 import json, subprocess, sys, time, re
 KEY = re.search(r"ssh -i (\S+)", open("/root/deploy_ru.sh").read()).group(1)
@@ -20,12 +21,32 @@ if a[0] == "check":
     for srv in ("com", "ru"):
         dr = rj(srv, "drive.json"); last = rj(srv, "last.json")
         out[srv] = {"pending": bool(dr and not dr.get("done")), "drive": dr, "last": last}
+    p = [s_ for s_ in ("com", "ru") if out[s_]["pending"]]
+    wk = max([out[s_]["drive"].get("week", "") for s_ in p] or [""])
+    lm = max([(out[s_]["last"] or {}).get("msk", "") for s_ in ("com", "ru")] or [""])
+    out["all"] = {"pending": bool(p), "drive": {"week": wk}, "last": {"msk": lm}, "servers": p}
     print(json.dumps(out, ensure_ascii=False))
 elif a[0] == "csv":
     srv, wk, f = a[1], a[2], a[3]
+    if srv == "all":
+        import csv, io
+        assert re.fullmatch(r"\d{4}-KW\d{2}", wk) and f in ("spieler", "sitzungen")
+        head, rows = None, []
+        for s_ in ("com", "ru"):
+            t = sh(s_, f"cat {D}/{wk}/{f}.csv").lstrip("\ufeff")
+            if not t.strip(): continue
+            r = list(csv.reader(io.StringIO(t)))
+            if not r: continue
+            if head is None: head = r[0]
+            rows += [["Hetzner (.com)" if s_ == "com" else "Russland (.ru)"] + x for x in r[1:] if any(x)]
+        o = io.StringIO(); w = csv.writer(o); w.writerow(["Server"] + (head or [])); w.writerows(rows)
+        sys.stdout.write("\ufeff" + o.getvalue()); sys.exit(0)
     assert srv in ("com", "ru") and re.fullmatch(r"\d{4}-KW\d{2}", wk) and f in ("spieler", "sitzungen")
     sys.stdout.write(sh(srv, f"cat {D}/{wk}/{f}.csv"))
 elif a[0] == "done":
+    if a[1] == "all":
+        for s_ in ("com", "ru"): subprocess.run([sys.executable, __file__, "done", s_])
+        sys.exit(0)
     srv = a[1]; assert srv in ("com", "ru")
     dr = rj(srv, "drive.json") or {}
     now = int(time.time() * 1000); dr["done"] = now; dr["doneMsk"] = time.strftime("%d.%m.%Y %H:%M", time.gmtime(now / 1000 + 3 * 3600)) + " MSK"
